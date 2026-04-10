@@ -35,10 +35,10 @@ class WC_Team_Payroll_Dashboard {
 				<!-- Stats will be loaded via AJAX -->
 			</div>
 
-			<!-- Latest Employees (10) -->
-			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
-				<div id="wc-tp-latest-employees-container">
+			<!-- Employee Payroll Details (TOP) -->
+			<div class="wc-tp-table-section" id="wc-tp-payroll-section">
+				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-payroll-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
 			</div>
@@ -46,7 +46,7 @@ class WC_Team_Payroll_Dashboard {
 			<!-- Two Column Layout -->
 			<div class="wc-tp-dashboard-grid">
 				<!-- Top Earners -->
-				<div class="wc-tp-table-section">
+				<div class="wc-tp-table-section" id="wc-tp-earners-section">
 					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
 					<div id="wc-tp-top-earners-container">
 						<!-- Content will be loaded via AJAX -->
@@ -54,7 +54,7 @@ class WC_Team_Payroll_Dashboard {
 				</div>
 
 				<!-- Recent Payments -->
-				<div class="wc-tp-table-section">
+				<div class="wc-tp-table-section" id="wc-tp-payments-section">
 					<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
 					<div id="wc-tp-recent-payments-container">
 						<!-- Content will be loaded via AJAX -->
@@ -62,10 +62,10 @@ class WC_Team_Payroll_Dashboard {
 				</div>
 			</div>
 
-			<!-- Employee Payroll Details -->
-			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-				<div id="wc-tp-payroll-container">
+			<!-- Latest Employees (10) - BOTTOM -->
+			<div class="wc-tp-table-section" id="wc-tp-employees-section">
+				<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-latest-employees-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
 			</div>
@@ -169,6 +169,16 @@ class WC_Team_Payroll_Dashboard {
 				gap: 16px;
 				transition: all 0.3s ease;
 				cursor: pointer;
+			}
+
+			.wc-tp-stat-link {
+				text-decoration: none;
+				color: inherit;
+			}
+
+			.wc-tp-stat-link:hover {
+				text-decoration: none;
+				color: inherit;
 			}
 
 			.wc-tp-stat-card:hover {
@@ -420,45 +430,45 @@ class WC_Team_Payroll_Dashboard {
 					const container = $('#wc-tp-stats-container');
 					let html = '';
 
-					// Total Employees
-					html += '<div class="wc-tp-stat-card">';
+					// Total Employees - Link to Employees Section
+					html += '<a href="#wc-tp-employees-section" class="wc-tp-stat-card wc-tp-stat-link">';
 					html += '<div class="wc-tp-stat-icon">👥</div>';
 					html += '<div class="wc-tp-stat-content">';
 					html += '<div class="wc-tp-stat-value">' + data.total_employees + '</div>';
 					html += '<div class="wc-tp-stat-label">Total Employees</div>';
-					html += '</div></div>';
+					html += '</div></a>';
 
-					// Total Orders
-					html += '<div class="wc-tp-stat-card">';
+					// Total Orders - Link to Payroll Section
+					html += '<a href="#wc-tp-payroll-section" class="wc-tp-stat-card wc-tp-stat-link">';
 					html += '<div class="wc-tp-stat-icon">📦</div>';
 					html += '<div class="wc-tp-stat-content">';
 					html += '<div class="wc-tp-stat-value">' + data.total_orders + '</div>';
 					html += '<div class="wc-tp-stat-label">Total Orders</div>';
-					html += '</div></div>';
+					html += '</div></a>';
 
-					// Total Earnings
-					html += '<div class="wc-tp-stat-card">';
+					// Total Earnings - Link to Earners Section
+					html += '<a href="#wc-tp-earners-section" class="wc-tp-stat-card wc-tp-stat-link">';
 					html += '<div class="wc-tp-stat-icon">💰</div>';
 					html += '<div class="wc-tp-stat-content">';
 					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_earnings) + '</div>';
 					html += '<div class="wc-tp-stat-label">Total Earnings</div>';
-					html += '</div></div>';
+					html += '</div></a>';
 
-					// Total Paid
-					html += '<div class="wc-tp-stat-card">';
+					// Total Paid - Link to Payments Section
+					html += '<a href="#wc-tp-payments-section" class="wc-tp-stat-card wc-tp-stat-link">';
 					html += '<div class="wc-tp-stat-icon">✅</div>';
 					html += '<div class="wc-tp-stat-content">';
 					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_paid) + '</div>';
 					html += '<div class="wc-tp-stat-label">Total Paid</div>';
-					html += '</div></div>';
+					html += '</div></a>';
 
-					// Total Due
-					html += '<div class="wc-tp-stat-card">';
+					// Total Due - Link to Payroll Section
+					html += '<a href="#wc-tp-payroll-section" class="wc-tp-stat-card wc-tp-stat-link">';
 					html += '<div class="wc-tp-stat-icon">⏳</div>';
 					html += '<div class="wc-tp-stat-content">';
 					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_due) + '</div>';
 					html += '<div class="wc-tp-stat-label">Total Due</div>';
-					html += '</div></div>';
+					html += '</div></a>';
 
 					container.html(html);
 				}
