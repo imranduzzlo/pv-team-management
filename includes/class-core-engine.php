@@ -35,7 +35,7 @@ class WC_Team_Payroll_Core_Engine {
 			return;
 		}
 
-		$commission_data = $this->calculate_commission( $order, $agent_id, $processor_id );
+		$commission_data = self::calculate_commission( $order, $agent_id, $processor_id );
 		$order->update_meta_data( '_commission_data', $commission_data );
 		$order->save();
 
@@ -140,7 +140,7 @@ class WC_Team_Payroll_Core_Engine {
 		}
 
 		// Apply extra earnings rules
-		$extra_earnings = $this->apply_extra_earnings( $order, $commission_data );
+		$extra_earnings = self::apply_extra_earnings( $order, $commission_data );
 		$commission_data['extra_earnings'] = $extra_earnings;
 
 		return $commission_data;
@@ -170,7 +170,7 @@ class WC_Team_Payroll_Core_Engine {
 			}
 
 			// Check condition
-			if ( ! $this->check_rule_condition( $order, $rule, $commission_data ) ) {
+			if ( ! self::check_rule_condition( $order, $rule, $commission_data ) ) {
 				continue;
 			}
 
@@ -279,13 +279,13 @@ class WC_Team_Payroll_Core_Engine {
 		$old_commission_data = $order->get_meta( '_commission_data' );
 
 		// Recalculate commission
-		$this->calculate_order_commission( $order_id );
+		self::calculate_order_commission( $order_id );
 
 		// Get new commission data
 		$new_commission_data = $order->get_meta( '_commission_data' );
 
 		// Log the change
-		$this->log_order_change( $order_id, $old_commission_data, $new_commission_data );
+		self::log_order_change( $order_id, $old_commission_data, $new_commission_data );
 	}
 
 	/**
@@ -340,12 +340,12 @@ class WC_Team_Payroll_Core_Engine {
 			$processor_id = $order->get_meta( '_processor_user_id' );
 
 			if ( $agent_id || $processor_id ) {
-				$refund_commission_data = $this->calculate_refund_commission( $order, $agent_id, $processor_id );
+				$refund_commission_data = self::calculate_refund_commission( $order, $agent_id, $processor_id );
 				$order->update_meta_data( '_commission_data', $refund_commission_data );
 				$order->save();
 
 				// Log the refund
-				$this->log_order_change( $order_id, $old_commission_data, $refund_commission_data );
+				self::log_order_change( $order_id, $old_commission_data, $refund_commission_data );
 				return;
 			}
 		}
@@ -355,7 +355,7 @@ class WC_Team_Payroll_Core_Engine {
 		$order->save();
 
 		// Log the cancellation
-		$this->log_order_cancellation( $order_id, $old_commission_data, $order->get_status() );
+		self::log_order_cancellation( $order_id, $old_commission_data, $order->get_status() );
 	}
 
 	/**
@@ -444,7 +444,7 @@ class WC_Team_Payroll_Core_Engine {
 		$old_commission_data = $order->get_meta( '_commission_data' );
 
 		// Log the deletion
-		$this->log_order_cancellation( $post_id, $old_commission_data, 'trashed' );
+		self::log_order_cancellation( $post_id, $old_commission_data, 'trashed' );
 	}
 
 	/**
