@@ -13,13 +13,14 @@ class WC_Team_Payroll_Dashboard {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
-		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
+		// Get date range from request
+		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
+		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
-		// Get payroll data
+		// Get payroll data for date range
 		$payroll = array();
 		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
-			$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
 		}
 
 		// Calculate stats
@@ -36,22 +37,26 @@ class WC_Team_Payroll_Dashboard {
 			$total_orders += $data['orders'];
 		}
 
+		// Get latest employees
+		$latest_employees = $this->get_latest_employees( 5 );
+
+		// Get recent payments
+		$recent_payments = $this->get_recent_payments( 10 );
+
+		// Get top earners
+		$top_earners = $this->get_top_earners( 5, $start_date, $end_date );
+
 		?>
 		<div class="wrap wc-team-payroll-dashboard">
 			<h1><?php esc_html_e( 'Team Payroll Dashboard', 'wc-team-payroll' ); ?></h1>
 
-			<!-- Filter Section -->
-			<div class="wc-team-payroll-filters">
-				<form method="get">
-					<input type="hidden" name="page" value="wc-team-payroll" />
-					<select name="month">
-						<?php for ( $m = 1; $m <= 12; $m++ ) : ?>
-							<option value="<?php echo esc_attr( $m ); ?>" <?php selected( $month, $m ); ?>><?php echo esc_html( date( 'F', mktime( 0, 0, 0, $m, 1 ) ) ); ?></option>
-						<?php endfor; ?>
-					</select>
-					<input type="number" name="year" value="<?php echo esc_attr( $year ); ?>" min="2020" max="2099" />
-					<button type="submit" class="button button-primary"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-				</form>
+			<!-- Date Range Filter -->
+			<div class="wc-tp-date-filter">
+				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+				<input type="date" id="wc-tp-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
+				<span class="wc-tp-date-separator">to</span>
+				<input type="date" id="wc-tp-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
+				<button type="button" class="button button-primary" id="wc-tp-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
 			</div>
 
 			<!-- Stats Cards -->
@@ -97,10 +102,103 @@ class WC_Team_Payroll_Dashboard {
 				</div>
 			</div>
 
-			<!-- Data Table -->
+			<!-- Two Column Layout -->
+			<div class="wc-tp-dashboard-grid">
+				<!-- Latest Employees -->
+				<div class="wc-tp-table-section">
+					<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+					<?php if ( empty( $latest_employees ) ) : ?>
+						<div class="notice notice-info"><p><?php esc_html_e( 'No employees found.', 'wc-team-payroll' ); ?></p></div>
+					<?php else : ?>
+						<table class="wc-tp-data-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $latest_employees as $employee ) : ?>
+									<tr>
+										<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
+										<td><?php echo esc_html( $employee->user_email ); ?></td>
+										<td><?php echo esc_html( implode( ', ', $employee->roles ) ); ?></td>
+										<td>
+											<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
+				</div>
+
+				<!-- Top Earners -->
+				<div class="wc-tp-table-section">
+					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
+					<?php if ( empty( $top_earners ) ) : ?>
+						<div class="notice notice-info"><p><?php esc_html_e( 'No earnings data for this period.', 'wc-team-payroll' ); ?></p></div>
+					<?php else : ?>
+						<table class="wc-tp-data-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $top_earners as $earner ) : ?>
+									<tr>
+										<td><strong><?php echo esc_html( $earner['name'] ); ?></strong></td>
+										<td><?php echo wp_kses_post( wc_price( $earner['earnings'] ) ); ?></td>
+										<td><span class="wc-tp-badge"><?php echo esc_html( $earner['orders'] ); ?></span></td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
+				</div>
+			</div>
+
+			<!-- Recent Payments -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
+				<?php if ( empty( $recent_payments ) ) : ?>
+					<div class="notice notice-info"><p><?php esc_html_e( 'No payments found.', 'wc-team-payroll' ); ?></p></div>
+				<?php else : ?>
+					<table class="wc-tp-data-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $recent_payments as $payment ) : ?>
+								<tr>
+									<td><strong><?php echo esc_html( $payment['employee_name'] ); ?></strong></td>
+									<td><?php echo wp_kses_post( wc_price( $payment['amount'] ) ); ?></td>
+									<td><?php echo esc_html( date( 'M d, Y', strtotime( $payment['date'] ) ) ); ?></td>
+									<td><span class="wc-tp-status wc-tp-status-<?php echo esc_attr( $payment['status'] ); ?>"><?php echo esc_html( ucfirst( $payment['status'] ) ); ?></span></td>
+									<td>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $payment['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
+
+			<!-- Employee Payroll Details -->
 			<div class="wc-tp-table-section">
 				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-
 				<?php if ( empty( $payroll ) ) : ?>
 					<div class="notice notice-info"><p><?php esc_html_e( 'No payroll data for this period.', 'wc-team-payroll' ); ?></p></div>
 				<?php else : ?>
@@ -142,25 +240,33 @@ class WC_Team_Payroll_Dashboard {
 				padding: 20px;
 			}
 
-			.wc-team-payroll-filters {
+			.wc-tp-date-filter {
 				background: white;
 				padding: 15px;
-				border-radius: 5px;
+				border-radius: 8px;
 				margin-bottom: 20px;
-				box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-			}
-
-			.wc-team-payroll-filters form {
+				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 				display: flex;
 				gap: 10px;
 				align-items: center;
+				flex-wrap: wrap;
 			}
 
-			.wc-team-payroll-filters select,
-			.wc-team-payroll-filters input {
+			.wc-tp-date-filter label {
+				font-weight: 600;
+				color: #333;
+			}
+
+			.wc-tp-date-filter input[type="date"] {
 				padding: 8px 12px;
 				border: 1px solid #ddd;
 				border-radius: 4px;
+				font-size: 14px;
+			}
+
+			.wc-tp-date-separator {
+				color: #999;
+				font-weight: 500;
 			}
 
 			.wc-tp-stats-grid {
@@ -210,6 +316,13 @@ class WC_Team_Payroll_Dashboard {
 				letter-spacing: 0.5px;
 			}
 
+			.wc-tp-dashboard-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+				gap: 20px;
+				margin-bottom: 20px;
+			}
+
 			.wc-tp-table-section {
 				background: white;
 				padding: 20px;
@@ -223,6 +336,7 @@ class WC_Team_Payroll_Dashboard {
 				color: #333;
 				border-bottom: 2px solid #0073aa;
 				padding-bottom: 10px;
+				font-size: 18px;
 			}
 
 			.wc-tp-data-table {
@@ -240,6 +354,7 @@ class WC_Team_Payroll_Dashboard {
 				text-align: left;
 				font-weight: 600;
 				color: #333;
+				font-size: 13px;
 			}
 
 			.wc-tp-data-table td {
@@ -270,6 +385,29 @@ class WC_Team_Payroll_Dashboard {
 				font-weight: 600;
 			}
 
+			.wc-tp-status {
+				padding: 4px 8px;
+				border-radius: 3px;
+				font-size: 12px;
+				font-weight: 600;
+				display: inline-block;
+			}
+
+			.wc-tp-status-paid {
+				background: #d4edda;
+				color: #155724;
+			}
+
+			.wc-tp-status-pending {
+				background: #fff3cd;
+				color: #856404;
+			}
+
+			.wc-tp-status-failed {
+				background: #f8d7da;
+				color: #721c24;
+			}
+
 			.button-primary {
 				background: #0073aa;
 				border-color: #0073aa;
@@ -280,8 +418,128 @@ class WC_Team_Payroll_Dashboard {
 				background: #005a87;
 				border-color: #005a87;
 			}
+
+			@media (max-width: 768px) {
+				.wc-tp-date-filter {
+					flex-direction: column;
+					align-items: flex-start;
+				}
+
+				.wc-tp-dashboard-grid {
+					grid-template-columns: 1fr;
+				}
+
+				.wc-tp-data-table {
+					font-size: 13px;
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 8px;
+				}
+			}
 		</style>
+
+		<script>
+			jQuery(document).ready(function($) {
+				$('#wc-tp-filter-btn').on('click', function() {
+					const startDate = $('#wc-tp-start-date').val();
+					const endDate = $('#wc-tp-end-date').val();
+
+					if (!startDate || !endDate) {
+						alert('Please select both start and end dates');
+						return;
+					}
+
+					// Reload page with new date range
+					const url = new URL(window.location);
+					url.searchParams.set('start_date', startDate);
+					url.searchParams.set('end_date', endDate);
+					window.location = url.toString();
+				});
+			});
+		</script>
 		<?php
+	}
+
+	/**
+	 * Get latest employees
+	 */
+	private function get_latest_employees( $limit = 5 ) {
+		$args = array(
+			'role'    => array( 'shop_manager', 'administrator' ),
+			'orderby' => 'user_registered',
+			'order'   => 'DESC',
+			'number'  => $limit,
+		);
+
+		return get_users( $args );
+	}
+
+	/**
+	 * Get recent payments
+	 */
+	private function get_recent_payments( $limit = 10 ) {
+		global $wpdb;
+
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}postmeta 
+				WHERE meta_key = 'wc_tp_payment' 
+				ORDER BY meta_id DESC 
+				LIMIT %d",
+				$limit
+			),
+			ARRAY_A
+		);
+
+		$payments = array();
+		foreach ( $results as $result ) {
+			$payment_data = maybe_unserialize( $result['meta_value'] );
+			if ( is_array( $payment_data ) ) {
+				$user = get_user_by( 'id', $payment_data['user_id'] ?? 0 );
+				$payments[] = array(
+					'user_id'       => $payment_data['user_id'] ?? 0,
+					'employee_name' => $user ? $user->display_name : 'Unknown',
+					'amount'        => $payment_data['amount'] ?? 0,
+					'date'          => $payment_data['date'] ?? current_time( 'mysql' ),
+					'status'        => $payment_data['status'] ?? 'pending',
+				);
+			}
+		}
+
+		return $payments;
+	}
+
+	/**
+	 * Get top earners
+	 */
+	private function get_top_earners( $limit = 5, $start_date = '', $end_date = '' ) {
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
+		}
+
+		// Sort by earnings
+		usort( $payroll, function( $a, $b ) {
+			return $b['total'] - $a['total'];
+		} );
+
+		$top_earners = array();
+		$count = 0;
+		foreach ( $payroll as $data ) {
+			if ( $count >= $limit ) {
+				break;
+			}
+			$top_earners[] = array(
+				'name'     => $data['user'] ? $data['user']->display_name : 'Unknown',
+				'earnings' => $data['total'],
+				'orders'   => $data['orders'],
+			);
+			$count++;
+		}
+
+		return $top_earners;
 	}
 
 	/**

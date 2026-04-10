@@ -1,5 +1,34 @@
 /* WooCommerce Team Payroll Dashboard Styles */
 
+.wc-tp-date-filter {
+	background: white;
+	padding: 15px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.wc-tp-date-filter label {
+	font-weight: 600;
+	color: #333;
+}
+
+.wc-tp-date-filter input[type="date"] {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.wc-tp-date-separator {
+	color: #999;
+	font-weight: 500;
+}
+
 .wc-team-payroll-filters {
 	margin: 20px 0;
 	padding: 15px;
@@ -23,6 +52,13 @@
 
 .wc-team-payroll-filters button {
 	padding: 8px 16px;
+}
+
+.wc-tp-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+	gap: 20px;
+	margin-bottom: 20px;
 }
 
 /* Dashboard Tables */
@@ -202,5 +238,42 @@
 	.wc-team-payroll-orders-table th,
 	.wc-team-payroll-orders-table td {
 		padding: 8px;
+	}
+}
+
+
+.wc-tp-status {
+	padding: 4px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 600;
+	display: inline-block;
+}
+
+.wc-tp-status-paid {
+	background: #d4edda;
+	color: #155724;
+}
+
+.wc-tp-status-pending {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.wc-tp-status-failed {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.wc-tp-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+	gap: 20px;
+	margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+	.wc-tp-dashboard-grid {
+		grid-template-columns: 1fr;
 	}
 }
