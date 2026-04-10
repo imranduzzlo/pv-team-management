@@ -95,6 +95,45 @@ add_action( 'plugins_loaded', function() {
 		$employees = new WC_Team_Payroll_Employee_Management();
 		$employees->ajax_add_order_bonus();
 	} );
+
+	add_action( 'wp_ajax_wc_tp_get_dashboard_data', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
+		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
+
+		// Get payroll data
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
+		}
+
+		// Calculate stats
+		$total_employees = 0;
+		$total_earnings = 0;
+		$total_paid = 0;
+		$total_due = 0;
+		$total_orders = 0;
+
+		foreach ( $payroll as $data ) {
+			$total_employees++;
+			$total_earnings += $data['total'];
+			$total_paid += $data['paid'];
+			$total_due += $data['due'];
+			$total_orders += $data['orders'];
+		}
+
+		wp_send_json_success( array(
+			'total_employees' => $total_employees,
+			'total_orders'    => $total_orders,
+			'total_earnings'  => $total_earnings,
+			'total_paid'      => $total_paid,
+			'total_due'       => $total_due,
+			'payroll'         => $payroll,
+		) );
+	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================

@@ -84,12 +84,20 @@ class WC_Team_Payroll_Payroll_Engine {
 			
 			if ( is_array( $payments ) ) {
 				foreach ( $payments as $payment ) {
-					// Only count payments within the month
-					$payment_date = strtotime( $payment['date'] );
-					$start_timestamp = strtotime( $start_date );
+					// Parse payment date - handle both formats
+					$payment_date_str = $payment['date'];
+					
+					// Convert datetime-local format (2026-04-11T14:30) to timestamp
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+					
+					$payment_timestamp = strtotime( $payment_date_str );
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
 					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
 					
-					if ( $payment_date >= $start_timestamp && $payment_date <= $end_timestamp ) {
+					// Only count payments within the date range
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 						$paid += floatval( $payment['amount'] );
 					}
 				}
@@ -178,12 +186,20 @@ class WC_Team_Payroll_Payroll_Engine {
 			
 			if ( is_array( $payments ) ) {
 				foreach ( $payments as $payment ) {
-					// Only count payments within the date range
-					$payment_date = strtotime( $payment['date'] );
-					$start_timestamp = strtotime( $start_date );
+					// Parse payment date - handle both formats
+					$payment_date_str = $payment['date'];
+					
+					// Convert datetime-local format (2026-04-11T14:30) to timestamp
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+					
+					$payment_timestamp = strtotime( $payment_date_str );
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
 					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
 					
-					if ( $payment_date >= $start_timestamp && $payment_date <= $end_timestamp ) {
+					// Only count payments within the date range
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 						$paid += floatval( $payment['amount'] );
 					}
 				}
