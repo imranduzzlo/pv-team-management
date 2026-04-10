@@ -622,7 +622,7 @@ class WC_Team_Payroll_Dashboard {
 						payrollArray.push({
 							userId: userId,
 							name: data.name,
-							user_email: data.user ? data.user.user_email : 'N/A',
+							user_email: data.user_email || 'N/A',
 							orders: data.orders,
 							total: data.total,
 							paid: data.paid,
@@ -652,9 +652,11 @@ class WC_Team_Payroll_Dashboard {
 				function attachSortHandlers(container, data, sortableFields) {
 					container.find('.wc-tp-sortable-header').on('click', function() {
 						const sortField = $(this).data('sort');
+						if (!sortField) return;
+						
 						const isNumeric = ['orders', 'total', 'paid', 'due', 'earnings', 'amount'].includes(sortField);
 						
-						// Remove active class from all headers
+						// Remove active class from all headers in this container
 						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
 						
 						// Add active class to clicked header
@@ -664,6 +666,9 @@ class WC_Team_Payroll_Dashboard {
 						let sortedData = [...data].sort((a, b) => {
 							let aVal = a[sortField];
 							let bVal = b[sortField];
+							
+							if (aVal === undefined || aVal === null) aVal = '';
+							if (bVal === undefined || bVal === null) bVal = '';
 							
 							if (isNumeric) {
 								aVal = parseFloat(aVal) || 0;
@@ -676,15 +681,14 @@ class WC_Team_Payroll_Dashboard {
 							}
 						});
 						
-						// Re-render table with sorted data
-						const tableId = container.find('table').attr('id') || container.find('table').attr('class');
-						if (tableId.includes('payroll')) {
+						// Re-render table with sorted data based on container ID
+						if (container.attr('id') === 'wc-tp-payroll-container') {
 							renderPayrollTable(sortedData);
-						} else if (tableId.includes('top-earners')) {
+						} else if (container.attr('id') === 'wc-tp-top-earners-container') {
 							renderTopEarners(sortedData);
-						} else if (tableId.includes('recent-payments')) {
+						} else if (container.attr('id') === 'wc-tp-recent-payments-container') {
 							renderRecentPayments(sortedData);
-						} else if (tableId.includes('latest-employees')) {
+						} else if (container.attr('id') === 'wc-tp-latest-employees-container') {
 							renderLatestEmployees(sortedData);
 						}
 					});

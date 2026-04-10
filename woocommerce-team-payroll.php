@@ -119,6 +119,7 @@ add_action( 'plugins_loaded', function() {
 			$processed_payroll[ $user_id ] = array(
 				'user_id'    => $data['user_id'],
 				'user'       => $data['user'],
+				'user_email' => $data['user'] ? $data['user']->user_email : 'N/A',
 				'vb_user_id' => $vb_user_id,
 				'name'       => $employee_name,
 				'total'      => $data['total'],
@@ -184,7 +185,7 @@ add_action( 'plugins_loaded', function() {
 			);
 		}
 
-		// Get top earners
+		// Get top earners (only those with at least 1 order, up to 10)
 		$top_earners_data = array();
 		$sorted_payroll = $payroll;
 		usort( $sorted_payroll, function( $a, $b ) {
@@ -193,8 +194,12 @@ add_action( 'plugins_loaded', function() {
 
 		$count = 0;
 		foreach ( $sorted_payroll as $data ) {
-			if ( $count >= 5 ) {
+			if ( $count >= 10 ) {
 				break;
+			}
+			// Only include if they have at least 1 order
+			if ( $data['orders'] < 1 ) {
+				continue;
 			}
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
 			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
@@ -208,49 +213,60 @@ add_action( 'plugins_loaded', function() {
 			$count++;
 		}
 
-		// Get recent payments
+		// Get recent payments (from user meta, filtered by date range)
 		global $wpdb;
 		$recent_payments_data = array();
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}postmeta 
-				WHERE meta_key = 'wc_tp_payment' 
-				ORDER BY meta_id DESC 
-				LIMIT %d",
-				10
-			),
-			ARRAY_A
-		);
+		
+		// Get all employees
+		$all_employees = get_users( array(
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'number'   => -1,
+		) );
 
-		foreach ( $results as $result ) {
-			$payment_data = maybe_unserialize( $result['meta_value'] );
-			if ( is_array( $payment_data ) ) {
-				$payment_date_str = $payment_data['date'] ?? current_time( 'mysql' );
-				
-				// Convert datetime-local format
-				if ( strpos( $payment_date_str, 'T' ) !== false ) {
-					$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
-				}
-				
-				$payment_timestamp = strtotime( $payment_date_str );
-				$start_timestamp = strtotime( $start_date . ' 00:00:00' );
-				$end_timestamp = strtotime( $end_date . ' 23:59:59' );
-				
-				// Only include payments within date range
-				if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
-					$user = get_user_by( 'id', $payment_data['user_id'] ?? 0 );
-					$vb_user_id = $user ? get_user_meta( $user->ID, 'vb_user_id', true ) : '';
-					$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $user->display_name ) : ( $user ? esc_html( $user->display_name ) : 'Unknown' );
+		$all_payments = array();
+		foreach ( $all_employees as $employee ) {
+			$payments = get_user_meta( $employee->ID, '_wc_tp_payments', true );
+			if ( is_array( $payments ) ) {
+				foreach ( $payments as $payment ) {
+					$payment_date_str = $payment['date'] ?? current_time( 'mysql' );
 					
-					$recent_payments_data[] = array(
-						'user_id'       => $payment_data['user_id'] ?? 0,
-						'employee_name' => $employee_name,
-						'amount'        => $payment_data['amount'] ?? 0,
-						'date'          => date( 'M d, Y', $payment_timestamp ),
-						'status'        => $payment_data['status'] ?? 'pending',
-					);
+					// Convert datetime-local format
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+					
+					$payment_timestamp = strtotime( $payment_date_str );
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
+					// Only include payments within date range
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+						$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
+						$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+						
+						$all_payments[] = array(
+							'user_id'       => $employee->ID,
+							'employee_name' => $employee_name,
+							'amount'        => $payment['amount'] ?? 0,
+							'date'          => date( 'M d, Y', $payment_timestamp ),
+							'timestamp'     => $payment_timestamp,
+							'status'        => $payment['status'] ?? 'pending',
+						);
+					}
 				}
 			}
+		}
+
+		// Sort by date descending and get latest 10
+		usort( $all_payments, function( $a, $b ) {
+			return $b['timestamp'] - $a['timestamp'];
+		} );
+
+		$recent_payments_data = array_slice( $all_payments, 0, 10 );
+		
+		// Remove timestamp from output
+		foreach ( $recent_payments_data as &$payment ) {
+			unset( $payment['timestamp'] );
 		}
 
 		wp_send_json_success( array(
