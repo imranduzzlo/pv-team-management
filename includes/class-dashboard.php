@@ -332,6 +332,10 @@ class WC_Team_Payroll_Dashboard {
 				color: var(--text-body);
 			}
 
+			.wc-tp-no-action td {
+				padding: 16px 12px;
+			}
+
 			.wc-tp-data-table tbody tr:hover {
 				background: var(--color-primary-subtle);
 			}
@@ -633,6 +637,7 @@ class WC_Team_Payroll_Dashboard {
 				// Store currency globally
 				let wcCurrency = 'USD';
 				let wcCurrencySymbol = '$';
+				let wcCurrencyPos = 'left';
 
 				// Load dashboard data on page load
 				loadDashboardData();
@@ -671,6 +676,7 @@ class WC_Team_Payroll_Dashboard {
 								// Store currency
 								wcCurrency = data.currency || 'USD';
 								wcCurrencySymbol = data.currency_symbol || '$';
+								wcCurrencyPos = data.currency_pos || 'left';
 								
 								// Update stat cards
 								renderStatCards(data);
@@ -785,7 +791,7 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable wc-tp-no-action"><thead><tr>';
 					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="earnings">Earnings</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
@@ -813,7 +819,7 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable wc-tp-no-action"><thead><tr>';
 					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
@@ -980,7 +986,12 @@ class WC_Team_Payroll_Dashboard {
 
 				// Format currency
 				function formatCurrency(value) {
-					return wcCurrencySymbol + ' ' + parseFloat(value).toFixed(2);
+					const amount = parseFloat(value).toFixed(2);
+					if (wcCurrencyPos === 'right') {
+						return amount + ' ' + wcCurrencySymbol;
+					} else {
+						return wcCurrencySymbol + ' ' + amount;
+					}
 				}
 
 				// Show notice
