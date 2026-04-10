@@ -165,14 +165,14 @@ class WC_Team_Payroll_Dashboard {
 				border-radius: 8px;
 				border: 1px solid var(--color-border-light);
 				display: flex;
-				flex-direction: column;
+				flex-direction: row;
 				align-items: center;
-				justify-content: center;
-				gap: 12px;
+				justify-content: flex-start;
+				gap: 16px;
 				transition: all 0.3s ease;
 				cursor: pointer;
 				min-height: 120px;
-				text-align: center;
+				text-align: left;
 			}
 
 			.wc-tp-stat-link {
@@ -193,13 +193,13 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-stat-icon {
 				font-size: 32px;
-				min-width: auto;
+				min-width: 50px;
 				text-align: center;
+				flex-shrink: 0;
 			}
 
 			.wc-tp-stat-content {
 				flex: 1;
-				width: 100%;
 			}
 
 			.wc-tp-stat-value {
@@ -467,16 +467,11 @@ class WC_Team_Payroll_Dashboard {
 					grid-template-columns: 1fr;
 				}
 
-				.wc-tp-date-filter {
-					flex-direction: column;
-					gap: 8px;
-				}
-
-				.wc-tp-date-filter input[type="date"] {
-					width: 100%;
-				}
-
 				.wc-tp-stat-card {
+					flex-direction: column;
+					text-align: center;
+					align-items: center;
+					justify-content: center;
 					padding: 15px;
 					gap: 8px;
 					min-height: 100px;
@@ -484,10 +479,20 @@ class WC_Team_Payroll_Dashboard {
 
 				.wc-tp-stat-icon {
 					font-size: 28px;
+					min-width: auto;
 				}
 
 				.wc-tp-stat-value {
 					font-size: 1.25rem;
+				}
+
+				.wc-tp-date-filter {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-date-filter input[type="date"] {
+					width: 100%;
 				}
 
 				.wc-tp-table-section {
