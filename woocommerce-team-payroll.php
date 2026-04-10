@@ -388,6 +388,7 @@ add_action( 'plugins_loaded', function() {
 
 		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
+		$search_query = isset( $_POST['search_query'] ) ? sanitize_text_field( $_POST['search_query'] ) : '';
 
 		// Get payroll data
 		$payroll = array();
@@ -413,6 +414,40 @@ add_action( 'plugins_loaded', function() {
 			);
 		}
 		$payroll = $processed_payroll;
+
+		// Apply search filter if search query is provided
+		if ( ! empty( $search_query ) ) {
+			$search_query_lower = strtolower( $search_query );
+			$filtered_payroll = array();
+
+			foreach ( $payroll as $user_id => $data ) {
+				$user = $data['user'];
+				$vb_user_id = $data['vb_user_id'];
+				$email = $user ? $user->user_email : '';
+				$phone = $user ? get_user_meta( $user->ID, 'billing_phone', true ) : '';
+				$display_name = $user ? $user->display_name : '';
+
+				// Check if search query matches any field
+				$matches = false;
+				if ( stripos( $display_name, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( $vb_user_id, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( (string) $user_id, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( $email, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( $phone, $search_query ) !== false ) {
+					$matches = true;
+				}
+
+				if ( $matches ) {
+					$filtered_payroll[ $user_id ] = $data;
+				}
+			}
+
+			$payroll = $filtered_payroll;
+		}
 
 		wp_send_json_success( array(
 			'payroll'           => $payroll,

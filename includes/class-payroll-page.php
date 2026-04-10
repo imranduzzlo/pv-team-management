@@ -24,6 +24,12 @@ class WC_Team_Payroll_Page {
 		<div class="wrap wc-team-payroll-payroll">
 			<h1><?php esc_html_e( 'Payroll', 'wc-team-payroll' ); ?></h1>
 
+			<!-- Search Filter -->
+			<div class="wc-tp-search-filter">
+				<input type="text" id="wc-tp-payroll-search" placeholder="<?php esc_attr_e( 'Search by name, vb_user_id, user ID, email, or phone...', 'wc-team-payroll' ); ?>" />
+				<button type="button" class="button button-secondary" id="wc-tp-payroll-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
+			</div>
+
 			<!-- Date Range Filter -->
 			<div class="wc-tp-date-filter">
 				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
@@ -84,6 +90,49 @@ class WC_Team_Payroll_Page {
 				font-weight: var(--fw-bold);
 				color: var(--text-main);
 				margin-bottom: 24px;
+			}
+
+			.wc-tp-search-filter {
+				background: var(--color-card-bg);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 16px;
+				border: 1px solid var(--color-border-light);
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-search-filter input[type="text"] {
+				flex: 1;
+				min-width: 250px;
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-search-filter input[type="text"]::placeholder {
+				color: var(--text-muted);
+			}
+
+			.wc-tp-search-filter .button-secondary {
+				background: var(--color-accent-muted);
+				border-color: var(--color-border-light);
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-search-filter .button-secondary:hover {
+				background: var(--color-border-light);
+				border-color: var(--color-border-light);
 			}
 
 			.wc-tp-date-filter {
@@ -284,6 +333,21 @@ class WC_Team_Payroll_Page {
 					padding: 12px;
 				}
 
+				.wc-tp-search-filter {
+					flex-direction: column;
+					gap: 8px;
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-search-filter input[type="text"] {
+					width: 100%;
+					min-width: unset;
+				}
+
+				.wc-tp-search-filter .button-secondary {
+					width: 100%;
+				}
+
 				.wc-tp-date-filter {
 					flex-direction: column;
 					gap: 8px;
@@ -333,10 +397,24 @@ class WC_Team_Payroll_Page {
 				let wcCurrencyPos = 'left';
 				let currentPage = 1;
 				let allPayrollData = [];
+				let searchQuery = '';
 
 				loadPayrollData();
 
 				$('#wc-tp-payroll-filter-btn').on('click', function() {
+					currentPage = 1;
+					loadPayrollData();
+				});
+
+				$('#wc-tp-payroll-search').on('keyup', function() {
+					currentPage = 1;
+					searchQuery = $(this).val();
+					loadPayrollData();
+				});
+
+				$('#wc-tp-payroll-search-clear').on('click', function() {
+					$('#wc-tp-payroll-search').val('');
+					searchQuery = '';
 					currentPage = 1;
 					loadPayrollData();
 				});
@@ -358,7 +436,8 @@ class WC_Team_Payroll_Page {
 						data: {
 							action: 'wc_tp_get_payroll_data_range',
 							start_date: startDate,
-							end_date: endDate
+							end_date: endDate,
+							search_query: searchQuery
 						},
 						success: function(response) {
 							if (response.success) {
