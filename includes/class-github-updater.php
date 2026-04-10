@@ -83,6 +83,8 @@ class WC_Team_Payroll_GitHub_Updater {
 		$latest_release = $this->get_latest_release();
 
 		if ( ! $latest_release ) {
+			// Remove from response if no release found
+			unset( $transient->response[ $this->plugin_file ] );
 			return $transient;
 		}
 
@@ -106,7 +108,7 @@ class WC_Team_Payroll_GitHub_Updater {
 				'banners'     => array(),
 			);
 		} else {
-			// Remove from response if versions are equal or current is newer
+			// Explicitly remove from response if versions are equal or current is newer
 			unset( $transient->response[ $this->plugin_file ] );
 		}
 

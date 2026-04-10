@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.3.18
+ * Version: 5.3.19
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.3.18' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.3.19' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -92,19 +92,30 @@ add_action( 'plugins_loaded', function() {
 		$amount = floatval( $_POST['amount'] );
 		$date = sanitize_text_field( $_POST['date'] );
 
+		if ( ! $user_id || ! $amount || ! $date ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
+		}
+
 		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
-		if ( ! is_array( $payments ) ) {
+		if ( ! is_array( $payments ) || empty( $payments ) ) {
 			wp_send_json_error( __( 'No payments found', 'wc-team-payroll' ) );
 		}
 
-		// Find and update the payment (assuming we update the most recent one)
-		if ( ! empty( $payments ) ) {
-			$payments[ count( $payments ) - 1 ]['amount'] = $amount;
-			$payments[ count( $payments ) - 1 ]['date'] = $date;
-			update_user_meta( $user_id, '_wc_tp_payments', $payments );
-			wp_send_json_success( array( 'message' => __( 'Payment updated', 'wc-team-payroll' ) ) );
+		// Update the most recent payment (last in array)
+		$last_index = count( $payments ) - 1;
+		$payments[ $last_index ]['amount'] = $amount;
+		$payments[ $last_index ]['date'] = $date;
+		
+		// Ensure status is set
+		if ( ! isset( $payments[ $last_index ]['status'] ) ) {
+			$payments[ $last_index ]['status'] = 'completed';
+		}
+
+		// Save updated payments
+		if ( update_user_meta( $user_id, '_wc_tp_payments', $payments ) !== false ) {
+			wp_send_json_success( array( 'message' => __( 'Payment updated successfully', 'wc-team-payroll' ) ) );
 		} else {
-			wp_send_json_error( __( 'Payment not found', 'wc-team-payroll' ) );
+			wp_send_json_error( __( 'Failed to update payment', 'wc-team-payroll' ) );
 		}
 	} );
 
@@ -319,21 +330,29 @@ add_action( 'admin_menu', function() {
 		__( 'Team Payroll', 'wc-team-payroll' ),
 		'manage_options',
 		'wc-team-payroll',
+		'__return_null',
+		'dashicons-money-alt',
+		25
+	);
+
+	// Dashboard submenu
+	add_submenu_page(
+		'wc-team-payroll',
+		__( 'Dashboard', 'wc-team-payroll' ),
+		__( 'Dashboard', 'wc-team-payroll' ),
+		'manage_options',
+		'wc-team-payroll',
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
 				$dashboard = new WC_Team_Payroll_Dashboard();
 				$dashboard->render_dashboard();
 			} else {
-				echo '<div class="wrap"><h1>Team Payroll</h1>';
-				echo '<div class="notice notice-error"><p>Plugin not fully loaded. Please refresh the page.</p></div>';
+				echo '<div class="wrap"><h1>Dashboard</h1>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
-		},
-		'dashicons-money-alt',
-		25
+		}
 	);
-
-	// Dashboard submenu - REMOVED (main menu already handles this)
 
 	// Payroll submenu
 	add_submenu_page(

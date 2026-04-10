@@ -19,7 +19,7 @@ class WC_Team_Payroll_Dashboard {
 
 		?>
 		<div class="wrap wc-team-payroll-dashboard">
-			<h1><?php esc_html_e( 'Team Payroll Dashboard', 'wc-team-payroll' ); ?></h1>
+			<h1><?php esc_html_e( 'Dashboard', 'wc-team-payroll' ); ?></h1>
 
 			<!-- Date Range Filter -->
 			<div class="wc-tp-date-filter">
@@ -154,7 +154,7 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-stats-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				grid-template-columns: repeat(4, 1fr);
 				gap: 16px;
 				margin-bottom: 32px;
 			}
@@ -165,11 +165,14 @@ class WC_Team_Payroll_Dashboard {
 				border-radius: 8px;
 				border: 1px solid var(--color-border-light);
 				display: flex;
+				flex-direction: column;
 				align-items: center;
-				gap: 16px;
+				justify-content: center;
+				gap: 12px;
 				transition: all 0.3s ease;
 				cursor: pointer;
-				min-height: 100px;
+				min-height: 120px;
+				text-align: center;
 			}
 
 			.wc-tp-stat-link {
@@ -190,22 +193,25 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-stat-icon {
 				font-size: 32px;
-				min-width: 50px;
+				min-width: auto;
 				text-align: center;
 			}
 
 			.wc-tp-stat-content {
 				flex: 1;
+				width: 100%;
 			}
 
 			.wc-tp-stat-value {
-				font-size: var(--fs-h2);
+				font-size: 1.5rem;
 				font-weight: var(--fw-bold);
 				color: var(--color-primary);
 				margin-bottom: 4px;
-				line-height: 1.2;
-				word-break: break-word;
-				white-space: normal;
+				line-height: 1.3;
+				word-break: keep-all;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
 			}
 
 			.wc-tp-stat-label {
@@ -214,6 +220,8 @@ class WC_Team_Payroll_Dashboard {
 				text-transform: uppercase;
 				letter-spacing: 0.5px;
 				font-weight: var(--fw-medium);
+				word-break: keep-all;
+				white-space: normal;
 			}
 
 			.wc-tp-dashboard-grid {
@@ -386,8 +394,7 @@ class WC_Team_Payroll_Dashboard {
 				border-color: var(--color-primary-hover);
 			}
 
-			.wc-tp-quick-edit,
-			.wc-tp-edit-payment {
+			.wc-tp-quick-edit {
 				background: var(--color-accent-link);
 				border-color: var(--color-accent-link);
 				color: white;
@@ -397,8 +404,7 @@ class WC_Team_Payroll_Dashboard {
 				line-height: 1.5;
 			}
 
-			.wc-tp-quick-edit:hover,
-			.wc-tp-edit-payment:hover {
+			.wc-tp-quick-edit:hover {
 				background: #0066cc;
 				border-color: #0066cc;
 			}
@@ -411,15 +417,13 @@ class WC_Team_Payroll_Dashboard {
 				font-size: 14px;
 			}
 
-			.wc-tp-save-edit,
-			.wc-tp-save-payment {
+			.wc-tp-save-edit {
 				background: var(--color-accent-success);
 				border-color: var(--color-accent-success);
 				color: white;
 			}
 
-			.wc-tp-cancel-edit,
-			.wc-tp-cancel-payment {
+			.wc-tp-cancel-edit {
 				background: #dc3545;
 				border-color: #dc3545;
 				color: white;
@@ -427,6 +431,10 @@ class WC_Team_Payroll_Dashboard {
 
 			/* Mobile Responsive */
 			@media (max-width: 1024px) {
+				.wc-tp-stats-grid {
+					grid-template-columns: repeat(2, 1fr);
+				}
+
 				.wc-tp-dashboard-grid {
 					grid-template-columns: 1fr;
 				}
@@ -451,6 +459,10 @@ class WC_Team_Payroll_Dashboard {
 					padding: 12px;
 				}
 
+				.wc-tp-stats-grid {
+					grid-template-columns: 1fr;
+				}
+
 				.wc-tp-date-filter {
 					flex-direction: column;
 					gap: 8px;
@@ -460,18 +472,18 @@ class WC_Team_Payroll_Dashboard {
 					width: 100%;
 				}
 
-				.wc-tp-stats-grid {
-					grid-template-columns: 1fr;
-					gap: 12px;
-				}
-
 				.wc-tp-stat-card {
 					padding: 15px;
-					gap: 12px;
+					gap: 8px;
+					min-height: 100px;
+				}
+
+				.wc-tp-stat-icon {
+					font-size: 28px;
 				}
 
 				.wc-tp-stat-value {
-					font-size: 1.5rem;
+					font-size: 1.25rem;
 				}
 
 				.wc-tp-table-section {
@@ -526,20 +538,47 @@ class WC_Team_Payroll_Dashboard {
 
 				.wc-tp-stat-card {
 					padding: 10px;
-					gap: 8px;
+					gap: 6px;
+					min-height: 90px;
 				}
 
 				.wc-tp-stat-icon {
 					font-size: 24px;
-					min-width: 40px;
 				}
 
 				.wc-tp-stat-value {
-					font-size: 1.25rem;
+					font-size: 1.1rem;
 				}
 
 				.wc-tp-stat-label {
-					font-size: 0.75rem;
+					font-size: 0.7rem;
+				}
+
+				.wc-tp-table-section {
+					padding: 8px;
+					margin-bottom: 8px;
+				}
+
+				.wc-tp-table-section h2 {
+					font-size: 1rem;
+					margin-bottom: 8px;
+				}
+
+				.wc-tp-data-table {
+					font-size: 11px;
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 4px;
+				}
+
+				.button,
+				.button-small {
+					padding: 3px 5px;
+					font-size: 9px;
+				}
+			}
 				}
 
 				.wc-tp-table-section {
@@ -778,7 +817,6 @@ class WC_Team_Payroll_Dashboard {
 					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
-					html += '<th>Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(payments, function(i, payment) {
@@ -786,7 +824,6 @@ class WC_Team_Payroll_Dashboard {
 						html += '<td><strong>' + payment.employee_name + '</strong></td>';
 						html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '">' + formatCurrency(payment.amount) + '</td>';
 						html += '<td class="wc-tp-payment-date" data-date="' + payment.date + '">' + payment.date + '</td>';
-						html += '<td><button class="button button-small wc-tp-edit-payment" title="Edit Payment">✎</button></td>';
 						html += '</tr>';
 					});
 
@@ -883,17 +920,6 @@ class WC_Team_Payroll_Dashboard {
 						// Save sort state to container
 						container.data('sortState', currentSort);
 						
-						// Remove active class from all headers in this container
-						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
-						
-						// Add active class and direction class to clicked header
-						$(this).addClass('wc-tp-sort-active');
-						if (currentSort.direction === 'asc') {
-							$(this).addClass('wc-tp-sort-asc');
-						} else {
-							$(this).addClass('wc-tp-sort-desc');
-						}
-						
 						// Sort data
 						let sortedData = [...data].sort((a, b) => {
 							let aVal = a[sortField];
@@ -944,6 +970,11 @@ class WC_Team_Payroll_Dashboard {
 						} else if (container.attr('id') === 'wc-tp-latest-employees-container') {
 							renderLatestEmployees(sortedData);
 						}
+						
+						// Re-attach handlers to new headers with updated sort state
+						setTimeout(function() {
+							attachSortHandlers(container, sortedData, sortableFields);
+						}, 10);
 					});
 				}
 
@@ -961,73 +992,6 @@ class WC_Team_Payroll_Dashboard {
 						notice.fadeOut(function() { $(this).remove(); });
 					}, 3000);
 				}
-
-				// Quick edit payment
-				$(document).on('click', '.wc-tp-edit-payment', function() {
-					const row = $(this).closest('tr');
-					const userId = row.data('payment-user-id');
-					const amountCell = row.find('.wc-tp-payment-amount');
-					const dateCell = row.find('.wc-tp-payment-date');
-					
-					const currentAmount = amountCell.data('amount');
-					const currentDate = dateCell.data('date');
-					
-					// Replace with input fields
-					amountCell.html('<input type="number" class="wc-tp-edit-input" value="' + currentAmount + '" step="0.01" />');
-					dateCell.html('<input type="date" class="wc-tp-edit-input" value="' + currentDate + '" />');
-					
-					// Replace button with save/cancel
-					const btn = $(this);
-					btn.replaceWith('<button class="button button-small button-primary wc-tp-save-payment" data-user-id="' + userId + '">✓</button> <button class="button button-small wc-tp-cancel-payment">✕</button>');
-					
-					// Focus first input
-					amountCell.find('input').focus();
-				});
-
-				// Save payment edit
-				$(document).on('click', '.wc-tp-save-payment', function() {
-					const row = $(this).closest('tr');
-					const userId = row.data('payment-user-id');
-					const amountInput = row.find('.wc-tp-payment-amount input');
-					const dateInput = row.find('.wc-tp-payment-date input');
-					
-					const newAmount = parseFloat(amountInput.val());
-					const newDate = dateInput.val();
-					
-					if (isNaN(newAmount) || !newDate) {
-						showNotice('Please enter valid values', 'error');
-						return;
-					}
-					
-					// Update via AJAX
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_update_payment',
-							user_id: userId,
-							amount: newAmount,
-							date: newDate,
-							nonce: wcTeamPayrollNonce
-						},
-						success: function(response) {
-							if (response.success) {
-								showNotice('Payment updated successfully', 'success');
-								loadDashboardData();
-							} else {
-								showNotice('Error: ' + response.data, 'error');
-							}
-						},
-						error: function() {
-							showNotice('Error updating payment', 'error');
-						}
-					});
-				});
-
-				// Cancel payment edit
-				$(document).on('click', '.wc-tp-cancel-payment', function() {
-					loadDashboardData();
-				});
 			});
 		</script>
 		<?php
