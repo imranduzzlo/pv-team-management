@@ -46,8 +46,8 @@ class WC_Team_Payroll_Checkout_Integration {
 
 		$data = array();
 		foreach ( $users as $user ) {
-			// Get vb_user_id if it exists (ACF field)
-			$vb_user_id = get_field( 'vb_user_id', 'user_' . $user->ID );
+			// Get vb_user_id from user meta
+			$vb_user_id = get_user_meta( $user->ID, 'vb_user_id', true );
 
 			$data[] = array(
 				'id'         => $user->ID,

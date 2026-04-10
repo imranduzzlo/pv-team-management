@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 4.1.0
+ * Version: 5.0.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '4.1.0' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.0.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -30,34 +30,23 @@ add_action( 'plugins_loaded', function() {
 } );
 
 // ============================================================================
-// CHECK DEPENDENCIES - BUT SHOW MENU ANYWAY
+// CHECK DEPENDENCIES - ONLY WOOCOMMERCE REQUIRED
 // ============================================================================
 
 $wc_active = class_exists( 'WooCommerce' );
-$acf_active = class_exists( 'ACF' ) || class_exists( 'SCF' );
 
-if ( ! $wc_active || ! $acf_active ) {
-	// Show admin notice but continue loading
-	add_action( 'admin_notices', function() use ( $wc_active, $acf_active ) {
-		if ( ! $wc_active ) {
-			?>
-			<div class="notice notice-error is-dismissible">
-				<p><?php esc_html_e( 'WooCommerce Team Payroll requires WooCommerce to be installed and activated.', 'wc-team-payroll' ); ?></p>
-			</div>
-			<?php
-		}
-		if ( ! $acf_active ) {
-			?>
-			<div class="notice notice-error is-dismissible">
-				<p><?php esc_html_e( 'WooCommerce Team Payroll requires Advanced Custom Fields (ACF) to be installed and activated.', 'wc-team-payroll' ); ?></p>
-			</div>
-			<?php
-		}
+if ( ! $wc_active ) {
+	add_action( 'admin_notices', function() {
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p><?php esc_html_e( 'WooCommerce Team Payroll requires WooCommerce to be installed and activated.', 'wc-team-payroll' ); ?></p>
+		</div>
+		<?php
 	} );
 }
 
-// Load all classes - ONLY IF DEPENDENCIES MET
-if ( $wc_active && $acf_active ) {
+// Load all classes - ONLY IF WOOCOMMERCE IS ACTIVE
+if ( $wc_active ) {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-core-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
@@ -65,10 +54,14 @@ if ( $wc_active && $acf_active ) {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
 	// Initialize GitHub updater
 	new WC_Team_Payroll_GitHub_Updater();
+
+	// Initialize custom fields (creates meta fields)
+	new WC_Team_Payroll_Custom_Fields();
 
 	// Initialize core engine (handles commission calculations)
 	$core_engine = new WC_Team_Payroll_Core_Engine();
@@ -107,11 +100,11 @@ if ( $wc_active && $acf_active ) {
 }
 
 // ============================================================================
-// ADMIN MENU - ALWAYS SHOW (EVEN IF DEPENDENCIES NOT MET)
+// ADMIN MENU - ALWAYS SHOW
 // ============================================================================
 
 add_action( 'admin_menu', function() {
-	// Main menu - INDEPENDENT MENU
+	// Main menu
 	add_menu_page(
 		__( 'Team Payroll', 'wc-team-payroll' ),
 		__( 'Team Payroll', 'wc-team-payroll' ),
@@ -123,7 +116,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_dashboard();
 			} else {
 				echo '<div class="wrap"><h1>Team Payroll</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met. Please install WooCommerce and ACF.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		},
@@ -144,7 +137,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_dashboard();
 			} else {
 				echo '<div class="wrap"><h1>Dashboard</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -163,7 +156,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_payroll();
 			} else {
 				echo '<div class="wrap"><h1>Payroll</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -182,7 +175,7 @@ add_action( 'admin_menu', function() {
 				$employees->render_employees_page();
 			} else {
 				echo '<div class="wrap"><h1>Team Members</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -201,7 +194,7 @@ add_action( 'admin_menu', function() {
 				$settings->render_settings_page();
 			} else {
 				echo '<div class="wrap"><h1>Settings</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -220,7 +213,7 @@ add_action( 'admin_menu', function() {
 				$detail->render_employee_detail();
 			} else {
 				echo '<div class="wrap"><h1>Employee Detail</h1>';
-				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
 				echo '</div>';
 			}
 		}

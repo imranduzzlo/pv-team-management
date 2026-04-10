@@ -65,7 +65,7 @@ class WC_Team_Payroll_Core_Engine {
 		// Calculate item commissions
 		foreach ( $order->get_items() as $item ) {
 			$product_id = $item->get_product_id();
-			$commission_rate = get_field( $commission_field_name, $product_id );
+			$commission_rate = get_post_meta( $product_id, 'team_commission', true );
 
 			if ( ! $commission_rate ) {
 				continue;
