@@ -261,8 +261,9 @@ add_action( 'plugins_loaded', function() {
 
 		$recent_payments_data = array_slice( $all_payments, 0, 10 );
 		
-		// Remove timestamp from output
+		// Keep timestamp for sorting but rename it
 		foreach ( $recent_payments_data as &$payment ) {
+			$payment['date_timestamp'] = $payment['timestamp'];
 			unset( $payment['timestamp'] );
 		}
 

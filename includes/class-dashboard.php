@@ -280,6 +280,7 @@ class WC_Team_Payroll_Dashboard {
 				user-select: none;
 				position: relative;
 				padding-right: 24px;
+				transition: all 0.2s ease;
 			}
 
 			.wc-tp-sortable-header::after {
@@ -288,6 +289,7 @@ class WC_Team_Payroll_Dashboard {
 				right: 8px;
 				opacity: 0.3;
 				font-size: 12px;
+				transition: all 0.2s ease;
 			}
 
 			.wc-tp-sortable-header:hover {
@@ -295,21 +297,21 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-sortable-header.wc-tp-sort-active {
-				background-color: var(--color-primary-subtle);
-				color: var(--color-primary);
+				background-color: var(--color-primary-subtle) !important;
+				color: var(--color-primary) !important;
 			}
 
 			.wc-tp-sortable-header.wc-tp-sort-active::after {
-				opacity: 1;
-				color: var(--color-primary);
+				opacity: 1 !important;
+				color: var(--color-primary) !important;
 			}
 
-			.wc-tp-sortable-header.wc-tp-sort-asc::after {
-				content: '↑';
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-asc::after {
+				content: '↑' !important;
 			}
 
-			.wc-tp-sortable-header.wc-tp-sort-desc::after {
-				content: '↓';
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-desc::after {
+				content: '↓' !important;
 			}
 
 			.wc-tp-data-table td {
@@ -661,6 +663,7 @@ class WC_Team_Payroll_Dashboard {
 						if (!sortField) return;
 						
 						const isNumeric = ['orders', 'total', 'paid', 'due', 'earnings', 'amount'].includes(sortField);
+						const isDate = ['date'].includes(sortField);
 						
 						// Check if clicking the same field
 						if (currentSort.field === sortField) {
@@ -694,7 +697,28 @@ class WC_Team_Payroll_Dashboard {
 							if (aVal === undefined || aVal === null) aVal = '';
 							if (bVal === undefined || bVal === null) bVal = '';
 							
-							if (isNumeric) {
+							if (isDate) {
+								// Parse date/time values
+								let aTime = 0;
+								let bTime = 0;
+								
+								// Try to parse as timestamp if available
+								if (a[sortField + '_timestamp']) {
+									aTime = a[sortField + '_timestamp'];
+								} else if (a[sortField]) {
+									// Try to parse date string
+									aTime = new Date(a[sortField]).getTime() || 0;
+								}
+								
+								if (b[sortField + '_timestamp']) {
+									bTime = b[sortField + '_timestamp'];
+								} else if (b[sortField]) {
+									// Try to parse date string
+									bTime = new Date(b[sortField]).getTime() || 0;
+								}
+								
+								return currentSort.direction === 'asc' ? aTime - bTime : bTime - aTime;
+							} else if (isNumeric) {
 								aVal = parseFloat(aVal) || 0;
 								bVal = parseFloat(bVal) || 0;
 								return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
