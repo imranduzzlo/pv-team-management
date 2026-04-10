@@ -19,7 +19,7 @@ class WC_Team_Payroll_GitHub_Updater {
 
 	public function __construct() {
 		$this->plugin_slug = 'woocommerce-team-payroll';
-		$this->plugin_file = WC_TEAM_PAYROLL_PATH . 'woocommerce-team-payroll.php';
+		$this->plugin_file = 'woocommerce-team-payroll/woocommerce-team-payroll.php';
 		$this->github_user = 'imranduzzlo';
 		$this->github_repo = 'pv-team-payroll';
 		$this->github_branch = 'main';
@@ -38,17 +38,16 @@ class WC_Team_Payroll_GitHub_Updater {
 			return $transient;
 		}
 
-		$plugin_file = plugin_basename( $this->plugin_file );
-		$current_version = isset( $transient->checked[ $plugin_file ] ) ? $transient->checked[ $plugin_file ] : '0';
+		$current_version = isset( $transient->checked[ $this->plugin_file ] ) ? $transient->checked[ $this->plugin_file ] : '0';
 
 		// Get latest release from GitHub
 		$latest_release = $this->get_latest_release();
 
 		if ( $latest_release && version_compare( $latest_release['version'], $current_version, '>' ) ) {
-			$transient->response[ $plugin_file ] = (object) array(
+			$transient->response[ $this->plugin_file ] = (object) array(
 				'id'          => $this->github_repo,
 				'slug'        => $this->plugin_slug,
-				'plugin'      => $plugin_file,
+				'plugin'      => $this->plugin_file,
 				'new_version' => $latest_release['version'],
 				'url'         => $latest_release['url'],
 				'package'     => $latest_release['download_url'],
