@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.4] - 2026-04-10
+
+### CRITICAL FIX
+- Fixed menu structure completely
+- Fixed initialization order: Dashboard now initializes BEFORE Settings
+- This ensures parent menu 'wc-team-payroll' exists before Settings tries to attach
+- Main menu "Team Payroll" now correctly goes to Dashboard (not Settings)
+- Settings submenu now correctly attaches to parent menu
+- Fixed "Sorry, you are not allowed to access this page" error on Settings
+- Fixed critical errors on Dashboard and Payroll pages
+- Simplified page rendering to avoid fatal errors
+
 ## [2.0.3] - 2026-04-10
 
 ### Fixed
