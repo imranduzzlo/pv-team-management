@@ -278,6 +278,7 @@ add_action( 'plugins_loaded', function() {
 			'top_earners'       => $top_earners_data,
 			'recent_payments'   => $recent_payments_data,
 			'currency'          => get_woocommerce_currency(),
+			'currency_symbol'   => get_woocommerce_currency_symbol(),
 		) );
 	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
