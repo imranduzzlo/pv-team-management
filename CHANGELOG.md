@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.5] - 2026-04-10
+
+### Fixed
+- Fixed Employee Detail page access permission error
+- Registered Employee Detail page as hidden submenu
+- Page is now recognized by WordPress as valid admin page
+- Fixes "Sorry, you are not allowed to access this page" error when clicking manage on team members
+
 ## [2.0.4] - 2026-04-10
 
 ### CRITICAL FIX
