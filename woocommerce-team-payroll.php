@@ -49,6 +49,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dashboard.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-page.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
@@ -318,6 +319,67 @@ add_action( 'plugins_loaded', function() {
 			'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
 		) );
 	} );
+
+	add_action( 'wp_ajax_wc_tp_get_payroll_data', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$month = intval( $_POST['month'] );
+		$year = intval( $_POST['year'] );
+
+		// Get payroll data
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+		}
+
+		// Process payroll data to include vb_user_id and formatted names
+		$processed_payroll = array();
+		foreach ( $payroll as $user_id => $data ) {
+			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			
+			$processed_payroll[ $user_id ] = array(
+				'user_id'    => $data['user_id'],
+				'user'       => $data['user'],
+				'vb_user_id' => $vb_user_id,
+				'name'       => $employee_name,
+				'total'      => $data['total'],
+				'orders'     => $data['orders'],
+				'paid'       => $data['paid'],
+				'due'        => $data['due'],
+			);
+		}
+		$payroll = $processed_payroll;
+
+		// Calculate stats
+		$total_employees = 0;
+		$total_earnings = 0;
+		$total_paid = 0;
+		$total_due = 0;
+		$total_orders = 0;
+
+		foreach ( $payroll as $data ) {
+			$total_employees++;
+			$total_earnings += $data['total'];
+			$total_paid += $data['paid'];
+			$total_due += $data['due'];
+			$total_orders += $data['orders'];
+		}
+
+		wp_send_json_success( array(
+			'total_employees'   => $total_employees,
+			'total_orders'      => $total_orders,
+			'total_earnings'    => $total_earnings,
+			'total_paid'        => $total_paid,
+			'total_due'         => $total_due,
+			'payroll'           => $payroll,
+			'currency'          => get_woocommerce_currency(),
+			'currency_symbol'   => get_woocommerce_currency_symbol(),
+			'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
+		) );
+	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================
@@ -363,9 +425,9 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll-payroll',
 		function() {
-			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
-				$dashboard = new WC_Team_Payroll_Dashboard();
-				$dashboard->render_payroll();
+			if ( class_exists( 'WC_Team_Payroll_Page' ) ) {
+				$payroll_page = new WC_Team_Payroll_Page();
+				$payroll_page->render_payroll();
 			} else {
 				echo '<div class="wrap"><h1>Payroll</h1>';
 				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
