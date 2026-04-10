@@ -179,6 +179,51 @@ class WC_Team_Payroll_Payroll_Engine {
 			}
 		}
 
+		// Get all employees and add them to payroll if they have payments
+		$all_users = get_users( array(
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'number'   => -1,
+		) );
+
+		foreach ( $all_users as $user ) {
+			$payments = get_user_meta( $user->ID, '_wc_tp_payments', true );
+			
+			if ( is_array( $payments ) && ! empty( $payments ) ) {
+				// Check if user has payments in this date range
+				$has_payment_in_range = false;
+				
+				foreach ( $payments as $payment ) {
+					$payment_date_str = $payment['date'];
+					
+					// Convert datetime-local format
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+					
+					$payment_timestamp = strtotime( $payment_date_str );
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+						$has_payment_in_range = true;
+						break;
+					}
+				}
+				
+				// If user has payments in range but no earnings, add them to payroll
+				if ( $has_payment_in_range && ! isset( $payroll[ $user->ID ] ) ) {
+					$payroll[ $user->ID ] = array(
+						'user_id'    => $user->ID,
+						'user'       => $user,
+						'total'      => 0,
+						'orders'     => 0,
+						'paid'       => 0,
+						'due'        => 0,
+					);
+				}
+			}
+		}
+
 		// Calculate paid/due from payments array
 		foreach ( $payroll as $user_id => $data ) {
 			$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
