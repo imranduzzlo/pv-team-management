@@ -161,6 +161,7 @@ class WC_Team_Payroll_Employee_Management {
 			'date'           => $payment_date,
 			'created_at'     => current_time( 'mysql' ),
 			'created_by'     => get_current_user_id(),
+			'status'         => 'completed',
 		);
 
 		update_user_meta( $user_id, '_wc_tp_payments', $payments );

@@ -232,8 +232,8 @@ class WC_Team_Payroll_Dashboard {
 				margin-top: 0;
 				margin-bottom: 20px;
 				color: var(--text-main);
-				border-bottom: 2px solid var(--color-primary);
-				padding-bottom: 12px;
+				border-left: 4px solid var(--color-primary);
+				padding-left: 12px;
 				font-size: var(--fs-h2);
 				font-weight: var(--fw-bold);
 			}
@@ -264,7 +264,6 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-data-table thead {
 				background: var(--color-accent-muted);
-				border-bottom: 2px solid var(--color-primary);
 			}
 
 			.wc-tp-data-table th {
@@ -273,6 +272,7 @@ class WC_Team_Payroll_Dashboard {
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
 				font-size: var(--fs-meta);
+				border-bottom: 1px solid var(--color-border-light);
 			}
 
 			.wc-tp-sortable-header {
