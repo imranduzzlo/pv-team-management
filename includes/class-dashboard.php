@@ -278,7 +278,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-data-table th {
-				padding: 12px;
+				padding: 14px 12px;
 				text-align: left;
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
