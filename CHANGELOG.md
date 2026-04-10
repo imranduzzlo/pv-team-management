@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.6] - 2026-04-10
+
+### Fixed
+- Fixed Dashboard page to display real payroll data
+- Fixed Payroll page to display real payroll data
+- Both pages now show employee details: name, email, orders, earnings, paid, and due amounts
+- Added "View" button to access employee detail page from both pages
+- Shows "No payroll data" message when no data is available for the selected period
+
 ## [2.0.5] - 2026-04-10
 
 ### Fixed
