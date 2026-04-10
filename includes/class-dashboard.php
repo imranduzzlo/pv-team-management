@@ -584,7 +584,7 @@ class WC_Team_Payroll_Dashboard {
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
 					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
-					html += '<th class="wc-tp-sortable-header wc-tp-sort-active" data-sort="date">Date</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="status">Status</th>';
 					html += '</tr></thead><tbody>';
 
@@ -613,7 +613,7 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header wc-tp-sort-active" data-sort="name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
@@ -657,6 +657,19 @@ class WC_Team_Payroll_Dashboard {
 				function attachSortHandlers(container, data, sortableFields) {
 					// Get or initialize sort state from container data
 					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
+					
+					// Restore sort state classes if they exist
+					if (currentSort.field) {
+						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
+						if (header.length) {
+							header.addClass('wc-tp-sort-active');
+							if (currentSort.direction === 'asc') {
+								header.addClass('wc-tp-sort-asc');
+							} else {
+								header.addClass('wc-tp-sort-desc');
+							}
+						}
+					}
 					
 					container.find('.wc-tp-sortable-header').on('click', function() {
 						const sortField = $(this).data('sort');
