@@ -5,21 +5,6 @@
 
 class WC_Team_Payroll_Employee_Detail {
 
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_employee_detail_page' ) );
-	}
-
-	public function add_employee_detail_page() {
-		add_submenu_page(
-			'wc-team-payroll',
-			__( 'Employee Detail', 'wc-team-payroll' ),
-			'',
-			'manage_woocommerce',
-			'wc-team-payroll-employee-detail',
-			array( $this, 'render_employee_detail' )
-		);
-	}
-
 	public function render_employee_detail() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );

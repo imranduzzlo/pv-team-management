@@ -6,35 +6,6 @@
 class WC_Team_Payroll_Settings {
 
 	/**
-	 * Constructor
-	 */
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_menu' ) );
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
-	}
-
-	/**
-	 * Add menu
-	 */
-	public function add_menu() {
-		add_submenu_page(
-			'wc-team-payroll',
-			__( 'Team Payroll Settings', 'wc-team-payroll' ),
-			__( 'Settings', 'wc-team-payroll' ),
-			'manage_woocommerce',
-			'wc-team-payroll-settings',
-			array( $this, 'render_settings_page' )
-		);
-	}
-
-	/**
-	 * Register settings
-	 */
-	public function register_settings() {
-		// Settings are handled manually in render_settings_page
-	}
-
-	/**
 	 * Render settings page
 	 */
 	public function render_settings_page() {

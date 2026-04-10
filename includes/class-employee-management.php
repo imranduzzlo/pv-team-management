@@ -5,31 +5,6 @@
 
 class WC_Team_Payroll_Employee_Management {
 
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_employee_menu' ) );
-		add_action( 'admin_init', array( $this, 'register_employee_settings' ) );
-		add_action( 'wp_ajax_wc_tp_update_employee_salary', array( $this, 'ajax_update_employee_salary' ) );
-		add_action( 'wp_ajax_wc_tp_add_payment', array( $this, 'ajax_add_payment' ) );
-		add_action( 'wp_ajax_wc_tp_delete_payment', array( $this, 'ajax_delete_payment' ) );
-		add_action( 'wp_ajax_wc_tp_add_order_bonus', array( $this, 'ajax_add_order_bonus' ) );
-		add_action( 'wp_ajax_wc_tp_get_payment_data', array( $this, 'ajax_get_payment_data' ) );
-	}
-
-	public function add_employee_menu() {
-		add_submenu_page(
-			'wc-team-payroll',
-			__( 'Team Members', 'wc-team-payroll' ),
-			__( 'Team Members', 'wc-team-payroll' ),
-			'manage_woocommerce',
-			'wc-team-payroll-employees',
-			array( $this, 'render_employees_page' )
-		);
-	}
-
-	public function register_employee_settings() {
-		register_setting( 'wc_team_payroll_settings_group', 'wc_team_payroll_employees' );
-	}
-
 	public function render_employees_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
