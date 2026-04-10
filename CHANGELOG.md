@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3] - 2026-04-10
+
+### Fixed
+- Fixed GitHub updater not detecting updates in WordPress admin
+- Fixed plugin file path detection in update checker
+- Now correctly uses relative plugin path for WordPress compatibility
+
 ## [2.0.2] - 2026-04-10
 
 ### CRITICAL FIX
