@@ -5,7 +5,7 @@
 
 class WC_Team_Payroll_Checkout_Integration {
 
-	private $agent_field_name = 'order_agent_name';
+	private $agent_field_name = 'order_other_agent_or_not';
 	private $processor_field_name = '_processor_user_id';
 	private $agent_user_roles = array( 'shop_employee', 'shop_manager', 'administrator' );
 
@@ -37,6 +37,27 @@ class WC_Team_Payroll_Checkout_Integration {
 			return;
 		}
 
+		// Check if current user has one of the selected agent roles
+		$current_user_id = get_current_user_id();
+		$user_has_agent_role = false;
+
+		if ( $current_user_id ) {
+			$user = get_user_by( 'ID', $current_user_id );
+			if ( $user ) {
+				foreach ( $this->agent_user_roles as $role ) {
+					if ( in_array( $role, $user->roles ) ) {
+						$user_has_agent_role = true;
+						break;
+					}
+				}
+			}
+		}
+
+		// Only populate dropdown for users with selected roles
+		if ( ! $user_has_agent_role ) {
+			return;
+		}
+
 		// Fetch users with specified roles
 		$users = get_users( array(
 			'role__in' => $this->agent_user_roles,
@@ -60,9 +81,10 @@ class WC_Team_Payroll_Checkout_Integration {
 		<script>
 			(function($) {
 				window.__AGENT_USERS__ = <?php echo wp_json_encode( $data ); ?>;
+				window.__AGENT_FIELD_NAME__ = '<?php echo esc_js( $this->agent_field_name ); ?>';
 
 				function fillAgentDropdown() {
-					let $el = $('select[name="order_agent_name"]');
+					let $el = $('select[name="' + window.__AGENT_FIELD_NAME__ + '"]');
 					if (!$el.length) return;
 					if (typeof window.__AGENT_USERS__ === 'undefined') return;
 
@@ -103,7 +125,7 @@ class WC_Team_Payroll_Checkout_Integration {
 				}
 
 				function triggerFill() {
-					let $el = $('select[name="order_agent_name"]');
+					let $el = $('select[name="' + window.__AGENT_FIELD_NAME__ + '"]');
 					$el.removeData('agent-loaded');
 					fillAgentDropdown();
 				}
@@ -124,7 +146,7 @@ class WC_Team_Payroll_Checkout_Integration {
 
 	public function store_agent_processor_meta( $order, $data ) {
 		$current_user_id = is_user_logged_in() ? get_current_user_id() : null;
-		$agent_id = ! empty( $_POST['order_agent_name'] ) ? intval( $_POST['order_agent_name'] ) : null;
+		$agent_id = ! empty( $_POST[ $this->agent_field_name ] ) ? intval( $_POST[ $this->agent_field_name ] ) : null;
 
 		// Validate agent has selected role
 		if ( $agent_id ) {

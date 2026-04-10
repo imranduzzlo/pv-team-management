@@ -6,24 +6,24 @@
 class WC_Team_Payroll_Dashboard {
 
 	/**
-	 * Initialize dashboard
+	 * Constructor
 	 */
-	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+	public function __construct() {
+		add_action( 'admin_menu', array( $this, 'add_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 	}
 
 	/**
 	 * Add menu items
 	 */
-	public static function add_menu() {
+	public function add_menu() {
 		// Create custom parent menu - points to Dashboard
 		add_menu_page(
 			__( 'Team Payroll', 'wc-team-payroll' ),
 			__( 'Team Payroll', 'wc-team-payroll' ),
 			'manage_woocommerce',
 			'wc-team-payroll',
-			array( __CLASS__, 'render_dashboard' ),
+			array( $this, 'render_dashboard' ),
 			'dashicons-money-alt',
 			56
 		);
@@ -35,14 +35,14 @@ class WC_Team_Payroll_Dashboard {
 			__( 'Payroll', 'wc-team-payroll' ),
 			'manage_woocommerce',
 			'wc-team-payroll-payroll',
-			array( __CLASS__, 'render_payroll' )
+			array( $this, 'render_payroll' )
 		);
 	}
 
 	/**
 	 * Enqueue scripts and styles
 	 */
-	public static function enqueue_scripts( $hook ) {
+	public function enqueue_scripts( $hook ) {
 		if ( strpos( $hook, 'wc-team-payroll' ) === false ) {
 			return;
 		}
@@ -57,7 +57,7 @@ class WC_Team_Payroll_Dashboard {
 	/**
 	 * Render dashboard page
 	 */
-	public static function render_dashboard() {
+	public function render_dashboard() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
@@ -127,7 +127,7 @@ class WC_Team_Payroll_Dashboard {
 	/**
 	 * Render payroll page
 	 */
-	public static function render_payroll() {
+	public function render_payroll() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}

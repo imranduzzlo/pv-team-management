@@ -13,7 +13,7 @@ class WC_Team_Payroll_Employee_Detail {
 		add_submenu_page(
 			'wc-team-payroll',
 			__( 'Employee Detail', 'wc-team-payroll' ),
-			'',
+			__( 'Employee Detail', 'wc-team-payroll' ),
 			'manage_woocommerce',
 			'wc-team-payroll-employee-detail',
 			array( $this, 'render_employee_detail' )
@@ -35,11 +35,10 @@ class WC_Team_Payroll_Employee_Detail {
 			wp_die( esc_html__( 'User not found', 'wc-team-payroll' ) );
 		}
 
-		$employee_mgmt = new WC_Team_Payroll_Employee_Management();
-		$is_fixed_salary = $employee_mgmt->is_fixed_salary( $user_id );
-		$is_combined_salary = $employee_mgmt->is_combined_salary( $user_id );
-		$salary_info = $employee_mgmt->get_user_salary( $user_id );
-		$salary_history = $employee_mgmt->get_salary_history( $user_id );
+		$is_fixed_salary = WC_Team_Payroll_Employee_Management::is_fixed_salary( $user_id );
+		$is_combined_salary = WC_Team_Payroll_Employee_Management::is_combined_salary( $user_id );
+		$salary_info = WC_Team_Payroll_Employee_Management::get_user_salary( $user_id );
+		$salary_history = WC_Team_Payroll_Employee_Management::get_salary_history( $user_id );
 		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
 		if ( ! is_array( $payments ) ) {
 			$payments = array();
@@ -48,7 +47,7 @@ class WC_Team_Payroll_Employee_Detail {
 		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
 		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
 
-		$total_paid = $employee_mgmt->get_user_total_paid( $user_id, $year, $month );
+		$total_paid = WC_Team_Payroll_Employee_Management::get_user_total_paid( $user_id, $year, $month );
 
 		?>
 		<div class="wrap">
@@ -207,8 +206,8 @@ class WC_Team_Payroll_Employee_Detail {
 		<script>
 			function toggleSalaryFields() {
 				const type = document.getElementById('salary_type').value;
-				document.getElementById('salary_amount_row').style.display = type === 'fixed' || type === 'combined' ? '' : 'none';
-				document.getElementById('salary_frequency_row').style.display = type === 'fixed' || type === 'combined' ? '' : 'none';
+				document.getElementById('salary_amount_row').style.display = type === 'fixed' ? '' : 'none';
+				document.getElementById('salary_frequency_row').style.display = type === 'fixed' ? '' : 'none';
 			}
 
 			function updateEmployeeSalary(userId) {
@@ -262,9 +261,13 @@ class WC_Team_Payroll_Employee_Detail {
 					},
 					success: function(response) {
 						if (response.success) {
+							// Clear form
 							document.getElementById('payment_amount').value = '';
 							document.getElementById('payment_date').value = new Date().toISOString().slice(0, 16);
+							
+							// Refresh payment list
 							refreshPaymentList(userId);
+							
 							alert('<?php esc_html_e( 'Payment added', 'wc-team-payroll' ); ?>');
 						} else {
 							alert('Error: ' + response.data);
@@ -320,20 +323,24 @@ class WC_Team_Payroll_Employee_Detail {
 					},
 					success: function(response) {
 						if (response.success) {
+							// Update total paid display
 							const totalPaid = response.data.total_paid;
 							const totalPaidElement = document.querySelector('.payment-card .amount');
 							if (totalPaidElement) {
+								// Format as currency (you may need to adjust based on your currency)
 								totalPaidElement.textContent = new Intl.NumberFormat('en-US', {
 									style: 'currency',
 									currency: 'USD'
 								}).format(totalPaid);
 							}
 
+							// Rebuild payment table
 							const tbody = document.querySelector('table.widefat tbody');
 							if (tbody && response.data.payments) {
 								tbody.innerHTML = '';
 								response.data.payments.forEach(payment => {
 									const row = document.createElement('tr');
+									const createdBy = '<?php echo esc_js( get_current_user_id() ); ?>'; // You may want to fetch this properly
 									row.innerHTML = `
 										<td>${payment.date}</td>
 										<td>${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(payment.amount)}</td>

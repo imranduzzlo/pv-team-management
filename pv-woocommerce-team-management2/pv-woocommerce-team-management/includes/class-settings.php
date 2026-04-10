@@ -5,17 +5,11 @@
 
 class WC_Team_Payroll_Settings {
 
-	/**
-	 * Constructor
-	 */
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 	}
 
-	/**
-	 * Add menu
-	 */
 	public function add_menu() {
 		add_submenu_page(
 			'wc-team-payroll',
@@ -27,32 +21,15 @@ class WC_Team_Payroll_Settings {
 		);
 	}
 
-	/**
-	 * Register settings
-	 */
 	public function register_settings() {
-		// Settings are handled manually in render_settings_page
+		register_setting( 'wc_team_payroll_settings_group', 'wc_team_payroll_settings' );
+		register_setting( 'wc_team_payroll_settings_group', 'wc_team_payroll_checkout_fields' );
+		register_setting( 'wc_team_payroll_settings_group', 'wc_team_payroll_acf_fields' );
 	}
 
-	/**
-	 * Render settings page
-	 */
 	public function render_settings_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
-		}
-
-		// Handle form submission
-		if ( isset( $_POST['submit'] ) && check_admin_referer( 'wc_team_payroll_settings_nonce' ) ) {
-			$settings = isset( $_POST['wc_team_payroll_settings'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_settings'] ) : array();
-			$checkout_fields = isset( $_POST['wc_team_payroll_checkout_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_checkout_fields'] ) : array();
-			$acf_fields = isset( $_POST['wc_team_payroll_acf_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_acf_fields'] ) : array();
-
-			update_option( 'wc_team_payroll_settings', $settings );
-			update_option( 'wc_team_payroll_checkout_fields', $checkout_fields );
-			update_option( 'wc_team_payroll_acf_fields', $acf_fields );
-
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'wc-team-payroll' ) . '</p></div>';
 		}
 
 		$settings = get_option( 'wc_team_payroll_settings', array() );
@@ -77,8 +54,8 @@ class WC_Team_Payroll_Settings {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'WooCommerce Team Payroll Settings', 'wc-team-payroll' ); ?></h1>
 
-			<form method="post" action="">
-				<?php wp_nonce_field( 'wc_team_payroll_settings_nonce' ); ?>
+			<form method="post" action="options.php">
+				<?php settings_fields( 'wc_team_payroll_settings_group' ); ?>
 
 				<!-- Commission Settings -->
 				<h2><?php esc_html_e( 'Commission Settings', 'wc-team-payroll' ); ?></h2>
@@ -207,10 +184,109 @@ class WC_Team_Payroll_Settings {
 						</td>
 					</tr>
 				</table>
+				<h2><?php esc_html_e( 'Extra Earnings Rules', 'wc-team-payroll' ); ?></h2>
+				<p><?php esc_html_e( 'Define additional earnings rules with conditions (bonuses, delivery fees, etc.)', 'wc-team-payroll' ); ?></p>
+
+				<table class="widefat striped" id="extra-earnings-table">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Label', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Type', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Value', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Condition Type', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Condition Value', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'End Date', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Active', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $extra_earnings_rules as $index => $rule ) : ?>
+							<tr class="extra-earnings-row">
+								<td>
+									<input type="text" name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][label]" value="<?php echo esc_attr( isset( $rule['label'] ) ? $rule['label'] : '' ); ?>" placeholder="Rule name" />
+								</td>
+								<td>
+									<select name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][type]">
+										<option value="fixed" <?php selected( isset( $rule['type'] ) ? $rule['type'] : '', 'fixed' ); ?>><?php esc_html_e( 'Fixed Amount', 'wc-team-payroll' ); ?></option>
+										<option value="percentage_order" <?php selected( isset( $rule['type'] ) ? $rule['type'] : '', 'percentage_order' ); ?>><?php esc_html_e( 'Percentage of Order', 'wc-team-payroll' ); ?></option>
+										<option value="percentage_commission" <?php selected( isset( $rule['type'] ) ? $rule['type'] : '', 'percentage_commission' ); ?>><?php esc_html_e( 'Percentage of Commission', 'wc-team-payroll' ); ?></option>
+									</select>
+								</td>
+								<td>
+									<input type="number" name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][value]" value="<?php echo esc_attr( isset( $rule['value'] ) ? $rule['value'] : '' ); ?>" step="0.01" placeholder="Amount or %" />
+								</td>
+								<td>
+									<select name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][condition_type]" class="condition-type-select">
+										<option value="none" <?php selected( isset( $rule['condition_type'] ) ? $rule['condition_type'] : '', 'none' ); ?>><?php esc_html_e( 'No Condition', 'wc-team-payroll' ); ?></option>
+										<option value="order_total" <?php selected( isset( $rule['condition_type'] ) ? $rule['condition_type'] : '', 'order_total' ); ?>><?php esc_html_e( 'Order Total >', 'wc-team-payroll' ); ?></option>
+										<option value="product_based" <?php selected( isset( $rule['condition_type'] ) ? $rule['condition_type'] : '', 'product_based' ); ?>><?php esc_html_e( 'Specific Products', 'wc-team-payroll' ); ?></option>
+										<option value="category_based" <?php selected( isset( $rule['condition_type'] ) ? $rule['condition_type'] : '', 'category_based' ); ?>><?php esc_html_e( 'Product Categories', 'wc-team-payroll' ); ?></option>
+										<option value="agent_based" <?php selected( isset( $rule['condition_type'] ) ? $rule['condition_type'] : '', 'agent_based' ); ?>><?php esc_html_e( 'Specific Agent', 'wc-team-payroll' ); ?></option>
+									</select>
+								</td>
+								<td>
+									<input type="text" name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][condition_value]" value="<?php echo esc_attr( isset( $rule['condition_value'] ) ? $rule['condition_value'] : '' ); ?>" placeholder="Value or IDs (comma-separated)" />
+								</td>
+								<td>
+									<input type="date" name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][end_date]" value="<?php echo esc_attr( isset( $rule['end_date'] ) ? $rule['end_date'] : '' ); ?>" />
+								</td>
+								<td>
+									<input type="checkbox" name="wc_team_payroll_settings[extra_earnings_rules][<?php echo esc_attr( $index ); ?>][active]" value="1" <?php checked( isset( $rule['active'] ) ? $rule['active'] : 1, 1 ); ?> />
+								</td>
+								<td>
+									<button type="button" class="button remove-rule"><?php esc_html_e( 'Remove', 'wc-team-payroll' ); ?></button>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+
+				<button type="button" class="button" id="add-rule"><?php esc_html_e( 'Add Rule', 'wc-team-payroll' ); ?></button>
 
 				<?php submit_button(); ?>
 			</form>
 		</div>
+
+		<script>
+			jQuery(document).ready(function($) {
+				$('#add-rule').on('click', function() {
+					const index = $('#extra-earnings-table tbody tr').length;
+					const row = `
+						<tr class="extra-earnings-row">
+							<td><input type="text" name="wc_team_payroll_settings[extra_earnings_rules][${index}][label]" placeholder="Rule name" /></td>
+							<td>
+								<select name="wc_team_payroll_settings[extra_earnings_rules][${index}][type]">
+									<option value="fixed"><?php esc_html_e( 'Fixed Amount', 'wc-team-payroll' ); ?></option>
+									<option value="percentage_order"><?php esc_html_e( 'Percentage of Order', 'wc-team-payroll' ); ?></option>
+									<option value="percentage_commission"><?php esc_html_e( 'Percentage of Commission', 'wc-team-payroll' ); ?></option>
+								</select>
+							</td>
+							<td><input type="number" name="wc_team_payroll_settings[extra_earnings_rules][${index}][value]" step="0.01" placeholder="Amount or %" /></td>
+							<td>
+								<select name="wc_team_payroll_settings[extra_earnings_rules][${index}][condition_type]" class="condition-type-select">
+									<option value="none"><?php esc_html_e( 'No Condition', 'wc-team-payroll' ); ?></option>
+									<option value="order_total"><?php esc_html_e( 'Order Total >', 'wc-team-payroll' ); ?></option>
+									<option value="product_based"><?php esc_html_e( 'Specific Products', 'wc-team-payroll' ); ?></option>
+									<option value="category_based"><?php esc_html_e( 'Product Categories', 'wc-team-payroll' ); ?></option>
+									<option value="agent_based"><?php esc_html_e( 'Specific Agent', 'wc-team-payroll' ); ?></option>
+								</select>
+							</td>
+							<td><input type="text" name="wc_team_payroll_settings[extra_earnings_rules][${index}][condition_value]" placeholder="Value or IDs (comma-separated)" /></td>
+							<td><input type="date" name="wc_team_payroll_settings[extra_earnings_rules][${index}][end_date]" /></td>
+							<td><input type="checkbox" name="wc_team_payroll_settings[extra_earnings_rules][${index}][active]" value="1" checked /></td>
+							<td><button type="button" class="button remove-rule"><?php esc_html_e( 'Remove', 'wc-team-payroll' ); ?></button></td>
+						</tr>
+					`;
+					$('#extra-earnings-table tbody').append(row);
+				});
+
+				$(document).on('click', '.remove-rule', function(e) {
+					e.preventDefault();
+					$(this).closest('tr').remove();
+				});
+			});
+		</script>
 		<?php
 	}
 }

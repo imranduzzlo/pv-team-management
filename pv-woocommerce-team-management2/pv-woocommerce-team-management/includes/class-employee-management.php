@@ -104,15 +104,17 @@ class WC_Team_Payroll_Employee_Management {
 		}
 
 		$user_id = intval( $_POST['user_id'] );
-		$salary_type = sanitize_text_field( $_POST['salary_type'] );
+		$salary_type = sanitize_text_field( $_POST['salary_type'] ); // 'fixed', 'commission', or 'combined'
 		$salary_amount = floatval( $_POST['salary_amount'] );
-		$salary_frequency = sanitize_text_field( $_POST['salary_frequency'] );
+		$salary_frequency = sanitize_text_field( $_POST['salary_frequency'] ); // 'daily', 'weekly', 'monthly', 'yearly'
 
+		// Store old values for history
 		$old_type = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
 		$old_combined = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
 		$old_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
 		$old_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
 
+		// Determine old type
 		$old_salary_type = 'commission';
 		if ( $old_type ) {
 			$old_salary_type = 'fixed';
@@ -120,6 +122,7 @@ class WC_Team_Payroll_Employee_Management {
 			$old_salary_type = 'combined';
 		}
 
+		// Update user meta based on type
 		if ( 'fixed' === $salary_type ) {
 			update_user_meta( $user_id, '_wc_tp_fixed_salary', 1 );
 			update_user_meta( $user_id, '_wc_tp_combined_salary', 0 );
@@ -131,12 +134,14 @@ class WC_Team_Payroll_Employee_Management {
 			update_user_meta( $user_id, '_wc_tp_salary_amount', $salary_amount );
 			update_user_meta( $user_id, '_wc_tp_salary_frequency', $salary_frequency );
 		} else {
+			// Commission based
 			update_user_meta( $user_id, '_wc_tp_fixed_salary', 0 );
 			update_user_meta( $user_id, '_wc_tp_combined_salary', 0 );
 			delete_user_meta( $user_id, '_wc_tp_salary_amount' );
 			delete_user_meta( $user_id, '_wc_tp_salary_frequency' );
 		}
 
+		// Add to history
 		$this->add_salary_history( $user_id, $old_salary_type, $old_amount, $old_frequency, $salary_type, $salary_amount, $salary_frequency );
 
 		wp_send_json_success( array(
@@ -152,7 +157,7 @@ class WC_Team_Payroll_Employee_Management {
 
 		$history[] = array(
 			'date'           => current_time( 'mysql' ),
-			'old_type'       => $old_type,
+			'old_type'       => $old_type ? 'fixed' : 'commission',
 			'old_amount'     => $old_amount,
 			'old_frequency'  => $old_frequency,
 			'new_type'       => $new_type,
@@ -238,7 +243,7 @@ class WC_Team_Payroll_Employee_Management {
 			$payments = array();
 		}
 
-		$total_paid = $this->get_user_total_paid( $user_id, $year, $month );
+		$total_paid = self::get_user_total_paid( $user_id, $year, $month );
 
 		wp_send_json_success( array(
 			'payments'   => $payments,
@@ -263,14 +268,17 @@ class WC_Team_Payroll_Employee_Management {
 			wp_send_json_error( __( 'Order not found', 'wc-team-payroll' ) );
 		}
 
+		// Store bonus per user (not shared with other employees)
 		$order_bonuses = $order->get_meta( '_wc_tp_order_bonuses' );
 		if ( ! is_array( $order_bonuses ) ) {
 			$order_bonuses = array();
 		}
 
+		// Check if bonus already exists for this user on this order
 		$bonus_exists = false;
 		foreach ( $order_bonuses as $key => $bonus ) {
 			if ( $bonus['user_id'] == $user_id ) {
+				// Update existing bonus for this user
 				$order_bonuses[ $key ] = array(
 					'user_id'    => $user_id,
 					'amount'     => $bonus_amount,
@@ -283,6 +291,7 @@ class WC_Team_Payroll_Employee_Management {
 			}
 		}
 
+		// Add new bonus if doesn't exist for this user
 		if ( ! $bonus_exists ) {
 			$order_bonuses[] = array(
 				'user_id'    => $user_id,
@@ -301,7 +310,10 @@ class WC_Team_Payroll_Employee_Management {
 		) );
 	}
 
-	public function get_user_total_paid( $user_id, $year = null, $month = null ) {
+	/**
+	 * Get total paid for user
+	 */
+	public static function get_user_total_paid( $user_id, $year = null, $month = null ) {
 		if ( ! $year ) {
 			$year = date( 'Y' );
 		}
@@ -329,22 +341,34 @@ class WC_Team_Payroll_Employee_Management {
 		return $total_paid;
 	}
 
-	public function get_salary_history( $user_id ) {
+	/**
+	 * Get salary history for user
+	 */
+	public static function get_salary_history( $user_id ) {
 		$history = get_user_meta( $user_id, '_wc_tp_salary_history', true );
 		return is_array( $history ) ? $history : array();
 	}
 
-	public function is_fixed_salary( $user_id ) {
+	/**
+	 * Check if user is fixed salary
+	 */
+	public static function is_fixed_salary( $user_id ) {
 		return (bool) get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
 	}
 
-	public function is_combined_salary( $user_id ) {
+	/**
+	 * Check if user is combined salary
+	 */
+	public static function is_combined_salary( $user_id ) {
 		return (bool) get_user_meta( $user_id, '_wc_tp_combined_salary', true );
 	}
 
-	public function get_user_salary( $user_id ) {
-		$is_fixed = $this->is_fixed_salary( $user_id );
-		$is_combined = $this->is_combined_salary( $user_id );
+	/**
+	 * Get user salary info
+	 */
+	public static function get_user_salary( $user_id ) {
+		$is_fixed = self::is_fixed_salary( $user_id );
+		$is_combined = self::is_combined_salary( $user_id );
 
 		if ( ! $is_fixed && ! $is_combined ) {
 			return null;

@@ -6,7 +6,7 @@
 class WC_Team_Payroll_Payroll_Engine {
 
 	/**
-	 * Get monthly payroll summary - FIXED DATE QUERY
+	 * Get monthly payroll summary
 	 */
 	public static function get_monthly_payroll( $year = null, $month = null ) {
 		if ( ! $year ) {
@@ -19,16 +19,12 @@ class WC_Team_Payroll_Payroll_Engine {
 		$start_date = sprintf( '%d-%02d-01', $year, $month );
 		$end_date = date( 'Y-m-t', strtotime( $start_date ) );
 
-		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
 			'status' => array( 'completed', 'processing' ),
-			'date_query' => array(
-				array(
-					'after'     => $start_date,
-					'before'    => $end_date,
-					'inclusive' => true,
-				),
+			'date_created' => array(
+				'>=' => strtotime( $start_date ),
+				'<=' => strtotime( $end_date . ' 23:59:59' ),
 			),
 		);
 
@@ -93,5 +89,37 @@ class WC_Team_Payroll_Payroll_Engine {
 	public static function mark_payroll_paid( $user_id, $year, $month, $amount ) {
 		$key = sprintf( '_payroll_paid_%d_%02d', $year, $month );
 		update_user_meta( $user_id, $key, floatval( $amount ) );
+
+		do_action( 'wc_team_payroll_marked_paid', $user_id, $year, $month, $amount );
+	}
+
+	/**
+	 * Get user payroll history
+	 */
+	public static function get_user_payroll_history( $user_id, $months = 12 ) {
+		$history = array();
+
+		for ( $i = 0; $i < $months; $i++ ) {
+			$date = date( 'Y-m-01', strtotime( "-$i months" ) );
+			$year = date( 'Y', strtotime( $date ) );
+			$month = date( 'm', strtotime( $date ) );
+
+			$engine = new WC_Team_Payroll_Core_Engine();
+			$earnings = $engine->get_user_earnings( $user_id, $date, date( 'Y-m-t', strtotime( $date ) ) );
+
+			$paid = get_user_meta( $user_id, sprintf( '_payroll_paid_%d_%02d', $year, $month ), true );
+			$paid = $paid ? floatval( $paid ) : 0;
+
+			$history[] = array(
+				'date'     => $date,
+				'year'     => $year,
+				'month'    => $month,
+				'total'    => $earnings['total_earnings'],
+				'paid'     => $paid,
+				'due'      => $earnings['total_earnings'] - $paid,
+			);
+		}
+
+		return $history;
 	}
 }
