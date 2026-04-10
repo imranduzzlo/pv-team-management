@@ -333,7 +333,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-no-action td {
-				padding: 16px 12px;
+				padding: 10px 12px;
 			}
 
 			.wc-tp-data-table tbody tr:hover {
