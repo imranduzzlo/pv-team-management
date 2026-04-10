@@ -23,12 +23,19 @@ class WC_Team_Payroll_Settings {
 			update_option( 'wc_team_payroll_checkout_fields', $checkout_fields );
 			update_option( 'wc_team_payroll_acf_fields', $acf_fields );
 
+			// Save user ID prefix
+			if ( isset( $_POST['wc_tp_user_id_prefix'] ) ) {
+				$prefix = sanitize_text_field( $_POST['wc_tp_user_id_prefix'] );
+				update_option( 'wc_tp_user_id_prefix', $prefix );
+			}
+
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'wc-team-payroll' ) . '</p></div>';
 		}
 
 		$settings = get_option( 'wc_team_payroll_settings', array() );
 		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
 		$acf_fields = get_option( 'wc_team_payroll_acf_fields', array() );
+		$user_id_prefix = get_option( 'wc_tp_user_id_prefix', 'PVVB-EMID' );
 		
 		$agent_percentage = isset( $settings['agent_percentage'] ) ? floatval( $settings['agent_percentage'] ) : 70;
 		$processor_percentage = isset( $settings['processor_percentage'] ) ? floatval( $settings['processor_percentage'] ) : 30;
@@ -54,6 +61,16 @@ class WC_Team_Payroll_Settings {
 				<!-- Commission Settings -->
 				<h2><?php esc_html_e( 'Commission Settings', 'wc-team-payroll' ); ?></h2>
 				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label for="wc_tp_user_id_prefix"><?php esc_html_e( 'Employee ID Prefix', 'wc-team-payroll' ); ?></label>
+						</th>
+						<td>
+							<input type="text" id="wc_tp_user_id_prefix" name="wc_tp_user_id_prefix" value="<?php echo esc_attr( $user_id_prefix ); ?>" />
+							<p class="description"><?php esc_html_e( 'Prefix for auto-generated employee IDs (e.g., PVVB-EMID). The user ID will be appended to this prefix.', 'wc-team-payroll' ); ?></p>
+						</td>
+					</tr>
+
 					<tr>
 						<th scope="row">
 							<label for="agent_percentage"><?php esc_html_e( 'Agent Commission %', 'wc-team-payroll' ); ?></label>

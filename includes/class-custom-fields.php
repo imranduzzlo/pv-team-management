@@ -6,6 +6,9 @@
 class WC_Team_Payroll_Custom_Fields {
 
 	public function __construct() {
+		// Create shop_employee role
+		$this->create_shop_employee_role();
+
 		// Add product meta box for commission
 		add_action( 'add_meta_boxes', array( $this, 'add_product_meta_box' ) );
 		add_action( 'save_post_product', array( $this, 'save_product_meta' ) );
@@ -15,6 +18,71 @@ class WC_Team_Payroll_Custom_Fields {
 		add_action( 'edit_user_profile', array( $this, 'add_user_meta_box' ) );
 		add_action( 'personal_options_update', array( $this, 'save_user_meta' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_user_meta' ) );
+
+		// Auto-generate vb_user_id on user register and profile update
+		add_action( 'user_register', array( $this, 'auto_set_user_custom_id' ) );
+		add_action( 'profile_update', array( $this, 'auto_set_user_custom_id' ) );
+
+		// Restrict admin access for Shop Employee
+		add_action( 'admin_init', array( $this, 'restrict_shop_employee_admin_access' ) );
+	}
+
+	/**
+	 * Create shop_employee role
+	 */
+	private function create_shop_employee_role() {
+		if ( ! get_role( 'shop_employee' ) ) {
+			add_role(
+				'shop_employee',
+				__( 'Shop employee', 'wc-team-payroll' ),
+				array(
+					'read' => true,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Restrict admin access for Shop Employee
+	 */
+	public function restrict_shop_employee_admin_access() {
+		if ( current_user_can( 'shop_employee' ) && ! defined( 'DOING_AJAX' ) ) {
+			wp_redirect( home_url() );
+			exit;
+		}
+	}
+
+	/**
+	 * Auto-generate vb_user_id for employees
+	 */
+	public function auto_set_user_custom_id( $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return;
+		}
+
+		$allowed_roles = array( 'shop_employee', 'shop_manager', 'administrator' );
+		if ( ! array_intersect( $allowed_roles, $user->roles ) ) {
+			return;
+		}
+
+		// Check if vb_user_id already exists
+		$existing_id = get_user_meta( $user_id, 'vb_user_id', true );
+		if ( ! empty( $existing_id ) ) {
+			return; // Don't overwrite existing ID
+		}
+
+		// Get prefix from settings
+		$prefix = get_option( 'wc_tp_user_id_prefix', 'PVVB-EMID' );
+
+		// Generate custom ID
+		$custom_id = $prefix . $user_id;
+		update_user_meta( $user_id, 'vb_user_id', $custom_id );
+
+		// Also update ACF field if available
+		if ( function_exists( 'update_field' ) ) {
+			update_field( 'vb_user_id', $custom_id, 'user_' . $user_id );
+		}
 	}
 
 	/**
@@ -75,7 +143,7 @@ class WC_Team_Payroll_Custom_Fields {
 				</th>
 				<td>
 					<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />
-					<p class="description"><?php esc_html_e( 'Enter the VB User ID for this employee', 'wc-team-payroll' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -96,3 +164,4 @@ class WC_Team_Payroll_Custom_Fields {
 		}
 	}
 }
+
