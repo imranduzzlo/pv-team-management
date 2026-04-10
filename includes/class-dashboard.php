@@ -383,6 +383,23 @@ class WC_Team_Payroll_Dashboard {
 				border-color: var(--color-primary-hover);
 			}
 
+			.wc-tp-quick-edit,
+			.wc-tp-edit-payment {
+				background: var(--color-accent-link);
+				border-color: var(--color-accent-link);
+				color: white;
+				padding: 4px 8px;
+				font-size: 12px;
+				height: auto;
+				line-height: 1.5;
+			}
+
+			.wc-tp-quick-edit:hover,
+			.wc-tp-edit-payment:hover {
+				background: #0066cc;
+				border-color: #0066cc;
+			}
+
 			@media (max-width: 768px) {
 				.wc-tp-date-filter {
 					flex-direction: column;
@@ -406,6 +423,9 @@ class WC_Team_Payroll_Dashboard {
 
 		<script>
 			jQuery(document).ready(function($) {
+				// Store currency globally
+				let wcCurrency = 'USD';
+
 				// Load dashboard data on page load
 				loadDashboardData();
 
@@ -439,6 +459,9 @@ class WC_Team_Payroll_Dashboard {
 						success: function(response) {
 							if (response.success) {
 								const data = response.data;
+								
+								// Store currency
+								wcCurrency = data.currency || 'USD';
 								
 								// Update stat cards
 								renderStatCards(data);
@@ -586,6 +609,7 @@ class WC_Team_Payroll_Dashboard {
 					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="status">Status</th>';
+					html += '<th>Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(payments, function(i, payment) {
@@ -595,6 +619,7 @@ class WC_Team_Payroll_Dashboard {
 						html += '<td>' + formatCurrency(payment.amount) + '</td>';
 						html += '<td>' + payment.date + '</td>';
 						html += '<td><span class="wc-tp-status ' + statusClass + '">' + payment.status.charAt(0).toUpperCase() + payment.status.slice(1) + '</span></td>';
+						html += '<td><button class="button button-small wc-tp-edit-payment" data-payment-id="' + payment.user_id + '" data-amount="' + payment.amount + '" data-date="' + payment.date + '" title="Edit Payment">✎</button></td>';
 						html += '</tr>';
 					});
 
@@ -644,7 +669,7 @@ class WC_Team_Payroll_Dashboard {
 						html += '<td>' + formatCurrency(data.total) + '</td>';
 						html += '<td><span class="wc-tp-paid">' + formatCurrency(data.paid) + '</span></td>';
 						html += '<td><span class="wc-tp-due">' + formatCurrency(data.due) + '</span></td>';
-						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a></td>';
+						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a> <button class="button button-small wc-tp-quick-edit" data-user-id="' + data.userId + '" title="Quick Edit">✎</button></td>';
 						html += '</tr>';
 					});
 
@@ -759,7 +784,7 @@ class WC_Team_Payroll_Dashboard {
 				function formatCurrency(value) {
 					return new Intl.NumberFormat('en-US', {
 						style: 'currency',
-						currency: 'USD'
+						currency: wcCurrency
 					}).format(value);
 				}
 
@@ -772,6 +797,84 @@ class WC_Team_Payroll_Dashboard {
 						notice.fadeOut(function() { $(this).remove(); });
 					}, 3000);
 				}
+
+				// Quick edit payroll
+				$(document).on('click', '.wc-tp-quick-edit', function() {
+					const userId = $(this).data('user-id');
+					const row = $(this).closest('tr');
+					const paidCell = row.find('td:eq(4)');
+					const dueCell = row.find('td:eq(5)');
+					
+					const currentPaid = parseFloat(paidCell.text().replace(/[^0-9.-]/g, ''));
+					const currentDue = parseFloat(dueCell.text().replace(/[^0-9.-]/g, ''));
+					
+					const newPaid = prompt('Enter new Paid amount:', currentPaid);
+					if (newPaid === null) return;
+					
+					const newDue = prompt('Enter new Due amount:', currentDue);
+					if (newDue === null) return;
+					
+					// Update via AJAX
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_update_payroll',
+							user_id: userId,
+							paid: parseFloat(newPaid),
+							due: parseFloat(newDue),
+							nonce: wcTeamPayrollNonce
+						},
+						success: function(response) {
+							if (response.success) {
+								showNotice('Payroll updated successfully', 'success');
+								loadDashboardData();
+							} else {
+								showNotice('Error: ' + response.data, 'error');
+							}
+						},
+						error: function() {
+							showNotice('Error updating payroll', 'error');
+						}
+					});
+				});
+
+				// Quick edit payment
+				$(document).on('click', '.wc-tp-edit-payment', function() {
+					const userId = $(this).data('payment-id');
+					const amount = $(this).data('amount');
+					const date = $(this).data('date');
+					
+					const newAmount = prompt('Enter new amount:', amount);
+					if (newAmount === null) return;
+					
+					const newDate = prompt('Enter new date (YYYY-MM-DD):', date);
+					if (newDate === null) return;
+					
+					// Update via AJAX
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_update_payment',
+							user_id: userId,
+							amount: parseFloat(newAmount),
+							date: newDate,
+							nonce: wcTeamPayrollNonce
+						},
+						success: function(response) {
+							if (response.success) {
+								showNotice('Payment updated successfully', 'success');
+								loadDashboardData();
+							} else {
+								showNotice('Error: ' + response.data, 'error');
+							}
+						},
+						error: function() {
+							showNotice('Error updating payment', 'error');
+						}
+					});
+				});
 			});
 		</script>
 		<?php

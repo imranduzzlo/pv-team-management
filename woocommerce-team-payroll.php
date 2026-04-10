@@ -277,6 +277,7 @@ add_action( 'plugins_loaded', function() {
 			'latest_employees'  => $latest_employees_data,
 			'top_earners'       => $top_earners_data,
 			'recent_payments'   => $recent_payments_data,
+			'currency'          => get_woocommerce_currency(),
 		) );
 	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
