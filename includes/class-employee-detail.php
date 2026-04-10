@@ -6,11 +6,19 @@
 class WC_Team_Payroll_Employee_Detail {
 
 	public static function init() {
-		// Employee detail page is accessed from Team Members, no submenu needed
+		add_action( 'admin_menu', array( __CLASS__, 'add_employee_detail_page' ) );
 	}
 
 	public static function add_employee_detail_page() {
-		// Removed - accessed via Team Members page with user_id parameter
+		// Register as hidden submenu (no menu item shown, but page is accessible)
+		add_submenu_page(
+			'wc-team-payroll',
+			__( 'Employee Detail', 'wc-team-payroll' ),
+			'',  // Empty label = hidden from menu
+			'manage_woocommerce',
+			'wc-team-payroll-employee-detail',
+			array( __CLASS__, 'render_employee_detail' )
+		);
 	}
 
 	public static function render_employee_detail() {
