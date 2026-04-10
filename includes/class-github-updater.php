@@ -72,6 +72,11 @@ class WC_Team_Payroll_GitHub_Updater {
 			return $transient;
 		}
 
+		// Initialize response if not set
+		if ( ! isset( $transient->response ) ) {
+			$transient->response = array();
+		}
+
 		$current_version = $this->get_current_version();
 
 		// Get latest release from GitHub
@@ -85,6 +90,7 @@ class WC_Team_Payroll_GitHub_Updater {
 		$latest_version = $this->normalize_version( $latest_release['version'] );
 		$current_version_normalized = $this->normalize_version( $current_version );
 
+		// Only add to response if there's a newer version
 		if ( version_compare( $latest_version, $current_version_normalized, '>' ) ) {
 			$transient->response[ $this->plugin_file ] = (object) array(
 				'id'          => $this->github_repo,
@@ -99,6 +105,9 @@ class WC_Team_Payroll_GitHub_Updater {
 				'icons'       => array(),
 				'banners'     => array(),
 			);
+		} else {
+			// Remove from response if versions are equal or current is newer
+			unset( $transient->response[ $this->plugin_file ] );
 		}
 
 		return $transient;

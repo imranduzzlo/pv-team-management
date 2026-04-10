@@ -653,7 +653,8 @@ class WC_Team_Payroll_Dashboard {
 
 				// Attach sort handlers to table headers
 				function attachSortHandlers(container, data, sortableFields) {
-					let currentSort = { field: null, direction: 'asc' };
+					// Get or initialize sort state from container data
+					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
 					
 					container.find('.wc-tp-sortable-header').on('click', function() {
 						const sortField = $(this).data('sort');
@@ -670,6 +671,9 @@ class WC_Team_Payroll_Dashboard {
 							currentSort.field = sortField;
 							currentSort.direction = 'asc';
 						}
+						
+						// Save sort state to container
+						container.data('sortState', currentSort);
 						
 						// Remove active class from all headers in this container
 						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
