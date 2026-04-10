@@ -584,7 +584,7 @@ class WC_Team_Payroll_Dashboard {
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
 					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
+					html += '<th class="wc-tp-sortable-header wc-tp-sort-active wc-tp-sort-desc" data-sort="date">Date</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="status">Status</th>';
 					html += '</tr></thead><tbody>';
 
@@ -600,6 +600,8 @@ class WC_Team_Payroll_Dashboard {
 
 					html += '</tbody></table>';
 					container.html(html);
+					// Initialize default sort state for recent payments (date, descending)
+					container.data('sortState', { field: 'date', direction: 'desc' });
 					attachSortHandlers(container, payments, ['employee_name', 'amount', 'date', 'status']);
 				}
 
@@ -613,7 +615,7 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header wc-tp-sort-active wc-tp-sort-asc" data-sort="name">Employee</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
@@ -650,6 +652,8 @@ class WC_Team_Payroll_Dashboard {
 
 					html += '</tbody></table>';
 					container.html(html);
+					// Initialize default sort state for payroll (name, ascending)
+					container.data('sortState', { field: 'name', direction: 'asc' });
 					attachSortHandlers(container, payrollArray, ['name', 'user_email', 'orders', 'total', 'paid', 'due']);
 				}
 
