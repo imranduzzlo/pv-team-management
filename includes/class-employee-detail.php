@@ -6,7 +6,7 @@
 class WC_Team_Payroll_Employee_Detail {
 
 	public function render_employee_detail() {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 

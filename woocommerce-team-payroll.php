@@ -33,7 +33,7 @@ add_action( 'plugins_loaded', function() {
 // CHECK DEPENDENCIES - ONLY WOOCOMMERCE REQUIRED
 // ============================================================================
 
-$wc_active = class_exists( 'WooCommerce' );
+$wc_active = function_exists( 'WC' ) || class_exists( 'WooCommerce' ) || defined( 'WC_VERSION' );
 
 if ( ! $wc_active ) {
 	add_action( 'admin_notices', function() {
