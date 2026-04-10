@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2] - 2026-04-10
+
+### CRITICAL FIX
+- Fixed fatal errors on Dashboard and Payroll pages
+- Fixed 8 critical static method call errors in Core Engine
+- All static methods now correctly use `self::` instead of `$this->`
+- Dashboard and Payroll pages now load without critical errors
+
 ## [2.0.1] - 2026-04-10
 
 ### Fixed
