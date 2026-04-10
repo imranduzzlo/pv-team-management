@@ -17,8 +17,11 @@ class WC_Team_Payroll_Dashboard {
 		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
-		// Get all employees (regardless of commission)
+		// Get all employees
 		$all_employees = $this->get_all_employees();
+
+		// Get latest employees (10)
+		$latest_employees = $this->get_latest_employees( 10 );
 
 		// Get payroll data for date range (only those with commission)
 		$payroll = array();
@@ -39,9 +42,6 @@ class WC_Team_Payroll_Dashboard {
 			$total_due += $data['due'];
 			$total_orders += $data['orders'];
 		}
-
-		// Get latest employees
-		$latest_employees = $this->get_latest_employees( 5 );
 
 		// Get recent payments
 		$recent_payments = $this->get_recent_payments( 10 );
@@ -105,42 +105,68 @@ class WC_Team_Payroll_Dashboard {
 				</div>
 			</div>
 
+			<!-- Latest Employees (10) -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+				<?php if ( empty( $latest_employees ) ) : ?>
+					<div class="wc-tp-empty-state">
+						<div class="wc-tp-empty-icon">👥</div>
+						<p><?php esc_html_e( 'No employees yet', 'wc-team-payroll' ); ?></p>
+					</div>
+				<?php else : ?>
+					<table class="wc-tp-data-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Type', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Salary/Commission', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $latest_employees as $employee ) : ?>
+								<?php
+									$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+									$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+									$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
+									$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
+								?>
+								<tr>
+									<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
+									<td><?php echo esc_html( $employee->user_email ); ?></td>
+									<td>
+										<?php
+										if ( $is_fixed_salary ) {
+											echo esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+										} elseif ( $is_combined_salary ) {
+											echo esc_html__( 'Combined', 'wc-team-payroll' );
+										} else {
+											echo esc_html__( 'Commission', 'wc-team-payroll' );
+										}
+										?>
+									</td>
+									<td>
+										<?php
+										if ( $is_fixed_salary || $is_combined_salary ) {
+											echo wp_kses_post( wc_price( $salary ) . ' / ' . esc_html( $frequency ) );
+										} else {
+											echo esc_html__( 'Commission Based', 'wc-team-payroll' );
+										}
+										?>
+									</td>
+									<td>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'Manage', 'wc-team-payroll' ); ?></a>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
+
 			<!-- Two Column Layout -->
 			<div class="wc-tp-dashboard-grid">
-				<!-- Latest Employees -->
-				<div class="wc-tp-table-section">
-					<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
-					<?php if ( empty( $latest_employees ) ) : ?>
-						<div class="wc-tp-empty-state">
-							<div class="wc-tp-empty-icon">👥</div>
-							<p><?php esc_html_e( 'No employees yet', 'wc-team-payroll' ); ?></p>
-						</div>
-					<?php else : ?>
-						<table class="wc-tp-data-table">
-							<thead>
-								<tr>
-									<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $latest_employees as $employee ) : ?>
-									<tr>
-										<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
-										<td><?php echo esc_html( $employee->user_email ); ?></td>
-										<td><?php echo esc_html( implode( ', ', $employee->roles ) ); ?></td>
-										<td>
-											<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
-										</td>
-									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
-					<?php endif; ?>
-				</div>
-
 				<!-- Top Earners -->
 				<div class="wc-tp-table-section">
 					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
@@ -170,89 +196,38 @@ class WC_Team_Payroll_Dashboard {
 						</table>
 					<?php endif; ?>
 				</div>
-			</div>
 
-			<!-- Recent Payments -->
-			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
-				<?php if ( empty( $recent_payments ) ) : ?>
-					<div class="wc-tp-empty-state">
-						<div class="wc-tp-empty-icon">💳</div>
-						<p><?php esc_html_e( 'No payments yet', 'wc-team-payroll' ); ?></p>
-					</div>
-				<?php else : ?>
-					<table class="wc-tp-data-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $recent_payments as $payment ) : ?>
+				<!-- Recent Payments -->
+				<div class="wc-tp-table-section">
+					<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
+					<?php if ( empty( $recent_payments ) ) : ?>
+						<div class="wc-tp-empty-state">
+							<div class="wc-tp-empty-icon">💳</div>
+							<p><?php esc_html_e( 'No payments yet', 'wc-team-payroll' ); ?></p>
+						</div>
+					<?php else : ?>
+						<table class="wc-tp-data-table">
+							<thead>
 								<tr>
-									<td><strong><?php echo esc_html( $payment['employee_name'] ); ?></strong></td>
-									<td><?php echo wp_kses_post( wc_price( $payment['amount'] ) ); ?></td>
-									<td><?php echo esc_html( date( 'M d, Y', strtotime( $payment['date'] ) ) ); ?></td>
-									<td><span class="wc-tp-status wc-tp-status-<?php echo esc_attr( $payment['status'] ); ?>"><?php echo esc_html( ucfirst( $payment['status'] ) ); ?></span></td>
-									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $payment['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
-									</td>
+									<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
+									<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
 								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
-			</div>
-
-			<!-- All Employees -->
-			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'All Employees', 'wc-team-payroll' ); ?></h2>
-				<?php if ( empty( $all_employees ) ) : ?>
-					<div class="wc-tp-empty-state">
-						<div class="wc-tp-empty-icon">👥</div>
-						<p><?php esc_html_e( 'No employees found', 'wc-team-payroll' ); ?></p>
-					</div>
-				<?php else : ?>
-					<table class="wc-tp-data-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $all_employees as $employee ) : ?>
-								<?php
-									$emp_data = isset( $payroll[ $employee->ID ] ) ? $payroll[ $employee->ID ] : array(
-										'total' => 0,
-										'paid'  => 0,
-										'due'   => 0,
-									);
-								?>
-								<tr>
-									<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
-									<td><?php echo esc_html( $employee->user_email ); ?></td>
-									<td><?php echo esc_html( implode( ', ', $employee->roles ) ); ?></td>
-									<td><?php echo wp_kses_post( wc_price( $emp_data['total'] ) ); ?></td>
-									<td><span class="wc-tp-paid"><?php echo wp_kses_post( wc_price( $emp_data['paid'] ) ); ?></span></td>
-									<td><span class="wc-tp-due"><?php echo wp_kses_post( wc_price( $emp_data['due'] ) ); ?></span></td>
-									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
+							</thead>
+							<tbody>
+								<?php foreach ( $recent_payments as $payment ) : ?>
+									<tr>
+										<td><strong><?php echo esc_html( $payment['employee_name'] ); ?></strong></td>
+										<td><?php echo wp_kses_post( wc_price( $payment['amount'] ) ); ?></td>
+										<td><?php echo esc_html( date( 'M d, Y', strtotime( $payment['date'] ) ) ); ?></td>
+										<td><span class="wc-tp-status wc-tp-status-<?php echo esc_attr( $payment['status'] ); ?>"><?php echo esc_html( ucfirst( $payment['status'] ) ); ?></span></td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
+				</div>
 			</div>
 		</div>
 
@@ -350,6 +325,7 @@ class WC_Team_Payroll_Dashboard {
 				padding: 20px;
 				border-radius: 8px;
 				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+				margin-bottom: 20px;
 			}
 
 			.wc-tp-table-section h2 {
@@ -504,28 +480,28 @@ class WC_Team_Payroll_Dashboard {
 	}
 
 	/**
-	 * Get all employees (shop_manager and administrator roles)
+	 * Get all employees (shop_employee, shop_manager and administrator roles)
 	 */
 	private function get_all_employees() {
 		$args = array(
-			'role'    => array( 'shop_manager', 'administrator' ),
-			'orderby' => 'display_name',
-			'order'   => 'ASC',
-			'number'  => -1,
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'orderby'  => 'display_name',
+			'order'    => 'ASC',
+			'number'   => -1,
 		);
 
 		return get_users( $args );
 	}
 
 	/**
-	 * Get latest employees
+	 * Get latest employees (last 10)
 	 */
-	private function get_latest_employees( $limit = 5 ) {
+	private function get_latest_employees( $limit = 10 ) {
 		$args = array(
-			'role'    => array( 'shop_manager', 'administrator' ),
-			'orderby' => 'user_registered',
-			'order'   => 'DESC',
-			'number'  => $limit,
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'orderby'  => 'user_registered',
+			'order'    => 'DESC',
+			'number'   => $limit,
 		);
 
 		return get_users( $args );

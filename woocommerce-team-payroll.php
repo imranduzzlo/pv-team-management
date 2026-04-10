@@ -122,24 +122,7 @@ add_action( 'admin_menu', function() {
 		25
 	);
 
-	// Dashboard submenu
-	add_submenu_page(
-		'wc-team-payroll',
-		__( 'Dashboard', 'wc-team-payroll' ),
-		__( 'Dashboard', 'wc-team-payroll' ),
-		'manage_options',
-		'wc-team-payroll',
-		function() {
-			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
-				$dashboard = new WC_Team_Payroll_Dashboard();
-				$dashboard->render_dashboard();
-			} else {
-				echo '<div class="wrap"><h1>Dashboard</h1>';
-				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
-				echo '</div>';
-			}
-		}
-	);
+	// Dashboard submenu - REMOVED (main menu already handles this)
 
 	// Payroll submenu
 	add_submenu_page(
