@@ -38,9 +38,9 @@ class WC_Team_Payroll_Main {
 		require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 
 		// Initialize all classes
+		WC_Team_Payroll_Dashboard::init();
 		WC_Team_Payroll_Core_Engine::init();
 		WC_Team_Payroll_Settings::init();
-		WC_Team_Payroll_Dashboard::init();
 		WC_Team_Payroll_Shortcodes::init();
 		WC_Team_Payroll_MyAccount::init();
 		WC_Team_Payroll_ACF_Fields::init();
