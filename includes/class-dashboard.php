@@ -169,6 +169,7 @@ class WC_Team_Payroll_Dashboard {
 				gap: 16px;
 				transition: all 0.3s ease;
 				cursor: pointer;
+				min-height: 100px;
 			}
 
 			.wc-tp-stat-link {
@@ -202,7 +203,9 @@ class WC_Team_Payroll_Dashboard {
 				font-weight: var(--fw-bold);
 				color: var(--color-primary);
 				margin-bottom: 4px;
-				line-height: var(--lh-heading);
+				line-height: 1.2;
+				word-break: break-word;
+				white-space: normal;
 			}
 
 			.wc-tp-stat-label {
@@ -833,7 +836,7 @@ class WC_Team_Payroll_Dashboard {
 						html += '<td>' + formatCurrency(data.total) + '</td>';
 						html += '<td class="wc-tp-paid-cell" data-paid="' + data.paid + '">' + formatCurrency(data.paid) + '</td>';
 						html += '<td class="wc-tp-due-cell" data-due="' + data.due + '">' + formatCurrency(data.due) + '</td>';
-						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a> <button class="button button-small wc-tp-quick-edit" title="Quick Edit">✎</button></td>';
+						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a></td>';
 						html += '</tr>';
 					});
 
@@ -958,73 +961,6 @@ class WC_Team_Payroll_Dashboard {
 						notice.fadeOut(function() { $(this).remove(); });
 					}, 3000);
 				}
-
-				// Quick edit payroll
-				$(document).on('click', '.wc-tp-quick-edit', function() {
-					const row = $(this).closest('tr');
-					const userId = row.data('user-id');
-					const paidCell = row.find('.wc-tp-paid-cell');
-					const dueCell = row.find('.wc-tp-due-cell');
-					
-					const currentPaid = paidCell.data('paid');
-					const currentDue = dueCell.data('due');
-					
-					// Replace with input fields
-					paidCell.html('<input type="number" class="wc-tp-edit-input" value="' + currentPaid + '" step="0.01" />');
-					dueCell.html('<input type="number" class="wc-tp-edit-input" value="' + currentDue + '" step="0.01" />');
-					
-					// Replace button with save/cancel
-					const btn = $(this);
-					btn.replaceWith('<button class="button button-small button-primary wc-tp-save-edit" data-user-id="' + userId + '">✓</button> <button class="button button-small wc-tp-cancel-edit">✕</button>');
-					
-					// Focus first input
-					paidCell.find('input').focus();
-				});
-
-				// Save payroll edit
-				$(document).on('click', '.wc-tp-save-edit', function() {
-					const row = $(this).closest('tr');
-					const userId = row.data('user-id');
-					const paidInput = row.find('.wc-tp-paid-cell input');
-					const dueInput = row.find('.wc-tp-due-cell input');
-					
-					const newPaid = parseFloat(paidInput.val());
-					const newDue = parseFloat(dueInput.val());
-					
-					if (isNaN(newPaid) || isNaN(newDue)) {
-						showNotice('Please enter valid numbers', 'error');
-						return;
-					}
-					
-					// Update via AJAX
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_update_payroll',
-							user_id: userId,
-							paid: newPaid,
-							due: newDue,
-							nonce: wcTeamPayrollNonce
-						},
-						success: function(response) {
-							if (response.success) {
-								showNotice('Payroll updated successfully', 'success');
-								loadDashboardData();
-							} else {
-								showNotice('Error: ' + response.data, 'error');
-							}
-						},
-						error: function() {
-							showNotice('Error updating payroll', 'error');
-						}
-					});
-				});
-
-				// Cancel payroll edit
-				$(document).on('click', '.wc-tp-cancel-edit', function() {
-					loadDashboardData();
-				});
 
 				// Quick edit payment
 				$(document).on('click', '.wc-tp-edit-payment', function() {

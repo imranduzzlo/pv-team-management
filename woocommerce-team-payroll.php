@@ -83,6 +83,31 @@ add_action( 'plugins_loaded', function() {
 		$employees->ajax_delete_payment();
 	} );
 
+	add_action( 'wp_ajax_wc_tp_update_payment', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		$amount = floatval( $_POST['amount'] );
+		$date = sanitize_text_field( $_POST['date'] );
+
+		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			wp_send_json_error( __( 'No payments found', 'wc-team-payroll' ) );
+		}
+
+		// Find and update the payment (assuming we update the most recent one)
+		if ( ! empty( $payments ) ) {
+			$payments[ count( $payments ) - 1 ]['amount'] = $amount;
+			$payments[ count( $payments ) - 1 ]['date'] = $date;
+			update_user_meta( $user_id, '_wc_tp_payments', $payments );
+			wp_send_json_success( array( 'message' => __( 'Payment updated', 'wc-team-payroll' ) ) );
+		} else {
+			wp_send_json_error( __( 'Payment not found', 'wc-team-payroll' ) );
+		}
+	} );
+
 	add_action( 'wp_ajax_wc_tp_get_payment_data', function() {
 		$employees = new WC_Team_Payroll_Employee_Management();
 		$employees->ajax_get_payment_data();
