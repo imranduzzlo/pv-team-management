@@ -6,6 +6,11 @@
 class WC_Team_Payroll_Installer {
 
 	public static function install() {
+		// Clear plugin cache
+		delete_transient( 'wc_tp_github_release' );
+		delete_transient( 'update_plugins' );
+		delete_site_transient( 'update_plugins' );
+		
 		// Create default settings
 		$settings = get_option( 'wc_team_payroll_settings', array() );
 
