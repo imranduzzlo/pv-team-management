@@ -41,14 +41,22 @@ require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 
 // Initialize plugin
-add_action( 'plugins_loaded', function() {
+add_action( 'admin_menu', function() {
 	new WC_Team_Payroll_Core_Engine();
 	new WC_Team_Payroll_Settings();
 	new WC_Team_Payroll_Dashboard();
 	new WC_Team_Payroll_Checkout_Integration();
 	new WC_Team_Payroll_Employee_Management();
 	new WC_Team_Payroll_Employee_Detail();
-} );
+}, 5 );
+
+// Also initialize on frontend
+add_action( 'wp_loaded', function() {
+	if ( ! is_admin() ) {
+		new WC_Team_Payroll_Core_Engine();
+		new WC_Team_Payroll_Checkout_Integration();
+	}
+}, 5 );
 
 // Add plugin action links
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), function( $links ) {
