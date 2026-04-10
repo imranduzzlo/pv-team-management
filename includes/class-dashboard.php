@@ -17,14 +17,17 @@ class WC_Team_Payroll_Dashboard {
 		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
-		// Get payroll data for date range
+		// Get all employees (regardless of commission)
+		$all_employees = $this->get_all_employees();
+
+		// Get payroll data for date range (only those with commission)
 		$payroll = array();
 		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
 			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
 		}
 
 		// Calculate stats
-		$total_employees = count( $payroll );
+		$total_employees = count( $all_employees );
 		$total_earnings = 0;
 		$total_paid = 0;
 		$total_due = 0;
@@ -108,7 +111,10 @@ class WC_Team_Payroll_Dashboard {
 				<div class="wc-tp-table-section">
 					<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
 					<?php if ( empty( $latest_employees ) ) : ?>
-						<div class="notice notice-info"><p><?php esc_html_e( 'No employees found.', 'wc-team-payroll' ); ?></p></div>
+						<div class="wc-tp-empty-state">
+							<div class="wc-tp-empty-icon">👥</div>
+							<p><?php esc_html_e( 'No employees yet', 'wc-team-payroll' ); ?></p>
+						</div>
 					<?php else : ?>
 						<table class="wc-tp-data-table">
 							<thead>
@@ -139,7 +145,10 @@ class WC_Team_Payroll_Dashboard {
 				<div class="wc-tp-table-section">
 					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
 					<?php if ( empty( $top_earners ) ) : ?>
-						<div class="notice notice-info"><p><?php esc_html_e( 'No earnings data for this period.', 'wc-team-payroll' ); ?></p></div>
+						<div class="wc-tp-empty-state">
+							<div class="wc-tp-empty-icon">💰</div>
+							<p><?php esc_html_e( 'No earnings data', 'wc-team-payroll' ); ?></p>
+						</div>
 					<?php else : ?>
 						<table class="wc-tp-data-table">
 							<thead>
@@ -167,7 +176,10 @@ class WC_Team_Payroll_Dashboard {
 			<div class="wc-tp-table-section">
 				<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
 				<?php if ( empty( $recent_payments ) ) : ?>
-					<div class="notice notice-info"><p><?php esc_html_e( 'No payments found.', 'wc-team-payroll' ); ?></p></div>
+					<div class="wc-tp-empty-state">
+						<div class="wc-tp-empty-icon">💳</div>
+						<p><?php esc_html_e( 'No payments yet', 'wc-team-payroll' ); ?></p>
+					</div>
 				<?php else : ?>
 					<table class="wc-tp-data-table">
 						<thead>
@@ -196,18 +208,21 @@ class WC_Team_Payroll_Dashboard {
 				<?php endif; ?>
 			</div>
 
-			<!-- Employee Payroll Details -->
+			<!-- All Employees -->
 			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-				<?php if ( empty( $payroll ) ) : ?>
-					<div class="notice notice-info"><p><?php esc_html_e( 'No payroll data for this period.', 'wc-team-payroll' ); ?></p></div>
+				<h2><?php esc_html_e( 'All Employees', 'wc-team-payroll' ); ?></h2>
+				<?php if ( empty( $all_employees ) ) : ?>
+					<div class="wc-tp-empty-state">
+						<div class="wc-tp-empty-icon">👥</div>
+						<p><?php esc_html_e( 'No employees found', 'wc-team-payroll' ); ?></p>
+					</div>
 				<?php else : ?>
 					<table class="wc-tp-data-table">
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
 								<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
 								<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
 								<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
 								<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
@@ -215,16 +230,23 @@ class WC_Team_Payroll_Dashboard {
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $payroll as $data ) : ?>
+							<?php foreach ( $all_employees as $employee ) : ?>
+								<?php
+									$emp_data = isset( $payroll[ $employee->ID ] ) ? $payroll[ $employee->ID ] : array(
+										'total' => 0,
+										'paid'  => 0,
+										'due'   => 0,
+									);
+								?>
 								<tr>
-									<td><strong><?php echo esc_html( $data['user'] ? $data['user']->display_name : 'Unknown' ); ?></strong></td>
-									<td><?php echo esc_html( $data['user'] ? $data['user']->user_email : 'N/A' ); ?></td>
-									<td><span class="wc-tp-badge"><?php echo esc_html( $data['orders'] ); ?></span></td>
-									<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
-									<td><span class="wc-tp-paid"><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></span></td>
-									<td><span class="wc-tp-due"><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></span></td>
+									<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
+									<td><?php echo esc_html( $employee->user_email ); ?></td>
+									<td><?php echo esc_html( implode( ', ', $employee->roles ) ); ?></td>
+									<td><?php echo wp_kses_post( wc_price( $emp_data['total'] ) ); ?></td>
+									<td><span class="wc-tp-paid"><?php echo wp_kses_post( wc_price( $emp_data['paid'] ) ); ?></span></td>
+									<td><span class="wc-tp-due"><?php echo wp_kses_post( wc_price( $emp_data['due'] ) ); ?></span></td>
 									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -337,6 +359,25 @@ class WC_Team_Payroll_Dashboard {
 				border-bottom: 2px solid #0073aa;
 				padding-bottom: 10px;
 				font-size: 18px;
+			}
+
+			.wc-tp-empty-state {
+				text-align: center;
+				padding: 40px 20px;
+				color: #999;
+			}
+
+			.wc-tp-empty-icon {
+				font-size: 48px;
+				margin-bottom: 15px;
+				display: block;
+				opacity: 0.5;
+			}
+
+			.wc-tp-empty-state p {
+				margin: 0;
+				font-size: 14px;
+				color: #999;
 			}
 
 			.wc-tp-data-table {
@@ -460,6 +501,20 @@ class WC_Team_Payroll_Dashboard {
 			});
 		</script>
 		<?php
+	}
+
+	/**
+	 * Get all employees (shop_manager and administrator roles)
+	 */
+	private function get_all_employees() {
+		$args = array(
+			'role'    => array( 'shop_manager', 'administrator' ),
+			'orderby' => 'display_name',
+			'order'   => 'ASC',
+			'number'  => -1,
+		);
+
+		return get_users( $args );
 	}
 
 	/**
