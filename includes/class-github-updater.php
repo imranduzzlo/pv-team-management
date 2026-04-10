@@ -28,6 +28,40 @@ class WC_Team_Payroll_GitHub_Updater {
 		// Hook into WordPress update checks
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
+		
+		// Clear cache on plugin activation
+		add_action( 'activated_plugin', array( $this, 'clear_cache' ) );
+		
+		// Force check on admin page load
+		add_action( 'admin_init', array( $this, 'force_check' ) );
+	}
+
+	/**
+	 * Clear update cache
+	 */
+	public function clear_cache() {
+		delete_transient( 'wc_tp_github_release' );
+		delete_transient( 'update_plugins' );
+	}
+
+	/**
+	 * Force update check on admin init
+	 */
+	public function force_check() {
+		// Only run once per hour
+		$last_check = get_transient( 'wc_tp_last_update_check' );
+		if ( $last_check ) {
+			return;
+		}
+
+		// Clear cache to force fresh check
+		delete_transient( 'wc_tp_github_release' );
+		
+		// Mark that we checked
+		set_transient( 'wc_tp_last_update_check', 1, HOUR_IN_SECONDS );
+		
+		// Trigger WordPress update check
+		wp_update_plugins();
 	}
 
 	/**
@@ -119,6 +153,9 @@ class WC_Team_Payroll_GitHub_Updater {
 			array(
 				'timeout'   => 10,
 				'sslverify' => true,
+				'headers'   => array(
+					'Accept' => 'application/vnd.github.v3+json',
+				),
 			)
 		);
 
@@ -143,8 +180,8 @@ class WC_Team_Payroll_GitHub_Updater {
 			'updated'      => $release['published_at'],
 		);
 
-		// Cache for 12 hours
-		set_transient( $transient_key, $result, 12 * HOUR_IN_SECONDS );
+		// Cache for 1 hour (shorter cache for faster updates)
+		set_transient( $transient_key, $result, 1 * HOUR_IN_SECONDS );
 
 		return $result;
 	}
