@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.3.6
+ * Version: 5.3.9
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.3.6' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.3.9' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -54,9 +54,6 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
-
-	// Initialize GitHub updater
-	new WC_Team_Payroll_GitHub_Updater();
 
 	// Initialize custom fields (creates meta fields)
 	new WC_Team_Payroll_Custom_Fields();

@@ -301,12 +301,15 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-sortable-header.wc-tp-sort-active::after {
 				opacity: 1;
-				content: '↓';
+				color: var(--color-primary);
 			}
 
 			.wc-tp-sortable-header.wc-tp-sort-asc::after {
 				content: '↑';
-				opacity: 1;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-desc::after {
+				content: '↓';
 			}
 
 			.wc-tp-data-table td {
@@ -650,17 +653,34 @@ class WC_Team_Payroll_Dashboard {
 
 				// Attach sort handlers to table headers
 				function attachSortHandlers(container, data, sortableFields) {
+					let currentSort = { field: null, direction: 'asc' };
+					
 					container.find('.wc-tp-sortable-header').on('click', function() {
 						const sortField = $(this).data('sort');
 						if (!sortField) return;
 						
 						const isNumeric = ['orders', 'total', 'paid', 'due', 'earnings', 'amount'].includes(sortField);
 						
+						// Check if clicking the same field
+						if (currentSort.field === sortField) {
+							// Toggle direction
+							currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+						} else {
+							// New field, start with ascending
+							currentSort.field = sortField;
+							currentSort.direction = 'asc';
+						}
+						
 						// Remove active class from all headers in this container
 						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
 						
-						// Add active class to clicked header
+						// Add active class and direction class to clicked header
 						$(this).addClass('wc-tp-sort-active');
+						if (currentSort.direction === 'asc') {
+							$(this).addClass('wc-tp-sort-asc');
+						} else {
+							$(this).addClass('wc-tp-sort-desc');
+						}
 						
 						// Sort data
 						let sortedData = [...data].sort((a, b) => {
@@ -673,11 +693,11 @@ class WC_Team_Payroll_Dashboard {
 							if (isNumeric) {
 								aVal = parseFloat(aVal) || 0;
 								bVal = parseFloat(bVal) || 0;
-								return bVal - aVal; // Descending for numbers
+								return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
 							} else {
 								aVal = String(aVal).toLowerCase();
 								bVal = String(bVal).toLowerCase();
-								return aVal.localeCompare(bVal); // Ascending for text
+								return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
 							}
 						});
 						

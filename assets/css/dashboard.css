@@ -67,6 +67,31 @@
 	font-weight: 600;
 	cursor: pointer;
 	user-select: none;
+	position: relative;
+	padding-right: 25px;
+}
+
+.widefat thead th::after {
+	content: '';
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 0;
+	height: 0;
+	opacity: 0.3;
+}
+
+.widefat thead th.sorted-asc::after {
+	content: '▲';
+	opacity: 1;
+	color: #FF9900;
+}
+
+.widefat thead th.sorted-desc::after {
+	content: '▼';
+	opacity: 1;
+	color: #FF9900;
 }
 
 .widefat tbody tr:hover {

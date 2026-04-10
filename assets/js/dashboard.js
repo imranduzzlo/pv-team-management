@@ -62,17 +62,25 @@ jQuery(document).ready(function($) {
 	$('.widefat thead th').on('click', function() {
 		const table = $(this).closest('table');
 		const columnIndex = $(this).index();
-		const isAscending = $(this).hasClass('sorted-asc');
+		const isCurrentlySortedAsc = $(this).hasClass('sorted-asc');
+		const isCurrentlySortedDesc = $(this).hasClass('sorted-desc');
+		const wasSorted = isCurrentlySortedAsc || isCurrentlySortedDesc;
 
 		// Remove sorting classes from all headers
 		table.find('thead th').removeClass('sorted-asc sorted-desc');
 
-		// Add sorting class to current header
-		if (isAscending) {
-			$(this).addClass('sorted-desc');
-		} else {
-			$(this).addClass('sorted-asc');
+		// Determine new sort direction
+		let newDirection = 'asc'; // Default to ascending
+		if (wasSorted && isCurrentlySortedAsc) {
+			// If was ascending, switch to descending
+			newDirection = 'desc';
+		} else if (wasSorted && isCurrentlySortedDesc) {
+			// If was descending, switch to ascending
+			newDirection = 'asc';
 		}
+
+		// Add sorting class to current header
+		$(this).addClass('sorted-' + newDirection);
 
 		// Sort table rows
 		const rows = table.find('tbody tr').get();
@@ -85,11 +93,11 @@ jQuery(document).ready(function($) {
 			const bNum = parseFloat(bValue.replace(/[^0-9.-]/g, ''));
 
 			if (!isNaN(aNum) && !isNaN(bNum)) {
-				return isAscending ? bNum - aNum : aNum - bNum;
+				return newDirection === 'asc' ? aNum - bNum : bNum - aNum;
 			}
 
 			// String comparison
-			return isAscending ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+			return newDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
 		});
 
 		// Reorder table

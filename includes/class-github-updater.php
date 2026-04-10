@@ -72,17 +72,25 @@ class WC_Team_Payroll_GitHub_Updater {
 			return $transient;
 		}
 
-		$current_version = isset( $transient->checked[ $this->plugin_file ] ) ? $transient->checked[ $this->plugin_file ] : '0';
+		$current_version = $this->get_current_version();
 
 		// Get latest release from GitHub
 		$latest_release = $this->get_latest_release();
 
-		if ( $latest_release && version_compare( $latest_release['version'], $current_version, '>' ) ) {
+		if ( ! $latest_release ) {
+			return $transient;
+		}
+
+		// Normalize versions for comparison
+		$latest_version = $this->normalize_version( $latest_release['version'] );
+		$current_version_normalized = $this->normalize_version( $current_version );
+
+		if ( version_compare( $latest_version, $current_version_normalized, '>' ) ) {
 			$transient->response[ $this->plugin_file ] = (object) array(
 				'id'          => $this->github_repo,
 				'slug'        => $this->plugin_slug,
 				'plugin'      => $this->plugin_file,
-				'new_version' => $latest_release['version'],
+				'new_version' => $latest_version,
 				'url'         => $latest_release['url'],
 				'package'     => $latest_release['download_url'],
 				'tested'      => '6.4',
@@ -94,6 +102,31 @@ class WC_Team_Payroll_GitHub_Updater {
 		}
 
 		return $transient;
+	}
+
+	/**
+	 * Get current plugin version
+	 */
+	private function get_current_version() {
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_file );
+		return isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0';
+	}
+
+	/**
+	 * Normalize version string
+	 */
+	private function normalize_version( $version ) {
+		// Remove 'v' prefix if present
+		$version = ltrim( $version, 'v' );
+		// Ensure it's a valid version format
+		if ( ! preg_match( '/^\d+\.\d+\.\d+/', $version ) ) {
+			$version = '0.0.0';
+		}
+		return $version;
 	}
 
 	/**
@@ -220,5 +253,7 @@ class WC_Team_Payroll_GitHub_Updater {
 	}
 }
 
-// Initialize updater
-new WC_Team_Payroll_GitHub_Updater();
+// Initialize updater on plugins_loaded to ensure plugin version is defined
+add_action( 'plugins_loaded', function() {
+	new WC_Team_Payroll_GitHub_Updater();
+}, 25 );
