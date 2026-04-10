@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.0.0
+ * Version: 5.1.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,33 +20,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.0.0' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.1.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
-// Load text domain
+// ============================================================================
+// LOAD ON PLUGINS_LOADED - AFTER WOOCOMMERCE IS LOADED
+// ============================================================================
+
 add_action( 'plugins_loaded', function() {
+	// Load text domain
 	load_plugin_textdomain( 'wc-team-payroll', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-} );
 
-// ============================================================================
-// CHECK DEPENDENCIES - ONLY WOOCOMMERCE REQUIRED
-// ============================================================================
+	// Check if WooCommerce is active
+	if ( ! class_exists( 'WooCommerce' ) && ! function_exists( 'WC' ) && ! function_exists( 'wc_get_orders' ) ) {
+		add_action( 'admin_notices', function() {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php esc_html_e( 'WooCommerce Team Payroll requires WooCommerce to be installed and activated.', 'wc-team-payroll' ); ?></p>
+			</div>
+			<?php
+		} );
+		return;
+	}
 
-$wc_active = function_exists( 'WC' ) || class_exists( 'WooCommerce' ) || defined( 'WC_VERSION' );
-
-if ( ! $wc_active ) {
-	add_action( 'admin_notices', function() {
-		?>
-		<div class="notice notice-error is-dismissible">
-			<p><?php esc_html_e( 'WooCommerce Team Payroll requires WooCommerce to be installed and activated.', 'wc-team-payroll' ); ?></p>
-		</div>
-		<?php
-	} );
-}
-
-// Load all classes - ONLY IF WOOCOMMERCE IS ACTIVE
-if ( $wc_active ) {
+	// Load all classes
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-core-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
@@ -64,10 +62,10 @@ if ( $wc_active ) {
 	new WC_Team_Payroll_Custom_Fields();
 
 	// Initialize core engine (handles commission calculations)
-	$core_engine = new WC_Team_Payroll_Core_Engine();
+	new WC_Team_Payroll_Core_Engine();
 
 	// Initialize checkout integration (handles agent dropdown)
-	$checkout_integration = new WC_Team_Payroll_Checkout_Integration();
+	new WC_Team_Payroll_Checkout_Integration();
 
 	// ============================================================================
 	// AJAX HANDLERS
@@ -97,10 +95,10 @@ if ( $wc_active ) {
 		$employees = new WC_Team_Payroll_Employee_Management();
 		$employees->ajax_add_order_bonus();
 	} );
-}
+}, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================
-// ADMIN MENU - ALWAYS SHOW
+// ADMIN MENU - REGISTER EARLY (before plugins_loaded)
 // ============================================================================
 
 add_action( 'admin_menu', function() {
@@ -116,7 +114,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_dashboard();
 			} else {
 				echo '<div class="wrap"><h1>Team Payroll</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded. Please refresh the page.</p></div>';
 				echo '</div>';
 			}
 		},
@@ -137,7 +135,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_dashboard();
 			} else {
 				echo '<div class="wrap"><h1>Dashboard</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -156,7 +154,7 @@ add_action( 'admin_menu', function() {
 				$dashboard->render_payroll();
 			} else {
 				echo '<div class="wrap"><h1>Payroll</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -175,7 +173,7 @@ add_action( 'admin_menu', function() {
 				$employees->render_employees_page();
 			} else {
 				echo '<div class="wrap"><h1>Team Members</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -194,7 +192,7 @@ add_action( 'admin_menu', function() {
 				$settings->render_settings_page();
 			} else {
 				echo '<div class="wrap"><h1>Settings</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
 		}
@@ -213,7 +211,7 @@ add_action( 'admin_menu', function() {
 				$detail->render_employee_detail();
 			} else {
 				echo '<div class="wrap"><h1>Employee Detail</h1>';
-				echo '<div class="notice notice-error"><p>WooCommerce is required.</p></div>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
 		}
