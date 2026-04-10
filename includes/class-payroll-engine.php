@@ -77,11 +77,26 @@ class WC_Team_Payroll_Payroll_Engine {
 			}
 		}
 
-		// Calculate paid/due
+		// Calculate paid/due from payments array
 		foreach ( $payroll as $user_id => $data ) {
-			$paid = get_user_meta( $user_id, sprintf( '_payroll_paid_%d_%02d', $year, $month ), true );
-			$payroll[ $user_id ]['paid'] = $paid ? floatval( $paid ) : 0;
-			$payroll[ $user_id ]['due'] = $data['total'] - $payroll[ $user_id ]['paid'];
+			$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+			$paid = 0;
+			
+			if ( is_array( $payments ) ) {
+				foreach ( $payments as $payment ) {
+					// Only count payments within the month
+					$payment_date = strtotime( $payment['date'] );
+					$start_timestamp = strtotime( $start_date );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
+					if ( $payment_date >= $start_timestamp && $payment_date <= $end_timestamp ) {
+						$paid += floatval( $payment['amount'] );
+					}
+				}
+			}
+			
+			$payroll[ $user_id ]['paid'] = $paid;
+			$payroll[ $user_id ]['due'] = $data['total'] - $paid;
 		}
 
 		return $payroll;
@@ -156,11 +171,26 @@ class WC_Team_Payroll_Payroll_Engine {
 			}
 		}
 
-		// Calculate paid/due
+		// Calculate paid/due from payments array
 		foreach ( $payroll as $user_id => $data ) {
-			$paid_meta = get_user_meta( $user_id, '_payroll_paid_total', true );
-			$payroll[ $user_id ]['paid'] = $paid_meta ? floatval( $paid_meta ) : 0;
-			$payroll[ $user_id ]['due'] = $data['total'] - $payroll[ $user_id ]['paid'];
+			$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+			$paid = 0;
+			
+			if ( is_array( $payments ) ) {
+				foreach ( $payments as $payment ) {
+					// Only count payments within the date range
+					$payment_date = strtotime( $payment['date'] );
+					$start_timestamp = strtotime( $start_date );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
+					if ( $payment_date >= $start_timestamp && $payment_date <= $end_timestamp ) {
+						$paid += floatval( $payment['amount'] );
+					}
+				}
+			}
+			
+			$payroll[ $user_id ]['paid'] = $paid;
+			$payroll[ $user_id ]['due'] = $data['total'] - $paid;
 		}
 
 		return $payroll;
