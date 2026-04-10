@@ -17,7 +17,7 @@ class WC_Team_Payroll_Dashboard {
 	 * Add menu items
 	 */
 	public static function add_menu() {
-		// Create custom parent menu
+		// Create custom parent menu - points to Dashboard
 		add_menu_page(
 			__( 'Team Payroll', 'wc-team-payroll' ),
 			__( 'Team Payroll', 'wc-team-payroll' ),
@@ -26,16 +26,6 @@ class WC_Team_Payroll_Dashboard {
 			array( __CLASS__, 'render_dashboard' ),
 			'dashicons-money-alt',
 			56
-		);
-
-		// Submenu: Dashboard
-		add_submenu_page(
-			'wc-team-payroll',
-			__( 'Dashboard', 'wc-team-payroll' ),
-			__( 'Dashboard', 'wc-team-payroll' ),
-			'manage_woocommerce',
-			'wc-team-payroll-dashboard',
-			array( __CLASS__, 'render_dashboard' )
 		);
 
 		// Submenu: Payroll
@@ -75,15 +65,19 @@ class WC_Team_Payroll_Dashboard {
 		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
 		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
 
-		$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+		// Get payroll data safely
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+		}
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Team Dashboard', 'wc-team-payroll' ); ?></h1>
+			<h1><?php esc_html_e( 'Team Payroll Dashboard', 'wc-team-payroll' ); ?></h1>
 
 			<div class="wc-team-payroll-filters">
 				<form method="get">
-					<input type="hidden" name="page" value="wc-team-payroll-dashboard" />
+					<input type="hidden" name="page" value="wc-team-payroll" />
 					<select name="month">
 						<?php for ( $m = 1; $m <= 12; $m++ ) : ?>
 							<option value="<?php echo esc_attr( $m ); ?>" <?php selected( $month, $m ); ?>><?php echo esc_html( date( 'F', mktime( 0, 0, 0, $m, 1 ) ) ); ?></option>
@@ -94,36 +88,38 @@ class WC_Team_Payroll_Dashboard {
 				</form>
 			</div>
 
-			<table class="widefat striped" id="employees-table">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Total Commission', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Monthly Earnings', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $payroll as $data ) : ?>
+			<?php if ( empty( $payroll ) ) : ?>
+				<div class="notice notice-info"><p><?php esc_html_e( 'No payroll data for this period.', 'wc-team-payroll' ); ?></p></div>
+			<?php else : ?>
+				<table class="widefat striped">
+					<thead>
 						<tr>
-							<td><?php echo esc_html( $data['user']->display_name ); ?></td>
-							<td><?php echo esc_html( $data['user']->user_email ); ?></td>
-							<td><?php echo esc_html( $data['orders'] ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></td>
-							<td>
-								<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
-							</td>
+							<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
 						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						<?php foreach ( $payroll as $data ) : ?>
+							<tr>
+								<td><?php echo esc_html( $data['user'] ? $data['user']->display_name : 'Unknown' ); ?></td>
+								<td><?php echo esc_html( $data['user'] ? $data['user']->user_email : 'N/A' ); ?></td>
+								<td><?php echo esc_html( $data['orders'] ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></td>
+								<td>
+									<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employees', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -139,7 +135,11 @@ class WC_Team_Payroll_Dashboard {
 		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
 		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
 
-		$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+		// Get payroll data safely
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_monthly_payroll( $year, $month );
+		}
 
 		?>
 		<div class="wrap">
@@ -158,30 +158,34 @@ class WC_Team_Payroll_Dashboard {
 				</form>
 			</div>
 
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $payroll as $data ) : ?>
+			<?php if ( empty( $payroll ) ) : ?>
+				<div class="notice notice-info"><p><?php esc_html_e( 'No payroll data for this period.', 'wc-team-payroll' ); ?></p></div>
+			<?php else : ?>
+				<table class="widefat striped">
+					<thead>
 						<tr>
-							<td><?php echo esc_html( $data['user']->display_name ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></td>
-							<td>
-								<button class="button mark-paid" data-user-id="<?php echo esc_attr( $data['user_id'] ); ?>" data-year="<?php echo esc_attr( $year ); ?>" data-month="<?php echo esc_attr( $month ); ?>" data-amount="<?php echo esc_attr( $data['due'] ); ?>"><?php esc_html_e( 'Mark Paid', 'wc-team-payroll' ); ?></button>
-							</td>
+							<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
 						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						<?php foreach ( $payroll as $data ) : ?>
+							<tr>
+								<td><?php echo esc_html( $data['user'] ? $data['user']->display_name : 'Unknown' ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></td>
+								<td><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></td>
+								<td>
+									<button class="button mark-paid" data-user-id="<?php echo esc_attr( $data['user_id'] ); ?>" data-year="<?php echo esc_attr( $year ); ?>" data-month="<?php echo esc_attr( $month ); ?>" data-amount="<?php echo esc_attr( $data['due'] ); ?>"><?php esc_html_e( 'Mark Paid', 'wc-team-payroll' ); ?></button>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
