@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.3.6] - 2026-04-11
+
+### CRITICAL FIX - Dashboard Redesign & Total Paid Issue
+- **FIXED**: Removed duplicate dashboard layout that was showing twice
+- **FIXED**: Total Paid now correctly shows actual payment amounts (was showing 0)
+- **FIXED**: All dashboard sections now load via AJAX without page reloads
+- **IMPROVED**: Complete dashboard redesign with full AJAX integration
+- **IMPROVED**: Latest Employees table now shows top 10 employees
+- **IMPROVED**: Top Earners table respects date range filter
+- **IMPROVED**: Recent Payments table respects date range filter
+- **IMPROVED**: All tables update dynamically when date range changes
+- **IMPROVED**: Professional empty states with icons for better UX
+- **IMPROVED**: Stat cards now display correct totals from all sections
+- **IMPROVED**: Currency formatting uses WooCommerce store currency
+- **IMPROVED**: Loading state feedback on filter button
+- **IMPROVED**: Success/error notifications after filter updates
+
+### Technical Changes
+- Refactored dashboard to use container-based rendering
+- All content loaded via AJAX from `wc_tp_get_dashboard_data` action
+- AJAX handler now returns: latest_employees, top_earners, recent_payments, payroll data
+- Payment date filtering now properly handles datetime-local format
+- Stat calculations now include all employees with payments in date range
+- Removed duplicate HTML rendering that caused layout duplication
+
 ## [2.0.6] - 2026-04-10
 
 ### Fixed

@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.3.5
+ * Version: 5.3.6
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.3.5' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.3.6' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -125,13 +125,112 @@ add_action( 'plugins_loaded', function() {
 			$total_orders += $data['orders'];
 		}
 
+		// Get latest employees
+		$latest_employees_data = array();
+		$latest_employees = get_users( array(
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'orderby'  => 'user_registered',
+			'order'    => 'DESC',
+			'number'   => 10,
+		) );
+
+		foreach ( $latest_employees as $employee ) {
+			$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+			$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
+			$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
+
+			if ( $is_fixed_salary ) {
+				$type = __( 'Fixed Salary', 'wc-team-payroll' );
+				$salary_info = wc_price( $salary ) . ' / ' . esc_html( $frequency );
+			} elseif ( $is_combined_salary ) {
+				$type = __( 'Combined', 'wc-team-payroll' );
+				$salary_info = wc_price( $salary ) . ' / ' . esc_html( $frequency );
+			} else {
+				$type = __( 'Commission', 'wc-team-payroll' );
+				$salary_info = __( 'Commission Based', 'wc-team-payroll' );
+			}
+
+			$latest_employees_data[] = array(
+				'display_name' => $employee->display_name,
+				'user_email'   => $employee->user_email,
+				'type'         => $type,
+				'salary_info'  => $salary_info,
+				'manage_url'   => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
+			);
+		}
+
+		// Get top earners
+		$top_earners_data = array();
+		$sorted_payroll = $payroll;
+		usort( $sorted_payroll, function( $a, $b ) {
+			return $b['total'] - $a['total'];
+		} );
+
+		$count = 0;
+		foreach ( $sorted_payroll as $data ) {
+			if ( $count >= 5 ) {
+				break;
+			}
+			$top_earners_data[] = array(
+				'name'     => $data['user'] ? $data['user']->display_name : 'Unknown',
+				'earnings' => $data['total'],
+				'orders'   => $data['orders'],
+			);
+			$count++;
+		}
+
+		// Get recent payments
+		global $wpdb;
+		$recent_payments_data = array();
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}postmeta 
+				WHERE meta_key = 'wc_tp_payment' 
+				ORDER BY meta_id DESC 
+				LIMIT %d",
+				10
+			),
+			ARRAY_A
+		);
+
+		foreach ( $results as $result ) {
+			$payment_data = maybe_unserialize( $result['meta_value'] );
+			if ( is_array( $payment_data ) ) {
+				$payment_date_str = $payment_data['date'] ?? current_time( 'mysql' );
+				
+				// Convert datetime-local format
+				if ( strpos( $payment_date_str, 'T' ) !== false ) {
+					$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+				}
+				
+				$payment_timestamp = strtotime( $payment_date_str );
+				$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+				$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+				
+				// Only include payments within date range
+				if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+					$user = get_user_by( 'id', $payment_data['user_id'] ?? 0 );
+					$recent_payments_data[] = array(
+						'employee_name' => $user ? $user->display_name : 'Unknown',
+						'amount'        => $payment_data['amount'] ?? 0,
+						'date'          => date( 'M d, Y', $payment_timestamp ),
+						'status'        => $payment_data['status'] ?? 'pending',
+					);
+				}
+			}
+		}
+
 		wp_send_json_success( array(
-			'total_employees' => $total_employees,
-			'total_orders'    => $total_orders,
-			'total_earnings'  => $total_earnings,
-			'total_paid'      => $total_paid,
-			'total_due'       => $total_due,
-			'payroll'         => $payroll,
+			'total_employees'   => count( $latest_employees ),
+			'total_orders'      => $total_orders,
+			'total_earnings'    => $total_earnings,
+			'total_paid'        => $total_paid,
+			'total_due'         => $total_due,
+			'payroll'           => $payroll,
+			'latest_employees'  => $latest_employees_data,
+			'top_earners'       => $top_earners_data,
+			'recent_payments'   => $recent_payments_data,
 		) );
 	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)

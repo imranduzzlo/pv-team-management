@@ -17,38 +17,6 @@ class WC_Team_Payroll_Dashboard {
 		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
-		// Get all employees
-		$all_employees = $this->get_all_employees();
-
-		// Get latest employees (10)
-		$latest_employees = $this->get_latest_employees( 10 );
-
-		// Get payroll data for date range (only those with commission)
-		$payroll = array();
-		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
-			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
-		}
-
-		// Calculate stats
-		$total_employees = count( $all_employees );
-		$total_earnings = 0;
-		$total_paid = 0;
-		$total_due = 0;
-		$total_orders = 0;
-
-		foreach ( $payroll as $data ) {
-			$total_earnings += $data['total'];
-			$total_paid += $data['paid'];
-			$total_due += $data['due'];
-			$total_orders += $data['orders'];
-		}
-
-		// Get recent payments
-		$recent_payments = $this->get_recent_payments( 10 );
-
-		// Get top earners
-		$top_earners = $this->get_top_earners( 5, $start_date, $end_date );
-
 		?>
 		<div class="wrap wc-team-payroll-dashboard">
 			<h1><?php esc_html_e( 'Team Payroll Dashboard', 'wc-team-payroll' ); ?></h1>
@@ -63,106 +31,16 @@ class WC_Team_Payroll_Dashboard {
 			</div>
 
 			<!-- Stats Cards -->
-			<div class="wc-tp-stats-grid">
-				<div class="wc-tp-stat-card">
-					<div class="wc-tp-stat-icon">👥</div>
-					<div class="wc-tp-stat-content">
-						<div class="wc-tp-stat-value" id="total-employees"><?php echo esc_html( $total_employees ); ?></div>
-						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Employees', 'wc-team-payroll' ); ?></div>
-					</div>
-				</div>
-
-				<div class="wc-tp-stat-card">
-					<div class="wc-tp-stat-icon">📦</div>
-					<div class="wc-tp-stat-content">
-						<div class="wc-tp-stat-value" id="total-orders"><?php echo esc_html( $total_orders ); ?></div>
-						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></div>
-					</div>
-				</div>
-
-				<div class="wc-tp-stat-card">
-					<div class="wc-tp-stat-icon">💰</div>
-					<div class="wc-tp-stat-content">
-						<div class="wc-tp-stat-value" id="total-earnings"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></div>
-						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></div>
-					</div>
-				</div>
-
-				<div class="wc-tp-stat-card">
-					<div class="wc-tp-stat-icon">✅</div>
-					<div class="wc-tp-stat-content">
-						<div class="wc-tp-stat-value" id="total-paid"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></div>
-						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></div>
-					</div>
-				</div>
-
-				<div class="wc-tp-stat-card">
-					<div class="wc-tp-stat-icon">⏳</div>
-					<div class="wc-tp-stat-content">
-						<div class="wc-tp-stat-value" id="total-due"><?php echo wp_kses_post( wc_price( $total_due ) ); ?></div>
-						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></div>
-					</div>
-				</div>
+			<div class="wc-tp-stats-grid" id="wc-tp-stats-container">
+				<!-- Stats will be loaded via AJAX -->
 			</div>
 
 			<!-- Latest Employees (10) -->
 			<div class="wc-tp-table-section">
 				<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
-				<?php if ( empty( $latest_employees ) ) : ?>
-					<div class="wc-tp-empty-state">
-						<div class="wc-tp-empty-icon">👥</div>
-						<p><?php esc_html_e( 'No employees yet', 'wc-team-payroll' ); ?></p>
-					</div>
-				<?php else : ?>
-					<table class="wc-tp-data-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Type', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Salary/Commission', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $latest_employees as $employee ) : ?>
-								<?php
-									$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
-									$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
-									$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
-									$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
-								?>
-								<tr>
-									<td><strong><?php echo esc_html( $employee->display_name ); ?></strong></td>
-									<td><?php echo esc_html( $employee->user_email ); ?></td>
-									<td>
-										<?php
-										if ( $is_fixed_salary ) {
-											echo esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-										} elseif ( $is_combined_salary ) {
-											echo esc_html__( 'Combined', 'wc-team-payroll' );
-										} else {
-											echo esc_html__( 'Commission', 'wc-team-payroll' );
-										}
-										?>
-									</td>
-									<td>
-										<?php
-										if ( $is_fixed_salary || $is_combined_salary ) {
-											echo wp_kses_post( wc_price( $salary ) . ' / ' . esc_html( $frequency ) );
-										} else {
-											echo esc_html__( 'Commission Based', 'wc-team-payroll' );
-										}
-										?>
-									</td>
-									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'Manage', 'wc-team-payroll' ); ?></a>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
+				<div id="wc-tp-latest-employees-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
 			</div>
 
 			<!-- Two Column Layout -->
@@ -170,163 +48,133 @@ class WC_Team_Payroll_Dashboard {
 				<!-- Top Earners -->
 				<div class="wc-tp-table-section">
 					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
-					<?php if ( empty( $top_earners ) ) : ?>
-						<div class="wc-tp-empty-state">
-							<div class="wc-tp-empty-icon">💰</div>
-							<p><?php esc_html_e( 'No earnings data', 'wc-team-payroll' ); ?></p>
-						</div>
-					<?php else : ?>
-						<table class="wc-tp-data-table">
-							<thead>
-								<tr>
-									<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $top_earners as $earner ) : ?>
-									<tr>
-										<td><strong><?php echo esc_html( $earner['name'] ); ?></strong></td>
-										<td><?php echo wp_kses_post( wc_price( $earner['earnings'] ) ); ?></td>
-										<td><span class="wc-tp-badge"><?php echo esc_html( $earner['orders'] ); ?></span></td>
-									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
-					<?php endif; ?>
+					<div id="wc-tp-top-earners-container">
+						<!-- Content will be loaded via AJAX -->
+					</div>
 				</div>
 
 				<!-- Recent Payments -->
 				<div class="wc-tp-table-section">
 					<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
-					<?php if ( empty( $recent_payments ) ) : ?>
-						<div class="wc-tp-empty-state">
-							<div class="wc-tp-empty-icon">💳</div>
-							<p><?php esc_html_e( 'No payments yet', 'wc-team-payroll' ); ?></p>
-						</div>
-					<?php else : ?>
-						<table class="wc-tp-data-table">
-							<thead>
-								<tr>
-									<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $recent_payments as $payment ) : ?>
-									<tr>
-										<td><strong><?php echo esc_html( $payment['employee_name'] ); ?></strong></td>
-										<td><?php echo wp_kses_post( wc_price( $payment['amount'] ) ); ?></td>
-										<td><?php echo esc_html( date( 'M d, Y', strtotime( $payment['date'] ) ) ); ?></td>
-										<td><span class="wc-tp-status wc-tp-status-<?php echo esc_attr( $payment['status'] ); ?>"><?php echo esc_html( ucfirst( $payment['status'] ) ); ?></span></td>
-									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
-					<?php endif; ?>
+					<div id="wc-tp-recent-payments-container">
+						<!-- Content will be loaded via AJAX -->
+					</div>
 				</div>
 			</div>
 
 			<!-- Employee Payroll Details -->
 			<div class="wc-tp-table-section">
 				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-				<?php if ( empty( $payroll ) ) : ?>
-					<div class="wc-tp-empty-state">
-						<div class="wc-tp-empty-icon">📊</div>
-						<p><?php esc_html_e( 'No payroll data for this period', 'wc-team-payroll' ); ?></p>
-					</div>
-				<?php else : ?>
-					<table class="wc-tp-data-table" id="payroll-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Employee', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-								<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $payroll as $data ) : ?>
-								<tr>
-									<td><strong><?php echo esc_html( $data['user'] ? $data['user']->display_name : 'Unknown' ); ?></strong></td>
-									<td><?php echo esc_html( $data['user'] ? $data['user']->user_email : 'N/A' ); ?></td>
-									<td><span class="wc-tp-badge"><?php echo esc_html( $data['orders'] ); ?></span></td>
-									<td><?php echo wp_kses_post( wc_price( $data['total'] ) ); ?></td>
-									<td><span class="wc-tp-paid"><?php echo wp_kses_post( wc_price( $data['paid'] ) ); ?></span></td>
-									<td><span class="wc-tp-due"><?php echo wp_kses_post( wc_price( $data['due'] ) ); ?></span></td>
-									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small button-primary"><?php esc_html_e( 'View', 'wc-team-payroll' ); ?></a>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
+				<div id="wc-tp-payroll-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
 			</div>
 		</div>
 
 		<style>
+			:root {
+				/* --- Color Palette --- */
+				--color-primary: #FF9900;
+				--color-primary-hover: #E68A00;
+				--color-primary-subtle: #FFF4E5;
+				--color-secondary: #212B36;
+				--color-site-bg: #FDFBF8;
+				--color-card-bg: #FFFFFF;
+				--color-border-light: #E5EAF0;
+				--color-accent-alert: #FF5500;
+				--color-accent-alert-hover: #D94800;
+				--color-accent-link: #0077EE;
+				--color-accent-success: #388E3C;
+				--color-accent-muted: #F4F4F4;
+				--text-main: #212B36;
+				--text-body: #454F5B;
+				--text-muted: #919EAB;
+				--color-link-subtle: #EBF4FF;
+				/* --- Typography System --- */
+				--font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+				--fs-h1: 2rem;
+				--fs-h2: 1.5rem;
+				--fs-h3: 1.25rem;
+				--fs-body: 1rem;
+				--fs-meta: 0.875rem;
+				--fs-small: 0.75rem;
+				--fw-bold: 700;
+				--fw-semibold: 600;
+				--fw-medium: 500;
+				--fw-regular: 400;
+				--lh-body: 1.5;
+				--lh-heading: 1.2;
+			}
+
 			.wc-team-payroll-dashboard {
-				background: #f5f5f5;
-				padding: 20px;
+				background: var(--color-site-bg);
+				padding: 24px;
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-team-payroll-dashboard h1 {
+				font-size: var(--fs-h1);
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+				margin-bottom: 24px;
 			}
 
 			.wc-tp-date-filter {
-				background: white;
-				padding: 15px;
+				background: var(--color-card-bg);
+				padding: 16px;
 				border-radius: 8px;
-				margin-bottom: 20px;
-				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+				margin-bottom: 24px;
+				border: 1px solid var(--color-border-light);
 				display: flex;
-				gap: 10px;
+				gap: 12px;
 				align-items: center;
 				flex-wrap: wrap;
 			}
 
 			.wc-tp-date-filter label {
-				font-weight: 600;
-				color: #333;
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-body);
 			}
 
 			.wc-tp-date-filter input[type="date"] {
 				padding: 8px 12px;
-				border: 1px solid #ddd;
-				border-radius: 4px;
-				font-size: 14px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
 			}
 
 			.wc-tp-date-separator {
-				color: #999;
-				font-weight: 500;
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
 			}
 
 			.wc-tp-stats-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-				gap: 15px;
-				margin-bottom: 30px;
+				gap: 16px;
+				margin-bottom: 32px;
 			}
 
 			.wc-tp-stat-card {
-				background: white;
+				background: var(--color-card-bg);
 				padding: 20px;
 				border-radius: 8px;
-				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+				border: 1px solid var(--color-border-light);
 				display: flex;
 				align-items: center;
-				gap: 15px;
-				transition: transform 0.2s, box-shadow 0.2s;
+				gap: 16px;
+				transition: all 0.3s ease;
+				cursor: pointer;
 			}
 
 			.wc-tp-stat-card:hover {
+				border-color: var(--color-primary);
+				box-shadow: 0 4px 12px rgba(255, 153, 0, 0.1);
 				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 			}
 
 			.wc-tp-stat-icon {
@@ -340,17 +188,19 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-stat-value {
-				font-size: 24px;
-				font-weight: bold;
-				color: #0073aa;
-				margin-bottom: 5px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
+				color: var(--color-primary);
+				margin-bottom: 4px;
+				line-height: var(--lh-heading);
 			}
 
 			.wc-tp-stat-label {
-				font-size: 13px;
-				color: #666;
+				font-size: var(--fs-meta);
+				color: var(--text-muted);
 				text-transform: uppercase;
 				letter-spacing: 0.5px;
+				font-weight: var(--fw-medium);
 			}
 
 			.wc-tp-dashboard-grid {
@@ -361,26 +211,27 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-table-section {
-				background: white;
+				background: var(--color-card-bg);
 				padding: 20px;
 				border-radius: 8px;
-				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+				border: 1px solid var(--color-border-light);
 				margin-bottom: 20px;
 			}
 
 			.wc-tp-table-section h2 {
 				margin-top: 0;
 				margin-bottom: 20px;
-				color: #333;
-				border-bottom: 2px solid #0073aa;
-				padding-bottom: 10px;
-				font-size: 18px;
+				color: var(--text-main);
+				border-bottom: 2px solid var(--color-primary);
+				padding-bottom: 12px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
 			}
 
 			.wc-tp-empty-state {
 				text-align: center;
 				padding: 40px 20px;
-				color: #999;
+				color: var(--text-muted);
 			}
 
 			.wc-tp-empty-icon {
@@ -392,8 +243,8 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-empty-state p {
 				margin: 0;
-				font-size: 14px;
-				color: #999;
+				font-size: var(--fs-body);
+				color: var(--text-muted);
 			}
 
 			.wc-tp-data-table {
@@ -402,78 +253,85 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-data-table thead {
-				background: #f9f9f9;
-				border-bottom: 2px solid #0073aa;
+				background: var(--color-accent-muted);
+				border-bottom: 2px solid var(--color-primary);
 			}
 
 			.wc-tp-data-table th {
 				padding: 12px;
 				text-align: left;
-				font-weight: 600;
-				color: #333;
-				font-size: 13px;
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
 			}
 
 			.wc-tp-data-table td {
 				padding: 12px;
-				border-bottom: 1px solid #eee;
+				border-bottom: 1px solid var(--color-border-light);
+				font-size: var(--fs-body);
+				color: var(--text-body);
 			}
 
 			.wc-tp-data-table tbody tr:hover {
-				background: #f5f5f5;
+				background: var(--color-primary-subtle);
 			}
 
 			.wc-tp-badge {
-				background: #0073aa;
+				background: var(--color-primary);
 				color: white;
 				padding: 4px 8px;
-				border-radius: 3px;
-				font-size: 12px;
-				font-weight: 600;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
 			}
 
 			.wc-tp-paid {
-				color: #28a745;
-				font-weight: 600;
+				color: var(--color-accent-success);
+				font-weight: var(--fw-semibold);
 			}
 
 			.wc-tp-due {
-				color: #dc3545;
-				font-weight: 600;
+				color: var(--color-accent-alert);
+				font-weight: var(--fw-semibold);
 			}
 
 			.wc-tp-status {
 				padding: 4px 8px;
-				border-radius: 3px;
-				font-size: 12px;
-				font-weight: 600;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
 				display: inline-block;
 			}
 
 			.wc-tp-status-paid {
-				background: #d4edda;
+				background: #D4EDDA;
 				color: #155724;
 			}
 
 			.wc-tp-status-pending {
-				background: #fff3cd;
+				background: #FFF3CD;
 				color: #856404;
 			}
 
 			.wc-tp-status-failed {
-				background: #f8d7da;
-				color: #721c24;
+				background: #F8D7DA;
+				color: #721C24;
 			}
 
 			.button-primary {
-				background: #0073aa;
-				border-color: #0073aa;
+				background: var(--color-primary);
+				border-color: var(--color-primary);
 				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
 			}
 
 			.button-primary:hover {
-				background: #005a87;
-				border-color: #005a87;
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
 			}
 
 			@media (max-width: 768px) {
@@ -487,7 +345,7 @@ class WC_Team_Payroll_Dashboard {
 				}
 
 				.wc-tp-data-table {
-					font-size: 13px;
+					font-size: var(--fs-meta);
 				}
 
 				.wc-tp-data-table th,
@@ -499,8 +357,16 @@ class WC_Team_Payroll_Dashboard {
 
 		<script>
 			jQuery(document).ready(function($) {
+				// Load dashboard data on page load
+				loadDashboardData();
+
 				// Filter button click
 				$('#wc-tp-filter-btn').on('click', function() {
+					loadDashboardData();
+				});
+
+				// Load all dashboard data via AJAX
+				function loadDashboardData() {
 					const startDate = $('#wc-tp-start-date').val();
 					const endDate = $('#wc-tp-end-date').val();
 
@@ -526,14 +392,13 @@ class WC_Team_Payroll_Dashboard {
 								const data = response.data;
 								
 								// Update stat cards
-								updateStatCard('total-employees', data.total_employees);
-								updateStatCard('total-orders', data.total_orders);
-								updateStatCard('total-earnings', data.total_earnings);
-								updateStatCard('total-paid', data.total_paid);
-								updateStatCard('total-due', data.total_due);
+								renderStatCards(data);
 								
-								// Update payroll table
-								updatePayrollTable(data.payroll);
+								// Update all tables
+								renderLatestEmployees(data.latest_employees);
+								renderTopEarners(data.top_earners);
+								renderRecentPayments(data.recent_payments);
+								renderPayrollTable(data.payroll);
 								
 								// Show success message
 								showNotice('Dashboard updated successfully', 'success');
@@ -548,46 +413,162 @@ class WC_Team_Payroll_Dashboard {
 							$('#wc-tp-filter-btn').prop('disabled', false).text('Filter');
 						}
 					});
-				});
-
-				// Update stat card value
-				function updateStatCard(id, value) {
-					const element = $('#' + id);
-					if (element.length) {
-						// Format as currency if it's a monetary value
-						if (id.includes('earnings') || id.includes('paid') || id.includes('due')) {
-							const formatted = new Intl.NumberFormat('en-US', {
-								style: 'currency',
-								currency: 'USD'
-							}).format(value);
-							element.text(formatted);
-						} else {
-							element.text(value);
-						}
-					}
 				}
 
-				// Update payroll table
-				function updatePayrollTable(payroll) {
-					const tbody = $('#payroll-table tbody');
-					tbody.empty();
+				// Render stat cards
+				function renderStatCards(data) {
+					const container = $('#wc-tp-stats-container');
+					let html = '';
 
-					if (Object.keys(payroll).length === 0) {
-						tbody.html('<tr><td colspan="7" style="text-align: center; padding: 20px;">No payroll data for this period</td></tr>');
+					// Total Employees
+					html += '<div class="wc-tp-stat-card">';
+					html += '<div class="wc-tp-stat-icon">👥</div>';
+					html += '<div class="wc-tp-stat-content">';
+					html += '<div class="wc-tp-stat-value">' + data.total_employees + '</div>';
+					html += '<div class="wc-tp-stat-label">Total Employees</div>';
+					html += '</div></div>';
+
+					// Total Orders
+					html += '<div class="wc-tp-stat-card">';
+					html += '<div class="wc-tp-stat-icon">📦</div>';
+					html += '<div class="wc-tp-stat-content">';
+					html += '<div class="wc-tp-stat-value">' + data.total_orders + '</div>';
+					html += '<div class="wc-tp-stat-label">Total Orders</div>';
+					html += '</div></div>';
+
+					// Total Earnings
+					html += '<div class="wc-tp-stat-card">';
+					html += '<div class="wc-tp-stat-icon">💰</div>';
+					html += '<div class="wc-tp-stat-content">';
+					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_earnings) + '</div>';
+					html += '<div class="wc-tp-stat-label">Total Earnings</div>';
+					html += '</div></div>';
+
+					// Total Paid
+					html += '<div class="wc-tp-stat-card">';
+					html += '<div class="wc-tp-stat-icon">✅</div>';
+					html += '<div class="wc-tp-stat-content">';
+					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_paid) + '</div>';
+					html += '<div class="wc-tp-stat-label">Total Paid</div>';
+					html += '</div></div>';
+
+					// Total Due
+					html += '<div class="wc-tp-stat-card">';
+					html += '<div class="wc-tp-stat-icon">⏳</div>';
+					html += '<div class="wc-tp-stat-content">';
+					html += '<div class="wc-tp-stat-value">' + formatCurrency(data.total_due) + '</div>';
+					html += '<div class="wc-tp-stat-label">Total Due</div>';
+					html += '</div></div>';
+
+					container.html(html);
+				}
+
+				// Render latest employees table
+				function renderLatestEmployees(employees) {
+					const container = $('#wc-tp-latest-employees-container');
+					
+					if (!employees || employees.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">👥</div><p>No employees yet</p></div>');
 						return;
 					}
 
-					$.each(payroll, function(userId, data) {
-						const row = $('<tr>');
-						row.append($('<td>').html('<strong>' + (data.user ? data.user.display_name : 'Unknown') + '</strong>'));
-						row.append($('<td>').text(data.user ? data.user.user_email : 'N/A'));
-						row.append($('<td>').html('<span class="wc-tp-badge">' + data.orders + '</span>'));
-						row.append($('<td>').text(formatCurrency(data.total)));
-						row.append($('<td>').html('<span class="wc-tp-paid">' + formatCurrency(data.paid) + '</span>'));
-						row.append($('<td>').html('<span class="wc-tp-due">' + formatCurrency(data.due) + '</span>'));
-						row.append($('<td>').html('<a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + userId) + '" class="button button-small button-primary">View</a>'));
-						tbody.append(row);
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Name</th><th>Email</th><th>Type</th><th>Salary/Commission</th><th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(employees, function(i, emp) {
+						html += '<tr>';
+						html += '<td><strong>' + emp.display_name + '</strong></td>';
+						html += '<td>' + emp.user_email + '</td>';
+						html += '<td>' + emp.type + '</td>';
+						html += '<td>' + emp.salary_info + '</td>';
+						html += '<td><a href="' + emp.manage_url + '" class="button button-small button-primary">Manage</a></td>';
+						html += '</tr>';
 					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
+
+				// Render top earners table
+				function renderTopEarners(earners) {
+					const container = $('#wc-tp-top-earners-container');
+					
+					if (!earners || earners.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>No earnings data</p></div>');
+						return;
+					}
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Employee</th><th>Earnings</th><th>Orders</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(earners, function(i, earner) {
+						html += '<tr>';
+						html += '<td><strong>' + earner.name + '</strong></td>';
+						html += '<td>' + formatCurrency(earner.earnings) + '</td>';
+						html += '<td><span class="wc-tp-badge">' + earner.orders + '</span></td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
+
+				// Render recent payments table
+				function renderRecentPayments(payments) {
+					const container = $('#wc-tp-recent-payments-container');
+					
+					if (!payments || payments.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💳</div><p>No payments yet</p></div>');
+						return;
+					}
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Employee</th><th>Amount</th><th>Date</th><th>Status</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(payments, function(i, payment) {
+						const statusClass = 'wc-tp-status-' + payment.status;
+						html += '<tr>';
+						html += '<td><strong>' + payment.employee_name + '</strong></td>';
+						html += '<td>' + formatCurrency(payment.amount) + '</td>';
+						html += '<td>' + payment.date + '</td>';
+						html += '<td><span class="wc-tp-status ' + statusClass + '">' + payment.status.charAt(0).toUpperCase() + payment.status.slice(1) + '</span></td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
+
+				// Render payroll table
+				function renderPayrollTable(payroll) {
+					const container = $('#wc-tp-payroll-container');
+					
+					if (!payroll || Object.keys(payroll).length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📊</div><p>No payroll data for this period</p></div>');
+						return;
+					}
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Employee</th><th>Email</th><th>Orders</th><th>Total Earnings</th><th>Paid</th><th>Due</th><th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(payroll, function(userId, data) {
+						html += '<tr>';
+						html += '<td><strong>' + (data.user ? data.user.display_name : 'Unknown') + '</strong></td>';
+						html += '<td>' + (data.user ? data.user.user_email : 'N/A') + '</td>';
+						html += '<td><span class="wc-tp-badge">' + data.orders + '</span></td>';
+						html += '<td>' + formatCurrency(data.total) + '</td>';
+						html += '<td><span class="wc-tp-paid">' + formatCurrency(data.paid) + '</span></td>';
+						html += '<td><span class="wc-tp-due">' + formatCurrency(data.due) + '</span></td>';
+						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + userId) + '" class="button button-small button-primary">View</a></td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
 				}
 
 				// Format currency
@@ -610,100 +591,6 @@ class WC_Team_Payroll_Dashboard {
 			});
 		</script>
 		<?php
-	}
-
-	/**
-	 * Get all employees (shop_employee, shop_manager and administrator roles)
-	 */
-	private function get_all_employees() {
-		$args = array(
-			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
-			'orderby'  => 'display_name',
-			'order'    => 'ASC',
-			'number'   => -1,
-		);
-
-		return get_users( $args );
-	}
-
-	/**
-	 * Get latest employees (last 10)
-	 */
-	private function get_latest_employees( $limit = 10 ) {
-		$args = array(
-			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
-			'orderby'  => 'user_registered',
-			'order'    => 'DESC',
-			'number'   => $limit,
-		);
-
-		return get_users( $args );
-	}
-
-	/**
-	 * Get recent payments
-	 */
-	private function get_recent_payments( $limit = 10 ) {
-		global $wpdb;
-
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}postmeta 
-				WHERE meta_key = 'wc_tp_payment' 
-				ORDER BY meta_id DESC 
-				LIMIT %d",
-				$limit
-			),
-			ARRAY_A
-		);
-
-		$payments = array();
-		foreach ( $results as $result ) {
-			$payment_data = maybe_unserialize( $result['meta_value'] );
-			if ( is_array( $payment_data ) ) {
-				$user = get_user_by( 'id', $payment_data['user_id'] ?? 0 );
-				$payments[] = array(
-					'user_id'       => $payment_data['user_id'] ?? 0,
-					'employee_name' => $user ? $user->display_name : 'Unknown',
-					'amount'        => $payment_data['amount'] ?? 0,
-					'date'          => $payment_data['date'] ?? current_time( 'mysql' ),
-					'status'        => $payment_data['status'] ?? 'pending',
-				);
-			}
-		}
-
-		return $payments;
-	}
-
-	/**
-	 * Get top earners
-	 */
-	private function get_top_earners( $limit = 5, $start_date = '', $end_date = '' ) {
-		$payroll = array();
-		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
-			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
-		}
-
-		// Sort by earnings
-		usort( $payroll, function( $a, $b ) {
-			return $b['total'] - $a['total'];
-		} );
-
-		$top_earners = array();
-		$count = 0;
-		foreach ( $payroll as $data ) {
-			if ( $count >= $limit ) {
-				break;
-			}
-			$top_earners[] = array(
-				'name'     => $data['user'] ? $data['user']->display_name : 'Unknown',
-				'earnings' => $data['total'],
-				'orders'   => $data['orders'],
-			);
-			$count++;
-		}
-
-		return $top_earners;
 	}
 
 	/**
