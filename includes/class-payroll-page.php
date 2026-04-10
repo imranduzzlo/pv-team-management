@@ -451,14 +451,10 @@ class WC_Team_Payroll_Page {
 								
 								renderPayrollTable(allPayrollData);
 								renderPagination(allPayrollData);
-								
-								showNotice('Payroll data loaded successfully', 'success');
-							} else {
-								showNotice('Error: ' + response.data, 'error');
 							}
 						},
 						error: function() {
-							showNotice('Error loading payroll data', 'error');
+							// Silent error handling
 						},
 						complete: function() {
 							$('#wc-tp-payroll-filter-btn').prop('disabled', false).text('Filter');
@@ -567,15 +563,6 @@ class WC_Team_Payroll_Page {
 					} else {
 						return wcCurrencySymbol + ' ' + amount;
 					}
-				}
-
-				function showNotice(message, type) {
-					const noticeClass = type === 'success' ? 'notice-success' : 'notice-error';
-					const notice = $('<div class="notice ' + noticeClass + ' is-dismissible"><p>' + message + '</p></div>');
-					$('.wrap').prepend(notice);
-					setTimeout(function() {
-						notice.fadeOut(function() { $(this).remove(); });
-					}, 3000);
 				}
 			});
 		</script>
