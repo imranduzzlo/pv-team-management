@@ -237,12 +237,47 @@ class WC_Team_Payroll_Settings {
 			jQuery(document).ready(function($) {
 				$('#wc-tp-add-role-btn').on('click', function() {
 					const container = $('#wc-tp-roles-container');
+					const timestamp = Date.now();
 					const html = `
 						<div class="wc-tp-role-item">
 							<div class="wc-tp-role-item-header">
-								<input type="text" name="wc_tp_employee_roles[]" placeholder="Role name (e.g., shop_employee)" value="" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 3px;" />
+								<div style="flex: 1;">
+									<input type="text" name="wc_tp_employee_roles[new_${timestamp}][name]" placeholder="Role name (e.g., shop_employee)" value="" style="font-weight: bold; padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" />
+								</div>
 								<button type="button" class="wc-tp-role-remove" style="margin-left: 10px;">Remove</button>
 							</div>
+
+							<div class="wc-tp-role-capabilities" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+								<label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 12px;">Capabilities:</label>
+								<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][read]" value="1" />
+										<span style="margin-left: 5px;">Read</span>
+									</label>
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][edit_posts]" value="1" />
+										<span style="margin-left: 5px;">Edit Posts</span>
+									</label>
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][delete_posts]" value="1" />
+										<span style="margin-left: 5px;">Delete Posts</span>
+									</label>
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][publish_posts]" value="1" />
+										<span style="margin-left: 5px;">Publish Posts</span>
+									</label>
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][manage_options]" value="1" />
+										<span style="margin-left: 5px;">Manage Options</span>
+									</label>
+									<label style="display: flex; align-items: center; font-size: 12px;">
+										<input type="checkbox" name="wc_tp_employee_roles[new_${timestamp}][capabilities][manage_woocommerce]" value="1" />
+										<span style="margin-left: 5px;">Manage WooCommerce</span>
+									</label>
+								</div>
+							</div>
+
+							<input type="hidden" name="wc_tp_employee_roles[new_${timestamp}][role_key]" value="new_${timestamp}" />
 						</div>
 					`;
 					container.append(html);
@@ -274,10 +309,11 @@ class WC_Team_Payroll_Settings {
 
 		foreach ( $all_employee_roles as $role ) :
 			$role_data = isset( $all_roles[ $role ] ) ? $all_roles[ $role ] : array( 'name' => $role );
-			$is_default = $role === 'shop_employee';
 			$is_admin = $role === 'administrator';
+			$role_obj = get_role( $role );
+			$capabilities = $role_obj ? $role_obj->capabilities : array();
 			?>
-			<div class="wc-tp-role-item <?php echo $is_default ? 'wc-tp-default-role' : ''; ?>">
+			<div class="wc-tp-role-item">
 				<?php if ( $is_admin ) : ?>
 					<div class="wc-tp-role-warning">
 						⚠️ Warning: Modifying administrator role permissions can affect site security. Proceed with caution.
@@ -285,18 +321,41 @@ class WC_Team_Payroll_Settings {
 				<?php endif; ?>
 
 				<div class="wc-tp-role-item-header">
-					<div>
-						<span class="wc-tp-role-name"><?php echo esc_html( $role_data['name'] ); ?></span>
-						<?php if ( $is_default ) : ?>
-							<span class="wc-tp-role-badge">Default</span>
-						<?php endif; ?>
+					<div style="flex: 1;">
+						<input type="text" class="wc-tp-role-name-input" name="wc_tp_employee_roles[<?php echo esc_attr( $role ); ?>][name]" value="<?php echo esc_attr( $role_data['name'] ); ?>" style="font-weight: bold; padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" />
 					</div>
-					<button type="button" class="wc-tp-role-remove" data-role="<?php echo esc_attr( $role ); ?>" <?php echo $is_default ? 'disabled' : ''; ?>>
+					<button type="button" class="wc-tp-role-remove" data-role="<?php echo esc_attr( $role ); ?>">
 						Remove
 					</button>
 				</div>
 
-				<input type="hidden" name="wc_tp_employee_roles[]" value="<?php echo esc_attr( $role ); ?>" />
+				<div class="wc-tp-role-capabilities" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+					<label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 12px;">Capabilities:</label>
+					<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+						<?php
+						$all_capabilities = array(
+							'read' => 'Read',
+							'edit_posts' => 'Edit Posts',
+							'delete_posts' => 'Delete Posts',
+							'publish_posts' => 'Publish Posts',
+							'manage_options' => 'Manage Options',
+							'manage_woocommerce' => 'Manage WooCommerce',
+						);
+
+						foreach ( $all_capabilities as $cap_key => $cap_label ) :
+							$is_checked = isset( $capabilities[ $cap_key ] ) && $capabilities[ $cap_key ];
+							?>
+							<label style="display: flex; align-items: center; font-size: 12px;">
+								<input type="checkbox" name="wc_tp_employee_roles[<?php echo esc_attr( $role ); ?>][capabilities][<?php echo esc_attr( $cap_key ); ?>]" value="1" <?php checked( $is_checked, true ); ?> />
+								<span style="margin-left: 5px;"><?php echo esc_html( $cap_label ); ?></span>
+							</label>
+							<?php
+						endforeach;
+						?>
+					</div>
+				</div>
+
+				<input type="hidden" name="wc_tp_employee_roles[<?php echo esc_attr( $role ); ?>][role_key]" value="<?php echo esc_attr( $role ); ?>" />
 			</div>
 			<?php
 		endforeach;
@@ -316,9 +375,42 @@ class WC_Team_Payroll_Settings {
 			update_option( 'wc_tp_user_id_prefix', $prefix );
 		}
 
-		if ( isset( $_POST['wc_tp_employee_roles'] ) ) {
-			$roles = array_map( 'sanitize_text_field', $_POST['wc_tp_employee_roles'] );
-			update_option( 'wc_tp_employee_roles', $roles );
+		// Save employee roles with capabilities
+		if ( isset( $_POST['wc_tp_employee_roles'] ) && is_array( $_POST['wc_tp_employee_roles'] ) ) {
+			$employee_roles = array();
+			
+			foreach ( $_POST['wc_tp_employee_roles'] as $role_key => $role_data ) {
+				$role_key = sanitize_text_field( $role_key );
+				$role_name = isset( $role_data['name'] ) ? sanitize_text_field( $role_data['name'] ) : $role_key;
+				$capabilities = isset( $role_data['capabilities'] ) ? array_keys( $role_data['capabilities'] ) : array();
+
+				$employee_roles[] = $role_key;
+
+				// Update role capabilities
+				$role_obj = get_role( $role_key );
+				if ( $role_obj ) {
+					// Remove all capabilities first
+					$all_capabilities = array( 'read', 'edit_posts', 'delete_posts', 'publish_posts', 'manage_options', 'manage_woocommerce' );
+					foreach ( $all_capabilities as $cap ) {
+						$role_obj->remove_cap( $cap );
+					}
+
+					// Add selected capabilities
+					foreach ( $capabilities as $cap ) {
+						$cap = sanitize_text_field( $cap );
+						$role_obj->add_cap( $cap );
+					}
+
+					// Update role name
+					if ( $role_name !== $role_key ) {
+						global $wp_roles;
+						$wp_roles->roles[ $role_key ]['name'] = $role_name;
+						update_option( $wp_roles->role_key, $wp_roles->roles );
+					}
+				}
+			}
+
+			update_option( 'wc_tp_employee_roles', $employee_roles );
 		}
 	}
 }
