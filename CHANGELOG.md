@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.0.1] - 2026-04-10
+
+### Fixed
+- Fixed menu structure: Main menu now goes to Dashboard instead of Settings
+- Removed duplicate Dashboard submenu
+- Removed Employee Detail submenu (accessed from Team Members page)
+- Fixed critical errors on Dashboard and Payroll pages
+- Added error handling for missing payroll data
+- Added null checks for user objects to prevent crashes
+- Dashboard and Payroll pages now show "No payroll data" message instead of critical error
+
+### Improved
+- Better error handling in Dashboard and Payroll rendering
+- Safer class existence checks before calling methods
+
 ## [2.0.0] - 2026-04-10
 
 ### Added
