@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 4.0.0
+ * Version: 4.1.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '4.0.0' );
+define( 'WC_TEAM_PAYROLL_VERSION', '4.1.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -29,49 +29,106 @@ add_action( 'plugins_loaded', function() {
 	load_plugin_textdomain( 'wc-team-payroll', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 } );
 
-// Check dependencies
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dependencies.php';
-$dependencies = new WC_Team_Payroll_Dependencies();
-if ( ! $dependencies->check() ) {
-	return;
+// ============================================================================
+// CHECK DEPENDENCIES - BUT SHOW MENU ANYWAY
+// ============================================================================
+
+$wc_active = class_exists( 'WooCommerce' );
+$acf_active = class_exists( 'ACF' ) || class_exists( 'SCF' );
+
+if ( ! $wc_active || ! $acf_active ) {
+	// Show admin notice but continue loading
+	add_action( 'admin_notices', function() use ( $wc_active, $acf_active ) {
+		if ( ! $wc_active ) {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php esc_html_e( 'WooCommerce Team Payroll requires WooCommerce to be installed and activated.', 'wc-team-payroll' ); ?></p>
+			</div>
+			<?php
+		}
+		if ( ! $acf_active ) {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php esc_html_e( 'WooCommerce Team Payroll requires Advanced Custom Fields (ACF) to be installed and activated.', 'wc-team-payroll' ); ?></p>
+			</div>
+			<?php
+		}
+	} );
 }
 
-// Load all classes
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-core-engine.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dashboard.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
-require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
+// Load all classes - ONLY IF DEPENDENCIES MET
+if ( $wc_active && $acf_active ) {
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-core-engine.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dashboard.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
-// Initialize GitHub updater
-new WC_Team_Payroll_GitHub_Updater();
+	// Initialize GitHub updater
+	new WC_Team_Payroll_GitHub_Updater();
 
-// Initialize core engine (handles commission calculations)
-$core_engine = new WC_Team_Payroll_Core_Engine();
+	// Initialize core engine (handles commission calculations)
+	$core_engine = new WC_Team_Payroll_Core_Engine();
 
-// Initialize checkout integration (handles agent dropdown)
-$checkout_integration = new WC_Team_Payroll_Checkout_Integration();
+	// Initialize checkout integration (handles agent dropdown)
+	$checkout_integration = new WC_Team_Payroll_Checkout_Integration();
+
+	// ============================================================================
+	// AJAX HANDLERS
+	// ============================================================================
+
+	add_action( 'wp_ajax_wc_tp_update_employee_salary', function() {
+		$employees = new WC_Team_Payroll_Employee_Management();
+		$employees->ajax_update_employee_salary();
+	} );
+
+	add_action( 'wp_ajax_wc_tp_add_payment', function() {
+		$employees = new WC_Team_Payroll_Employee_Management();
+		$employees->ajax_add_payment();
+	} );
+
+	add_action( 'wp_ajax_wc_tp_delete_payment', function() {
+		$employees = new WC_Team_Payroll_Employee_Management();
+		$employees->ajax_delete_payment();
+	} );
+
+	add_action( 'wp_ajax_wc_tp_get_payment_data', function() {
+		$employees = new WC_Team_Payroll_Employee_Management();
+		$employees->ajax_get_payment_data();
+	} );
+
+	add_action( 'wp_ajax_wc_tp_add_order_bonus', function() {
+		$employees = new WC_Team_Payroll_Employee_Management();
+		$employees->ajax_add_order_bonus();
+	} );
+}
 
 // ============================================================================
-// ADMIN MENU - INDEPENDENT, NO DEPENDENCIES
+// ADMIN MENU - ALWAYS SHOW (EVEN IF DEPENDENCIES NOT MET)
 // ============================================================================
 
 add_action( 'admin_menu', function() {
-	// Main menu - INDEPENDENT MENU, NOT UNDER WOOCOMMERCE
+	// Main menu - INDEPENDENT MENU
 	add_menu_page(
-		__( 'Team Payroll', 'wc-team-payroll' ),           // Page title
-		__( 'Team Payroll', 'wc-team-payroll' ),           // Menu title
-		'manage_options',                                   // Capability (admin only)
-		'wc-team-payroll',                                  // Menu slug
-		function() {                                        // Callback
-			$dashboard = new WC_Team_Payroll_Dashboard();
-			$dashboard->render_dashboard();
+		__( 'Team Payroll', 'wc-team-payroll' ),
+		__( 'Team Payroll', 'wc-team-payroll' ),
+		'manage_options',
+		'wc-team-payroll',
+		function() {
+			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
+				$dashboard = new WC_Team_Payroll_Dashboard();
+				$dashboard->render_dashboard();
+			} else {
+				echo '<div class="wrap"><h1>Team Payroll</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met. Please install WooCommerce and ACF.</p></div>';
+				echo '</div>';
+			}
 		},
-		'dashicons-money-alt',                              // Icon
-		25                                                  // Position
+		'dashicons-money-alt',
+		25
 	);
 
 	// Dashboard submenu
@@ -82,8 +139,14 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll',
 		function() {
-			$dashboard = new WC_Team_Payroll_Dashboard();
-			$dashboard->render_dashboard();
+			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
+				$dashboard = new WC_Team_Payroll_Dashboard();
+				$dashboard->render_dashboard();
+			} else {
+				echo '<div class="wrap"><h1>Dashboard</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '</div>';
+			}
 		}
 	);
 
@@ -95,8 +158,14 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll-payroll',
 		function() {
-			$dashboard = new WC_Team_Payroll_Dashboard();
-			$dashboard->render_payroll();
+			if ( class_exists( 'WC_Team_Payroll_Dashboard' ) ) {
+				$dashboard = new WC_Team_Payroll_Dashboard();
+				$dashboard->render_payroll();
+			} else {
+				echo '<div class="wrap"><h1>Payroll</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '</div>';
+			}
 		}
 	);
 
@@ -108,8 +177,14 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll-employees',
 		function() {
-			$employees = new WC_Team_Payroll_Employee_Management();
-			$employees->render_employees_page();
+			if ( class_exists( 'WC_Team_Payroll_Employee_Management' ) ) {
+				$employees = new WC_Team_Payroll_Employee_Management();
+				$employees->render_employees_page();
+			} else {
+				echo '<div class="wrap"><h1>Team Members</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '</div>';
+			}
 		}
 	);
 
@@ -121,8 +196,14 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll-settings',
 		function() {
-			$settings = new WC_Team_Payroll_Settings();
-			$settings->render_settings_page();
+			if ( class_exists( 'WC_Team_Payroll_Settings' ) ) {
+				$settings = new WC_Team_Payroll_Settings();
+				$settings->render_settings_page();
+			} else {
+				echo '<div class="wrap"><h1>Settings</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '</div>';
+			}
 		}
 	);
 
@@ -134,8 +215,14 @@ add_action( 'admin_menu', function() {
 		'manage_options',
 		'wc-team-payroll-employee-detail',
 		function() {
-			$detail = new WC_Team_Payroll_Employee_Detail();
-			$detail->render_employee_detail();
+			if ( class_exists( 'WC_Team_Payroll_Employee_Detail' ) ) {
+				$detail = new WC_Team_Payroll_Employee_Detail();
+				$detail->render_employee_detail();
+			} else {
+				echo '<div class="wrap"><h1>Employee Detail</h1>';
+				echo '<div class="notice notice-error"><p>Dependencies not met.</p></div>';
+				echo '</div>';
+			}
 		}
 	);
 }, 10 );
@@ -168,41 +255,14 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), function( $lin
 } );
 
 // ============================================================================
-// AJAX HANDLERS
-// ============================================================================
-
-add_action( 'wp_ajax_wc_tp_update_employee_salary', function() {
-	$employees = new WC_Team_Payroll_Employee_Management();
-	$employees->ajax_update_employee_salary();
-} );
-
-add_action( 'wp_ajax_wc_tp_add_payment', function() {
-	$employees = new WC_Team_Payroll_Employee_Management();
-	$employees->ajax_add_payment();
-} );
-
-add_action( 'wp_ajax_wc_tp_delete_payment', function() {
-	$employees = new WC_Team_Payroll_Employee_Management();
-	$employees->ajax_delete_payment();
-} );
-
-add_action( 'wp_ajax_wc_tp_get_payment_data', function() {
-	$employees = new WC_Team_Payroll_Employee_Management();
-	$employees->ajax_get_payment_data();
-} );
-
-add_action( 'wp_ajax_wc_tp_add_order_bonus', function() {
-	$employees = new WC_Team_Payroll_Employee_Management();
-	$employees->ajax_add_order_bonus();
-} );
-
-// ============================================================================
 // ACTIVATION AND DEACTIVATION HOOKS
 // ============================================================================
 
 register_activation_hook( __FILE__, function() {
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-installer.php';
-	WC_Team_Payroll_Installer::install();
+	if ( file_exists( WC_TEAM_PAYROLL_PATH . 'includes/class-installer.php' ) ) {
+		require_once WC_TEAM_PAYROLL_PATH . 'includes/class-installer.php';
+		WC_Team_Payroll_Installer::install();
+	}
 } );
 
 register_deactivation_hook( __FILE__, function() {
