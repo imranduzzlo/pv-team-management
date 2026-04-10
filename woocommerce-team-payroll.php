@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 3.2.0
+ * Version: 4.0.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,9 +20,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '3.2.0' );
+define( 'WC_TEAM_PAYROLL_VERSION', '4.0.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
+
+// Load text domain
+add_action( 'plugins_loaded', function() {
+	load_plugin_textdomain( 'wc-team-payroll', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+} );
 
 // Check dependencies
 require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dependencies.php';
@@ -50,20 +55,23 @@ $core_engine = new WC_Team_Payroll_Core_Engine();
 // Initialize checkout integration (handles agent dropdown)
 $checkout_integration = new WC_Team_Payroll_Checkout_Integration();
 
-// Add admin menu and pages
+// ============================================================================
+// ADMIN MENU - INDEPENDENT, NO DEPENDENCIES
+// ============================================================================
+
 add_action( 'admin_menu', function() {
-	// Main menu
+	// Main menu - INDEPENDENT MENU, NOT UNDER WOOCOMMERCE
 	add_menu_page(
-		__( 'Team Payroll', 'wc-team-payroll' ),
-		__( 'Team Payroll', 'wc-team-payroll' ),
-		'manage_woocommerce',
-		'wc-team-payroll',
-		function() {
+		__( 'Team Payroll', 'wc-team-payroll' ),           // Page title
+		__( 'Team Payroll', 'wc-team-payroll' ),           // Menu title
+		'manage_options',                                   // Capability (admin only)
+		'wc-team-payroll',                                  // Menu slug
+		function() {                                        // Callback
 			$dashboard = new WC_Team_Payroll_Dashboard();
 			$dashboard->render_dashboard();
 		},
-		'dashicons-money-alt',
-		56
+		'dashicons-money-alt',                              // Icon
+		25                                                  // Position
 	);
 
 	// Dashboard submenu
@@ -71,7 +79,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll',
 		__( 'Dashboard', 'wc-team-payroll' ),
 		__( 'Dashboard', 'wc-team-payroll' ),
-		'manage_woocommerce',
+		'manage_options',
 		'wc-team-payroll',
 		function() {
 			$dashboard = new WC_Team_Payroll_Dashboard();
@@ -84,7 +92,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll',
 		__( 'Payroll', 'wc-team-payroll' ),
 		__( 'Payroll', 'wc-team-payroll' ),
-		'manage_woocommerce',
+		'manage_options',
 		'wc-team-payroll-payroll',
 		function() {
 			$dashboard = new WC_Team_Payroll_Dashboard();
@@ -97,7 +105,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll',
 		__( 'Team Members', 'wc-team-payroll' ),
 		__( 'Team Members', 'wc-team-payroll' ),
-		'manage_woocommerce',
+		'manage_options',
 		'wc-team-payroll-employees',
 		function() {
 			$employees = new WC_Team_Payroll_Employee_Management();
@@ -110,7 +118,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll',
 		__( 'Settings', 'wc-team-payroll' ),
 		__( 'Settings', 'wc-team-payroll' ),
-		'manage_woocommerce',
+		'manage_options',
 		'wc-team-payroll-settings',
 		function() {
 			$settings = new WC_Team_Payroll_Settings();
@@ -123,7 +131,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll',
 		__( 'Employee Detail', 'wc-team-payroll' ),
 		'',
-		'manage_woocommerce',
+		'manage_options',
 		'wc-team-payroll-employee-detail',
 		function() {
 			$detail = new WC_Team_Payroll_Employee_Detail();
@@ -132,7 +140,10 @@ add_action( 'admin_menu', function() {
 	);
 }, 10 );
 
-// Enqueue admin scripts and styles
+// ============================================================================
+// ENQUEUE ADMIN SCRIPTS AND STYLES
+// ============================================================================
+
 add_action( 'admin_enqueue_scripts', function( $hook ) {
 	if ( strpos( $hook, 'wc-team-payroll' ) === false ) {
 		return;
@@ -145,14 +156,21 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	wp_enqueue_script( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/js/dashboard.js', array( 'jquery', 'jquery-datatables' ), WC_TEAM_PAYROLL_VERSION, true );
 } );
 
-// Add plugin action links
+// ============================================================================
+// PLUGIN ACTION LINKS
+// ============================================================================
+
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), function( $links ) {
 	$settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-team-payroll-settings' ) ) . '">' . esc_html__( 'Settings', 'wc-team-payroll' ) . '</a>';
-	array_unshift( $links, $settings_link );
+	$dashboard_link = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-team-payroll' ) ) . '">' . esc_html__( 'Dashboard', 'wc-team-payroll' ) . '</a>';
+	array_unshift( $links, $settings_link, $dashboard_link );
 	return $links;
 } );
 
-// Register AJAX handlers
+// ============================================================================
+// AJAX HANDLERS
+// ============================================================================
+
 add_action( 'wp_ajax_wc_tp_update_employee_salary', function() {
 	$employees = new WC_Team_Payroll_Employee_Management();
 	$employees->ajax_update_employee_salary();
@@ -178,13 +196,15 @@ add_action( 'wp_ajax_wc_tp_add_order_bonus', function() {
 	$employees->ajax_add_order_bonus();
 } );
 
-// Activation hook
+// ============================================================================
+// ACTIVATION AND DEACTIVATION HOOKS
+// ============================================================================
+
 register_activation_hook( __FILE__, function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-installer.php';
 	WC_Team_Payroll_Installer::install();
 } );
 
-// Deactivation hook
 register_deactivation_hook( __FILE__, function() {
 	// Cleanup if needed
 } );
