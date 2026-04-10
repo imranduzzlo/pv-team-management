@@ -1,0 +1,35 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/backup-*
+wp-content/cache/
+wp-content/upgrade/
+wp-content/plugins/*/
+wp-content/themes/*/
+wp-content/mu-plugins/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Composer
+vendor/
+composer.lock
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*.tmp

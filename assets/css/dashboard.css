@@ -1,0 +1,206 @@
+/* WooCommerce Team Payroll Dashboard Styles */
+
+.wc-team-payroll-filters {
+	margin: 20px 0;
+	padding: 15px;
+	background: #f5f5f5;
+	border-radius: 4px;
+}
+
+.wc-team-payroll-filters form {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.wc-team-payroll-filters select,
+.wc-team-payroll-filters input {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.wc-team-payroll-filters button {
+	padding: 8px 16px;
+}
+
+/* Dashboard Tables */
+.widefat thead th {
+	background: #f9f9f9;
+	font-weight: 600;
+	cursor: pointer;
+	user-select: none;
+}
+
+.widefat tbody tr:hover {
+	background: #f5f5f5;
+}
+
+.widefat td {
+	padding: 12px 8px;
+	vertical-align: middle;
+}
+
+/* Earnings Summary */
+.wc-team-payroll-earnings {
+	margin: 20px 0;
+}
+
+.earnings-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+	margin: 20px 0;
+}
+
+.earnings-card {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+	text-align: center;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.earnings-card .label {
+	display: block;
+	color: #666;
+	font-size: 14px;
+	margin-bottom: 10px;
+}
+
+.earnings-card .amount {
+	display: block;
+	font-size: 24px;
+	font-weight: 600;
+	color: #0073aa;
+}
+
+/* Report Cards */
+.wc-team-payroll-report-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+	margin: 20px 0;
+}
+
+.report-card {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+	text-align: center;
+}
+
+.report-card h3 {
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	color: #666;
+}
+
+.report-card .amount {
+	font-size: 28px;
+	font-weight: 600;
+	color: #0073aa;
+	margin: 10px 0;
+}
+
+.report-card .label {
+	font-size: 12px;
+	color: #999;
+}
+
+/* Orders Table */
+.wc-team-payroll-orders-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 20px 0;
+}
+
+.wc-team-payroll-orders-table thead {
+	background: #f9f9f9;
+}
+
+.wc-team-payroll-orders-table th,
+.wc-team-payroll-orders-table td {
+	padding: 12px;
+	text-align: left;
+	border-bottom: 1px solid #ddd;
+}
+
+.wc-team-payroll-orders-table tbody tr:hover {
+	background: #f5f5f5;
+}
+
+/* Shortcode Builder */
+.wc-team-payroll-shortcode-builder {
+	max-width: 600px;
+	margin: 20px 0;
+}
+
+.shortcode-output {
+	background: #f5f5f5;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 15px;
+	margin: 15px 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.shortcode-output code {
+	flex: 1;
+	background: #fff;
+	padding: 8px 12px;
+	border-radius: 3px;
+	border: 1px solid #ddd;
+	font-family: 'Courier New', monospace;
+	font-size: 13px;
+	word-break: break-all;
+}
+
+.shortcode-output button {
+	white-space: nowrap;
+}
+
+/* My Account Styles */
+.woocommerce-account .woocommerce-MyAccount-content {
+	margin-top: 20px;
+}
+
+.wc-team-payroll-myaccount-earnings,
+.wc-team-payroll-myaccount-orders,
+.wc-team-payroll-myaccount-reports {
+	margin: 20px 0;
+}
+
+.wc-team-payroll-myaccount-earnings h2,
+.wc-team-payroll-myaccount-orders h2,
+.wc-team-payroll-myaccount-reports h2 {
+	margin-bottom: 20px;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.wc-team-payroll-filters form {
+		flex-direction: column;
+	}
+
+	.earnings-summary,
+	.wc-team-payroll-report-cards {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-team-payroll-orders-table {
+		font-size: 13px;
+	}
+
+	.wc-team-payroll-orders-table th,
+	.wc-team-payroll-orders-table td {
+		padding: 8px;
+	}
+}
