@@ -39,6 +39,7 @@ require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dashboard.php';
 require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
+require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
 // Initialize plugin
 add_action( 'admin_menu', function() {
