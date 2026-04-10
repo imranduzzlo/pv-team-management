@@ -380,6 +380,47 @@ add_action( 'plugins_loaded', function() {
 			'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
 		) );
 	} );
+
+	add_action( 'wp_ajax_wc_tp_get_payroll_data_range', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
+		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
+
+		// Get payroll data
+		$payroll = array();
+		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
+			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
+		}
+
+		// Process payroll data to include vb_user_id and formatted names
+		$processed_payroll = array();
+		foreach ( $payroll as $user_id => $data ) {
+			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			
+			$processed_payroll[ $user_id ] = array(
+				'user_id'    => $data['user_id'],
+				'user'       => $data['user'],
+				'vb_user_id' => $vb_user_id,
+				'name'       => $employee_name,
+				'total'      => $data['total'],
+				'orders'     => $data['orders'],
+				'paid'       => $data['paid'],
+				'due'        => $data['due'],
+			);
+		}
+		$payroll = $processed_payroll;
+
+		wp_send_json_success( array(
+			'payroll'           => $payroll,
+			'currency'          => get_woocommerce_currency(),
+			'currency_symbol'   => get_woocommerce_currency_symbol(),
+			'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
+		) );
+	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================

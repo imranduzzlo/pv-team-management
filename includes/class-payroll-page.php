@@ -17,8 +17,8 @@ class WC_Team_Payroll_Page {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
-		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
+		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
+		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
 		?>
 		<div class="wrap wc-team-payroll-payroll">
@@ -26,20 +26,11 @@ class WC_Team_Payroll_Page {
 
 			<!-- Date Range Filter -->
 			<div class="wc-tp-date-filter">
-				<label><?php esc_html_e( 'Month:', 'wc-team-payroll' ); ?></label>
-				<select id="wc-tp-payroll-month">
-					<?php for ( $m = 1; $m <= 12; $m++ ) : ?>
-						<option value="<?php echo esc_attr( $m ); ?>" <?php selected( $month, $m ); ?>><?php echo esc_html( date( 'F', mktime( 0, 0, 0, $m, 1 ) ) ); ?></option>
-					<?php endfor; ?>
-				</select>
-				<label><?php esc_html_e( 'Year:', 'wc-team-payroll' ); ?></label>
-				<input type="number" id="wc-tp-payroll-year" value="<?php echo esc_attr( $year ); ?>" min="2020" max="2099" />
+				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+				<input type="date" id="wc-tp-payroll-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
+				<span class="wc-tp-date-separator">to</span>
+				<input type="date" id="wc-tp-payroll-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
 				<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-			</div>
-
-			<!-- Stats Cards -->
-			<div class="wc-tp-stats-grid" id="wc-tp-payroll-stats-container">
-				<!-- Stats will be loaded via AJAX -->
 			</div>
 
 			<!-- Payroll Table Section -->
@@ -48,6 +39,8 @@ class WC_Team_Payroll_Page {
 				<div id="wc-tp-payroll-table-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
+				<!-- Pagination -->
+				<div id="wc-tp-payroll-pagination" style="margin-top: 20px; text-align: center;"></div>
 			</div>
 		</div>
 
@@ -61,27 +54,22 @@ class WC_Team_Payroll_Page {
 				--color-card-bg: #FFFFFF;
 				--color-border-light: #E5EAF0;
 				--color-accent-alert: #FF5500;
-				--color-accent-alert-hover: #D94800;
 				--color-accent-link: #0077EE;
 				--color-accent-success: #388E3C;
 				--color-accent-muted: #F4F4F4;
 				--text-main: #212B36;
 				--text-body: #454F5B;
 				--text-muted: #919EAB;
-				--color-link-subtle: #EBF4FF;
 				--font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 				--fs-h1: 2rem;
 				--fs-h2: 1.5rem;
-				--fs-h3: 1.25rem;
 				--fs-body: 1rem;
 				--fs-meta: 0.875rem;
 				--fs-small: 0.75rem;
 				--fw-bold: 700;
 				--fw-semibold: 600;
 				--fw-medium: 500;
-				--fw-regular: 400;
 				--lh-body: 1.5;
-				--lh-heading: 1.2;
 			}
 
 			.wc-team-payroll-payroll {
@@ -116,8 +104,7 @@ class WC_Team_Payroll_Page {
 				font-size: var(--fs-body);
 			}
 
-			.wc-tp-date-filter input[type="number"],
-			.wc-tp-date-filter select {
+			.wc-tp-date-filter input[type="date"] {
 				padding: 8px 12px;
 				border: 1px solid var(--color-border-light);
 				border-radius: 6px;
@@ -126,66 +113,9 @@ class WC_Team_Payroll_Page {
 				color: var(--text-main);
 			}
 
-			.wc-tp-stats-grid {
-				display: grid;
-				grid-template-columns: repeat(4, 1fr);
-				gap: 16px;
-				margin-bottom: 32px;
-			}
-
-			.wc-tp-stat-card {
-				background: var(--color-card-bg);
-				padding: 20px;
-				border-radius: 8px;
-				border: 1px solid var(--color-border-light);
-				display: flex;
-				flex-direction: row;
-				align-items: center;
-				justify-content: flex-start;
-				gap: 16px;
-				transition: all 0.3s ease;
-				cursor: pointer;
-				min-height: 120px;
-				text-align: left;
-			}
-
-			.wc-tp-stat-card:hover {
-				border-color: var(--color-primary);
-				box-shadow: 0 4px 12px rgba(255, 153, 0, 0.1);
-				transform: translateY(-2px);
-			}
-
-			.wc-tp-stat-icon {
-				font-size: 32px;
-				min-width: 50px;
-				text-align: center;
-				flex-shrink: 0;
-			}
-
-			.wc-tp-stat-content {
-				flex: 1;
-			}
-
-			.wc-tp-stat-value {
-				font-size: 1.5rem;
-				font-weight: var(--fw-bold);
-				color: var(--color-primary);
-				margin-bottom: 4px;
-				line-height: 1.3;
-				word-break: keep-all;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-
-			.wc-tp-stat-label {
-				font-size: var(--fs-meta);
+			.wc-tp-date-separator {
 				color: var(--text-muted);
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
 				font-weight: var(--fw-medium);
-				word-break: keep-all;
-				white-space: normal;
 			}
 
 			.wc-tp-table-section {
@@ -318,24 +248,35 @@ class WC_Team_Payroll_Page {
 				border-color: var(--color-primary-hover);
 			}
 
-			@media (max-width: 1024px) {
-				.wc-tp-stats-grid {
-					grid-template-columns: repeat(2, 1fr);
-				}
+			.wc-tp-pagination {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+				align-items: center;
+				flex-wrap: wrap;
+			}
 
-				.wc-tp-data-table {
-					font-size: 13px;
-				}
+			.wc-tp-pagination a,
+			.wc-tp-pagination span {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 4px;
+				text-decoration: none;
+				color: var(--text-main);
+				transition: all 0.2s ease;
+			}
 
-				.wc-tp-data-table th,
-				.wc-tp-data-table td {
-					padding: 8px;
-				}
+			.wc-tp-pagination a:hover {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary);
+			}
 
-				.button-small {
-					padding: 4px 8px;
-					font-size: 11px;
-				}
+			.wc-tp-pagination .current {
+				background: var(--color-primary);
+				color: white;
+				border-color: var(--color-primary);
+				font-weight: var(--fw-semibold);
 			}
 
 			@media (max-width: 768px) {
@@ -343,36 +284,12 @@ class WC_Team_Payroll_Page {
 					padding: 12px;
 				}
 
-				.wc-tp-stats-grid {
-					grid-template-columns: 1fr;
-				}
-
-				.wc-tp-stat-card {
-					flex-direction: column;
-					text-align: center;
-					align-items: center;
-					justify-content: center;
-					padding: 15px;
-					gap: 8px;
-					min-height: 100px;
-				}
-
-				.wc-tp-stat-icon {
-					font-size: 28px;
-					min-width: auto;
-				}
-
-				.wc-tp-stat-value {
-					font-size: 1.25rem;
-				}
-
 				.wc-tp-date-filter {
 					flex-direction: column;
 					gap: 8px;
 				}
 
-				.wc-tp-date-filter input[type="number"],
-				.wc-tp-date-filter select {
+				.wc-tp-date-filter input[type="date"] {
 					width: 100%;
 				}
 
@@ -407,63 +324,6 @@ class WC_Team_Payroll_Page {
 					font-size: 10px;
 				}
 			}
-
-			@media (max-width: 480px) {
-				.wc-team-payroll-payroll {
-					padding: 8px;
-				}
-
-				.wc-tp-date-filter {
-					gap: 6px;
-				}
-
-				.wc-tp-stats-grid {
-					gap: 8px;
-				}
-
-				.wc-tp-stat-card {
-					padding: 10px;
-					gap: 6px;
-					min-height: 90px;
-				}
-
-				.wc-tp-stat-icon {
-					font-size: 24px;
-				}
-
-				.wc-tp-stat-value {
-					font-size: 1.1rem;
-				}
-
-				.wc-tp-stat-label {
-					font-size: 0.7rem;
-				}
-
-				.wc-tp-table-section {
-					padding: 8px;
-					margin-bottom: 8px;
-				}
-
-				.wc-tp-table-section h2 {
-					font-size: 1rem;
-					margin-bottom: 8px;
-				}
-
-				.wc-tp-data-table {
-					font-size: 11px;
-				}
-
-				.wc-tp-data-table th,
-				.wc-tp-data-table td {
-					padding: 4px;
-				}
-
-				.button,
-				.button-small {
-					padding: 3px 5px;
-					font-size: 9px;
-				}
-			}
 		</style>
 
 		<script>
@@ -471,19 +331,22 @@ class WC_Team_Payroll_Page {
 				let wcCurrency = 'USD';
 				let wcCurrencySymbol = '$';
 				let wcCurrencyPos = 'left';
+				let currentPage = 1;
+				let allPayrollData = [];
 
 				loadPayrollData();
 
 				$('#wc-tp-payroll-filter-btn').on('click', function() {
+					currentPage = 1;
 					loadPayrollData();
 				});
 
 				function loadPayrollData() {
-					const month = $('#wc-tp-payroll-month').val();
-					const year = $('#wc-tp-payroll-year').val();
+					const startDate = $('#wc-tp-payroll-start-date').val();
+					const endDate = $('#wc-tp-payroll-end-date').val();
 
-					if (!month || !year) {
-						alert('Please select month and year');
+					if (!startDate || !endDate) {
+						alert('Please select both start and end dates');
 						return;
 					}
 
@@ -493,9 +356,9 @@ class WC_Team_Payroll_Page {
 						url: ajaxurl,
 						type: 'POST',
 						data: {
-							action: 'wc_tp_get_payroll_data',
-							month: month,
-							year: year
+							action: 'wc_tp_get_payroll_data_range',
+							start_date: startDate,
+							end_date: endDate
 						},
 						success: function(response) {
 							if (response.success) {
@@ -504,9 +367,11 @@ class WC_Team_Payroll_Page {
 								wcCurrency = data.currency || 'USD';
 								wcCurrencySymbol = data.currency_symbol || '$';
 								wcCurrencyPos = data.currency_pos || 'left';
+								allPayrollData = data.payroll;
+								currentPage = 1;
 								
-								renderPayrollStats(data);
-								renderPayrollTableData(data.payroll);
+								renderPayrollTable(allPayrollData);
+								renderPagination(allPayrollData);
 								
 								showNotice('Payroll data loaded successfully', 'success');
 							} else {
@@ -522,19 +387,7 @@ class WC_Team_Payroll_Page {
 					});
 				}
 
-				function renderPayrollStats(data) {
-					const container = $('#wc-tp-payroll-stats-container');
-					let html = '';
-
-					html += '<div class="wc-tp-stat-card"><div class="wc-tp-stat-icon">👥</div><div class="wc-tp-stat-content"><div class="wc-tp-stat-value">' + data.total_employees + '</div><div class="wc-tp-stat-label">Total Employees</div></div></div>';
-					html += '<div class="wc-tp-stat-card"><div class="wc-tp-stat-icon">📦</div><div class="wc-tp-stat-content"><div class="wc-tp-stat-value">' + data.total_orders + '</div><div class="wc-tp-stat-label">Total Orders</div></div></div>';
-					html += '<div class="wc-tp-stat-card"><div class="wc-tp-stat-icon">💰</div><div class="wc-tp-stat-content"><div class="wc-tp-stat-value">' + formatCurrency(data.total_earnings) + '</div><div class="wc-tp-stat-label">Total Revenue</div></div></div>';
-					html += '<div class="wc-tp-stat-card"><div class="wc-tp-stat-icon">⏳</div><div class="wc-tp-stat-content"><div class="wc-tp-stat-value">' + formatCurrency(data.total_due) + '</div><div class="wc-tp-stat-label">Total Due</div></div></div>';
-
-					container.html(html);
-				}
-
-				function renderPayrollTableData(payroll) {
+				function renderPayrollTable(payroll) {
 					const container = $('#wc-tp-payroll-table-container');
 					
 					if (!payroll || Object.keys(payroll).length === 0) {
@@ -542,15 +395,7 @@ class WC_Team_Payroll_Page {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="paid">Paid</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="due">Due</th>';
-					html += '<th>Action</th>';
-					html += '</tr></thead><tbody>';
-
+					const itemsPerPage = 30;
 					let payrollArray = [];
 					$.each(payroll, function(userId, data) {
 						payrollArray.push({
@@ -563,7 +408,20 @@ class WC_Team_Payroll_Page {
 						});
 					});
 
-					$.each(payrollArray, function(i, data) {
+					const startIndex = (currentPage - 1) * itemsPerPage;
+					const endIndex = startIndex + itemsPerPage;
+					const pageData = payrollArray.slice(startIndex, endIndex);
+
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="paid">Paid</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="due">Due</th>';
+					html += '<th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(pageData, function(i, data) {
 						html += '<tr data-user-id="' + data.userId + '">';
 						html += '<td><strong>' + data.name + '</strong></td>';
 						html += '<td><span class="wc-tp-badge">' + data.orders + '</span></td>';
@@ -576,70 +434,50 @@ class WC_Team_Payroll_Page {
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, payrollArray, ['name', 'orders', 'total', 'paid', 'due']);
 				}
 
-				function attachSortHandlers(container, data, sortableFields) {
-					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
-					
-					if (currentSort.field) {
-						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
-						if (header.length) {
-							header.addClass('wc-tp-sort-active');
-							if (currentSort.direction === 'asc') {
-								header.addClass('wc-tp-sort-asc');
-							} else {
-								header.addClass('wc-tp-sort-desc');
-							}
+				function renderPagination(payroll) {
+					const container = $('#wc-tp-payroll-pagination');
+					const itemsPerPage = 30;
+					let payrollArray = Object.keys(payroll).length;
+					const totalPages = Math.ceil(payrollArray / itemsPerPage);
+
+					if (totalPages <= 1) {
+						container.html('');
+						return;
+					}
+
+					let html = '<div class="wc-tp-pagination">';
+
+					// Previous button
+					if (currentPage > 1) {
+						html += '<a href="#" data-page="' + (currentPage - 1) + '">← Previous</a>';
+					}
+
+					// Page numbers
+					for (let i = 1; i <= totalPages; i++) {
+						if (i === currentPage) {
+							html += '<span class="current">' + i + '</span>';
+						} else {
+							html += '<a href="#" data-page="' + i + '">' + i + '</a>';
 						}
 					}
-					
-					container.find('.wc-tp-sortable-header').on('click', function() {
-						const sortField = $(this).data('sort');
-						if (!sortField) return;
-						
-						const isNumeric = ['orders', 'total', 'paid', 'due'].includes(sortField);
-						
-						if (currentSort.field === sortField) {
-							currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-						} else {
-							currentSort.field = sortField;
-							currentSort.direction = 'asc';
-						}
-						
-						container.data('sortState', currentSort);
-						
-						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
-						
-						$(this).addClass('wc-tp-sort-active');
-						if (currentSort.direction === 'asc') {
-							$(this).addClass('wc-tp-sort-asc');
-						} else {
-							$(this).addClass('wc-tp-sort-desc');
-						}
-						
-						let sortedData = [...data].sort((a, b) => {
-							let aVal = a[sortField];
-							let bVal = b[sortField];
-							
-							if (aVal === undefined || aVal === null) aVal = '';
-							if (bVal === undefined || bVal === null) bVal = '';
-							
-							if (isNumeric) {
-								aVal = parseFloat(aVal) || 0;
-								bVal = parseFloat(bVal) || 0;
-								return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-							} else {
-								aVal = String(aVal).toLowerCase();
-								bVal = String(bVal).toLowerCase();
-								return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-							}
-						});
-						
-						renderPayrollTableData(sortedData);
-						setTimeout(function() {
-							attachSortHandlers(container, sortedData, sortableFields);
-						}, 10);
+
+					// Next button
+					if (currentPage < totalPages) {
+						html += '<a href="#" data-page="' + (currentPage + 1) + '">Next →</a>';
+					}
+
+					html += '</div>';
+					container.html(html);
+
+					// Pagination click handler
+					container.find('a').on('click', function(e) {
+						e.preventDefault();
+						currentPage = parseInt($(this).data('page'));
+						renderPayrollTable(allPayrollData);
+						renderPagination(allPayrollData);
+						$('html, body').animate({ scrollTop: $('#wc-tp-payroll-table-section').offset().top - 100 }, 300);
 					});
 				}
 
