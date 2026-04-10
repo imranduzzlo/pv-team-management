@@ -110,6 +110,25 @@ add_action( 'plugins_loaded', function() {
 			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
 		}
 
+		// Process payroll data to include vb_user_id and formatted names
+		$processed_payroll = array();
+		foreach ( $payroll as $user_id => $data ) {
+			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			
+			$processed_payroll[ $user_id ] = array(
+				'user_id'    => $data['user_id'],
+				'user'       => $data['user'],
+				'vb_user_id' => $vb_user_id,
+				'name'       => $employee_name,
+				'total'      => $data['total'],
+				'orders'     => $data['orders'],
+				'paid'       => $data['paid'],
+				'due'        => $data['due'],
+			);
+		}
+		$payroll = $processed_payroll;
+
 		// Calculate stats
 		$total_employees = 0;
 		$total_earnings = 0;
@@ -139,6 +158,7 @@ add_action( 'plugins_loaded', function() {
 			$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
 			$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
 			$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
+			$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
 
 			if ( $is_fixed_salary ) {
 				$type = __( 'Fixed Salary', 'wc-team-payroll' );
@@ -151,8 +171,12 @@ add_action( 'plugins_loaded', function() {
 				$salary_info = __( 'Commission Based', 'wc-team-payroll' );
 			}
 
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+
 			$latest_employees_data[] = array(
-				'display_name' => $employee->display_name,
+				'user_id'      => $employee->ID,
+				'vb_user_id'   => $vb_user_id,
+				'display_name' => $employee_name,
 				'user_email'   => $employee->user_email,
 				'type'         => $type,
 				'salary_info'  => $salary_info,
@@ -172,10 +196,14 @@ add_action( 'plugins_loaded', function() {
 			if ( $count >= 5 ) {
 				break;
 			}
+			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			
 			$top_earners_data[] = array(
-				'name'     => $data['user'] ? $data['user']->display_name : 'Unknown',
-				'earnings' => $data['total'],
-				'orders'   => $data['orders'],
+				'user_id'   => $data['user_id'],
+				'name'      => $employee_name,
+				'earnings'  => $data['total'],
+				'orders'    => $data['orders'],
 			);
 			$count++;
 		}
@@ -211,8 +239,12 @@ add_action( 'plugins_loaded', function() {
 				// Only include payments within date range
 				if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 					$user = get_user_by( 'id', $payment_data['user_id'] ?? 0 );
+					$vb_user_id = $user ? get_user_meta( $user->ID, 'vb_user_id', true ) : '';
+					$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $user->display_name ) : ( $user ? esc_html( $user->display_name ) : 'Unknown' );
+					
 					$recent_payments_data[] = array(
-						'employee_name' => $user ? $user->display_name : 'Unknown',
+						'user_id'       => $payment_data['user_id'] ?? 0,
+						'employee_name' => $employee_name,
 						'amount'        => $payment_data['amount'] ?? 0,
 						'date'          => date( 'M d, Y', $payment_timestamp ),
 						'status'        => $payment_data['status'] ?? 'pending',

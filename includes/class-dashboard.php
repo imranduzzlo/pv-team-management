@@ -275,6 +275,40 @@ class WC_Team_Payroll_Dashboard {
 				font-size: var(--fs-meta);
 			}
 
+			.wc-tp-sortable-header {
+				cursor: pointer;
+				user-select: none;
+				position: relative;
+				padding-right: 24px;
+			}
+
+			.wc-tp-sortable-header::after {
+				content: '⇅';
+				position: absolute;
+				right: 8px;
+				opacity: 0.3;
+				font-size: 12px;
+			}
+
+			.wc-tp-sortable-header:hover {
+				background-color: var(--color-primary-subtle);
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active {
+				background-color: var(--color-primary-subtle);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active::after {
+				opacity: 1;
+				content: '↓';
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-asc::after {
+				content: '↑';
+				opacity: 1;
+			}
+
 			.wc-tp-data-table td {
 				padding: 12px;
 				border-bottom: 1px solid var(--color-border-light);
@@ -482,8 +516,12 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Name</th><th>Email</th><th>Type</th><th>Salary/Commission</th><th>Action</th>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header" data-sort="display_name">Name</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="type">Type</th>';
+					html += '<th>Salary/Commission</th>';
+					html += '<th>Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(employees, function(i, emp) {
@@ -498,6 +536,7 @@ class WC_Team_Payroll_Dashboard {
 
 					html += '</tbody></table>';
 					container.html(html);
+					attachSortHandlers(container, employees, ['display_name', 'user_email', 'type']);
 				}
 
 				// Render top earners table
@@ -509,8 +548,10 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Employee</th><th>Earnings</th><th>Orders</th>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="earnings">Earnings</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(earners, function(i, earner) {
@@ -523,6 +564,7 @@ class WC_Team_Payroll_Dashboard {
 
 					html += '</tbody></table>';
 					container.html(html);
+					attachSortHandlers(container, earners, ['name', 'earnings', 'orders']);
 				}
 
 				// Render recent payments table
@@ -534,8 +576,11 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Employee</th><th>Amount</th><th>Date</th><th>Status</th>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
+					html += '<th class="wc-tp-sortable-header wc-tp-sort-active" data-sort="date">Date</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="status">Status</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(payments, function(i, payment) {
@@ -550,6 +595,7 @@ class WC_Team_Payroll_Dashboard {
 
 					html += '</tbody></table>';
 					container.html(html);
+					attachSortHandlers(container, payments, ['employee_name', 'amount', 'date', 'status']);
 				}
 
 				// Render payroll table
@@ -561,24 +607,87 @@ class WC_Team_Payroll_Dashboard {
 						return;
 					}
 
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Employee</th><th>Email</th><th>Orders</th><th>Total Earnings</th><th>Paid</th><th>Due</th><th>Action</th>';
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header wc-tp-sort-active" data-sort="name">Employee</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="paid">Paid</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="due">Due</th>';
+					html += '<th>Action</th>';
 					html += '</tr></thead><tbody>';
 
+					let payrollArray = [];
 					$.each(payroll, function(userId, data) {
+						payrollArray.push({
+							userId: userId,
+							name: data.name,
+							user_email: data.user ? data.user.user_email : 'N/A',
+							orders: data.orders,
+							total: data.total,
+							paid: data.paid,
+							due: data.due,
+							user: data.user
+						});
+					});
+
+					$.each(payrollArray, function(i, data) {
 						html += '<tr>';
-						html += '<td><strong>' + (data.user ? data.user.display_name : 'Unknown') + '</strong></td>';
-						html += '<td>' + (data.user ? data.user.user_email : 'N/A') + '</td>';
+						html += '<td><strong>' + data.name + '</strong></td>';
+						html += '<td>' + data.user_email + '</td>';
 						html += '<td><span class="wc-tp-badge">' + data.orders + '</span></td>';
 						html += '<td>' + formatCurrency(data.total) + '</td>';
 						html += '<td><span class="wc-tp-paid">' + formatCurrency(data.paid) + '</span></td>';
 						html += '<td><span class="wc-tp-due">' + formatCurrency(data.due) + '</span></td>';
-						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + userId) + '" class="button button-small button-primary">View</a></td>';
+						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
+					attachSortHandlers(container, payrollArray, ['name', 'user_email', 'orders', 'total', 'paid', 'due']);
+				}
+
+				// Attach sort handlers to table headers
+				function attachSortHandlers(container, data, sortableFields) {
+					container.find('.wc-tp-sortable-header').on('click', function() {
+						const sortField = $(this).data('sort');
+						const isNumeric = ['orders', 'total', 'paid', 'due', 'earnings', 'amount'].includes(sortField);
+						
+						// Remove active class from all headers
+						container.find('.wc-tp-sortable-header').removeClass('wc-tp-sort-active wc-tp-sort-asc wc-tp-sort-desc');
+						
+						// Add active class to clicked header
+						$(this).addClass('wc-tp-sort-active');
+						
+						// Sort data
+						let sortedData = [...data].sort((a, b) => {
+							let aVal = a[sortField];
+							let bVal = b[sortField];
+							
+							if (isNumeric) {
+								aVal = parseFloat(aVal) || 0;
+								bVal = parseFloat(bVal) || 0;
+								return bVal - aVal; // Descending for numbers
+							} else {
+								aVal = String(aVal).toLowerCase();
+								bVal = String(bVal).toLowerCase();
+								return aVal.localeCompare(bVal); // Ascending for text
+							}
+						});
+						
+						// Re-render table with sorted data
+						const tableId = container.find('table').attr('id') || container.find('table').attr('class');
+						if (tableId.includes('payroll')) {
+							renderPayrollTable(sortedData);
+						} else if (tableId.includes('top-earners')) {
+							renderTopEarners(sortedData);
+						} else if (tableId.includes('recent-payments')) {
+							renderRecentPayments(sortedData);
+						} else if (tableId.includes('latest-employees')) {
+							renderLatestEmployees(sortedData);
+						}
+					});
 				}
 
 				// Format currency
