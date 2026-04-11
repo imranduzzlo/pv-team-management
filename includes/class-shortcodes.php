@@ -131,7 +131,7 @@ class WC_Team_Payroll_Shortcodes {
 
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 		);
 
 		$orders = wc_get_orders( $args );

@@ -22,7 +22,7 @@ class WC_Team_Payroll_Payroll_Engine {
 		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 			'date_query' => array(
 				array(
 					'after'     => $start_date,
@@ -124,7 +124,7 @@ class WC_Team_Payroll_Payroll_Engine {
 		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 			'date_query' => array(
 				array(
 					'after'     => $start_date,

@@ -692,7 +692,7 @@ class WC_Team_Payroll_Employee_Management {
 		// Get all orders where this user is agent or processor
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 		);
 
 		$orders = wc_get_orders( $args );

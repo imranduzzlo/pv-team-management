@@ -263,7 +263,7 @@ class WC_Team_Payroll_Core_Engine {
 		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 			'date_query' => array(
 				array(
 					'after'     => $start_date,
@@ -323,7 +323,7 @@ class WC_Team_Payroll_Core_Engine {
 	public function get_user_total_orders( $user_id ) {
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 		);
 
 		$orders = wc_get_orders( $args );
@@ -347,7 +347,7 @@ class WC_Team_Payroll_Core_Engine {
 	public function get_user_total_earnings( $user_id ) {
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing' ),
+			'status' => array( 'completed', 'processing', 'refunded' ),
 		);
 
 		$orders = wc_get_orders( $args );
