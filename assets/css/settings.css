@@ -1,0 +1,130 @@
+/* WooCommerce Team Payroll - Settings Page Styles */
+
+/* ============================================================================
+   SETTINGS PAGE WRAPPER
+   ============================================================================ */
+
+.wc-tp-settings-wrap {
+	background: var(--color-site-bg);
+	padding: 24px;
+	font-family: var(--font-family);
+	color: var(--text-main);
+}
+
+.wc-tp-settings-wrap h1 {
+	font-size: var(--fs-h1);
+	font-weight: var(--fw-bold);
+	color: var(--text-main);
+	margin-bottom: 24px;
+}
+
+.wc-tp-settings-wrap h2 {
+	font-size: var(--fs-h2);
+	font-weight: var(--fw-bold);
+	color: var(--text-main);
+	margin-top: 24px;
+	margin-bottom: 16px;
+}
+
+/* ============================================================================
+   SETTINGS PAGE SPECIFIC STYLES
+   ============================================================================ */
+
+.wc-tp-roles-container {
+	margin: 20px 0;
+}
+
+.wc-tp-role-item {
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 15px;
+	position: relative;
+}
+
+.wc-tp-role-item.wc-tp-default-role {
+	background: #fff9e6;
+	border-color: #ffc107;
+}
+
+.wc-tp-role-item-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.wc-tp-role-name {
+	font-weight: bold;
+	color: #333;
+	flex: 1;
+}
+
+.wc-tp-role-badge {
+	display: inline-block;
+	background: #ffc107;
+	color: #333;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: bold;
+	margin-right: 10px;
+}
+
+.wc-tp-role-remove {
+	background: #dc3545;
+	color: white;
+	border: none;
+	padding: 5px 10px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 12px;
+	transition: all 0.2s ease;
+}
+
+.wc-tp-role-remove:hover {
+	background: #c82333;
+}
+
+.wc-tp-role-remove:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+.wc-tp-role-warning {
+	background: #fff3cd;
+	border: 1px solid #ffc107;
+	border-radius: 3px;
+	padding: 10px;
+	margin-bottom: 10px;
+	font-size: 12px;
+	color: #856404;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.wc-tp-settings-wrap {
+		padding: 12px;
+	}
+
+	.wc-tp-role-item-header {
+		flex-direction: column;
+		gap: 10px;
+		align-items: flex-start;
+	}
+
+	.wc-tp-role-remove {
+		width: 100%;
+		margin-left: 0;
+	}
+
+	.wc-tp-role-capabilities {
+		margin-top: 10px;
+		padding-top: 10px;
+		border-top: 1px solid #eee;
+	}
+}

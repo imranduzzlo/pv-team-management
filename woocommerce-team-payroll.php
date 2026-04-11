@@ -822,7 +822,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll-settings',
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Settings' ) ) {
-				$settings = new WC_Team_Payroll_Settings();
+				$settings = new WC_Team_Payroll_Settings(); // Constructor will enqueue assets
 				$settings->render_settings_page();
 			} else {
 				echo '<div class="wrap"><h1>Settings</h1>';
