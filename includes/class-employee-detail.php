@@ -20,6 +20,9 @@ class WC_Team_Payroll_Employee_Detail {
 			wp_die( esc_html__( 'User not found', 'wc-team-payroll' ) );
 		}
 
+		// Get current tab from URL
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'orders';
+
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
 		$profile_picture_url = '';
@@ -139,20 +142,21 @@ class WC_Team_Payroll_Employee_Detail {
 
 			<!-- Tabs Section -->
 			<div class="wc-tp-tabs-container">
-				<div class="wc-tp-tabs-nav">
-					<button class="wc-tp-tab-button wc-tp-tab-active" data-tab="orders">
+				<nav class="nav-tab-wrapper">
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=orders' ) ); ?>" class="nav-tab <?php echo $current_tab === 'orders' ? 'nav-tab-active' : ''; ?>">
 						<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
-					</button>
-					<button class="wc-tp-tab-button" data-tab="payments">
+					</a>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=payments' ) ); ?>" class="nav-tab <?php echo $current_tab === 'payments' ? 'nav-tab-active' : ''; ?>">
 						<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
-					</button>
-					<button class="wc-tp-tab-button" data-tab="salary">
+					</a>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=salary' ) ); ?>" class="nav-tab <?php echo $current_tab === 'salary' ? 'nav-tab-active' : ''; ?>">
 						<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
-					</button>
-				</div>
+					</a>
+				</nav>
 
 				<!-- Orders Tab -->
-				<div class="wc-tp-tab-content wc-tp-tab-active" id="orders-tab">
+				<?php if ( $current_tab === 'orders' ) : ?>
+				<div class="wc-tp-tab-content">
 					<!-- Search Filter -->
 				<div class="wc-tp-orders-search-filter">
 					<input type="text" id="wc-tp-orders-search" placeholder="<?php esc_attr_e( 'Search by Order ID, Customer Name, Email, Phone...', 'wc-team-payroll' ); ?>" />
@@ -216,55 +220,11 @@ class WC_Team_Payroll_Employee_Detail {
 
 				<!-- Pagination -->
 				<div id="wc-tp-orders-pagination" style="margin-top: 20px; text-align: center;"></div>
-				</div>
-
-				<!-- Salary Tab -->
-				<div class="wc-tp-tab-content" id="salary-tab">
-					<!-- Salary Management Form -->
-					<div class="wc-tp-salary-form-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h3>
-						
-						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
-							<div class="wc-tp-form-group">
-								<label for="wc-tp-salary-type" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
-								<select id="wc-tp-salary-type" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
-									<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
-									<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
-									<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
-								</select>
-							</div>
-
-							<div class="wc-tp-form-group" id="wc-tp-salary-amount-group" style="display: none;">
-								<label for="wc-tp-salary-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
-								<input type="number" id="wc-tp-salary-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
-							</div>
-
-							<div class="wc-tp-form-group" id="wc-tp-salary-frequency-group" style="display: none;">
-								<label for="wc-tp-salary-frequency" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></label>
-								<select id="wc-tp-salary-frequency" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
-									<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
-									<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
-									<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
-									<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
-								</select>
-							</div>
-						</div>
-
-						<button type="button" class="button button-primary" id="wc-tp-update-salary-btn"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
-					</div>
-
-					<!-- Salary History Section -->
-					<div class="wc-tp-salary-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h3>
-						
-						<div id="wc-tp-salary-history-container">
-							<!-- Salary history will be loaded via AJAX -->
-						</div>
-					</div>
-				</div>
+				<?php endif; ?>
 
 				<!-- Payments Tab -->
-				<div class="wc-tp-tab-content" id="payments-tab">
+				<?php if ( $current_tab === 'payments' ) : ?>
+				<div class="wc-tp-tab-content">
 					<!-- Payment Stats Cards -->
 					<div class="wc-tp-stats-cards" style="margin-bottom: 30px;">
 						<div class="wc-tp-stat-card">
@@ -333,6 +293,54 @@ class WC_Team_Payroll_Employee_Detail {
 						</div>
 					</div>
 				</div>
+				<?php endif; ?>
+
+				<!-- Salary Tab -->
+				<?php if ( $current_tab === 'salary' ) : ?>
+				<div class="wc-tp-tab-content">
+					<!-- Salary Management Form -->
+					<div class="wc-tp-salary-form-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h3>
+						
+						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+							<div class="wc-tp-form-group">
+								<label for="wc-tp-salary-type" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
+								<select id="wc-tp-salary-type" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
+									<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+									<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+									<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+								</select>
+							</div>
+
+							<div class="wc-tp-form-group" id="wc-tp-salary-amount-group" style="display: none;">
+								<label for="wc-tp-salary-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
+								<input type="number" id="wc-tp-salary-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
+							</div>
+
+							<div class="wc-tp-form-group" id="wc-tp-salary-frequency-group" style="display: none;">
+								<label for="wc-tp-salary-frequency" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></label>
+								<select id="wc-tp-salary-frequency" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
+									<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
+									<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
+									<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
+									<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
+								</select>
+							</div>
+						</div>
+
+						<button type="button" class="button button-primary" id="wc-tp-update-salary-btn"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
+					</div>
+
+					<!-- Salary History Section -->
+					<div class="wc-tp-salary-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h3>
+						
+						<div id="wc-tp-salary-history-container">
+							<!-- Salary history will be loaded via AJAX -->
+						</div>
+					</div>
+				</div>
+				<?php endif; ?>
 			</div>
 		</div>
 
@@ -509,44 +517,39 @@ class WC_Team_Payroll_Employee_Detail {
 				overflow: hidden;
 			}
 
-			.wc-tp-tabs-nav {
-				display: flex;
+			.nav-tab-wrapper {
 				border-bottom: 1px solid var(--color-border-light);
 				background: var(--color-accent-muted);
+				margin: 0;
 			}
 
-			.wc-tp-tab-button {
-				flex: 1;
-				padding: 16px;
+			.nav-tab {
+				padding: 16px 24px;
 				border: none;
 				background: transparent;
 				color: var(--text-body);
 				font-size: var(--fs-body);
 				font-weight: var(--fw-semibold);
-				cursor: pointer;
-				transition: all 0.2s ease;
+				text-decoration: none;
+				display: inline-block;
 				border-bottom: 3px solid transparent;
 				margin-bottom: -1px;
+				transition: all 0.2s ease;
 			}
 
-			.wc-tp-tab-button:hover {
+			.nav-tab:hover {
 				background: var(--color-primary-subtle);
 				color: var(--color-primary);
 			}
 
-			.wc-tp-tab-button.wc-tp-tab-active {
+			.nav-tab.nav-tab-active {
 				background: var(--color-primary-subtle);
 				color: var(--color-primary);
 				border-bottom-color: var(--color-primary);
 			}
 
 			.wc-tp-tab-content {
-				display: none;
 				padding: 24px;
-			}
-
-			.wc-tp-tab-content.wc-tp-tab-active {
-				display: block;
 			}
 
 			/* Orders Tab Styles */
@@ -1058,34 +1061,12 @@ class WC_Team_Payroll_Employee_Detail {
 					$('#wc-tp-orders-end-date').val(range.end);
 				}
 
-				// Load orders on page load (since orders tab is active by default)
-				loadOrdersData();
-
-				// Tab switching
-				$('.wc-tp-tab-button').on('click', function() {
-					console.log('Tab button clicked');
-					const tabName = $(this).data('tab');
-					console.log('Tab name:', tabName);
-					
-					// Remove active class from all buttons and contents
-					$('.wc-tp-tab-button').removeClass('wc-tp-tab-active');
-					$('.wc-tp-tab-content').removeClass('wc-tp-tab-active');
-					
-					// Add active class to clicked button and corresponding content
-					$(this).addClass('wc-tp-tab-active');
-					$('#' + tabName + '-tab').addClass('wc-tp-tab-active');
-
-					// Load tab-specific data
-					if (tabName === 'orders') {
-						loadOrdersData();
-					} else if (tabName === 'payments') {
-						loadPaymentMethods();
-						loadPaymentHistory();
-					} else if (tabName === 'salary') {
-						loadSalaryData();
-						loadSalaryHistory();
-					}
-				});
+				// Initialize based on current tab
+				const currentTab = '<?php echo esc_js( $current_tab ); ?>';
+				
+				if (currentTab === 'orders') {
+					loadOrdersData();
+				}
 
 				// Orders Tab Functionality
 				$('#wc-tp-orders-filter-btn').on('click', function() {
@@ -1198,6 +1179,11 @@ class WC_Team_Payroll_Employee_Detail {
 				}
 
 				// Payment Methods Functions
+				if (currentTab === 'payments') {
+					loadPaymentMethods();
+					loadPaymentHistory();
+				}
+
 				function loadPaymentMethods() {
 					$.ajax({
 						url: ajaxurl,
@@ -1380,6 +1366,11 @@ class WC_Team_Payroll_Employee_Detail {
 				};
 
 				// Salary Management Functions
+				if (currentTab === 'salary') {
+					loadSalaryData();
+					loadSalaryHistory();
+				}
+
 				function loadSalaryData() {
 					$.ajax({
 						url: ajaxurl,

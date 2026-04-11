@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.7.5] - 2026-04-11
+
+### IMPROVED - Employee Detail Page Tab Architecture
+
+#### Major Architectural Change
+- **Switched from JavaScript-based tabs to URL-based tabs** (like Settings page)
+- Each tab now uses GET parameter: `?tab=orders`, `?tab=payments`, `?tab=salary`
+- Tabs are now completely independent with no shared JavaScript state
+
+#### Benefits
+- ✅ **No Tab Interference**: Each tab loads fresh with isolated JavaScript scope
+- ✅ **Clean State**: Page reload ensures no leftover variables or data
+- ✅ **WordPress Standard**: Uses `nav-tab` and `nav-tab-active` classes
+- ✅ **Better Performance**: Only active tab's HTML and JavaScript loads
+- ✅ **Reliable**: Same proven pattern as Settings page
+
+#### Technical Implementation
+- Changed tab navigation from `<button>` to `<a>` links
+- Added conditional rendering: `<?php if ( $current_tab === 'tabname' ) : ?>`
+- Each tab initializes only when active (no global initialization)
+- Removed shared variables between tabs
+- Updated CSS to match WordPress nav-tab styling
+
+#### What Still Works
+- ✅ All Orders tab functionality (search, filters, pagination)
+- ✅ All Payments tab functionality (methods, history, add/delete)
+- ✅ All Salary tab functionality (management, history, update)
+- ✅ Profile header and stats cards
+- ✅ All AJAX handlers
+- ✅ All styling and responsive design
+
 ## [5.7.4] - 2026-04-11
 
 ### ADDED - Debugging to Employee Detail Page
