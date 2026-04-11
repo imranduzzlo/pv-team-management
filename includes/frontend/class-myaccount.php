@@ -301,9 +301,6 @@ class WC_Team_Payroll_MyAccount {
 		<?php
 	}
 
-		<?php
-	}
-
 	/**
 	 * Render reports tab
 	 */

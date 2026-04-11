@@ -174,9 +174,6 @@ class WC_Team_Payroll_Settings {
 		<?php
 	}
 
-		<?php
-	}
-
 	private function render_roles_repeater( $employee_roles ) {
 		global $wp_roles;
 		$all_roles = $wp_roles->roles;

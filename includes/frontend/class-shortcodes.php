@@ -73,9 +73,6 @@ class WC_Team_Payroll_Shortcodes {
 		<?php
 	}
 
-		<?php
-	}
-
 	public static function shortcode_earnings( $atts ) {
 		$atts = shortcode_atts( array(
 			'user' => 'current',

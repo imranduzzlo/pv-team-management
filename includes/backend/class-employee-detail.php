@@ -235,9 +235,6 @@ class WC_Team_Payroll_Employee_Detail {
 		<?php
 	}
 
-		<?php
-	}
-
 	/**
 	 * Format currency
 	 */
