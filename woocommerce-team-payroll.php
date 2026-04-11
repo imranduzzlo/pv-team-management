@@ -784,7 +784,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll-details',
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Page' ) ) {
-				$payroll_page = new WC_Team_Payroll_Page();
+				$payroll_page = new WC_Team_Payroll_Page(); // Constructor will enqueue assets
 				$payroll_page->render_payroll();
 			} else {
 				echo '<div class="wrap"><h1>Payroll</h1>';

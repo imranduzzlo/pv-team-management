@@ -1,0 +1,100 @@
+/* WooCommerce Team Payroll - Payroll Page Styles */
+
+/* ============================================================================
+   PAYROLL PAGE WRAPPER
+   ============================================================================ */
+
+.wc-team-payroll-payroll {
+	background: var(--color-site-bg);
+	padding: 24px;
+	font-family: var(--font-family);
+	color: var(--text-main);
+}
+
+.wc-team-payroll-payroll h1 {
+	font-size: var(--fs-h1);
+	font-weight: var(--fw-bold);
+	color: var(--text-main);
+	margin-bottom: 24px;
+}
+
+/* ============================================================================
+   PAYROLL PAGE SPECIFIC STYLES
+   ============================================================================ */
+
+.wc-tp-salary-filter {
+	background: var(--color-card-bg);
+	padding: 16px;
+	border-radius: 8px;
+	margin-bottom: 24px;
+	border: 1px solid var(--color-border-light);
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.wc-tp-salary-filter label {
+	font-size: var(--fs-body);
+	font-weight: var(--fw-semibold);
+	color: var(--text-main);
+}
+
+.wc-tp-salary-filter select {
+	padding: 8px 12px;
+	border: 1px solid var(--color-border-light);
+	border-radius: 6px;
+	font-size: var(--fs-body);
+	font-family: var(--font-family);
+	color: var(--text-main);
+	background: var(--color-card-bg);
+	cursor: pointer;
+}
+
+.wc-tp-items-per-page {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.wc-tp-items-per-page label {
+	margin: 0;
+	font-weight: 600;
+	color: var(--text-main);
+	font-size: var(--fs-meta);
+}
+
+.wc-tp-items-per-page select {
+	padding: 6px 10px;
+	border: 1px solid var(--color-border-light);
+	border-radius: 6px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.wc-team-payroll-payroll {
+		padding: 12px;
+	}
+
+	.wc-tp-salary-filter {
+		flex-direction: column;
+		gap: 8px;
+		margin-bottom: 12px;
+	}
+
+	.wc-tp-items-per-page {
+		width: 100%;
+		justify-content: space-between;
+		margin-bottom: 12px;
+	}
+
+	.wc-tp-items-per-page select {
+		width: auto;
+	}
+}
