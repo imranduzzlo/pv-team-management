@@ -1,5 +1,78 @@
 # Changelog
 
+## [5.7.7] - 2026-04-12
+
+### MAJOR IMPROVEMENTS - Employee Detail Page & Global Features
+
+#### Global Delete Confirmation Modal
+- ✅ **Custom Modal System**: Created reusable delete confirmation modal (similar to toast)
+- ✅ **Type "DELETE" Confirmation**: Requires typing "DELETE" to confirm deletion
+- ✅ **No Browser Alerts**: Replaced all browser confirm dialogs
+- ✅ **Custom Messages**: Shows specific warning messages per action
+- ✅ **Responsive Design**: Works on all screen sizes
+- ✅ **Global Access**: Available via `wcTPDeleteModal()` function
+
+#### Bulk Select & Delete - Payment History
+- ✅ **Select All Checkbox**: Header checkbox to select/deselect all payments
+- ✅ **Individual Checkboxes**: Each payment row has a checkbox
+- ✅ **Bulk Delete Button**: Shows count of selected items
+- ✅ **Batch Processing**: Deletes multiple payments at once
+- ✅ **Progress Feedback**: Shows success/failure count after bulk delete
+
+#### Bulk Select & Delete - Payment Methods
+- ✅ **Select All Checkbox**: Header checkbox to select/deselect all methods
+- ✅ **Individual Checkboxes**: Each method row has a checkbox
+- ✅ **Bulk Delete Button**: Shows count of selected items
+- ✅ **Batch Processing**: Deletes multiple methods at once
+- ✅ **Progress Feedback**: Shows success/failure count after bulk delete
+
+#### Sorting & Pagination - All Tables
+- ✅ **Payment History Sorting**: All columns sortable (Amount, Date, Method, Added By)
+- ✅ **Payment Methods Sorting**: All columns sortable (Method Name, Details)
+- ✅ **Salary History Sorting**: All columns sortable (Date, Types, Amounts, Changed By)
+- ✅ **Pagination Controls**: Page numbers with prev/next buttons
+- ✅ **Screen Options**: Dropdown to select items per page (5, 10, 25, 50, 100)
+- ✅ **Smart Ellipsis**: Shows ... for large page counts
+- ✅ **Active Highlighting**: Current page and sort column highlighted
+
+#### Date & User Formatting
+- ✅ **Salary History Dates**: Proper format (YYYY-MM-DD HH:MM)
+- ✅ **User Display**: Shows actual user display name with link to profile
+- ✅ **Tooltips**: Hover shows email and role
+- ✅ **Clickable Links**: User names link to WordPress user edit page
+
+#### Salary Management Improvements
+- ✅ **Amount Reset**: Clears amount field when changing salary type
+- ✅ **Toast Notifications**: Replaced alerts with toast messages
+- ✅ **Type Transitions**: Properly handles Commission ↔ Fixed ↔ Combined changes
+
+#### Profile Picture & User ID
+- ✅ **Custom Field Integration**: Uses `_wc_tp_profile_picture` meta key
+- ✅ **Proper Display**: Shows uploaded profile picture from user profile
+- ✅ **Label Update**: Changed "VB User ID" to "User ID"
+
+#### Default Date Filters
+- ✅ **Payroll Page**: Changed default from "This Month" to "All Time"
+- ✅ **Employee Management**: Changed default from "This Month" to "All Time"
+
+#### Orders Tab Enhancements
+- ✅ **Sortable Headers**: All columns clickable for sorting
+- ✅ **Sort Icons**: Up/down arrows show sort direction
+- ✅ **Default Sort**: Date descending (newest first)
+- ✅ **Pagination**: Full pagination with screen options
+- ✅ **Active Highlighting**: Sorted column highlighted
+
+#### Back Navigation
+- ✅ **Back Button**: Added "Back to Employees" button on employee detail page
+- ✅ **Icon & Text**: Left arrow icon with text
+- ✅ **Hover Effects**: Primary color on hover
+
+### Technical Improvements
+- ✅ **Global Scripts**: Toast and Delete Modal available plugin-wide
+- ✅ **Consistent UX**: All tables have same sorting/pagination experience
+- ✅ **Performance**: Client-side sorting and pagination for instant response
+- ✅ **Accessibility**: Proper ARIA labels and keyboard support
+
 ## [5.7.6] - 2026-04-12
 
 ### IMPROVED - Employee Detail Page Payments Tab

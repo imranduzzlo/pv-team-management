@@ -28,7 +28,7 @@ class WC_Team_Payroll_Employee_Management {
 						<label><?php esc_html_e( 'Employee Created:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-employees-date-preset">
 							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="all-time" selected><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
 							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
 							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
 							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
@@ -488,8 +488,8 @@ class WC_Team_Payroll_Employee_Management {
 					$('#wc-tp-employees-per-page').val(itemsPerPage);
 				}
 
-				// Initialize with default preset (This Month)
-				updateDateRangeFromPreset('this-month');
+				// Initialize with default preset (All Time)
+				updateDateRangeFromPreset('all-time');
 				loadEmployeesData();
 
 				// Date preset change
@@ -928,6 +928,7 @@ class WC_Team_Payroll_Employee_Management {
 		$user_id = intval( $_POST['user_id'] );
 		$amount = floatval( $_POST['amount'] );
 		$payment_date = sanitize_text_field( $_POST['payment_date'] );
+		$payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( $_POST['payment_method'] ) : '';
 
 		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
 		if ( ! is_array( $payments ) ) {
@@ -938,6 +939,7 @@ class WC_Team_Payroll_Employee_Management {
 			'id'             => uniqid(),
 			'amount'         => $amount,
 			'date'           => $payment_date,
+			'payment_method' => $payment_method,
 			'created_at'     => current_time( 'mysql' ),
 			'created_by'     => get_current_user_id(),
 			'status'         => 'completed',

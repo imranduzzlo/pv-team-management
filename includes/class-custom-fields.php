@@ -199,7 +199,7 @@ class WC_Team_Payroll_Custom_Fields {
 		?>
 		<tr>
 			<th scope="row">
-				<label for="vb_user_id"><?php esc_html_e( 'VB User ID', 'wc-team-payroll' ); ?></label>
+				<label for="vb_user_id"><?php esc_html_e( 'User ID', 'wc-team-payroll' ); ?></label>
 			</th>
 			<td>
 				<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />

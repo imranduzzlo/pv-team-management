@@ -38,7 +38,7 @@ class WC_Team_Payroll_Page {
 						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-payroll-date-preset">
 							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="all-time" selected><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
 							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
 							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
 							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
@@ -501,8 +501,8 @@ class WC_Team_Payroll_Page {
 					$('#wc-tp-payroll-per-page').val(itemsPerPage);
 				}
 
-				// Initialize with default preset (This Month)
-				updateDateRangeFromPreset('this-month');
+				// Initialize with default preset (All Time)
+				updateDateRangeFromPreset('all-time');
 				loadPayrollData();
 
 				// Date preset change

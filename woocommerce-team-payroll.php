@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.7.6
+ * Version: 5.7.7
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.7.6' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.7.7' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -179,11 +179,18 @@ add_action( 'plugins_loaded', function() {
 		// Format payments for display
 		$formatted_payments = array();
 		foreach ( $payments as $payment ) {
+			$added_by_id = isset( $payment['created_by'] ) ? $payment['created_by'] : 0;
+			$added_by_user = $added_by_id ? get_user_by( 'id', $added_by_id ) : null;
+			
 			$formatted_payments[] = array(
 				'id' => isset( $payment['id'] ) ? $payment['id'] : time(),
 				'amount' => isset( $payment['amount'] ) ? $payment['amount'] : 0,
 				'date' => isset( $payment['date'] ) ? $payment['date'] : date( 'Y-m-d H:i' ),
-				'added_by' => isset( $payment['added_by'] ) ? $payment['added_by'] : get_current_user()->display_name,
+				'payment_method' => isset( $payment['payment_method'] ) ? $payment['payment_method'] : '',
+				'added_by_id' => $added_by_id,
+				'added_by_name' => $added_by_user ? $added_by_user->display_name : 'System',
+				'added_by_email' => $added_by_user ? $added_by_user->user_email : '',
+				'added_by_role' => $added_by_user ? implode( ', ', $added_by_user->roles ) : '',
 			);
 		}
 
@@ -234,7 +241,27 @@ add_action( 'plugins_loaded', function() {
 			$history = array();
 		}
 
-		wp_send_json_success( array( 'history' => $history ) );
+		// Format history with user information
+		$formatted_history = array();
+		foreach ( $history as $entry ) {
+			$changed_by_id = isset( $entry['changed_by'] ) ? $entry['changed_by'] : 0;
+			$changed_by_user = $changed_by_id ? get_user_by( 'id', $changed_by_id ) : null;
+			
+			$formatted_history[] = array(
+				'date' => isset( $entry['date'] ) ? $entry['date'] : date( 'Y-m-d H:i' ),
+				'old_type' => isset( $entry['old_type'] ) ? $entry['old_type'] : 'commission',
+				'new_type' => isset( $entry['new_type'] ) ? $entry['new_type'] : 'commission',
+				'old_amount' => isset( $entry['old_amount'] ) ? $entry['old_amount'] : 0,
+				'new_amount' => isset( $entry['new_amount'] ) ? $entry['new_amount'] : 0,
+				'new_frequency' => isset( $entry['new_frequency'] ) ? $entry['new_frequency'] : '',
+				'changed_by_id' => $changed_by_id,
+				'changed_by_name' => $changed_by_user ? $changed_by_user->display_name : 'System',
+				'changed_by_email' => $changed_by_user ? $changed_by_user->user_email : '',
+				'changed_by_role' => $changed_by_user ? implode( ', ', $changed_by_user->roles ) : '',
+			);
+		}
+
+		wp_send_json_success( array( 'history' => $formatted_history ) );
 	} );
 
 	add_action( 'wp_ajax_wc_tp_update_payment', function() {
@@ -243,10 +270,12 @@ add_action( 'plugins_loaded', function() {
 		}
 
 		$user_id = intval( $_POST['user_id'] );
+		$payment_id = sanitize_text_field( $_POST['payment_id'] );
 		$amount = floatval( $_POST['amount'] );
 		$date = sanitize_text_field( $_POST['date'] );
+		$payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( $_POST['payment_method'] ) : '';
 
-		if ( ! $user_id || ! $amount || ! $date ) {
+		if ( ! $user_id || ! $payment_id || ! $amount || ! $date ) {
 			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
 		}
 
@@ -255,14 +284,20 @@ add_action( 'plugins_loaded', function() {
 			wp_send_json_error( __( 'No payments found', 'wc-team-payroll' ) );
 		}
 
-		// Update the most recent payment (last in array)
-		$last_index = count( $payments ) - 1;
-		$payments[ $last_index ]['amount'] = $amount;
-		$payments[ $last_index ]['date'] = $date;
-		
-		// Ensure status is set
-		if ( ! isset( $payments[ $last_index ]['status'] ) ) {
-			$payments[ $last_index ]['status'] = 'completed';
+		// Find and update the payment by ID
+		$found = false;
+		foreach ( $payments as &$payment ) {
+			if ( isset( $payment['id'] ) && $payment['id'] === $payment_id ) {
+				$payment['amount'] = $amount;
+				$payment['date'] = $date;
+				$payment['payment_method'] = $payment_method;
+				$found = true;
+				break;
+			}
+		}
+
+		if ( ! $found ) {
+			wp_send_json_error( __( 'Payment not found', 'wc-team-payroll' ) );
 		}
 
 		// Save updated payments
@@ -1180,6 +1215,12 @@ add_action( 'admin_menu', function() {
 // ============================================================================
 
 add_action( 'admin_enqueue_scripts', function( $hook ) {
+	// Enqueue global toast system on all Team Payroll pages
+	if ( strpos( $hook, 'wc-team-payroll' ) !== false ) {
+		wp_enqueue_script( 'wc-team-payroll-toast', WC_TEAM_PAYROLL_URL . 'assets/js/wc-tp-toast.js', array( 'jquery' ), WC_TEAM_PAYROLL_VERSION, true );
+		wp_enqueue_script( 'wc-team-payroll-delete-modal', WC_TEAM_PAYROLL_URL . 'assets/js/wc-tp-delete-modal.js', array( 'jquery' ), WC_TEAM_PAYROLL_VERSION, true );
+	}
+
 	if ( strpos( $hook, 'wc-team-payroll' ) === false ) {
 		return;
 	}

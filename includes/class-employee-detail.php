@@ -21,7 +21,11 @@ class WC_Team_Payroll_Employee_Detail {
 		}
 
 		// Get user meta
-		$profile_picture = get_user_meta( $user_id, 'profile_picture', true );
+		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
+		$profile_picture = '';
+		if ( $profile_picture_id ) {
+			$profile_picture = wp_get_attachment_url( $profile_picture_id );
+		}
 		$phone = get_user_meta( $user_id, 'billing_phone', true );
 		$bio = get_user_meta( $user_id, 'description', true );
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
@@ -40,7 +44,13 @@ class WC_Team_Payroll_Employee_Detail {
 
 		?>
 		<div class="wrap wc-tp-employee-detail">
-			<h1><?php esc_html_e( 'Employee Details', 'wc-team-payroll' ); ?></h1>
+			<div class="wc-tp-page-header">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employees' ) ); ?>" class="wc-tp-back-button">
+					<span class="dashicons dashicons-arrow-left"></span>
+					<?php esc_html_e( 'Back to Employees', 'wc-team-payroll' ); ?>
+				</a>
+				<h1><?php esc_html_e( 'Employee Details', 'wc-team-payroll' ); ?></h1>
+			</div>
 
 			<!-- Profile Section -->
 			<div class="wc-tp-profile-section">
@@ -207,6 +217,18 @@ class WC_Team_Payroll_Employee_Detail {
 					<div class="wc-tp-filter-group">
 						<button type="button" class="button button-primary" id="wc-tp-orders-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
 					</div>
+
+					<!-- Screen Options -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-orders-per-page">
+							<option value="5">5</option>
+							<option value="10" selected>10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
 				</div>
 			</div>
 
@@ -263,7 +285,19 @@ class WC_Team_Payroll_Employee_Detail {
 
 			<!-- Payment History -->
 			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h2>
+					<div class="wc-tp-filter-group" style="margin: 0; min-width: auto;">
+						<label style="margin-right: 8px;"><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payment-history-per-page" style="min-width: 80px;">
+							<option value="5">5</option>
+							<option value="10" selected>10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
 				<div id="wc-tp-payment-history-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -295,7 +329,19 @@ class WC_Team_Payroll_Employee_Detail {
 
 			<!-- Payment Methods List -->
 			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h2>
+					<div class="wc-tp-filter-group" style="margin: 0; min-width: auto;">
+						<label style="margin-right: 8px;"><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payment-methods-per-page" style="min-width: 80px;">
+							<option value="5">5</option>
+							<option value="10" selected>10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
 				<div id="wc-tp-payment-methods-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -358,7 +404,19 @@ class WC_Team_Payroll_Employee_Detail {
 
 			<!-- Salary History -->
 			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h2>
+					<div class="wc-tp-filter-group" style="margin: 0; min-width: auto;">
+						<label style="margin-right: 8px;"><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-salary-history-per-page" style="min-width: 80px;">
+							<option value="5">5</option>
+							<option value="10" selected>10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
 				<div id="wc-tp-salary-history-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -415,6 +473,41 @@ class WC_Team_Payroll_Employee_Detail {
 				font-weight: var(--fw-bold);
 				color: var(--text-main);
 				margin-bottom: 24px;
+				margin-top: 0;
+			}
+
+			.wc-tp-page-header {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				margin-bottom: 24px;
+			}
+
+			.wc-tp-back-button {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				padding: 10px 16px;
+				background: var(--color-card-bg);
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				color: var(--color-primary);
+				text-decoration: none;
+				font-weight: var(--fw-semibold);
+				font-size: var(--fs-body);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-back-button:hover {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary-hover);
+			}
+
+			.wc-tp-back-button .dashicons {
+				font-size: 18px;
+				width: 18px;
+				height: 18px;
 			}
 
 			/* Profile Section */
@@ -713,6 +806,23 @@ class WC_Team_Payroll_Employee_Detail {
 				border-bottom: 1px solid var(--color-border-light);
 			}
 
+			.wc-tp-sortable-header {
+				cursor: pointer;
+				user-select: none;
+				transition: all 0.2s ease;
+				white-space: nowrap;
+			}
+
+			.wc-tp-sortable-header:hover {
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-sortable-header[data-column="<?php echo isset($currentSortColumn) ? esc_attr($currentSortColumn) : 'date'; ?>"] {
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
+			}
+
 			.wc-tp-data-table td {
 				padding: 12px;
 				border-bottom: 1px solid var(--color-border-light);
@@ -722,6 +832,70 @@ class WC_Team_Payroll_Employee_Detail {
 
 			.wc-tp-data-table tbody tr:hover {
 				background: var(--color-primary-subtle);
+			}
+
+			/* Pagination */
+			.wc-tp-pagination {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 20px;
+				padding-top: 20px;
+				border-top: 1px solid var(--color-border-light);
+				flex-wrap: wrap;
+				gap: 16px;
+			}
+
+			.wc-tp-pagination-info {
+				font-size: var(--fs-meta);
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
+			}
+
+			.wc-tp-pagination-controls {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-pagination-btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-width: 36px;
+				height: 36px;
+				padding: 0 8px;
+				border: 1px solid var(--color-border-light);
+				background: var(--color-card-bg);
+				color: var(--text-body);
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-semibold);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-pagination-btn:hover:not(:disabled) {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-pagination-btn.active {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+			}
+
+			.wc-tp-pagination-btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+
+			.wc-tp-pagination-ellipsis {
+				color: var(--text-muted);
+				padding: 0 4px;
 			}
 
 			.wc-tp-empty-state {
@@ -1044,97 +1218,10 @@ class WC_Team_Payroll_Employee_Detail {
 				const userId = $('#wc-tp-current-user-id').val();
 				const nonce = $('#wc_team_payroll_nonce').val();
 
-				// ============================================================================
-				// GLOBAL TOAST NOTIFICATION SYSTEM
-				// ============================================================================
-				window.wcTPToast = function(message, type = 'success') {
-					const toastId = 'wc-tp-toast-' + Date.now();
-					const toast = $(`
-						<div id="${toastId}" class="wc-tp-toast wc-tp-toast-${type}">
-							<span>${message}</span>
-							<button class="wc-tp-toast-close" data-toast-id="${toastId}">×</button>
-						</div>
-					`);
-
-					$('body').append(toast);
-
-					// Auto hide after 4 seconds
-					setTimeout(() => {
-						toast.fadeOut(300, function() {
-							$(this).remove();
-						});
-					}, 4000);
-
-					// Manual close
-					$(document).on('click', '.wc-tp-toast-close', function() {
-						const id = $(this).data('toast-id');
-						$('#' + id).fadeOut(300, function() {
-							$(this).remove();
-						});
-					});
-				};
-
-				// Toast CSS (add once)
-				if (!$('#wc-tp-toast-styles').length) {
+				// Add inline edit form styles
+				if (!$('#wc-tp-inline-edit-styles').length) {
 					$('head').append(`
-						<style id="wc-tp-toast-styles">
-							.wc-tp-toast {
-								position: fixed;
-								top: 20px;
-								right: 20px;
-								background: #388E3C;
-								color: white;
-								padding: 16px 20px;
-								border-radius: 6px;
-								box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-								display: flex;
-								align-items: center;
-								gap: 12px;
-								z-index: 9999;
-								font-size: 14px;
-								font-weight: 500;
-								animation: wcTPSlideIn 0.3s ease;
-							}
-
-							.wc-tp-toast-error {
-								background: #dc3545;
-							}
-
-							.wc-tp-toast-close {
-								background: none;
-								border: none;
-								color: white;
-								font-size: 24px;
-								cursor: pointer;
-								padding: 0;
-								line-height: 1;
-								transition: all 0.2s ease;
-							}
-
-							.wc-tp-toast-close:hover {
-								opacity: 0.8;
-							}
-
-							@keyframes wcTPSlideIn {
-								from {
-									transform: translateX(400px);
-									opacity: 0;
-								}
-								to {
-									transform: translateX(0);
-									opacity: 1;
-								}
-							}
-
-							@media (max-width: 768px) {
-								.wc-tp-toast {
-									top: 10px;
-									right: 10px;
-									left: 10px;
-									width: auto;
-								}
-							}
-
+						<style id="wc-tp-inline-edit-styles">
 							.wc-tp-inline-edit-form {
 								padding: 16px;
 								background: #f9f9f9;
@@ -1178,10 +1265,22 @@ class WC_Team_Payroll_Employee_Detail {
 				if ($('.wc-tp-orders-tab').length) {
 					let currentStartDate = '';
 					let currentEndDate = '';
+					let currentSortColumn = 'date';
+					let currentSortDirection = 'desc';
+					let currentPage = 1;
+					let itemsPerPage = 10;
+					let allOrders = [];
 
 					// Initialize with default preset (This Month)
 					updateDateRangeFromPreset('this-month');
 					loadOrdersData();
+
+					// Screen options for items per page
+					$('#wc-tp-orders-per-page').on('change', function() {
+						itemsPerPage = parseInt($(this).val());
+						currentPage = 1;
+						renderOrdersTable(allOrders);
+					});
 
 					// Date preset change
 					$('#wc-tp-orders-date-preset').on('change', function() {
@@ -1305,6 +1404,7 @@ class WC_Team_Payroll_Employee_Detail {
 							return;
 						}
 
+						currentPage = 1;
 						$('#wc-tp-orders-filter-btn').prop('disabled', true).text('Loading...');
 
 						$.ajax({
@@ -1322,7 +1422,8 @@ class WC_Team_Payroll_Employee_Detail {
 							},
 							success: function(response) {
 								if (response.success) {
-									renderOrdersTable(response.data.orders);
+									allOrders = response.data.orders;
+									renderOrdersTable(allOrders);
 								} else {
 									$('#wc-tp-orders-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📦</div><p>Failed to load orders</p></div>');
 								}
@@ -1344,19 +1445,44 @@ class WC_Team_Payroll_Employee_Detail {
 							return;
 						}
 
+						// Sort orders based on current sort settings
+						orders = sortOrders(orders, currentSortColumn, currentSortDirection);
+
+						// Calculate pagination
+						const totalPages = Math.ceil(orders.length / itemsPerPage);
+						const startIndex = (currentPage - 1) * itemsPerPage;
+						const endIndex = startIndex + itemsPerPage;
+						const paginatedOrders = orders.slice(startIndex, endIndex);
+
 						let html = '<table class="wc-tp-data-table"><thead><tr>';
-						html += '<th>Order ID</th>';
-						html += '<th>Customer</th>';
-						html += '<th>Total</th>';
-						html += '<th>Status</th>';
-						html += '<th>Commission</th>';
-						html += '<th>Your Earnings</th>';
-						html += '<th>Flag</th>';
-						html += '<th>Date</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="order_id">';
+						html += 'Order ID' + getSortIcon('order_id');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="customer_name">';
+						html += 'Customer' + getSortIcon('customer_name');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="total">';
+						html += 'Total' + getSortIcon('total');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="status">';
+						html += 'Status' + getSortIcon('status');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="commission">';
+						html += 'Commission' + getSortIcon('commission');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="user_earnings">';
+						html += 'Your Earnings' + getSortIcon('user_earnings');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="flag">';
+						html += 'Flag' + getSortIcon('flag');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="date">';
+						html += 'Date' + getSortIcon('date');
+						html += '</th>';
 						html += '<th>Actions</th>';
 						html += '</tr></thead><tbody>';
 
-						$.each(orders, function(i, order) {
+						$.each(paginatedOrders, function(i, order) {
 							const statusClass = 'wc-tp-status-' + order.status.toLowerCase();
 							const flagClass = 'wc-tp-badge-' + order.flag.replace('_', '-');
 							const viewUrl = '<?php echo admin_url("post.php"); ?>?post=' + order.order_id + '&action=edit';
@@ -1379,7 +1505,87 @@ class WC_Team_Payroll_Employee_Detail {
 						});
 
 						html += '</tbody></table>';
+
+						// Add pagination controls
+						html += '<div class="wc-tp-pagination">';
+						html += '<div class="wc-tp-pagination-info">';
+						html += 'Showing ' + (startIndex + 1) + ' to ' + Math.min(endIndex, orders.length) + ' of ' + orders.length + ' orders';
+						html += '</div>';
+						html += '<div class="wc-tp-pagination-controls">';
+						
+						if (currentPage > 1) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-prev-page" data-page="' + (currentPage - 1) + '"><span class="dashicons dashicons-arrow-left"></span></button>';
+						}
+						
+						for (let i = 1; i <= totalPages; i++) {
+							if (i === currentPage) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn active" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 2 || i === totalPages - 1) {
+								html += '<span class="wc-tp-pagination-ellipsis">...</span>';
+							}
+						}
+						
+						if (currentPage < totalPages) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-next-page" data-page="' + (currentPage + 1) + '"><span class="dashicons dashicons-arrow-right"></span></button>';
+						}
+						
+						html += '</div>';
+						html += '</div>';
+
 						container.html(html);
+
+						// Attach click handlers to sortable headers
+						$('.wc-tp-sortable-header').on('click', function() {
+							const column = $(this).data('column');
+							
+							if (currentSortColumn === column) {
+								// Toggle direction if same column
+								currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+							} else {
+								// New column, default to desc
+								currentSortColumn = column;
+								currentSortDirection = 'desc';
+							}
+							
+							currentPage = 1;
+							renderOrdersTable(allOrders);
+						});
+
+						// Attach click handlers to pagination buttons
+						$('.wc-tp-page-btn, .wc-tp-prev-page, .wc-tp-next-page').on('click', function() {
+							currentPage = parseInt($(this).data('page'));
+							renderOrdersTable(allOrders);
+						});
+					}
+
+					function getSortIcon(column) {
+						if (currentSortColumn !== column) {
+							return '';
+						}
+						
+						const icon = currentSortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
+						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
+					}
+
+					function sortOrders(orders, column, direction) {
+						const sorted = [...orders].sort((a, b) => {
+							let aVal = a[column];
+							let bVal = b[column];
+							
+							// Handle numeric values
+							if (typeof aVal === 'string' && !isNaN(aVal)) {
+								aVal = parseFloat(aVal);
+								bVal = parseFloat(bVal);
+							}
+							
+							if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+							if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+							return 0;
+						});
+						
+						return sorted;
 					}
 
 					function formatCurrency(value) {
@@ -1391,8 +1597,36 @@ class WC_Team_Payroll_Employee_Detail {
 				// PAYMENTS TAB
 				// ============================================================================
 				if ($('.wc-tp-payments-tab').length) {
+					// Payment History Pagination
+					let paymentHistorySortColumn = 'date';
+					let paymentHistorySortDirection = 'desc';
+					let paymentHistoryPage = 1;
+					let paymentHistoryPerPage = 10;
+					let allPayments = [];
+
+					// Payment Methods Pagination
+					let paymentMethodsSortColumn = 'method_name';
+					let paymentMethodsSortDirection = 'asc';
+					let paymentMethodsPage = 1;
+					let paymentMethodsPerPage = 10;
+					let allPaymentMethods = [];
+
 					loadPaymentMethods();
 					loadPaymentHistory();
+
+					// Payment History Screen Options
+					$('#wc-tp-payment-history-per-page').on('change', function() {
+						paymentHistoryPerPage = parseInt($(this).val());
+						paymentHistoryPage = 1;
+						renderPaymentHistory(allPayments);
+					});
+
+					// Payment Methods Screen Options
+					$('#wc-tp-payment-methods-per-page').on('change', function() {
+						paymentMethodsPerPage = parseInt($(this).val());
+						paymentMethodsPage = 1;
+						renderPaymentMethods(allPaymentMethods);
+					});
 
 					// Add Payment Form Submit
 					$('#wc-tp-add-payment-form').on('submit', function(e) {
@@ -1416,7 +1650,7 @@ class WC_Team_Payroll_Employee_Detail {
 								user_id: userId,
 								amount: amount,
 								payment_date: date,
-								payment_method: method,
+								payment_method: method || '',
 								note: note,
 								nonce: nonce
 							},
@@ -1477,37 +1711,245 @@ class WC_Team_Payroll_Employee_Detail {
 						});
 					});
 
-					// Delete Payment
-					$(document).on('click', '.wc-tp-delete-payment', function() {
-						if (!confirm('Are you sure you want to delete this payment?')) {
-							return;
-						}
+					// Delete Payment Method (Single)
+					$(document).on('click', '.wc-tp-delete-method', function() {
+						const methodId = $(this).data('method-id');
 
-						const paymentId = $(this).data('payment-id');
-
-						$.ajax({
-							url: ajaxurl,
-							type: 'POST',
-							data: {
-								action: 'wc_tp_delete_payment',
-								user_id: userId,
-								payment_id: paymentId,
-								nonce: nonce
-							},
-							success: function(response) {
-								if (response.success) {
-									wcTPToast('Payment deleted successfully');
-									loadPaymentHistory();
-									updateStatsCards();
-								} else {
-									wcTPToast('Failed to delete payment: ' + response.data, 'error');
-								}
-							},
-							error: function() {
-								wcTPToast('Error deleting payment', 'error');
+						wcTPDeleteModal({
+							message: 'This will permanently delete this payment method. This action cannot be undone.',
+							onConfirm: function() {
+								$.ajax({
+									url: ajaxurl,
+									type: 'POST',
+									data: {
+										action: 'wc_tp_delete_payment_method',
+										user_id: userId,
+										method_id: methodId,
+										nonce: nonce
+									},
+									success: function(response) {
+										if (response.success) {
+											wcTPToast('Payment method deleted successfully');
+											loadPaymentMethods();
+										} else {
+											wcTPToast('Failed to delete payment method: ' + response.data, 'error');
+										}
+									},
+									error: function() {
+										wcTPToast('Error deleting payment method', 'error');
+									}
+								});
 							}
 						});
 					});
+
+					// Select All Payment Methods
+					$(document).on('change', '.wc-tp-select-all-methods', function() {
+						const isChecked = $(this).prop('checked');
+						$('.wc-tp-method-checkbox').prop('checked', isChecked);
+						toggleBulkDeleteMethodsButton();
+					});
+
+					// Individual Method Checkbox
+					$(document).on('change', '.wc-tp-method-checkbox', function() {
+						const totalCheckboxes = $('.wc-tp-method-checkbox').length;
+						const checkedCheckboxes = $('.wc-tp-method-checkbox:checked').length;
+						$('.wc-tp-select-all-methods').prop('checked', totalCheckboxes === checkedCheckboxes);
+						toggleBulkDeleteMethodsButton();
+					});
+
+					// Bulk Delete Payment Methods
+					$(document).on('click', '.wc-tp-bulk-delete-methods', function() {
+						const selectedIds = [];
+						$('.wc-tp-method-checkbox:checked').each(function() {
+							selectedIds.push($(this).data('method-id'));
+						});
+
+						if (selectedIds.length === 0) {
+							wcTPToast('Please select at least one payment method to delete', 'warning');
+							return;
+						}
+
+						const count = selectedIds.length;
+						const message = count === 1 
+							? 'This will permanently delete 1 payment method. This action cannot be undone.'
+							: 'This will permanently delete ' + count + ' payment methods. This action cannot be undone.';
+
+						wcTPDeleteModal({
+							message: message,
+							onConfirm: function() {
+								// Delete each method
+								let completed = 0;
+								let failed = 0;
+
+								selectedIds.forEach(function(methodId) {
+									$.ajax({
+										url: ajaxurl,
+										type: 'POST',
+										data: {
+											action: 'wc_tp_delete_payment_method',
+											user_id: userId,
+											method_id: methodId,
+											nonce: nonce
+										},
+										success: function(response) {
+											if (response.success) {
+												completed++;
+											} else {
+												failed++;
+											}
+											checkCompletion();
+										},
+										error: function() {
+											failed++;
+											checkCompletion();
+										}
+									});
+								});
+
+								function checkCompletion() {
+									if (completed + failed === selectedIds.length) {
+										if (failed === 0) {
+											wcTPToast(completed + ' payment method(s) deleted successfully');
+										} else {
+											wcTPToast(completed + ' deleted, ' + failed + ' failed', 'warning');
+										}
+										loadPaymentMethods();
+									}
+								}
+							}
+						});
+					});
+
+					function toggleBulkDeleteMethodsButton() {
+						const checkedCount = $('.wc-tp-method-checkbox:checked').length;
+						if (checkedCount > 0) {
+							$('.wc-tp-bulk-delete-methods').show().text('Delete Selected (' + checkedCount + ')');
+						} else {
+							$('.wc-tp-bulk-delete-methods').hide();
+						}
+					}
+
+					// Delete Payment (Single)
+					$(document).on('click', '.wc-tp-delete-payment', function() {
+						const paymentId = $(this).data('payment-id');
+
+						wcTPDeleteModal({
+							message: 'This will permanently delete this payment. This action cannot be undone.',
+							onConfirm: function() {
+								$.ajax({
+									url: ajaxurl,
+									type: 'POST',
+									data: {
+										action: 'wc_tp_delete_payment',
+										user_id: userId,
+										payment_id: paymentId,
+										nonce: nonce
+									},
+									success: function(response) {
+										if (response.success) {
+											wcTPToast('Payment deleted successfully');
+											loadPaymentHistory();
+											updateStatsCards();
+										} else {
+											wcTPToast('Failed to delete payment: ' + response.data, 'error');
+										}
+									},
+									error: function() {
+										wcTPToast('Error deleting payment', 'error');
+									}
+								});
+							}
+						});
+					});
+
+					// Select All Payments
+					$(document).on('change', '.wc-tp-select-all-payments', function() {
+						const isChecked = $(this).prop('checked');
+						$('.wc-tp-payment-checkbox').prop('checked', isChecked);
+						toggleBulkDeleteButton();
+					});
+
+					// Individual Payment Checkbox
+					$(document).on('change', '.wc-tp-payment-checkbox', function() {
+						const totalCheckboxes = $('.wc-tp-payment-checkbox').length;
+						const checkedCheckboxes = $('.wc-tp-payment-checkbox:checked').length;
+						$('.wc-tp-select-all-payments').prop('checked', totalCheckboxes === checkedCheckboxes);
+						toggleBulkDeleteButton();
+					});
+
+					// Bulk Delete Payments
+					$(document).on('click', '.wc-tp-bulk-delete-payments', function() {
+						const selectedIds = [];
+						$('.wc-tp-payment-checkbox:checked').each(function() {
+							selectedIds.push($(this).data('payment-id'));
+						});
+
+						if (selectedIds.length === 0) {
+							wcTPToast('Please select at least one payment to delete', 'warning');
+							return;
+						}
+
+						const count = selectedIds.length;
+						const message = count === 1 
+							? 'This will permanently delete 1 payment. This action cannot be undone.'
+							: 'This will permanently delete ' + count + ' payments. This action cannot be undone.';
+
+						wcTPDeleteModal({
+							message: message,
+							onConfirm: function() {
+								// Delete each payment
+								let completed = 0;
+								let failed = 0;
+
+								selectedIds.forEach(function(paymentId) {
+									$.ajax({
+										url: ajaxurl,
+										type: 'POST',
+										data: {
+											action: 'wc_tp_delete_payment',
+											user_id: userId,
+											payment_id: paymentId,
+											nonce: nonce
+										},
+										success: function(response) {
+											if (response.success) {
+												completed++;
+											} else {
+												failed++;
+											}
+											checkCompletion();
+										},
+										error: function() {
+											failed++;
+											checkCompletion();
+										}
+									});
+								});
+
+								function checkCompletion() {
+									if (completed + failed === selectedIds.length) {
+										if (failed === 0) {
+											wcTPToast(completed + ' payment(s) deleted successfully');
+										} else {
+											wcTPToast(completed + ' deleted, ' + failed + ' failed', 'warning');
+										}
+										loadPaymentHistory();
+										updateStatsCards();
+									}
+								}
+							}
+						});
+					});
+
+					function toggleBulkDeleteButton() {
+						const checkedCount = $('.wc-tp-payment-checkbox:checked').length;
+						if (checkedCount > 0) {
+							$('.wc-tp-bulk-delete-payments').show().text('Delete Selected (' + checkedCount + ')');
+						} else {
+							$('.wc-tp-bulk-delete-payments').hide();
+						}
+					}
 
 					// Edit Payment
 					$(document).on('click', '.wc-tp-edit-payment', function() {
@@ -1515,10 +1957,14 @@ class WC_Team_Payroll_Employee_Detail {
 						const paymentId = $(this).data('payment-id');
 						const amount = row.find('.wc-tp-payment-amount').data('amount');
 						const date = row.find('.wc-tp-payment-date').data('date');
+						const method = row.find('.wc-tp-payment-method').data('method') || '';
 
 						// Convert date format for datetime-local input
-						const dateObj = new Date(date);
+						const dateObj = new Date(date.replace(' ', 'T'));
 						const formattedDate = dateObj.toISOString().slice(0, 16);
+
+						// Get payment methods for dropdown
+						const methodOptions = $('#wc-tp-payment-method option').clone();
 
 						// Show edit form
 						const editForm = $(`
@@ -1535,6 +1981,10 @@ class WC_Team_Payroll_Employee_Detail {
 												<input type="datetime-local" class="wc-tp-edit-date" value="${formattedDate}" />
 											</div>
 											<div class="wc-tp-form-group">
+												<label>Method</label>
+												<select class="wc-tp-edit-method"></select>
+											</div>
+											<div class="wc-tp-form-group">
 												<button type="button" class="button button-primary wc-tp-save-payment-edit" data-payment-id="${paymentId}">Save</button>
 												<button type="button" class="button wc-tp-cancel-payment-edit">Cancel</button>
 											</div>
@@ -1543,6 +1993,10 @@ class WC_Team_Payroll_Employee_Detail {
 								</td>
 							</tr>
 						`);
+
+						// Populate method dropdown
+						editForm.find('.wc-tp-edit-method').html(methodOptions);
+						editForm.find('.wc-tp-edit-method').val(method);
 
 						row.hide();
 						row.after(editForm);
@@ -1553,6 +2007,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const paymentId = $(this).data('payment-id');
 						const amount = $('.wc-tp-edit-amount').val();
 						const date = $('.wc-tp-edit-date').val();
+						const method = $('.wc-tp-edit-method').val();
 
 						if (!amount || !date) {
 							wcTPToast('Please fill in all fields', 'error');
@@ -1568,6 +2023,7 @@ class WC_Team_Payroll_Employee_Detail {
 								payment_id: paymentId,
 								amount: amount,
 								date: date,
+								payment_method: method || '',
 								nonce: nonce
 							},
 							success: function(response) {
@@ -1602,8 +2058,10 @@ class WC_Team_Payroll_Employee_Detail {
 							},
 							success: function(response) {
 								if (response.success) {
-									renderPaymentMethods(response.data.methods);
-									populatePaymentMethodDropdown(response.data.methods);
+									allPaymentMethods = response.data.methods;
+									paymentMethodsPage = 1;
+									renderPaymentMethods(allPaymentMethods);
+									populatePaymentMethodDropdown(allPaymentMethods);
 								}
 							}
 						});
@@ -1617,22 +2075,110 @@ class WC_Team_Payroll_Employee_Detail {
 							return;
 						}
 
-						let html = '<div class="wc-tp-payment-methods-list">';
+						// Sort methods
+						methods = sortPaymentMethods(methods, paymentMethodsSortColumn, paymentMethodsSortDirection);
+
+						// Calculate pagination
+						const totalPages = Math.ceil(methods.length / paymentMethodsPerPage);
+						const startIndex = (paymentMethodsPage - 1) * paymentMethodsPerPage;
+						const endIndex = startIndex + paymentMethodsPerPage;
+						const paginatedMethods = methods.slice(startIndex, endIndex);
+
+						// Add bulk delete button
+						let html = '<div style="margin-bottom: 12px;"><button type="button" class="button wc-tp-bulk-delete-methods" style="display: none;"><span class="dashicons dashicons-trash" style="margin-top: 3px;"></span> Delete Selected</button></div>';
 						
-						$.each(methods, function(i, method) {
-							html += '<div class="wc-tp-payment-method-item">';
-							html += '<div class="wc-tp-payment-method-info">';
-							html += '<div class="wc-tp-payment-method-name">' + method.method_name + '</div>';
-							html += '<div class="wc-tp-payment-method-details">' + method.method_details + '</div>';
-							html += '</div>';
-							html += '<div class="wc-tp-payment-method-actions">';
-							html += '<button class="button wc-tp-delete-btn wc-tp-delete-method" data-method-id="' + method.id + '">Delete</button>';
-							html += '</div>';
-							html += '</div>';
+						html += '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th style="width: 40px;"><input type="checkbox" class="wc-tp-select-all-methods" title="Select All" /></th>';
+						html += '<th class="wc-tp-sortable-header" data-column="method_name" data-table="payment-methods">Method Name' + getMethodSortIcon('method_name') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="method_details" data-table="payment-methods">Details' + getMethodSortIcon('method_details') + '</th>';
+						html += '<th>Actions</th>';
+						html += '</tr></thead><tbody>';
+						
+						$.each(paginatedMethods, function(i, method) {
+							html += '<tr>';
+							html += '<td><input type="checkbox" class="wc-tp-method-checkbox" data-method-id="' + method.id + '" /></td>';
+							html += '<td><strong>' + method.method_name + '</strong></td>';
+							html += '<td>' + method.method_details + '</td>';
+							html += '<td><div class="wc-tp-action-icons">';
+							html += '<button class="wc-tp-action-icon wc-tp-delete-btn wc-tp-delete-method" data-method-id="' + method.id + '" title="Delete Method"><span class="dashicons dashicons-trash"></span></button>';
+							html += '</div></td>';
+							html += '</tr>';
 						});
 
+						html += '</tbody></table>';
+
+						// Add pagination controls
+						html += '<div class="wc-tp-pagination">';
+						html += '<div class="wc-tp-pagination-info">';
+						html += 'Showing ' + (startIndex + 1) + ' to ' + Math.min(endIndex, methods.length) + ' of ' + methods.length + ' methods';
 						html += '</div>';
+						html += '<div class="wc-tp-pagination-controls">';
+						
+						if (paymentMethodsPage > 1) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-prev-page-method" data-page="' + (paymentMethodsPage - 1) + '"><span class="dashicons dashicons-arrow-left"></span></button>';
+						}
+						
+						for (let i = 1; i <= totalPages; i++) {
+							if (i === paymentMethodsPage) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-method active" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 1 || i === totalPages || (i >= paymentMethodsPage - 1 && i <= paymentMethodsPage + 1)) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-method" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 2 || i === totalPages - 1) {
+								html += '<span class="wc-tp-pagination-ellipsis">...</span>';
+							}
+						}
+						
+						if (paymentMethodsPage < totalPages) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-next-page-method" data-page="' + (paymentMethodsPage + 1) + '"><span class="dashicons dashicons-arrow-right"></span></button>';
+						}
+						
+						html += '</div>';
+						html += '</div>';
+
 						container.html(html);
+
+						// Attach click handlers to sortable headers
+						$('.wc-tp-sortable-header[data-table="payment-methods"]').on('click', function() {
+							const column = $(this).data('column');
+							
+							if (paymentMethodsSortColumn === column) {
+								paymentMethodsSortDirection = paymentMethodsSortDirection === 'asc' ? 'desc' : 'asc';
+							} else {
+								paymentMethodsSortColumn = column;
+								paymentMethodsSortDirection = 'asc';
+							}
+							
+							paymentMethodsPage = 1;
+							renderPaymentMethods(allPaymentMethods);
+						});
+
+						// Attach click handlers to pagination buttons
+						$('.wc-tp-page-btn-method, .wc-tp-prev-page-method, .wc-tp-next-page-method').on('click', function() {
+							paymentMethodsPage = parseInt($(this).data('page'));
+							renderPaymentMethods(allPaymentMethods);
+						});
+					}
+
+					function getMethodSortIcon(column) {
+						if (paymentMethodsSortColumn !== column) {
+							return '';
+						}
+						
+						const icon = paymentMethodsSortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
+						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
+					}
+
+					function sortPaymentMethods(methods, column, direction) {
+						const sorted = [...methods].sort((a, b) => {
+							let aVal = a[column];
+							let bVal = b[column];
+							
+							if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+							if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+							return 0;
+						});
+						
+						return sorted;
 					}
 
 					function populatePaymentMethodDropdown(methods) {
@@ -1657,7 +2203,9 @@ class WC_Team_Payroll_Employee_Detail {
 							},
 							success: function(response) {
 								if (response.success) {
-									renderPaymentHistory(response.data.payments);
+									allPayments = response.data.payments;
+									paymentHistoryPage = 1;
+									renderPaymentHistory(allPayments);
 								}
 							}
 						});
@@ -1671,20 +2219,46 @@ class WC_Team_Payroll_Employee_Detail {
 							return;
 						}
 
-						let html = '<table class="wc-tp-data-table"><thead><tr>';
-						html += '<th>Amount</th>';
-						html += '<th>Date</th>';
-						html += '<th>Method</th>';
-						html += '<th>Added By</th>';
+						// Sort payments
+						payments = sortPayments(payments, paymentHistorySortColumn, paymentHistorySortDirection);
+
+						// Calculate pagination
+						const totalPages = Math.ceil(payments.length / paymentHistoryPerPage);
+						const startIndex = (paymentHistoryPage - 1) * paymentHistoryPerPage;
+						const endIndex = startIndex + paymentHistoryPerPage;
+						const paginatedPayments = payments.slice(startIndex, endIndex);
+
+						// Add bulk delete button
+						let html = '<div style="margin-bottom: 12px;"><button type="button" class="button wc-tp-bulk-delete-payments" style="display: none;"><span class="dashicons dashicons-trash" style="margin-top: 3px;"></span> Delete Selected</button></div>';
+						
+						html += '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th style="width: 40px;"><input type="checkbox" class="wc-tp-select-all-payments" title="Select All" /></th>';
+						html += '<th class="wc-tp-sortable-header" data-column="amount" data-table="payment-history">Amount' + getPaymentSortIcon('amount') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="date" data-table="payment-history">Date' + getPaymentSortIcon('date') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="payment_method" data-table="payment-history">Method' + getPaymentSortIcon('payment_method') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="added_by_name" data-table="payment-history">Added By' + getPaymentSortIcon('added_by_name') + '</th>';
 						html += '<th>Actions</th>';
 						html += '</tr></thead><tbody>';
 
-						$.each(payments, function(i, payment) {
+						$.each(paginatedPayments, function(i, payment) {
+							// Format date properly (replace T with space)
+							const formattedDate = payment.date ? payment.date.replace('T', ' ') : '-';
+							const rawDate = payment.date || '';
+							
+							// Format user info with link and tooltip
+							let userHtml = 'System';
+							if (payment.added_by_id && payment.added_by_name) {
+								const tooltip = 'Email: ' + (payment.added_by_email || 'N/A') + '\nRole: ' + (payment.added_by_role || 'N/A');
+								const userEditUrl = '<?php echo admin_url("user-edit.php"); ?>?user_id=' + payment.added_by_id;
+								userHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa;">' + payment.added_by_name + '</a>';
+							}
+
 							html += '<tr>';
+							html += '<td><input type="checkbox" class="wc-tp-payment-checkbox" data-payment-id="' + payment.id + '" /></td>';
 							html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '"><strong>' + formatCurrency(payment.amount) + '</strong></td>';
-							html += '<td class="wc-tp-payment-date" data-date="' + payment.date + '">' + payment.date + '</td>';
-							html += '<td>' + (payment.payment_method || '-') + '</td>';
-							html += '<td>' + (payment.added_by || 'System') + '</td>';
+							html += '<td class="wc-tp-payment-date" data-date="' + rawDate + '">' + formattedDate + '</td>';
+							html += '<td class="wc-tp-payment-method" data-method="' + (payment.payment_method || '') + '">' + (payment.payment_method || '-') + '</td>';
+							html += '<td>' + userHtml + '</td>';
 							html += '<td><div class="wc-tp-action-icons">';
 							html += '<button class="wc-tp-action-icon wc-tp-edit-payment" data-payment-id="' + payment.id + '" title="Edit Payment"><span class="dashicons dashicons-edit"></span></button>';
 							html += '<button class="wc-tp-action-icon wc-tp-delete-payment" data-payment-id="' + payment.id + '" title="Delete Payment"><span class="dashicons dashicons-trash"></span></button>';
@@ -1693,7 +2267,85 @@ class WC_Team_Payroll_Employee_Detail {
 						});
 
 						html += '</tbody></table>';
+
+						// Add pagination controls
+						html += '<div class="wc-tp-pagination">';
+						html += '<div class="wc-tp-pagination-info">';
+						html += 'Showing ' + (startIndex + 1) + ' to ' + Math.min(endIndex, payments.length) + ' of ' + payments.length + ' payments';
+						html += '</div>';
+						html += '<div class="wc-tp-pagination-controls">';
+						
+						if (paymentHistoryPage > 1) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-prev-page-payment" data-page="' + (paymentHistoryPage - 1) + '"><span class="dashicons dashicons-arrow-left"></span></button>';
+						}
+						
+						for (let i = 1; i <= totalPages; i++) {
+							if (i === paymentHistoryPage) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-payment active" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 1 || i === totalPages || (i >= paymentHistoryPage - 1 && i <= paymentHistoryPage + 1)) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-payment" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 2 || i === totalPages - 1) {
+								html += '<span class="wc-tp-pagination-ellipsis">...</span>';
+							}
+						}
+						
+						if (paymentHistoryPage < totalPages) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-next-page-payment" data-page="' + (paymentHistoryPage + 1) + '"><span class="dashicons dashicons-arrow-right"></span></button>';
+						}
+						
+						html += '</div>';
+						html += '</div>';
+
 						container.html(html);
+
+						// Attach click handlers to sortable headers
+						$('.wc-tp-sortable-header[data-table="payment-history"]').on('click', function() {
+							const column = $(this).data('column');
+							
+							if (paymentHistorySortColumn === column) {
+								paymentHistorySortDirection = paymentHistorySortDirection === 'asc' ? 'desc' : 'asc';
+							} else {
+								paymentHistorySortColumn = column;
+								paymentHistorySortDirection = 'desc';
+							}
+							
+							paymentHistoryPage = 1;
+							renderPaymentHistory(allPayments);
+						});
+
+						// Attach click handlers to pagination buttons
+						$('.wc-tp-page-btn-payment, .wc-tp-prev-page-payment, .wc-tp-next-page-payment').on('click', function() {
+							paymentHistoryPage = parseInt($(this).data('page'));
+							renderPaymentHistory(allPayments);
+						});
+					}
+
+					function getPaymentSortIcon(column) {
+						if (paymentHistorySortColumn !== column) {
+							return '';
+						}
+						
+						const icon = paymentHistorySortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
+						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
+					}
+
+					function sortPayments(payments, column, direction) {
+						const sorted = [...payments].sort((a, b) => {
+							let aVal = a[column];
+							let bVal = b[column];
+							
+							// Handle numeric values
+							if (typeof aVal === 'string' && !isNaN(aVal)) {
+								aVal = parseFloat(aVal);
+								bVal = parseFloat(bVal);
+							}
+							
+							if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+							if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+							return 0;
+						});
+						
+						return sorted;
 					}
 
 					function updateStatsCards() {
@@ -1709,9 +2361,9 @@ class WC_Team_Payroll_Employee_Detail {
 							success: function(response) {
 								if (response.success) {
 									const stats = response.data;
-									$('.wc-tp-stat-card').eq(1).find('.wc-tp-stat-value').text(formatCurrency(stats.total_earnings));
-									$('.wc-tp-stat-card').eq(2).find('.wc-tp-stat-value').text(formatCurrency(stats.total_paid));
-									$('.wc-tp-stat-card').eq(3).find('.wc-tp-stat-value').text(formatCurrency(stats.total_due));
+									$('.wc-tp-stat-card').eq(1).find('.wc-tp-stat-value').html(formatCurrency(stats.total_earnings));
+									$('.wc-tp-stat-card').eq(2).find('.wc-tp-stat-value').html(formatCurrency(stats.total_paid));
+									$('.wc-tp-stat-card').eq(3).find('.wc-tp-stat-value').html(formatCurrency(stats.total_due));
 								}
 							}
 						});
@@ -1726,7 +2378,21 @@ class WC_Team_Payroll_Employee_Detail {
 				// SALARY TAB
 				// ============================================================================
 				if ($('.wc-tp-salary-tab').length) {
+					// Salary History Pagination
+					let salarySortColumn = 'date';
+					let salarySortDirection = 'desc';
+					let salaryPage = 1;
+					let salaryPerPage = 10;
+					let allSalaryHistory = [];
+
 					loadSalaryHistory();
+
+					// Salary History Screen Options
+					$('#wc-tp-salary-history-per-page').on('change', function() {
+						salaryPerPage = parseInt($(this).val());
+						salaryPage = 1;
+						renderSalaryHistory(allSalaryHistory);
+					});
 
 					// Salary Type Change - Show/Hide Amount and Frequency
 					$('#wc-tp-salary-type').on('change', function() {
@@ -1734,8 +2400,10 @@ class WC_Team_Payroll_Employee_Detail {
 						
 						if (salaryType === 'commission') {
 							$('.wc-tp-salary-amount-group, .wc-tp-salary-frequency-group').slideUp(200);
+							$('#wc-tp-salary-amount').val('');
 						} else {
 							$('.wc-tp-salary-amount-group, .wc-tp-salary-frequency-group').slideDown(200);
+							$('#wc-tp-salary-amount').val('');
 						}
 					});
 
@@ -1748,7 +2416,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const salaryFrequency = $('#wc-tp-salary-frequency').val();
 
 						if (salaryType !== 'commission' && (!salaryAmount || salaryAmount <= 0)) {
-							alert('Please enter a valid salary amount');
+							wcTPToast('Please enter a valid salary amount', 'error');
 							return;
 						}
 
@@ -1765,14 +2433,14 @@ class WC_Team_Payroll_Employee_Detail {
 							},
 							success: function(response) {
 								if (response.success) {
-									alert('Salary updated successfully');
+									wcTPToast('Salary updated successfully');
 									loadSalaryHistory();
 								} else {
-									alert('Failed to update salary: ' + response.data);
+									wcTPToast('Failed to update salary: ' + response.data, 'error');
 								}
 							},
 							error: function() {
-								alert('Error updating salary');
+								wcTPToast('Error updating salary', 'error');
 							}
 						});
 					});
@@ -1788,7 +2456,9 @@ class WC_Team_Payroll_Employee_Detail {
 							},
 							success: function(response) {
 								if (response.success) {
-									renderSalaryHistory(response.data.history);
+									allSalaryHistory = response.data.history;
+									salaryPage = 1;
+									renderSalaryHistory(allSalaryHistory);
 								}
 							}
 						});
@@ -1802,32 +2472,128 @@ class WC_Team_Payroll_Employee_Detail {
 							return;
 						}
 
+						// Sort history
+						history = sortSalaryHistory(history, salarySortColumn, salarySortDirection);
+
+						// Calculate pagination
+						const totalPages = Math.ceil(history.length / salaryPerPage);
+						const startIndex = (salaryPage - 1) * salaryPerPage;
+						const endIndex = startIndex + salaryPerPage;
+						const paginatedHistory = history.slice(startIndex, endIndex);
+
 						let html = '<table class="wc-tp-data-table"><thead><tr>';
-						html += '<th>Date</th>';
-						html += '<th>Old Type</th>';
-						html += '<th>New Type</th>';
-						html += '<th>Old Amount</th>';
-						html += '<th>New Amount</th>';
-						html += '<th>Frequency</th>';
-						html += '<th>Changed By</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="date" data-table="salary-history">Date' + getSalarySortIcon('date') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="old_type" data-table="salary-history">Old Type' + getSalarySortIcon('old_type') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="new_type" data-table="salary-history">New Type' + getSalarySortIcon('new_type') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="old_amount" data-table="salary-history">Old Amount' + getSalarySortIcon('old_amount') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="new_amount" data-table="salary-history">New Amount' + getSalarySortIcon('new_amount') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="new_frequency" data-table="salary-history">Frequency' + getSalarySortIcon('new_frequency') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="changed_by_name" data-table="salary-history">Changed By' + getSalarySortIcon('changed_by_name') + '</th>';
 						html += '</tr></thead><tbody>';
 
-						$.each(history, function(i, entry) {
-							const changedByUser = entry.changed_by ? 'User #' + entry.changed_by : 'System';
+						$.each(paginatedHistory, function(i, entry) {
+							// Format date properly (replace T with space)
+							const formattedDate = entry.date ? entry.date.replace('T', ' ') : '-';
+							
+							// Format user info with link and tooltip
+							let userHtml = 'System';
+							if (entry.changed_by_id && entry.changed_by_name) {
+								const tooltip = 'Email: ' + (entry.changed_by_email || 'N/A') + '\nRole: ' + (entry.changed_by_role || 'N/A');
+								const userEditUrl = '<?php echo admin_url("user-edit.php"); ?>?user_id=' + entry.changed_by_id;
+								userHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa;">' + entry.changed_by_name + '</a>';
+							}
 							
 							html += '<tr>';
-							html += '<td>' + entry.date + '</td>';
+							html += '<td>' + formattedDate + '</td>';
 							html += '<td>' + formatSalaryType(entry.old_type) + '</td>';
 							html += '<td><strong>' + formatSalaryType(entry.new_type) + '</strong></td>';
 							html += '<td>' + (entry.old_amount ? formatCurrency(entry.old_amount) : '-') + '</td>';
 							html += '<td><strong>' + (entry.new_amount ? formatCurrency(entry.new_amount) : '-') + '</strong></td>';
 							html += '<td>' + (entry.new_frequency ? entry.new_frequency : '-') + '</td>';
-							html += '<td>' + changedByUser + '</td>';
+							html += '<td>' + userHtml + '</td>';
 							html += '</tr>';
 						});
 
 						html += '</tbody></table>';
+
+						// Add pagination controls
+						html += '<div class="wc-tp-pagination">';
+						html += '<div class="wc-tp-pagination-info">';
+						html += 'Showing ' + (startIndex + 1) + ' to ' + Math.min(endIndex, history.length) + ' of ' + history.length + ' entries';
+						html += '</div>';
+						html += '<div class="wc-tp-pagination-controls">';
+						
+						if (salaryPage > 1) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-prev-page-salary" data-page="' + (salaryPage - 1) + '"><span class="dashicons dashicons-arrow-left"></span></button>';
+						}
+						
+						for (let i = 1; i <= totalPages; i++) {
+							if (i === salaryPage) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-salary active" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 1 || i === totalPages || (i >= salaryPage - 1 && i <= salaryPage + 1)) {
+								html += '<button class="wc-tp-pagination-btn wc-tp-page-btn-salary" data-page="' + i + '">' + i + '</button>';
+							} else if (i === 2 || i === totalPages - 1) {
+								html += '<span class="wc-tp-pagination-ellipsis">...</span>';
+							}
+						}
+						
+						if (salaryPage < totalPages) {
+							html += '<button class="wc-tp-pagination-btn wc-tp-next-page-salary" data-page="' + (salaryPage + 1) + '"><span class="dashicons dashicons-arrow-right"></span></button>';
+						}
+						
+						html += '</div>';
+						html += '</div>';
+
 						container.html(html);
+
+						// Attach click handlers to sortable headers
+						$('.wc-tp-sortable-header[data-table="salary-history"]').on('click', function() {
+							const column = $(this).data('column');
+							
+							if (salarySortColumn === column) {
+								salarySortDirection = salarySortDirection === 'asc' ? 'desc' : 'asc';
+							} else {
+								salarySortColumn = column;
+								salarySortDirection = 'desc';
+							}
+							
+							salaryPage = 1;
+							renderSalaryHistory(allSalaryHistory);
+						});
+
+						// Attach click handlers to pagination buttons
+						$('.wc-tp-page-btn-salary, .wc-tp-prev-page-salary, .wc-tp-next-page-salary').on('click', function() {
+							salaryPage = parseInt($(this).data('page'));
+							renderSalaryHistory(allSalaryHistory);
+						});
+					}
+
+					function getSalarySortIcon(column) {
+						if (salarySortColumn !== column) {
+							return '';
+						}
+						
+						const icon = salarySortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
+						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
+					}
+
+					function sortSalaryHistory(history, column, direction) {
+						const sorted = [...history].sort((a, b) => {
+							let aVal = a[column];
+							let bVal = b[column];
+							
+							// Handle numeric values
+							if (typeof aVal === 'string' && !isNaN(aVal)) {
+								aVal = parseFloat(aVal);
+								bVal = parseFloat(bVal);
+							}
+							
+							if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+							if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+							return 0;
+						});
+						
+						return sorted;
 					}
 
 					function formatSalaryType(type) {
