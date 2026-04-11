@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.1] - 2026-04-11
+
+### Bug Fixes
+- Fixed critical PHP syntax errors caused by duplicate closing tags in refactored classes
+- Fixed parse errors in `class-settings.php`, `class-employee-detail.php`, `class-myaccount.php`, and `class-shortcodes.php`
+- Plugin now activates and loads correctly after v5.5.0 refactoring
+
 ## [5.5.0] - 2026-04-11
 
 ### Major Refactoring: Code Organization & Reusability
