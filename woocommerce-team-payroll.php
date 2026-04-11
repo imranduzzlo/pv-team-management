@@ -85,6 +85,158 @@ add_action( 'plugins_loaded', function() {
 		$employees->ajax_delete_payment();
 	} );
 
+	// Payment Methods AJAX Handlers
+	add_action( 'wp_ajax_wc_tp_get_payment_methods', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Invalid user ID', 'wc-team-payroll' ) );
+		}
+
+		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+		if ( ! is_array( $methods ) ) {
+			$methods = array();
+		}
+
+		wp_send_json_success( array( 'methods' => $methods ) );
+	} );
+
+	add_action( 'wp_ajax_wc_tp_add_payment_method', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		$method_name = sanitize_text_field( $_POST['method_name'] );
+		$method_details = sanitize_text_field( $_POST['method_details'] );
+
+		if ( ! $user_id || ! $method_name || ! $method_details ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
+		}
+
+		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+		if ( ! is_array( $methods ) ) {
+			$methods = array();
+		}
+
+		$new_method = array(
+			'id' => time(),
+			'method_name' => $method_name,
+			'method_details' => $method_details,
+		);
+
+		$methods[] = $new_method;
+		update_user_meta( $user_id, '_wc_tp_payment_methods', $methods );
+
+		wp_send_json_success( array( 'message' => __( 'Payment method added', 'wc-team-payroll' ) ) );
+	} );
+
+	add_action( 'wp_ajax_wc_tp_delete_payment_method', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		$method_id = intval( $_POST['method_id'] );
+
+		if ( ! $user_id || ! $method_id ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
+		}
+
+		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+		if ( ! is_array( $methods ) ) {
+			wp_send_json_error( __( 'No payment methods found', 'wc-team-payroll' ) );
+		}
+
+		$methods = array_filter( $methods, function( $method ) use ( $method_id ) {
+			return $method['id'] !== $method_id;
+		} );
+
+		update_user_meta( $user_id, '_wc_tp_payment_methods', array_values( $methods ) );
+
+		wp_send_json_success( array( 'message' => __( 'Payment method deleted', 'wc-team-payroll' ) ) );
+	} );
+
+	// Employee Payments AJAX Handler
+	add_action( 'wp_ajax_wc_tp_get_employee_payments', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Invalid user ID', 'wc-team-payroll' ) );
+		}
+
+		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			$payments = array();
+		}
+
+		// Format payments for display
+		$formatted_payments = array();
+		foreach ( $payments as $payment ) {
+			$formatted_payments[] = array(
+				'id' => isset( $payment['id'] ) ? $payment['id'] : time(),
+				'amount' => isset( $payment['amount'] ) ? $payment['amount'] : 0,
+				'date' => isset( $payment['date'] ) ? $payment['date'] : date( 'Y-m-d H:i' ),
+				'added_by' => isset( $payment['added_by'] ) ? $payment['added_by'] : get_current_user()->display_name,
+			);
+		}
+
+		wp_send_json_success( array( 'payments' => $formatted_payments ) );
+	} );
+
+	// Salary AJAX Handlers
+	add_action( 'wp_ajax_wc_tp_get_employee_salary', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Invalid user ID', 'wc-team-payroll' ) );
+		}
+
+		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true );
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
+
+		if ( ! $salary_type ) {
+			$salary_type = 'commission';
+		}
+		if ( ! $salary_frequency ) {
+			$salary_frequency = 'monthly';
+		}
+
+		wp_send_json_success( array(
+			'type' => $salary_type,
+			'amount' => $salary_amount,
+			'frequency' => $salary_frequency,
+		) );
+	} );
+
+	add_action( 'wp_ajax_wc_tp_get_salary_history', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Invalid user ID', 'wc-team-payroll' ) );
+		}
+
+		$history = get_user_meta( $user_id, '_wc_tp_salary_history', true );
+		if ( ! is_array( $history ) ) {
+			$history = array();
+		}
+
+		wp_send_json_success( array( 'history' => $history ) );
+	} );
+
 	add_action( 'wp_ajax_wc_tp_update_payment', function() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
