@@ -22,16 +22,16 @@ class WC_Team_Payroll_Settings {
 		}
 
 		// Enqueue common CSS
-		wp_enqueue_style( 'wc-tp-common', plugin_dir_url( __FILE__ ) . '../../assets/css/common.css', array(), '5.6.0' );
+		wp_enqueue_style( 'wc-tp-common', plugin_dir_url( __FILE__ ) . '../../assets/css/common.css', array(), '5.6.1' );
 
 		// Enqueue settings-specific CSS
-		wp_enqueue_style( 'wc-tp-settings', plugin_dir_url( __FILE__ ) . '../../assets/css/settings.css', array( 'wc-tp-common' ), '5.6.0' );
+		wp_enqueue_style( 'wc-tp-settings', plugin_dir_url( __FILE__ ) . '../../assets/css/settings.css', array( 'wc-tp-common' ), '5.6.1' );
 
 		// Enqueue common JS
-		wp_enqueue_script( 'wc-tp-common', plugin_dir_url( __FILE__ ) . '../../assets/js/common.js', array( 'jquery' ), '5.6.0', true );
+		wp_enqueue_script( 'wc-tp-common', plugin_dir_url( __FILE__ ) . '../../assets/js/common.js', array( 'jquery' ), '5.6.1', true );
 
 		// Enqueue settings-specific JS
-		wp_enqueue_script( 'wc-tp-settings', plugin_dir_url( __FILE__ ) . '../../assets/js/settings.js', array( 'jquery', 'wc-tp-common' ), '5.6.0', true );
+		wp_enqueue_script( 'wc-tp-settings', plugin_dir_url( __FILE__ ) . '../../assets/js/settings.js', array( 'jquery', 'wc-tp-common' ), '5.6.1', true );
 	}
 
 	public function render_settings_page() {

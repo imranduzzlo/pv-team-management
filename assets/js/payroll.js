@@ -20,6 +20,16 @@ jQuery(document).ready(function($) {
 		$('#wc-tp-payroll-per-page').val(itemsPerPage);
 	}
 
+	// Set default dates if not already set
+	if (!$('#wc-tp-payroll-start-date').val()) {
+		const today = new Date();
+		const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+		const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+		
+		$('#wc-tp-payroll-start-date').val(firstDay.toISOString().split('T')[0]);
+		$('#wc-tp-payroll-end-date').val(lastDay.toISOString().split('T')[0]);
+	}
+
 	loadPayrollData();
 
 	// Items per page change
@@ -59,8 +69,19 @@ jQuery(document).ready(function($) {
 		const startDate = $('#wc-tp-payroll-start-date').val();
 		const endDate = $('#wc-tp-payroll-end-date').val();
 
+		// If dates are not set, set them to current month
 		if (!startDate || !endDate) {
-			alert('Please select both start and end dates');
+			const today = new Date();
+			const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+			const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+			
+			$('#wc-tp-payroll-start-date').val(firstDay.toISOString().split('T')[0]);
+			$('#wc-tp-payroll-end-date').val(lastDay.toISOString().split('T')[0]);
+			
+			// Retry with new dates
+			setTimeout(function() {
+				loadPayrollData();
+			}, 100);
 			return;
 		}
 
