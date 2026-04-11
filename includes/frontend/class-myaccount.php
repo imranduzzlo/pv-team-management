@@ -16,21 +16,6 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'woocommerce_account_my-reports_endpoint', array( __CLASS__, 'render_reports_tab' ) );
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ) );
-		
-		// Enqueue frontend CSS and JS
-		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
-	}
-
-	/**
-	 * Enqueue frontend CSS and JS
-	 */
-	public static function enqueue_assets() {
-		// Only load on my account pages
-		if ( ! is_account_page() ) {
-			return;
-		}
-
-		wp_enqueue_style( 'wc-tp-common-css', WC_TEAM_PAYROLL_URL . 'assets/css/common.css', array(), WC_TEAM_PAYROLL_VERSION );
 	}
 
 	/**
@@ -298,6 +283,85 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 		</div>
 
+		<script>
+			function loadOrdersData() {
+				const roleFilter = document.getElementById('role-filter').value;
+				const dateFrom = document.getElementById('date-from').value;
+				const dateTo = document.getElementById('date-to').value;
+				const statusFilter = document.getElementById('status-filter').value;
+				const sortBy = document.getElementById('sort-by').value;
+
+				jQuery.ajax({
+					url: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
+					type: 'POST',
+					data: {
+						action: 'wc_tp_get_orders_data',
+						role_filter: roleFilter,
+						date_from: dateFrom,
+						date_to: dateTo,
+						status_filter: statusFilter,
+						sort_by: sortBy,
+						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							const tbody = document.getElementById('orders-tbody');
+							tbody.innerHTML = '';
+
+							if (response.data.orders.length === 0) {
+								tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><?php esc_html_e( 'No orders found', 'wc-team-payroll' ); ?></td></tr>';
+								return;
+							}
+
+							response.data.orders.forEach(order => {
+								const row = document.createElement('tr');
+								row.style.borderBottom = '1px solid #eee';
+								row.innerHTML = `
+									<td style="padding: 10px;"><a href="#" onclick="showOrderDetails(${order.order_id}); return false;">#${order.order_id}</a></td>
+									<td style="padding: 10px;">${order.date}</td>
+									<td style="padding: 10px;">${order.made_by}</td>
+									<td style="padding: 10px; text-align: right;">${order.total}</td>
+									<td style="padding: 10px; text-align: right;">${order.commission}</td>
+									<td style="padding: 10px; text-align: right; font-weight: bold; color: #0073aa;">${order.earning}</td>
+									<td style="padding: 10px;">${order.role}</td>
+									<td style="padding: 10px; text-align: center;">
+										<button onclick="showOrderDetails(${order.order_id})" style="background: #0073aa; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;"><?php esc_html_e( 'Details', 'wc-team-payroll' ); ?></button>
+									</td>
+								`;
+								tbody.appendChild(row);
+							});
+						}
+					}
+				});
+			}
+
+			function showOrderDetails(orderId) {
+				jQuery.ajax({
+					url: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
+					type: 'POST',
+					data: {
+						action: 'wc_tp_get_order_details',
+						order_id: orderId,
+						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
+					},
+					success: function(response) {
+						if (response.success) {
+							document.getElementById('order-details-content').innerHTML = response.data.html;
+							document.getElementById('order-details-modal').style.display = 'block';
+						}
+					}
+				});
+			}
+
+			function closeOrderDetails() {
+				document.getElementById('order-details-modal').style.display = 'none';
+			}
+
+			// Load on page load
+			jQuery(document).ready(function() {
+				loadOrdersData();
+			});
+		</script>
 		<?php
 	}
 
@@ -709,4 +773,3 @@ class WC_Team_Payroll_MyAccount {
 		) );
 	}
 }
-

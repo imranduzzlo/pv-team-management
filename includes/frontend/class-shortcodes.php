@@ -9,21 +9,6 @@ class WC_Team_Payroll_Shortcodes {
 		add_shortcode( 'team_earnings', array( __CLASS__, 'shortcode_earnings' ) );
 		add_shortcode( 'team_orders', array( __CLASS__, 'shortcode_orders' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'add_shortcode_builder' ) );
-		
-		// Enqueue admin CSS
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
-	}
-
-	/**
-	 * Enqueue admin CSS
-	 */
-	public static function enqueue_assets( $hook ) {
-		// Only load on shortcode builder page
-		if ( strpos( $hook, 'wc-team-payroll-shortcodes' ) === false ) {
-			return;
-		}
-
-		wp_enqueue_style( 'wc-tp-common-css', WC_TEAM_PAYROLL_URL . 'assets/css/common.css', array(), WC_TEAM_PAYROLL_VERSION );
 	}
 
 	public static function add_shortcode_builder() {
@@ -70,6 +55,20 @@ class WC_Team_Payroll_Shortcodes {
 			</div>
 		</div>
 
+		<script>
+			function copyToClipboard(text) {
+				navigator.clipboard.writeText(text).then(() => {
+					alert('<?php esc_html_e( 'Copied to clipboard!', 'wc-team-payroll' ); ?>');
+				});
+			}
+
+			jQuery(document).ready(function($) {
+				$('#orders-type').on('change', function() {
+					const type = $(this).val();
+					$('#orders-shortcode').text('[team_orders type="' + type + '"]');
+				});
+			});
+		</script>
 		<?php
 	}
 
@@ -222,4 +221,3 @@ class WC_Team_Payroll_Shortcodes {
 		return false;
 	}
 }
-

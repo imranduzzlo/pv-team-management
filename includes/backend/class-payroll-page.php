@@ -17,15 +17,11 @@ class WC_Team_Payroll_Page {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Enqueue common CSS and JS
-		wp_enqueue_style( 'wc-tp-common', WC_TEAM_PAYROLL_URL . 'assets/css/common.css', array(), WC_TEAM_PAYROLL_VERSION );
-		wp_enqueue_script( 'wc-tp-common', WC_TEAM_PAYROLL_URL . 'assets/js/common.js', array( 'jquery' ), WC_TEAM_PAYROLL_VERSION, true );
-
 		$start_date = isset( $_GET['start_date'] ) ? sanitize_text_field( $_GET['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_GET['end_date'] ) ? sanitize_text_field( $_GET['end_date'] ) : date( 'Y-m-t' );
 
 		?>
-		<div class="wrap wc-tp-page-wrapper">
+		<div class="wrap wc-team-payroll-payroll">
 			<h1><?php esc_html_e( 'Payroll', 'wc-team-payroll' ); ?></h1>
 
 			<!-- Search Filter -->
@@ -34,58 +30,33 @@ class WC_Team_Payroll_Page {
 				<button type="button" class="button button-secondary" id="wc-tp-payroll-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
 			</div>
 
-			<!-- Unified Filter Section -->
-			<div class="wc-tp-unified-filter">
-				<div class="wc-tp-filter-row">
-					<!-- Date Range Preset -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-payroll-date-preset">
-							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
-							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
-							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
-							<option value="this-month" selected><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
-							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
-							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
-							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
-							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
-							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
+			<!-- Date Range Filter -->
+			<div class="wc-tp-date-filter">
+				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+				<input type="date" id="wc-tp-payroll-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
+				<span class="wc-tp-date-separator">to</span>
+				<input type="date" id="wc-tp-payroll-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
+				<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+			</div>
 
-					<!-- Custom Date Range (Hidden by default) -->
-					<div class="wc-tp-filter-group" id="wc-tp-payroll-custom-dates" style="display: none;">
-						<input type="date" id="wc-tp-payroll-start-date" />
-						<span class="wc-tp-date-separator">to</span>
-						<input type="date" id="wc-tp-payroll-end-date" />
-					</div>
-
-					<!-- Salary Type Filter -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-payroll-salary-type-filter">
-							<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
-							<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
-							<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
-							<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Filter Button -->
-					<div class="wc-tp-filter-group">
-						<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-					</div>
-				</div>
+			<!-- Salary Type Filter -->
+			<div class="wc-tp-salary-filter">
+				<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
+				<select id="wc-tp-payroll-salary-type-filter">
+					<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
+					<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+					<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+					<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+				</select>
 			</div>
 
 			<!-- Payroll Table Section -->
 			<div class="wc-tp-table-section" id="wc-tp-payroll-table-section">
-				<div class="wc-tp-table-header">
-					<h2><?php esc_html_e( 'Payroll Details', 'wc-team-payroll' ); ?></h2>
-					<div class="wc-tp-items-per-page">
-						<label for="wc-tp-payroll-per-page"><?php esc_html_e( 'Items per page:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-payroll-per-page">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Payroll Details', 'wc-team-payroll' ); ?></h2>
+					<div style="display: flex; gap: 10px; align-items: center;">
+						<label for="wc-tp-payroll-per-page" style="margin: 0; font-weight: 600; color: #212B36;"><?php esc_html_e( 'Items per page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payroll-per-page" style="padding: 6px 10px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;">
 							<option value="10">10</option>
 							<option value="20" selected>20</option>
 							<option value="30">30</option>
@@ -103,7 +74,343 @@ class WC_Team_Payroll_Page {
 		</div>
 
 		<style>
-			/* Payroll page specific styles */
+			:root {
+				--color-primary: #FF9900;
+				--color-primary-hover: #E68A00;
+				--color-primary-subtle: #FFF4E5;
+				--color-secondary: #212B36;
+				--color-site-bg: #FDFBF8;
+				--color-card-bg: #FFFFFF;
+				--color-border-light: #E5EAF0;
+				--color-accent-alert: #FF5500;
+				--color-accent-link: #0077EE;
+				--color-accent-success: #388E3C;
+				--color-accent-muted: #F4F4F4;
+				--text-main: #212B36;
+				--text-body: #454F5B;
+				--text-muted: #919EAB;
+				--font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+				--fs-h1: 2rem;
+				--fs-h2: 1.5rem;
+				--fs-body: 1rem;
+				--fs-meta: 0.875rem;
+				--fs-small: 0.75rem;
+				--fw-bold: 700;
+				--fw-semibold: 600;
+				--fw-medium: 500;
+				--lh-body: 1.5;
+			}
+
+			.wc-team-payroll-payroll {
+				background: var(--color-site-bg);
+				padding: 24px;
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-team-payroll-payroll h1 {
+				font-size: var(--fs-h1);
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+				margin-bottom: 24px;
+			}
+
+			.wc-tp-search-filter {
+				background: var(--color-card-bg);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 16px;
+				border: 1px solid var(--color-border-light);
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-search-filter input[type="text"] {
+				flex: 1;
+				min-width: 250px;
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-search-filter input[type="text"]::placeholder {
+				color: var(--text-muted);
+			}
+
+			.wc-tp-search-filter .button-secondary {
+				background: var(--color-accent-muted);
+				border-color: var(--color-border-light);
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-search-filter .button-secondary:hover {
+				background: var(--color-border-light);
+				border-color: var(--color-border-light);
+			}
+
+			.wc-tp-date-filter {
+				background: var(--color-card-bg);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 24px;
+				border: 1px solid var(--color-border-light);
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-date-filter label {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-body);
+			}
+
+			.wc-tp-date-filter input[type="date"] {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-date-separator {
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
+			}
+
+			.wc-tp-table-section {
+				background: var(--color-card-bg);
+				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid var(--color-border-light);
+				margin-bottom: 20px;
+			}
+
+			.wc-tp-table-section h2 {
+				margin-top: 0;
+				margin-bottom: 20px;
+				color: var(--text-main);
+				border-left: 4px solid var(--color-primary);
+				padding-left: 12px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
+			}
+
+			.wc-tp-empty-state {
+				text-align: center;
+				padding: 40px 20px;
+				color: var(--text-muted);
+			}
+
+			.wc-tp-empty-icon {
+				font-size: 48px;
+				margin-bottom: 15px;
+				display: block;
+				opacity: 0.5;
+			}
+
+			.wc-tp-empty-state p {
+				margin: 0;
+				font-size: var(--fs-body);
+				color: var(--text-muted);
+			}
+
+			.wc-tp-data-table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+
+			.wc-tp-data-table thead {
+				background: var(--color-accent-muted);
+			}
+
+			.wc-tp-data-table th {
+				padding: 14px 12px;
+				text-align: left;
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+				border-bottom: 1px solid var(--color-border-light);
+			}
+
+			.wc-tp-sortable-header {
+				cursor: pointer;
+				user-select: none;
+				position: relative;
+				padding-right: 24px;
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-sortable-header::after {
+				content: '⇅';
+				position: absolute;
+				right: 8px;
+				opacity: 0.3;
+				font-size: 12px;
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-sortable-header:hover {
+				background-color: var(--color-primary-subtle);
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active {
+				background-color: var(--color-primary-subtle) !important;
+				color: var(--color-primary) !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active::after {
+				opacity: 1 !important;
+				color: var(--color-primary) !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-asc::after {
+				content: '↑' !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-desc::after {
+				content: '↓' !important;
+			}
+
+			.wc-tp-data-table td {
+				padding: 12px;
+				border-bottom: 1px solid var(--color-border-light);
+				font-size: var(--fs-body);
+				color: var(--text-body);
+			}
+
+			.wc-tp-data-table tbody tr:hover {
+				background: var(--color-primary-subtle);
+			}
+
+			.wc-tp-badge {
+				background: var(--color-primary);
+				color: white;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
+			}
+
+			.button-primary {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.button-primary:hover {
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
+			}
+
+			.wc-tp-pagination {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-pagination a,
+			.wc-tp-pagination span {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 4px;
+				text-decoration: none;
+				color: var(--text-main);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-pagination a:hover {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-pagination .current {
+				background: var(--color-primary);
+				color: white;
+				border-color: var(--color-primary);
+				font-weight: var(--fw-semibold);
+			}
+
+			@media (max-width: 768px) {
+				.wc-team-payroll-payroll {
+					padding: 12px;
+				}
+
+				.wc-tp-search-filter {
+					flex-direction: column;
+					gap: 8px;
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-search-filter input[type="text"] {
+					width: 100%;
+					min-width: unset;
+				}
+
+				.wc-tp-search-filter .button-secondary {
+					width: 100%;
+				}
+
+				.wc-tp-date-filter {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-date-filter input[type="date"] {
+					width: 100%;
+				}
+
+				.wc-tp-table-section {
+					padding: 12px;
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-table-section h2 {
+					font-size: 1.25rem;
+					margin-bottom: 12px;
+					padding-left: 8px;
+				}
+
+				.wc-tp-data-table {
+					font-size: 12px;
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 6px;
+				}
+
+				.button,
+				.button-small {
+					padding: 4px 6px;
+					font-size: 10px;
+				}
+
+				.wc-tp-badge {
+					padding: 2px 4px;
+					font-size: 10px;
+				}
+			}
 		</style>
 
 		<script>
@@ -115,46 +422,18 @@ class WC_Team_Payroll_Page {
 				let allPayrollData = [];
 				let searchQuery = '';
 				let salaryTypeFilter = '';
-				let startDate = '';
-				let endDate = '';
-				let itemsPerPage = 20;
+				let itemsPerPage = 20; // Default
 
+				// Load saved items per page from localStorage
 				const savedItemsPerPage = localStorage.getItem('wc_tp_payroll_items_per_page');
 				if (savedItemsPerPage) {
 					itemsPerPage = parseInt(savedItemsPerPage);
 					$('#wc-tp-payroll-per-page').val(itemsPerPage);
 				}
 
-				// Initialize with default date range (This Month)
-				const defaultRange = getDateRange('this-month');
-				startDate = defaultRange.start;
-				endDate = defaultRange.end;
-				$('#wc-tp-payroll-start-date').val(startDate);
-				$('#wc-tp-payroll-end-date').val(endDate);
-
 				loadPayrollData();
 
-				// Date preset change
-				handleDatePresetChange(
-					'#wc-tp-payroll-date-preset',
-					$('#wc-tp-payroll-custom-dates'),
-					'#wc-tp-payroll-start-date',
-					'#wc-tp-payroll-end-date',
-					function(start, end) {
-						startDate = start;
-						endDate = end;
-					}
-				);
-
-				// Custom date inputs
-				$('#wc-tp-payroll-start-date').on('change', function() {
-					startDate = $(this).val();
-				});
-
-				$('#wc-tp-payroll-end-date').on('change', function() {
-					endDate = $(this).val();
-				});
-
+				// Items per page change
 				$('#wc-tp-payroll-per-page').on('change', function() {
 					itemsPerPage = parseInt($(this).val());
 					localStorage.setItem('wc_tp_payroll_items_per_page', itemsPerPage);
@@ -170,6 +449,8 @@ class WC_Team_Payroll_Page {
 
 				$('#wc-tp-payroll-salary-type-filter').on('change', function() {
 					salaryTypeFilter = $(this).val();
+					currentPage = 1;
+					loadPayrollData();
 				});
 
 				$('#wc-tp-payroll-search').on('keyup', function() {
@@ -186,6 +467,9 @@ class WC_Team_Payroll_Page {
 				});
 
 				function loadPayrollData() {
+					const startDate = $('#wc-tp-payroll-start-date').val();
+					const endDate = $('#wc-tp-payroll-end-date').val();
+
 					if (!startDate || !endDate) {
 						alert('Please select both start and end dates');
 						return;
@@ -284,26 +568,122 @@ class WC_Team_Payroll_Page {
 				}
 
 				function attachPayrollSortHandlers(container, payrollArray) {
-					attachSortHandlers(container, payrollArray, function(sortedData, sortState) {
+					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
+					
+					// Remove old event handlers to prevent duplicates
+					container.find('.wc-tp-sortable-header').off('click');
+					
+					// Restore sort state classes if they exist
+					if (currentSort.field) {
+						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
+						if (header.length) {
+							header.addClass('wc-tp-sort-active');
+							if (currentSort.direction === 'asc') {
+								header.addClass('wc-tp-sort-asc');
+							} else {
+								header.addClass('wc-tp-sort-desc');
+							}
+						}
+					}
+					
+					container.find('.wc-tp-sortable-header').on('click', function() {
+						const sortField = $(this).data('sort');
+						if (!sortField) return;
+						
+						const isNumeric = ['orders', 'total', 'paid', 'due'].includes(sortField);
+						
+						// Check if clicking the same field
+						if (currentSort.field === sortField) {
+							// Toggle direction
+							currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+						} else {
+							// New field, start with ascending
+							currentSort.field = sortField;
+							currentSort.direction = 'asc';
+						}
+						
+						// Save sort state to container
+						container.data('sortState', currentSort);
+						
+						// Sort data
+						let sortedData = [...payrollArray].sort((a, b) => {
+							let aVal = a[sortField];
+							let bVal = b[sortField];
+							
+							if (aVal === undefined || aVal === null) aVal = '';
+							if (bVal === undefined || bVal === null) bVal = '';
+							
+							if (isNumeric) {
+								aVal = parseFloat(aVal) || 0;
+								bVal = parseFloat(bVal) || 0;
+								return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+							} else {
+								aVal = String(aVal).toLowerCase();
+								bVal = String(bVal).toLowerCase();
+								return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+							}
+						});
+						
+						// Reset to first page and update global data
 						currentPage = 1;
 						allPayrollData = sortedData;
+						
 						renderPayrollTable(allPayrollData);
 						renderPagination(allPayrollData);
+						
+						// Re-attach handlers to new headers with updated sort state
+						setTimeout(function() {
+							attachPayrollSortHandlers(container, sortedData);
+						}, 10);
 					});
 				}
 
 				function renderPagination(payroll) {
 					const container = $('#wc-tp-payroll-pagination');
 					
+					// Handle both array and object formats
 					let totalItems = 0;
 					if (Array.isArray(payroll)) {
 						totalItems = payroll.length;
 					} else {
 						totalItems = Object.keys(payroll).length;
 					}
+					
+					const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-					renderPagination(container, totalItems, currentPage, itemsPerPage, function(page) {
-						currentPage = page;
+					if (totalPages <= 1) {
+						container.html('');
+						return;
+					}
+
+					let html = '<div class="wc-tp-pagination">';
+
+					// Previous button
+					if (currentPage > 1) {
+						html += '<a href="#" data-page="' + (currentPage - 1) + '">← Previous</a>';
+					}
+
+					// Page numbers
+					for (let i = 1; i <= totalPages; i++) {
+						if (i === currentPage) {
+							html += '<span class="current">' + i + '</span>';
+						} else {
+							html += '<a href="#" data-page="' + i + '">' + i + '</a>';
+						}
+					}
+
+					// Next button
+					if (currentPage < totalPages) {
+						html += '<a href="#" data-page="' + (currentPage + 1) + '">Next →</a>';
+					}
+
+					html += '</div>';
+					container.html(html);
+
+					// Pagination click handler
+					container.find('a').on('click', function(e) {
+						e.preventDefault();
+						currentPage = parseInt($(this).data('page'));
 						renderPayrollTable(allPayrollData);
 						renderPagination(allPayrollData);
 						$('html, body').animate({ scrollTop: $('#wc-tp-payroll-table-section').offset().top - 100 }, 300);
@@ -311,7 +691,12 @@ class WC_Team_Payroll_Page {
 				}
 
 				function formatCurrency(value) {
-					return formatCurrency(value, wcCurrency, wcCurrencySymbol, wcCurrencyPos);
+					const amount = parseFloat(value).toFixed(2);
+					if (wcCurrencyPos === 'right') {
+						return amount + ' ' + wcCurrencySymbol;
+					} else {
+						return wcCurrencySymbol + ' ' + amount;
+					}
 				}
 			});
 		</script>
