@@ -906,66 +906,7 @@ class WC_Team_Payroll_Employee_Detail {
 				let itemsPerPage = 20;
 				let lastPresetRange = { start: '', end: '' }; // Store last preset range
 
-				// Initialize with default preset (This Month)
-				updateDateRangeFromPreset('this-month');
-
-				// Date preset change
-				$('#wc-tp-orders-date-preset').on('change', function() {
-					const preset = $(this).val();
-					
-					if (preset === 'custom') {
-						// Show custom date inputs with last preset values
-						$('#wc-tp-custom-date-range').slideDown(200);
-					} else {
-						// Hide custom date inputs and update dates
-						$('#wc-tp-custom-date-range').slideUp(200);
-						updateDateRangeFromPreset(preset);
-						// Don't load here, wait for Filter button click
-					}
-				});
-
-				// Custom date range change - just update values, don't load
-				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
-					// Just update the values, don't trigger load
-				});
-
-				// Load orders data function
-				function loadOrdersData() {
-					const startDate = $('#wc-tp-orders-start-date').val();
-					const endDate = $('#wc-tp-orders-end-date').val();
-					const statusFilter = $('#wc-tp-orders-status-filter').val();
-					const flagFilter = $('#wc-tp-orders-flag-filter').val();
-					const searchQuery = $('#wc-tp-orders-search').val();
-
-					if (!startDate || !endDate) {
-						return;
-					}
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_employee_orders',
-							user_id: userId,
-							start_date: startDate,
-							end_date: endDate,
-							status: statusFilter,
-							flag: flagFilter,
-							search: searchQuery
-						},
-						success: function(response) {
-							if (response.success) {
-								allOrdersData = response.data.orders || [];
-								renderOrdersTable(allOrdersData);
-								renderOrdersPagination(allOrdersData);
-							}
-						},
-						error: function() {
-							// Silent error handling
-						}
-					});
-				}
-
+				// Helper functions first
 				function getDateRangeFromPreset(preset) {
 					const today = new Date();
 					const year = today.getFullYear();
@@ -1056,6 +997,75 @@ class WC_Team_Payroll_Employee_Detail {
 					$('#wc-tp-orders-end-date').val(range.end);
 				}
 
+				function formatCurrency(value) {
+					const amount = parseFloat(value).toFixed(2);
+					if (wcCurrencyPos === 'right') {
+						return amount + ' ' + wcCurrencySymbol;
+					} else {
+						return wcCurrencySymbol + ' ' + amount;
+					}
+				}
+
+				// Initialize with default preset (This Month)
+				updateDateRangeFromPreset('this-month');
+
+				// Date preset change
+				$('#wc-tp-orders-date-preset').on('change', function() {
+					const preset = $(this).val();
+					
+					if (preset === 'custom') {
+						// Show custom date inputs with last preset values
+						$('#wc-tp-custom-date-range').slideDown(200);
+					} else {
+						// Hide custom date inputs and update dates
+						$('#wc-tp-custom-date-range').slideUp(200);
+						updateDateRangeFromPreset(preset);
+						// Don't load here, wait for Filter button click
+					}
+				});
+
+				// Custom date range change - just update values, don't load
+				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
+					// Just update the values, don't trigger load
+				});
+
+				// Load orders data function
+				function loadOrdersData() {
+					const startDate = $('#wc-tp-orders-start-date').val();
+					const endDate = $('#wc-tp-orders-end-date').val();
+					const statusFilter = $('#wc-tp-orders-status-filter').val();
+					const flagFilter = $('#wc-tp-orders-flag-filter').val();
+					const searchQuery = $('#wc-tp-orders-search').val();
+
+					if (!startDate || !endDate) {
+						return;
+					}
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employee_orders',
+							user_id: userId,
+							start_date: startDate,
+							end_date: endDate,
+							status: statusFilter,
+							flag: flagFilter,
+							search: searchQuery
+						},
+						success: function(response) {
+							if (response.success) {
+								allOrdersData = response.data.orders || [];
+								renderOrdersTable(allOrdersData);
+								renderOrdersPagination(allOrdersData);
+							}
+						},
+						error: function() {
+							// Silent error handling
+						}
+					});
+				}
+
 				// Load orders on page load (since orders tab is active by default)
 				loadOrdersData();
 
@@ -1071,9 +1081,15 @@ class WC_Team_Payroll_Employee_Detail {
 					$(this).addClass('wc-tp-tab-active');
 					$('#' + tabName + '-tab').addClass('wc-tp-tab-active');
 
-					// Load orders data when orders tab is clicked
+					// Load tab-specific data
 					if (tabName === 'orders') {
 						loadOrdersData();
+					} else if (tabName === 'payments') {
+						loadPaymentMethods();
+						loadPaymentHistory();
+					} else if (tabName === 'salary') {
+						loadSalaryData();
+						loadSalaryHistory();
 					}
 				});
 
@@ -1186,12 +1202,6 @@ class WC_Team_Payroll_Employee_Detail {
 						return wcCurrencySymbol + ' ' + amount;
 					}
 				}
-
-				// Load payment methods on payments tab click
-				$(document).on('click', '.wc-tp-tab-button[data-tab="payments"]', function() {
-					loadPaymentMethods();
-					loadPaymentHistory();
-				});
 
 				// Load payment methods
 				function loadPaymentMethods() {
@@ -1380,12 +1390,6 @@ class WC_Team_Payroll_Employee_Detail {
 						}
 					});
 				};
-
-				// Load salary data on salary tab click
-				$(document).on('click', '.wc-tp-tab-button[data-tab="salary"]', function() {
-					loadSalaryData();
-					loadSalaryHistory();
-				});
 
 				// Load salary data
 				function loadSalaryData() {
