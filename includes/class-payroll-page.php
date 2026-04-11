@@ -465,23 +465,28 @@ class WC_Team_Payroll_Page {
 				function renderPayrollTable(payroll) {
 					const container = $('#wc-tp-payroll-table-container');
 					
-					if (!payroll || Object.keys(payroll).length === 0) {
+					if (!payroll || payroll.length === 0) {
 						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📊</div><p>No payroll data for this period</p></div>');
 						return;
 					}
 
 					const itemsPerPage = 30;
-					let payrollArray = [];
-					$.each(payroll, function(userId, data) {
-						payrollArray.push({
-							userId: userId,
-							name: data.name,
-							orders: data.orders,
-							total: data.total,
-							paid: data.paid,
-							due: data.due
+					let payrollArray = payroll;
+					
+					// If payroll is an object (from AJAX), convert to array
+					if (!Array.isArray(payroll)) {
+						payrollArray = [];
+						$.each(payroll, function(userId, data) {
+							payrollArray.push({
+								userId: userId,
+								name: data.name,
+								orders: data.orders,
+								total: data.total,
+								paid: data.paid,
+								due: data.due
+							});
 						});
-					});
+					}
 
 					const startIndex = (currentPage - 1) * itemsPerPage;
 					const endIndex = startIndex + itemsPerPage;
@@ -569,12 +574,9 @@ class WC_Team_Payroll_Page {
 							}
 						});
 						
-						// Reset to first page and re-render
+						// Reset to first page and update global data
 						currentPage = 1;
-						allPayrollData = {};
-						$.each(sortedData, function(i, item) {
-							allPayrollData[item.userId] = item;
-						});
+						allPayrollData = sortedData;
 						
 						renderPayrollTable(allPayrollData);
 						renderPagination(allPayrollData);
@@ -589,8 +591,16 @@ class WC_Team_Payroll_Page {
 				function renderPagination(payroll) {
 					const container = $('#wc-tp-payroll-pagination');
 					const itemsPerPage = 30;
-					let payrollArray = Object.keys(payroll).length;
-					const totalPages = Math.ceil(payrollArray / itemsPerPage);
+					
+					// Handle both array and object formats
+					let totalItems = 0;
+					if (Array.isArray(payroll)) {
+						totalItems = payroll.length;
+					} else {
+						totalItems = Object.keys(payroll).length;
+					}
+					
+					const totalPages = Math.ceil(totalItems / itemsPerPage);
 
 					if (totalPages <= 1) {
 						container.html('');
