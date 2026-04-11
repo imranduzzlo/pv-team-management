@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.8.1] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Table Display Fix**: Fixed broken table headers displaying vertically (column-wise) throughout the plugin
+- **CSS Enhancement**: Added explicit display properties to all table elements to prevent conflicts
+- **Cross-Browser Compatibility**: Ensured tables render correctly across all browsers and WordPress admin themes
+
+### 🔧 **Technical Improvements**
+- Added `!important` flags to table display properties to override conflicting CSS
+- Applied fix to all pages: Dashboard, Employee Management, Employee Detail, Payments, and Payroll
+- Improved CSS specificity for `.wc-tp-data-table` and child elements
+
+---
+
 ## [5.8.0] - 2024-12-19
 
 ### 🚀 **Major Features**

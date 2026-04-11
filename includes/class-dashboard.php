@@ -21,31 +21,6 @@ class WC_Team_Payroll_Dashboard {
 		<div class="wrap wc-team-payroll-dashboard">
 			<h1><?php esc_html_e( 'Dashboard', 'wc-team-payroll' ); ?></h1>
 
-			<!-- Global Search Box -->
-			<div class="wc-tp-global-search-container" style="margin-bottom: 24px; position: relative;">
-				<div style="display: flex; gap: 12px; align-items: center;">
-					<div style="flex: 1; position: relative;">
-						<input 
-							type="text" 
-							id="wc-tp-global-search" 
-							class="wc-tp-search-input" 
-							placeholder="<?php esc_attr_e( 'Search for anything... (User ID, Customer Name, Employee Name, Status, etc.)', 'wc-team-payroll' ); ?>"
-							style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;"
-						/>
-						<button 
-							type="button" 
-							id="wc-tp-search-clear" 
-							class="wc-tp-search-clear-btn" 
-							style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: none;"
-							title="<?php esc_attr_e( 'Clear search', 'wc-team-payroll' ); ?>"
-						>
-							<span class="dashicons dashicons-no-alt" style="font-size: 16px; color: #666;"></span>
-						</button>
-						<div id="wc-tp-search-results" class="wc-tp-search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5EAF0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 4px; max-height: 400px; overflow-y: auto;"></div>
-					</div>
-				</div>
-			</div>
-
 			<!-- Unified Filter Section -->
 			<div class="wc-tp-unified-filter">
 				<div class="wc-tp-filter-row">
@@ -456,10 +431,25 @@ class WC_Team_Payroll_Dashboard {
 			.wc-tp-data-table {
 				width: 100%;
 				border-collapse: collapse;
+				display: table !important;
 			}
 
 			.wc-tp-data-table thead {
 				background: var(--color-accent-muted);
+				display: table-header-group !important;
+			}
+
+			.wc-tp-data-table tbody {
+				display: table-row-group !important;
+			}
+
+			.wc-tp-data-table tr {
+				display: table-row !important;
+			}
+
+			.wc-tp-data-table th,
+			.wc-tp-data-table td {
+				display: table-cell !important;
 			}
 
 			.wc-tp-data-table th {

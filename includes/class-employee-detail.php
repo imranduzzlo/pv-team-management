@@ -852,10 +852,25 @@ class WC_Team_Payroll_Employee_Detail {
 			.wc-tp-data-table {
 				width: 100%;
 				border-collapse: collapse;
+				display: table !important;
 			}
 
 			.wc-tp-data-table thead {
 				background: var(--color-accent-muted);
+				display: table-header-group !important;
+			}
+
+			.wc-tp-data-table tbody {
+				display: table-row-group !important;
+			}
+
+			.wc-tp-data-table tr {
+				display: table-row !important;
+			}
+
+			.wc-tp-data-table th,
+			.wc-tp-data-table td {
+				display: table-cell !important;
 			}
 
 			.wc-tp-data-table th {

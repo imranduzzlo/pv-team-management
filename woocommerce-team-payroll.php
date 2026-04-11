@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.0
+ * Version: 5.8.1
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.8.0' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.8.1' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -118,6 +118,99 @@ add_action( 'plugins_loaded', function() {
 
 		return $user;
 	}, 10, 2 );
+
+	// Check and log out inactive employees who are currently logged in
+	add_action( 'init', function() {
+		// Only check for logged-in users
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
+		$current_user = wp_get_current_user();
+		
+		// Check if user is an employee (has team payroll roles)
+		$team_roles = array( 'shop_employee', 'shop_manager', 'administrator' );
+		$user_roles = $current_user->roles;
+		$is_team_member = false;
+
+		foreach ( $team_roles as $role ) {
+			if ( in_array( $role, $user_roles ) ) {
+				$is_team_member = true;
+				break;
+			}
+		}
+
+		// Only check status for team members
+		if ( $is_team_member ) {
+			$employee_status = get_user_meta( $current_user->ID, '_wc_tp_employee_status', true );
+			
+			if ( $employee_status === 'inactive' ) {
+				// Log out the user
+				wp_logout();
+				
+				// Get contact information for redirect message
+				$contact_whatsapp = get_option( 'wc_team_payroll_contact_whatsapp', '' );
+				$contact_email = get_option( 'wc_team_payroll_contact_email', '' );
+				$contact_telegram = get_option( 'wc_team_payroll_contact_telegram', '' );
+				
+				$contact_params = array();
+				if ( $contact_whatsapp ) {
+					$contact_params['whatsapp'] = $contact_whatsapp;
+				}
+				if ( $contact_email ) {
+					$contact_params['email'] = $contact_email;
+				}
+				if ( $contact_telegram ) {
+					$contact_params['telegram'] = $contact_telegram;
+				}
+				
+				// Redirect to login page with inactive employee message
+				$login_url = wp_login_url();
+				$redirect_url = add_query_arg( array_merge( array( 'wc_tp_inactive' => '1' ), $contact_params ), $login_url );
+				
+				wp_redirect( $redirect_url );
+				exit;
+			}
+		}
+	} );
+
+	// Display inactive employee message on login page
+	add_action( 'login_message', function( $message ) {
+		if ( isset( $_GET['wc_tp_inactive'] ) && $_GET['wc_tp_inactive'] === '1' ) {
+			$contact_links = array();
+			
+			if ( isset( $_GET['whatsapp'] ) && ! empty( $_GET['whatsapp'] ) ) {
+				$whatsapp = sanitize_text_field( $_GET['whatsapp'] );
+				$contact_links[] = '<a href="https://wa.me/' . esc_attr( $whatsapp ) . '" target="_blank" style="color: #25D366; text-decoration: none;">WhatsApp</a>';
+			}
+			
+			if ( isset( $_GET['email'] ) && ! empty( $_GET['email'] ) ) {
+				$email = sanitize_email( $_GET['email'] );
+				$contact_links[] = '<a href="mailto:' . esc_attr( $email ) . '" style="color: #0073aa; text-decoration: none;">Email</a>';
+			}
+			
+			if ( isset( $_GET['telegram'] ) && ! empty( $_GET['telegram'] ) ) {
+				$telegram = sanitize_text_field( $_GET['telegram'] );
+				$contact_links[] = '<a href="https://t.me/' . esc_attr( $telegram ) . '" target="_blank" style="color: #0088cc; text-decoration: none;">Telegram</a>';
+			}
+			
+			$contact_text = '';
+			if ( ! empty( $contact_links ) ) {
+				$contact_text = '<br><strong>Contact us:</strong> ' . implode( ' | ', $contact_links );
+			}
+			
+			$warning_message = '<div id="login_error" style="background: #ffebee; border: 1px solid #f44336; border-radius: 4px; padding: 12px; margin: 16px 0; color: #c62828;">';
+			$warning_message .= '<strong>⚠️ Account Deactivated</strong><br>';
+			$warning_message .= 'Your employee account has been deactivated and you have been logged out.<br>';
+			$warning_message .= 'If this is a mistake, please contact us to reactivate your employee ID.';
+			$warning_message .= $contact_text;
+			$warning_message .= '</div>';
+			
+			$message .= $warning_message;
+		}
+		
+		return $message;
+	} );
 
 	// ============================================================================
 	// AJAX HANDLERS
@@ -1407,12 +1500,6 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 	wp_enqueue_style( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/css/dashboard.css', array(), WC_TEAM_PAYROLL_VERSION );
 	wp_enqueue_script( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/js/dashboard.js', array( 'jquery', 'jquery-datatables' ), WC_TEAM_PAYROLL_VERSION, true );
-
-	// Enqueue global search on dashboard page
-	if ( strpos( $hook, 'wc-team-payroll-dashboard' ) !== false ) {
-		wp_enqueue_script( 'wc-team-payroll-global-search', WC_TEAM_PAYROLL_URL . 'assets/js/global-search.js', array( 'jquery' ), WC_TEAM_PAYROLL_VERSION, true );
-		wp_localize_script( 'wc-team-payroll-global-search', 'wc_tp_search_nonce', wp_create_nonce( 'wc_tp_search_nonce' ) );
-	}
 } );
 
 // ============================================================================
