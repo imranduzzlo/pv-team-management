@@ -33,3 +33,5 @@ Thumbs.db
 *.bak
 *.backup
 *.tmp
+# Kiro
+.kiro/

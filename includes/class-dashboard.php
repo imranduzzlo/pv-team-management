@@ -30,9 +30,18 @@ class WC_Team_Payroll_Dashboard {
 							id="wc-tp-global-search" 
 							class="wc-tp-search-input" 
 							placeholder="<?php esc_attr_e( 'Search for anything... (User ID, Customer Name, Employee Name, Status, etc.)', 'wc-team-payroll' ); ?>"
-							style="width: 100%; padding: 10px 12px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;"
+							style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;"
 						/>
-						<div id="wc-tp-search-results" class="wc-tp-search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5EAF0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 4px; max-height: 400px; overflow-y: auto;"></div>
+						<button 
+							type="button" 
+							id="wc-tp-search-clear" 
+							class="wc-tp-search-clear-btn" 
+							style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: none;"
+							title="<?php esc_attr_e( 'Clear search', 'wc-team-payroll' ); ?>"
+						>
+							<span class="dashicons dashicons-no-alt" style="font-size: 16px; color: #666;"></span>
+						</button>
+						<div id="wc-tp-search-results" class="wc-tp-search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5EAF0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 4px; max-height: 400px; overflow-y: auto;"></div>
 					</div>
 				</div>
 			</div>
@@ -78,9 +87,12 @@ class WC_Team_Payroll_Dashboard {
 
 			<!-- Employee Payroll Details (TOP) -->
 			<div class="wc-tp-table-section" id="wc-tp-payroll-section">
-				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-					<h2 style="margin: 0;"><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+				<div class="wc-tp-section-header">
+					<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
+						<?php esc_html_e( 'View All', 'wc-team-payroll' ); ?>
+						<span class="dashicons dashicons-arrow-right-alt2"></span>
+					</a>
 				</div>
 				<div id="wc-tp-payroll-container">
 					<!-- Content will be loaded via AJAX -->
@@ -91,7 +103,9 @@ class WC_Team_Payroll_Dashboard {
 			<div class="wc-tp-dashboard-grid">
 				<!-- Top Earners -->
 				<div class="wc-tp-table-section" id="wc-tp-earners-section">
-					<h2 style="margin: 0;"><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
+					<div class="wc-tp-section-header">
+						<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
+					</div>
 					<div id="wc-tp-top-earners-container">
 						<!-- Content will be loaded via AJAX -->
 					</div>
@@ -99,9 +113,12 @@ class WC_Team_Payroll_Dashboard {
 
 				<!-- Recent Payments -->
 				<div class="wc-tp-table-section" id="wc-tp-payments-section">
-					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-						<h2 style="margin: 0;"><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payments' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+					<div class="wc-tp-section-header">
+						<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
+						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payments' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
+							<?php esc_html_e( 'View All', 'wc-team-payroll' ); ?>
+							<span class="dashicons dashicons-arrow-right-alt2"></span>
+						</a>
 					</div>
 					<div id="wc-tp-recent-payments-container">
 						<!-- Content will be loaded via AJAX -->
@@ -111,9 +128,12 @@ class WC_Team_Payroll_Dashboard {
 
 			<!-- Latest Employees (10) - BOTTOM -->
 			<div class="wc-tp-table-section" id="wc-tp-employees-section">
-				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-					<h2 style="margin: 0;"><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
-					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employees' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+				<div class="wc-tp-section-header">
+					<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employees' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
+						<?php esc_html_e( 'View All', 'wc-team-payroll' ); ?>
+						<span class="dashicons dashicons-arrow-right-alt2"></span>
+					</a>
 				</div>
 				<div id="wc-tp-latest-employees-container">
 					<!-- Content will be loaded via AJAX -->
@@ -242,7 +262,7 @@ class WC_Team_Payroll_Dashboard {
 				display: flex;
 				flex-direction: column;
 				align-items: flex-start;
-				justify-content: flex-start;
+				justify-content: flex-end;
 				gap: 12px;
 				transition: all 0.3s ease;
 				cursor: pointer;
@@ -329,6 +349,91 @@ class WC_Team_Payroll_Dashboard {
 				font-weight: var(--fw-bold);
 			}
 
+			/* Section header with view all button styling */
+			.wc-tp-section-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 20px;
+			}
+
+			.wc-tp-section-header h2 {
+				margin: 0;
+				color: var(--text-main);
+				border-left: 4px solid var(--color-primary);
+				padding-left: 12px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
+			}
+
+			.wc-tp-view-all-btn {
+				background: transparent;
+				border: none;
+				color: var(--color-primary);
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-medium);
+				text-decoration: none;
+				padding: 0;
+				margin: 0;
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				transition: all 0.2s ease;
+				cursor: pointer;
+				line-height: 1;
+			}
+
+			.wc-tp-view-all-btn:hover {
+				color: var(--color-primary-hover);
+				text-decoration: none;
+			}
+
+			.wc-tp-view-all-btn .dashicons {
+				font-size: 14px;
+				transition: transform 0.2s ease;
+				width: 14px;
+				height: 14px;
+			}
+
+			.wc-tp-view-all-btn:hover .dashicons {
+				transform: translateX(2px);
+			}
+
+			/* Sections without view all button - ensure consistent spacing */
+			.wc-tp-table-section h2:only-child {
+				margin-bottom: 20px;
+			}
+
+			/* Action icons - remove underlines and borders */
+			.wc-tp-action-icon {
+				text-decoration: none !important;
+				border: none !important;
+				box-shadow: none !important;
+				background: transparent !important;
+				padding: 4px;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 3px;
+				transition: background 0.2s ease;
+			}
+
+			.wc-tp-action-icon:hover {
+				text-decoration: none !important;
+				background: #f0f0f0 !important;
+			}
+
+			.wc-tp-action-icon .dashicons {
+				color: #666;
+				font-size: 16px;
+				width: 16px;
+				height: 16px;
+			}
+
+			.wc-tp-action-icon:hover .dashicons {
+				color: #333;
+			}
+
 			.wc-tp-empty-state {
 				text-align: center;
 				padding: 40px 20px;
@@ -358,7 +463,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-data-table th {
-				padding: 14px 12px;
+				padding: 16px 14px;
 				text-align: left;
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
@@ -431,6 +536,16 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-status-failed {
+				background: #F8D7DA;
+				color: #721C24;
+			}
+
+			.wc-tp-status-active {
+				background: #D4EDDA;
+				color: #155724;
+			}
+
+			.wc-tp-status-inactive {
 				background: #F8D7DA;
 				color: #721C24;
 			}
@@ -894,27 +1009,33 @@ class WC_Team_Payroll_Dashboard {
 					html += '<th class="wc-tp-sortable-header" data-sort="display_name">Name' + getSortIconDashboard('display_name', container) + '</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="type">Type' + getSortIconDashboard('type', container) + '</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="salary_info">Salary/Commission' + getSortIconDashboard('salary_info', container) + '</th>';
-					html += '<th>Status</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="status">Status' + getSortIconDashboard('status', container) + '</th>';
 					html += '<th style="width: 50px; text-align: center;">Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(employees, function(i, emp) {
 						const profileImg = emp.profile_picture ? '<img src="' + emp.profile_picture + '" alt="' + emp.display_name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
 						const tooltip = 'Name: ' + emp.display_name + '\nEmail: ' + emp.user_email + '\nPhone: ' + (emp.phone || 'N/A') + '\nRole: ' + emp.user_role;
-						const nameHtml = '<a href="' + emp.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + emp.vb_user_id + ' ' + emp.display_name.split(' ').slice(0, 1).join(' ') + '</span></a>';
+						const userEditUrl = 'user-edit.php?user_id=' + emp.user_id;
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + emp.vb_user_id + ' ' + emp.display_name.split(' ').slice(0, 1).join(' ') + '</span></a>';
+						
+						// Status badge - using actual employee status instead of hardcoded "Active"
+						const statusClass = emp.status === 'active' ? 'wc-tp-status-active' : 'wc-tp-status-inactive';
+						const statusText = emp.status === 'active' ? 'Active' : 'Inactive';
+						const statusBadge = '<span class="wc-tp-status ' + statusClass + '">' + statusText + '</span>';
 						
 						html += '<tr>';
 						html += '<td>' + nameHtml + '</td>';
 						html += '<td>' + emp.type + '</td>';
 						html += '<td>' + emp.salary_info + '</td>';
-						html += '<td><span class="wc-tp-badge" style="background: #E8F5E9; color: #388E3C;">Active</span></td>';
+						html += '<td>' + statusBadge + '</td>';
 						html += '<td style="text-align: center;"><a href="' + emp.manage_url + '" class="wc-tp-action-icon" title="Manage Employee"><span class="dashicons dashicons-edit"></span></a></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, employees, ['display_name', 'type', 'salary_info']);
+					attachSortHandlers(container, employees, ['display_name', 'type', 'salary_info', 'status']);
 				}
 
 				// Render top earners table
@@ -935,7 +1056,8 @@ class WC_Team_Payroll_Dashboard {
 					$.each(earners, function(i, earner) {
 						const profileImg = earner.profile_picture ? '<img src="' + earner.profile_picture + '" alt="' + earner.name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
 						const tooltip = 'Name: ' + earner.name + '\nEmail: ' + earner.user_email + '\nPhone: ' + (earner.phone || 'N/A') + '\nRole: ' + earner.user_role;
-						const nameHtml = '<a href="' + earner.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + earner.name + '</span></a>';
+						const userEditUrl = 'user-edit.php?user_id=' + earner.user_id;
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + earner.name + '</span></a>';
 						
 						html += '<tr>';
 						html += '<td>' + nameHtml + '</td>';
@@ -967,7 +1089,8 @@ class WC_Team_Payroll_Dashboard {
 					$.each(payments, function(i, payment) {
 						const profileImg = payment.profile_picture ? '<img src="' + payment.profile_picture + '" alt="' + payment.employee_name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
 						const tooltip = 'Name: ' + payment.employee_name + '\nEmail: ' + payment.user_email + '\nPhone: ' + (payment.phone || 'N/A') + '\nRole: ' + payment.user_role;
-						const nameHtml = '<a href="' + payment.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + payment.employee_name + '</span></a>';
+						const userEditUrl = 'user-edit.php?user_id=' + payment.user_id;
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + payment.employee_name + '</span></a>';
 						
 						html += '<tr data-payment-user-id="' + payment.user_id + '">';
 						html += '<td>' + nameHtml + '</td>';
@@ -1020,7 +1143,8 @@ class WC_Team_Payroll_Dashboard {
 					$.each(payrollArray, function(i, data) {
 						const profileImg = data.profile_picture ? '<img src="' + data.profile_picture + '" alt="' + data.name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
 						const tooltip = 'Name: ' + data.name + '\nEmail: ' + data.user_email + '\nPhone: ' + (data.phone || 'N/A') + '\nRole: ' + data.user_role;
-						const nameHtml = '<a href="' + data.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + data.name + '</span></a>';
+						const userEditUrl = 'user-edit.php?user_id=' + data.userId;
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + data.name + '</span></a>';
 						
 						html += '<tr data-user-id="' + data.userId + '">';
 						html += '<td>' + nameHtml + '</td>';

@@ -29,6 +29,10 @@ class WC_Team_Payroll_Employee_Detail {
 		$phone = get_user_meta( $user_id, 'billing_phone', true );
 		$bio = get_user_meta( $user_id, 'description', true );
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
+		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true );
+		if ( ! $employee_status ) {
+			$employee_status = 'active'; // Default to active
+		}
 
 		// Get stats
 		$core_engine = new WC_Team_Payroll_Core_Engine();
@@ -80,9 +84,18 @@ class WC_Team_Payroll_Employee_Detail {
 						</div>
 					</div>
 					<div class="wc-tp-profile-right">
-						<a href="<?php echo esc_url( get_edit_user_link( $user_id ) ); ?>" class="button button-primary">
-							<span class="dashicons dashicons-edit"></span> <?php esc_html_e( 'Edit Profile', 'wc-team-payroll' ); ?>
-						</a>
+						<div class="wc-tp-profile-actions">
+							<div class="wc-tp-status-control">
+								<label for="wc-tp-employee-status"><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
+								<select id="wc-tp-employee-status" data-user-id="<?php echo esc_attr( $user_id ); ?>">
+									<option value="active" <?php selected( $employee_status, 'active' ); ?>><?php esc_html_e( 'Active', 'wc-team-payroll' ); ?></option>
+									<option value="inactive" <?php selected( $employee_status, 'inactive' ); ?>><?php esc_html_e( 'Inactive', 'wc-team-payroll' ); ?></option>
+								</select>
+							</div>
+							<a href="<?php echo esc_url( get_edit_user_link( $user_id ) ); ?>" class="button button-primary">
+								<span class="dashicons dashicons-edit"></span> <?php esc_html_e( 'Edit Profile', 'wc-team-payroll' ); ?>
+							</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -593,6 +606,54 @@ class WC_Team_Payroll_Employee_Detail {
 
 			.wc-tp-profile-right {
 				flex-shrink: 0;
+			}
+
+			.wc-tp-profile-actions {
+				display: flex;
+				flex-direction: column;
+				gap: 16px;
+				align-items: flex-end;
+			}
+
+			.wc-tp-status-control {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				align-items: flex-end;
+			}
+
+			.wc-tp-status-control label {
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+			}
+
+			.wc-tp-status-control select {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+				background: var(--color-card-bg);
+				min-width: 120px;
+				cursor: pointer;
+			}
+
+			.wc-tp-status-control select:focus {
+				outline: none;
+				border-color: var(--color-primary);
+				box-shadow: 0 0 0 3px var(--color-primary-subtle);
+			}
+
+			.wc-tp-status-control select[value="active"] {
+				border-color: var(--color-accent-success);
+				color: var(--color-accent-success);
+			}
+
+			.wc-tp-status-control select[value="inactive"] {
+				border-color: var(--color-accent-alert);
+				color: var(--color-accent-alert);
 			}
 
 			.wc-tp-profile-right .button-primary {
@@ -1167,6 +1228,18 @@ class WC_Team_Payroll_Employee_Detail {
 					width: 100%;
 				}
 
+				.wc-tp-profile-actions {
+					align-items: stretch;
+				}
+
+				.wc-tp-status-control {
+					align-items: stretch;
+				}
+
+				.wc-tp-status-control select {
+					width: 100%;
+				}
+
 				.wc-tp-profile-right .button-primary {
 					width: 100%;
 					justify-content: center;
@@ -1212,6 +1285,94 @@ class WC_Team_Payroll_Employee_Detail {
 			jQuery(document).ready(function($) {
 				const userId = $('#wc-tp-current-user-id').val();
 				const nonce = $('#wc_team_payroll_nonce').val();
+
+				// Employee Status Change Handler
+				$('#wc-tp-employee-status').on('change', function() {
+					const newStatus = $(this).val();
+					const userId = $(this).data('user-id');
+					const $select = $(this);
+					
+					// Show confirmation for status change
+					const statusText = newStatus === 'active' ? 'Active' : 'Inactive';
+					const message = 'Are you sure you want to change this employee status to ' + statusText + '?';
+					
+					if (newStatus === 'inactive') {
+						const warningMessage = 'Warning: Setting employee to Inactive will:\n\n' +
+							'• Hide them from checkout agent dropdown\n' +
+							'• Block their WordPress login access\n' +
+							'• Show warning message on login attempts\n\n' +
+							'Are you sure you want to continue?';
+						
+						if (!confirm(warningMessage)) {
+							// Revert selection
+							$select.val($select.data('previous-value') || 'active');
+							return;
+						}
+					} else {
+						if (!confirm(message)) {
+							// Revert selection
+							$select.val($select.data('previous-value') || 'inactive');
+							return;
+						}
+					}
+					
+					// Store previous value
+					$select.data('previous-value', newStatus);
+					
+					// Disable select during update
+					$select.prop('disabled', true);
+					
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_update_employee_status',
+							user_id: userId,
+							status: newStatus,
+							nonce: nonce
+						},
+						success: function(response) {
+							if (response.success) {
+								// Update select styling based on status
+								$select.removeClass('status-active status-inactive').addClass('status-' + newStatus);
+								
+								// Show success message
+								if (typeof wcTPToast === 'function') {
+									wcTPToast('Employee status updated successfully', 'success');
+								} else {
+									alert('Employee status updated successfully');
+								}
+							} else {
+								// Revert on error
+								const previousValue = newStatus === 'active' ? 'inactive' : 'active';
+								$select.val(previousValue);
+								
+								if (typeof wcTPToast === 'function') {
+									wcTPToast('Failed to update employee status: ' + (response.data || 'Unknown error'), 'error');
+								} else {
+									alert('Failed to update employee status: ' + (response.data || 'Unknown error'));
+								}
+							}
+						},
+						error: function() {
+							// Revert on error
+							const previousValue = newStatus === 'active' ? 'inactive' : 'active';
+							$select.val(previousValue);
+							
+							if (typeof wcTPToast === 'function') {
+								wcTPToast('Error updating employee status', 'error');
+							} else {
+								alert('Error updating employee status');
+							}
+						},
+						complete: function() {
+							$select.prop('disabled', false);
+						}
+					});
+				});
+
+				// Store initial value
+				$('#wc-tp-employee-status').data('previous-value', $('#wc-tp-employee-status').val());
 
 				// Add inline edit form styles
 				if (!$('#wc-tp-inline-edit-styles').length) {

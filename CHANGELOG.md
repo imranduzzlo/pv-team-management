@@ -1,5 +1,56 @@
 # Changelog
 
+## [5.8.0] - 2024-12-19
+
+### 🚀 **Major Features**
+- **Employee Status Management System**: Complete employee activation/deactivation functionality
+- **Enhanced Global Search**: Comprehensive search across orders, employees, customers, and payments
+- **Dashboard UI Polish**: Improved spacing, styling, and user experience
+
+### ✨ **New Features**
+- **Employee Status Control**: Active/Inactive dropdown in employee detail pages
+- **Checkout Integration**: Inactive employees automatically hidden from agent dropdown
+- **Login Security**: Inactive employees blocked from WordPress login with professional warning
+- **Contact Information**: Settings for WhatsApp, Email, and Telegram contact details
+- **Status Display**: Employee status shown in dashboard tables with color-coded badges
+- **Global Search Enhancement**: 
+  - Search across all data types (orders, employees, customers, payments)
+  - Clear button with X icon
+  - Improved search logic with better field coverage
+  - Enhanced result display with proper formatting
+
+### 🎨 **UI/UX Improvements**
+- **Dashboard Cards**: Text content aligned to bottom for better visual hierarchy
+- **Table Headers**: Increased padding (16px 14px) for better readability
+- **Section Headers**: Consistent spacing with minimal "View All" buttons
+- **Action Icons**: Removed underlines and borders for cleaner appearance
+- **Employee Links**: Names link to WordPress user edit page, action icons to detail pages
+- **Responsive Design**: Better mobile experience across all components
+
+### 🔧 **Technical Enhancements**
+- **AJAX Handler**: `wc_tp_update_employee_status` for real-time status updates
+- **Security**: Proper nonce verification and capability checks
+- **Data Validation**: Input sanitization and error handling
+- **Performance**: Optimized search queries with limits to prevent timeouts
+- **Backward Compatibility**: All changes work with existing data
+
+### 🛠 **Settings & Configuration**
+- **Contact Settings**: New fields in General settings for employee support contacts
+- **Status Management**: Automatic status handling with confirmation dialogs
+- **Default Behavior**: New employees default to "active" status
+
+### 📱 **Mobile & Responsive**
+- **Profile Actions**: Improved mobile layout for status controls
+- **Search Interface**: Better mobile search experience
+- **Table Display**: Enhanced responsive table behavior
+
+### 🔒 **Security & Access Control**
+- **Role-Based Blocking**: Only applies to team members (employees, managers, admins)
+- **Flexible Transitions**: Former employees can become customers without restrictions
+- **Professional Messaging**: User-friendly warning messages with contact information
+
+---
+
 ## [5.7.8] - 2026-04-12
 
 ### MAJOR IMPROVEMENTS - Dashboard UI Enhancements & Global Search

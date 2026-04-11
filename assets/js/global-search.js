@@ -5,14 +5,22 @@
 jQuery(document).ready(function($) {
 	const searchInput = $('#wc-tp-global-search');
 	const searchResults = $('#wc-tp-search-results');
+	const clearButton = $('#wc-tp-search-clear');
 	let searchTimeout;
 	let currentPage = 1;
 	let currentQuery = '';
 	let allResults = [];
 
 	// Search input handler
-	searchInput.on('keyup', function() {
+	searchInput.on('keyup input', function() {
 		const query = $(this).val().trim();
+
+		// Show/hide clear button
+		if (query.length > 0) {
+			clearButton.show();
+		} else {
+			clearButton.hide();
+		}
 
 		if (query.length < 2) {
 			searchResults.removeClass('show').html('');
@@ -28,10 +36,26 @@ jQuery(document).ready(function($) {
 		}, 300);
 	});
 
+	// Clear button handler
+	clearButton.on('click', function() {
+		searchInput.val('').focus();
+		clearButton.hide();
+		searchResults.removeClass('show').html('');
+		allResults = [];
+		currentQuery = '';
+	});
+
 	// Close search results when clicking outside
 	$(document).on('click', function(e) {
 		if (!$(e.target).closest('.wc-tp-global-search-container').length) {
 			searchResults.removeClass('show');
+		}
+	});
+
+	// Show results when clicking on search input if there are results
+	searchInput.on('focus', function() {
+		if (allResults.length > 0 && currentQuery.length >= 2) {
+			searchResults.addClass('show');
 		}
 	});
 
@@ -51,7 +75,7 @@ jQuery(document).ready(function($) {
 					allResults = response.data.results;
 					renderSearchResults(allResults, currentPage);
 				} else {
-					searchResults.html('<div class="wc-tp-search-empty">No results found</div>');
+					searchResults.html('<div class="wc-tp-search-empty">No results found for "' + currentQuery + '"</div>');
 				}
 			},
 			error: function() {
@@ -124,7 +148,9 @@ jQuery(document).ready(function($) {
 		let metaHtml = '';
 		if (result.meta && result.meta.length > 0) {
 			$.each(result.meta, function(i, meta) {
-				metaHtml += '<span>' + meta + '</span>';
+				if (meta && meta.trim() !== '') {
+					metaHtml += '<span>' + meta + '</span>';
+				}
 			});
 		}
 

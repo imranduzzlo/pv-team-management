@@ -46,6 +46,12 @@ class WC_Team_Payroll_Checkout_Integration {
 
 		$data = array();
 		foreach ( $users as $user ) {
+			// Check if employee is active (exclude inactive employees)
+			$employee_status = get_user_meta( $user->ID, '_wc_tp_employee_status', true );
+			if ( $employee_status === 'inactive' ) {
+				continue; // Skip inactive employees
+			}
+
 			// Get vb_user_id from user meta
 			$vb_user_id = get_user_meta( $user->ID, 'vb_user_id', true );
 

@@ -73,6 +73,32 @@ class WC_Team_Payroll_Settings {
 							</td>
 						</tr>
 					</table>
+
+					<h3>Contact Information for Inactive Employees</h3>
+					<p>These contact details will be shown to inactive employees when they try to login.</p>
+					<table class="form-table">
+						<tr>
+							<th><label for="contact_whatsapp">WhatsApp Number</label></th>
+							<td>
+								<input type="text" id="contact_whatsapp" name="contact_whatsapp" value="<?php echo esc_attr( get_option( 'wc_team_payroll_contact_whatsapp', '' ) ); ?>" placeholder="1234567890" />
+								<p class="description">WhatsApp number (without + or country code, e.g., 1234567890)</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="contact_email">Contact Email</label></th>
+							<td>
+								<input type="email" id="contact_email" name="contact_email" value="<?php echo esc_attr( get_option( 'wc_team_payroll_contact_email', '' ) ); ?>" placeholder="support@example.com" />
+								<p class="description">Email address for employee support</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="contact_telegram">Telegram Username</label></th>
+							<td>
+								<input type="text" id="contact_telegram" name="contact_telegram" value="<?php echo esc_attr( get_option( 'wc_team_payroll_contact_telegram', '' ) ); ?>" placeholder="username" />
+								<p class="description">Telegram username (without @, e.g., username)</p>
+							</td>
+						</tr>
+					</table>
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'commission' ) : ?>
@@ -356,6 +382,22 @@ class WC_Team_Payroll_Settings {
 		if ( isset( $_POST['wc_tp_user_id_prefix'] ) ) {
 			$prefix = sanitize_text_field( $_POST['wc_tp_user_id_prefix'] );
 			update_option( 'wc_tp_user_id_prefix', $prefix );
+		}
+
+		// Save contact information
+		if ( isset( $_POST['contact_whatsapp'] ) ) {
+			$whatsapp = sanitize_text_field( $_POST['contact_whatsapp'] );
+			update_option( 'wc_team_payroll_contact_whatsapp', $whatsapp );
+		}
+
+		if ( isset( $_POST['contact_email'] ) ) {
+			$email = sanitize_email( $_POST['contact_email'] );
+			update_option( 'wc_team_payroll_contact_email', $email );
+		}
+
+		if ( isset( $_POST['contact_telegram'] ) ) {
+			$telegram = sanitize_text_field( $_POST['contact_telegram'] );
+			update_option( 'wc_team_payroll_contact_telegram', $telegram );
 		}
 
 		// Save employee roles with capabilities

@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.7.8
+ * Version: 5.8.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.7.8' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.8.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -65,6 +65,59 @@ add_action( 'plugins_loaded', function() {
 
 	// Initialize checkout integration (handles agent dropdown)
 	new WC_Team_Payroll_Checkout_Integration();
+
+	// Block inactive employees from logging in
+	add_filter( 'wp_authenticate_user', function( $user, $password ) {
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		// Check if user is an employee (has team payroll roles)
+		$team_roles = array( 'shop_employee', 'shop_manager', 'administrator' );
+		$user_roles = $user->roles;
+		$is_team_member = false;
+
+		foreach ( $team_roles as $role ) {
+			if ( in_array( $role, $user_roles ) ) {
+				$is_team_member = true;
+				break;
+			}
+		}
+
+		// Only check status for team members
+		if ( $is_team_member ) {
+			$employee_status = get_user_meta( $user->ID, '_wc_tp_employee_status', true );
+			
+			if ( $employee_status === 'inactive' ) {
+				// Get contact information from settings
+				$contact_whatsapp = get_option( 'wc_team_payroll_contact_whatsapp', '' );
+				$contact_email = get_option( 'wc_team_payroll_contact_email', '' );
+				$contact_telegram = get_option( 'wc_team_payroll_contact_telegram', '' );
+				
+				$contact_links = array();
+				if ( $contact_whatsapp ) {
+					$contact_links[] = '<a href="https://wa.me/' . esc_attr( $contact_whatsapp ) . '" target="_blank">WhatsApp</a>';
+				}
+				if ( $contact_email ) {
+					$contact_links[] = '<a href="mailto:' . esc_attr( $contact_email ) . '">Email</a>';
+				}
+				if ( $contact_telegram ) {
+					$contact_links[] = '<a href="https://t.me/' . esc_attr( $contact_telegram ) . '" target="_blank">Telegram</a>';
+				}
+				
+				$contact_text = '';
+				if ( ! empty( $contact_links ) ) {
+					$contact_text = ' Contact us: ' . implode( ', ', $contact_links );
+				}
+				
+				$error_message = __( 'Warning: You are no longer an employee. If it\'s a mistake, please contact us to activate your employee ID.', 'wc-team-payroll' ) . $contact_text;
+				
+				return new WP_Error( 'inactive_employee', $error_message );
+			}
+		}
+
+		return $user;
+	}, 10, 2 );
 
 	// ============================================================================
 	// AJAX HANDLERS
@@ -361,6 +414,37 @@ add_action( 'plugins_loaded', function() {
 		$employees->ajax_add_order_bonus();
 	} );
 
+	// Employee Status Update AJAX Handler
+	add_action( 'wp_ajax_wc_tp_update_employee_status', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		$status = sanitize_text_field( $_POST['status'] );
+
+		if ( ! $user_id || ! in_array( $status, array( 'active', 'inactive' ) ) ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
+		}
+
+		// Update employee status
+		$updated = update_user_meta( $user_id, '_wc_tp_employee_status', $status );
+
+		if ( $updated !== false ) {
+			wp_send_json_success( array( 
+				'message' => __( 'Employee status updated successfully', 'wc-team-payroll' ),
+				'status' => $status
+			) );
+		} else {
+			wp_send_json_error( __( 'Failed to update employee status', 'wc-team-payroll' ) );
+		}
+	} );
+
 	add_action( 'wp_ajax_wc_tp_get_dashboard_data', function() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -476,6 +560,10 @@ add_action( 'plugins_loaded', function() {
 			$profile_picture_id = get_user_meta( $employee->ID, '_wc_tp_profile_picture', true );
 			$profile_picture_url = '';
 			$phone = get_user_meta( $employee->ID, 'billing_phone', true );
+			$employee_status = get_user_meta( $employee->ID, '_wc_tp_employee_status', true );
+			if ( ! $employee_status ) {
+				$employee_status = 'active'; // Default to active
+			}
 
 			if ( $profile_picture_id ) {
 				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
@@ -502,6 +590,7 @@ add_action( 'plugins_loaded', function() {
 				'phone'             => $phone,
 				'type'              => $type,
 				'salary_info'       => $salary_info,
+				'status'            => $employee_status,
 				'manage_url'        => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
 				'profile_picture'   => $profile_picture_url,
 				'user_role'         => implode( ', ', $employee->roles ),
@@ -1358,6 +1447,11 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 		wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 	}
 
+	// Verify nonce
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'wc_tp_search_nonce' ) ) {
+		wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+	}
+
 	$query = isset( $_POST['query'] ) ? sanitize_text_field( $_POST['query'] ) : '';
 
 	if ( strlen( $query ) < 2 ) {
@@ -1368,27 +1462,40 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 
 	// Search Orders
 	$orders = wc_get_orders( array(
-		'limit'  => -1,
-		'status' => array( 'wc-completed', 'wc-processing', 'wc-pending' ),
+		'limit'  => 100, // Limit to prevent timeout
+		'status' => array( 'wc-completed', 'wc-processing', 'wc-pending', 'wc-on-hold', 'wc-cancelled', 'wc-refunded' ),
 	) );
 
 	foreach ( $orders as $order ) {
 		$order_id = $order->get_id();
-		$customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
-		$order_total = wc_price( $order->get_total() );
+		$customer_name = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+		$customer_email = $order->get_billing_email();
+		$customer_phone = $order->get_billing_phone();
+		$order_total = $order->get_total();
 		$order_status = $order->get_status();
 
-		// Search in order ID, customer name, or status
-		if ( stripos( $order_id, $query ) !== false || 
+		// Search in order ID, customer name, email, phone, or status
+		if ( stripos( (string) $order_id, $query ) !== false || 
 		     stripos( $customer_name, $query ) !== false || 
+		     stripos( $customer_email, $query ) !== false ||
+		     stripos( $customer_phone, $query ) !== false ||
 		     stripos( $order_status, $query ) !== false ) {
+			
+			$meta_items = array();
+			if ( $order_total ) {
+				$meta_items[] = 'Total: ' . wc_price( $order_total );
+			}
+			if ( $order_status ) {
+				$meta_items[] = 'Status: ' . ucfirst( str_replace( 'wc-', '', $order_status ) );
+			}
+			if ( $customer_email ) {
+				$meta_items[] = 'Email: ' . $customer_email;
+			}
+			
 			$results[] = array(
 				'type'  => 'order',
-				'title' => 'Order #' . $order_id . ' - ' . $customer_name,
-				'meta'  => array(
-					'Total: ' . $order_total,
-					'Status: ' . ucfirst( $order_status ),
-				),
+				'title' => 'Order #' . $order_id . ( $customer_name ? ' - ' . $customer_name : '' ),
+				'meta'  => $meta_items,
 				'url'   => admin_url( 'post.php?post=' . $order_id . '&action=edit' ),
 			);
 		}
@@ -1404,28 +1511,42 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 		$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
 		$employee_name = $employee->display_name;
 		$employee_email = $employee->user_email;
+		$employee_phone = get_user_meta( $employee->ID, 'billing_phone', true );
+		$first_name = $employee->first_name;
+		$last_name = $employee->last_name;
 		$is_fixed = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
 		$is_combined = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
 
 		$employee_type = 'Commission';
 		if ( $is_fixed ) {
-			$employee_type = 'Fixed';
+			$employee_type = 'Fixed Salary';
 		} elseif ( $is_combined ) {
 			$employee_type = 'Combined';
 		}
 
-		// Search in employee name, VB user ID, or email
+		// Search in employee name, VB user ID, email, phone, first name, last name
 		if ( stripos( $employee_name, $query ) !== false || 
 		     stripos( $vb_user_id, $query ) !== false || 
-		     stripos( $employee_email, $query ) !== false ) {
+		     stripos( $employee_email, $query ) !== false ||
+		     stripos( $employee_phone, $query ) !== false ||
+		     stripos( $first_name, $query ) !== false ||
+		     stripos( $last_name, $query ) !== false ||
+		     stripos( (string) $employee->ID, $query ) !== false ) {
+			
+			$meta_items = array();
+			if ( $employee_email ) {
+				$meta_items[] = 'Email: ' . $employee_email;
+			}
+			$meta_items[] = 'Type: ' . $employee_type;
+			if ( $employee_phone ) {
+				$meta_items[] = 'Phone: ' . $employee_phone;
+			}
+			
 			$results[] = array(
 				'type'  => 'employee',
 				'title' => $employee_name . ( $vb_user_id ? ' (' . $vb_user_id . ')' : '' ),
-				'meta'  => array(
-					'Email: ' . $employee_email,
-					'Type: ' . $employee_type,
-				),
-				'url'   => admin_url( 'admin.php?page=wc-team-payroll-employees&employee_id=' . $employee->ID ),
+				'meta'  => $meta_items,
+				'url'   => admin_url( 'user-edit.php?user_id=' . $employee->ID ),
 			);
 		}
 	}
@@ -1433,37 +1554,51 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 	// Search Customers (WooCommerce customers)
 	$customers = get_users( array(
 		'role'   => 'customer',
-		'number' => -1,
+		'number' => 200, // Limit to prevent timeout
 	) );
 
 	foreach ( $customers as $customer ) {
 		$customer_name = $customer->display_name;
 		$customer_email = $customer->user_email;
 		$customer_phone = get_user_meta( $customer->ID, 'billing_phone', true );
+		$first_name = get_user_meta( $customer->ID, 'billing_first_name', true );
+		$last_name = get_user_meta( $customer->ID, 'billing_last_name', true );
+		$full_name = trim( $first_name . ' ' . $last_name );
 
-		// Search in customer name, email, or phone
+		// Search in customer name, email, phone, first name, last name, user ID
 		if ( stripos( $customer_name, $query ) !== false || 
 		     stripos( $customer_email, $query ) !== false || 
-		     stripos( $customer_phone, $query ) !== false ) {
+		     stripos( $customer_phone, $query ) !== false ||
+		     stripos( $first_name, $query ) !== false ||
+		     stripos( $last_name, $query ) !== false ||
+		     stripos( $full_name, $query ) !== false ||
+		     stripos( (string) $customer->ID, $query ) !== false ) {
+			
+			$meta_items = array();
+			if ( $customer_email ) {
+				$meta_items[] = 'Email: ' . $customer_email;
+			}
+			if ( $customer_phone ) {
+				$meta_items[] = 'Phone: ' . $customer_phone;
+			}
+			$meta_items[] = 'User ID: ' . $customer->ID;
+			
 			$results[] = array(
 				'type'  => 'customer',
-				'title' => $customer_name,
-				'meta'  => array(
-					'Email: ' . $customer_email,
-					$customer_phone ? 'Phone: ' . $customer_phone : '',
-				),
+				'title' => $full_name ? $full_name : $customer_name,
+				'meta'  => $meta_items,
 				'url'   => admin_url( 'user-edit.php?user_id=' . $customer->ID ),
 			);
 		}
 	}
 
 	// Search Payments
-	$all_employees = get_users( array(
+	$all_employees_for_payments = get_users( array(
 		'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
-		'number'   => -1,
+		'number'   => 100, // Limit to prevent timeout
 	) );
 
-	foreach ( $all_employees as $employee ) {
+	foreach ( $all_employees_for_payments as $employee ) {
 		$payments = get_user_meta( $employee->ID, '_wc_tp_payments', true );
 		if ( ! is_array( $payments ) ) {
 			continue;
@@ -1473,26 +1608,40 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 			$payment_amount = isset( $payment['amount'] ) ? $payment['amount'] : 0;
 			$payment_date = isset( $payment['date'] ) ? $payment['date'] : '';
 			$payment_method = isset( $payment['payment_method'] ) ? $payment['payment_method'] : '';
+			$payment_note = isset( $payment['note'] ) ? $payment['note'] : '';
 
-			// Search in payment amount, date, or method
-			if ( stripos( $payment_amount, $query ) !== false || 
+			// Search in payment amount, date, method, note, or employee name
+			if ( stripos( (string) $payment_amount, $query ) !== false || 
 			     stripos( $payment_date, $query ) !== false || 
-			     stripos( $payment_method, $query ) !== false ) {
+			     stripos( $payment_method, $query ) !== false ||
+			     stripos( $payment_note, $query ) !== false ||
+			     stripos( $employee->display_name, $query ) !== false ) {
+				
+				$meta_items = array();
+				if ( $payment_date ) {
+					$meta_items[] = 'Date: ' . $payment_date;
+				}
+				if ( $payment_method ) {
+					$meta_items[] = 'Method: ' . $payment_method;
+				} else {
+					$meta_items[] = 'Method: N/A';
+				}
+				if ( $payment_note ) {
+					$meta_items[] = 'Note: ' . $payment_note;
+				}
+				
 				$results[] = array(
 					'type'  => 'payment',
 					'title' => 'Payment: ' . wc_price( $payment_amount ) . ' - ' . $employee->display_name,
-					'meta'  => array(
-						'Date: ' . $payment_date,
-						'Method: ' . ( $payment_method ? $payment_method : 'N/A' ),
-					),
-					'url'   => admin_url( 'admin.php?page=wc-team-payroll-employees&employee_id=' . $employee->ID . '&tab=payments' ),
+					'meta'  => $meta_items,
+					'url'   => admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $employee->ID ),
 				);
 			}
 		}
 	}
 
 	// Remove duplicates and limit results
-	$results = array_slice( array_unique( $results, SORT_REGULAR ), 0, 100 );
+	$results = array_slice( array_unique( $results, SORT_REGULAR ), 0, 50 );
 
 	if ( empty( $results ) ) {
 		wp_send_json_error( __( 'No results found', 'wc-team-payroll' ) );
