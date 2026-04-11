@@ -143,11 +143,11 @@ class WC_Team_Payroll_Employee_Detail {
 					<button class="wc-tp-tab-button wc-tp-tab-active" data-tab="orders">
 						<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
 					</button>
-					<button class="wc-tp-tab-button" data-tab="salary">
-						<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
-					</button>
 					<button class="wc-tp-tab-button" data-tab="payments">
 						<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="wc-tp-tab-button" data-tab="salary">
+						<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
 					</button>
 				</div>
 
@@ -225,7 +225,73 @@ class WC_Team_Payroll_Employee_Detail {
 
 				<!-- Payments Tab -->
 				<div class="wc-tp-tab-content" id="payments-tab">
-					<p><?php esc_html_e( 'Payments tab content coming soon...', 'wc-team-payroll' ); ?></p>
+					<!-- Payment Stats Cards -->
+					<div class="wc-tp-stats-cards" style="margin-bottom: 30px;">
+						<div class="wc-tp-stat-card">
+							<div class="wc-tp-stat-icon">💰</div>
+							<div class="wc-tp-stat-content">
+								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></span>
+								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_earnings, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+							</div>
+						</div>
+
+						<div class="wc-tp-stat-card">
+							<div class="wc-tp-stat-icon">✅</div>
+							<div class="wc-tp-stat-content">
+								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></span>
+								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_paid, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+							</div>
+						</div>
+
+						<div class="wc-tp-stat-card">
+							<div class="wc-tp-stat-icon">⏳</div>
+							<div class="wc-tp-stat-content">
+								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></span>
+								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_due, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Payment Methods Section -->
+					<div class="wc-tp-payment-methods-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
+						
+						<div id="wc-tp-payment-methods-list" class="wc-tp-payment-methods-list">
+							<!-- Payment methods will be loaded via AJAX -->
+						</div>
+
+						<button type="button" class="button button-primary" id="wc-tp-add-payment-method-btn" style="margin-top: 20px;">
+							<?php esc_html_e( '+ Add Payment Method', 'wc-team-payroll' ); ?>
+						</button>
+					</div>
+
+					<!-- Add Payment Form -->
+					<div class="wc-tp-add-payment-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></h3>
+						
+						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+							<div class="wc-tp-form-group">
+								<label for="wc-tp-payment-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></label>
+								<input type="number" id="wc-tp-payment-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
+							</div>
+
+							<div class="wc-tp-form-group">
+								<label for="wc-tp-payment-date" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Payment Date', 'wc-team-payroll' ); ?></label>
+								<input type="datetime-local" id="wc-tp-payment-date" value="<?php echo esc_attr( date( 'Y-m-d\TH:i' ) ); ?>" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
+							</div>
+						</div>
+
+						<button type="button" class="button button-primary" id="wc-tp-add-payment-btn"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></button>
+					</div>
+
+					<!-- Payment History Section -->
+					<div class="wc-tp-payment-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h3>
+						
+						<div id="wc-tp-payment-history-container">
+							<!-- Payment history will be loaded via AJAX -->
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -1080,6 +1146,200 @@ class WC_Team_Payroll_Employee_Detail {
 						return wcCurrencySymbol + ' ' + amount;
 					}
 				}
+
+				// Load payment methods on payments tab click
+				$(document).on('click', '.wc-tp-tab-button[data-tab="payments"]', function() {
+					loadPaymentMethods();
+					loadPaymentHistory();
+				});
+
+				// Load payment methods
+				function loadPaymentMethods() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_payment_methods',
+							user_id: userId
+						},
+						success: function(response) {
+							if (response.success) {
+								renderPaymentMethods(response.data.methods || []);
+							}
+						}
+					});
+				}
+
+				// Render payment methods
+				function renderPaymentMethods(methods) {
+					const container = $('#wc-tp-payment-methods-list');
+					
+					if (!methods || methods.length === 0) {
+						container.html('<p style="color: var(--text-muted); text-align: center; padding: 20px;">No payment methods added yet</p>');
+						return;
+					}
+
+					let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">';
+					
+					$.each(methods, function(i, method) {
+						html += '<div style="background: var(--color-accent-muted); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 16px;">';
+						html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">';
+						html += '<div>';
+						html += '<strong style="display: block; margin-bottom: 4px; color: var(--text-main);">' + method.method_name + '</strong>';
+						html += '<span style="font-size: 13px; color: var(--text-muted);">' + method.method_details + '</span>';
+						html += '</div>';
+						html += '<button type="button" class="button button-small" onclick="deletePaymentMethod(' + userId + ', ' + method.id + ')" style="background: #dc3545; border-color: #dc3545; color: white;">Delete</button>';
+						html += '</div>';
+						html += '</div>';
+					});
+
+					html += '</div>';
+					container.html(html);
+				}
+
+				// Add payment method
+				$('#wc-tp-add-payment-method-btn').on('click', function() {
+					const methodName = prompt('<?php esc_js_e( 'Enter payment method name (e.g., bKash Personal)', 'wc-team-payroll' ); ?>');
+					if (!methodName) return;
+
+					const methodDetails = prompt('<?php esc_js_e( 'Enter payment details (e.g., bKash number, account info)', 'wc-team-payroll' ); ?>');
+					if (!methodDetails) return;
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_add_payment_method',
+							user_id: userId,
+							method_name: methodName,
+							method_details: methodDetails
+						},
+						success: function(response) {
+							if (response.success) {
+								loadPaymentMethods();
+								alert('<?php esc_js_e( 'Payment method added', 'wc-team-payroll' ); ?>');
+							}
+						}
+					});
+				});
+
+				// Delete payment method
+				window.deletePaymentMethod = function(userId, methodId) {
+					if (!confirm('<?php esc_js_e( 'Delete this payment method?', 'wc-team-payroll' ); ?>')) return;
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_delete_payment_method',
+							user_id: userId,
+							method_id: methodId
+						},
+						success: function(response) {
+							if (response.success) {
+								loadPaymentMethods();
+								alert('<?php esc_js_e( 'Payment method deleted', 'wc-team-payroll' ); ?>');
+							}
+						}
+					});
+				};
+
+				// Load payment history
+				function loadPaymentHistory() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employee_payments',
+							user_id: userId
+						},
+						success: function(response) {
+							if (response.success) {
+								renderPaymentHistory(response.data.payments || []);
+							}
+						}
+					});
+				}
+
+				// Render payment history
+				function renderPaymentHistory(payments) {
+					const container = $('#wc-tp-payment-history-container');
+					
+					if (!payments || payments.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💳</div><p>No payments recorded</p></div>');
+						return;
+					}
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Date</th>';
+					html += '<th>Amount</th>';
+					html += '<th>Added By</th>';
+					html += '<th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(payments, function(i, payment) {
+						html += '<tr>';
+						html += '<td>' + payment.date + '</td>';
+						html += '<td><strong>' + formatCurrency(payment.amount) + '</strong></td>';
+						html += '<td>' + payment.added_by + '</td>';
+						html += '<td><button type="button" class="button button-small" onclick="deletePayment(' + userId + ', \'' + payment.id + '\')" style="background: #dc3545; border-color: #dc3545; color: white;">Delete</button></td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
+
+				// Add payment
+				$('#wc-tp-add-payment-btn').on('click', function() {
+					const amount = $('#wc-tp-payment-amount').val();
+					const date = $('#wc-tp-payment-date').val();
+
+					if (!amount || !date) {
+						alert('<?php esc_js_e( 'Please fill all fields', 'wc-team-payroll' ); ?>');
+						return;
+					}
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_add_payment',
+							user_id: userId,
+							amount: amount,
+							payment_date: date
+						},
+						success: function(response) {
+							if (response.success) {
+								$('#wc-tp-payment-amount').val('');
+								$('#wc-tp-payment-date').val(new Date().toISOString().slice(0, 16));
+								loadPaymentHistory();
+								alert('<?php esc_js_e( 'Payment added', 'wc-team-payroll' ); ?>');
+							}
+						}
+					});
+				});
+
+				// Delete payment
+				window.deletePayment = function(userId, paymentId) {
+					if (!confirm('<?php esc_js_e( 'Delete this payment?', 'wc-team-payroll' ); ?>')) return;
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_delete_payment',
+							user_id: userId,
+							payment_id: paymentId
+						},
+						success: function(response) {
+							if (response.success) {
+								loadPaymentHistory();
+								alert('<?php esc_js_e( 'Payment deleted', 'wc-team-payroll' ); ?>');
+							}
+						}
+					});
+				};
 			});
 		</script>
 		<?php
