@@ -53,6 +53,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payments-page.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
@@ -815,6 +816,25 @@ add_action( 'admin_menu', function() {
 				$employees->render_employees_page();
 			} else {
 				echo '<div class="wrap"><h1>Team Members</h1>';
+				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
+				echo '</div>';
+			}
+		}
+	);
+
+	// Payments submenu
+	add_submenu_page(
+		'wc-team-payroll',
+		__( 'Payments', 'wc-team-payroll' ),
+		__( 'Payments', 'wc-team-payroll' ),
+		'manage_options',
+		'wc-team-payroll-payments',
+		function() {
+			if ( class_exists( 'WC_Team_Payroll_Payments_Page' ) ) {
+				$payments = new WC_Team_Payroll_Payments_Page();
+				$payments->render_payments();
+			} else {
+				echo '<div class="wrap"><h1>Payments</h1>';
 				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}
