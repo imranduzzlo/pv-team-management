@@ -761,6 +761,42 @@ class WC_Team_Payroll_Employee_Detail {
 				let allOrdersData = [];
 				let itemsPerPage = 20;
 
+				// Load orders data function
+				function loadOrdersData() {
+					const startDate = $('#wc-tp-orders-start-date').val();
+					const endDate = $('#wc-tp-orders-end-date').val();
+					const statusFilter = $('#wc-tp-orders-status-filter').val();
+					const flagFilter = $('#wc-tp-orders-flag-filter').val();
+					const searchQuery = $('#wc-tp-orders-search').val();
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employee_orders',
+							user_id: userId,
+							start_date: startDate,
+							end_date: endDate,
+							status: statusFilter,
+							flag: flagFilter,
+							search: searchQuery
+						},
+						success: function(response) {
+							if (response.success) {
+								allOrdersData = response.data.orders || [];
+								renderOrdersTable(allOrdersData);
+								renderOrdersPagination(allOrdersData);
+							}
+						},
+						error: function() {
+							// Silent error handling
+						}
+					});
+				}
+
+				// Load orders on page load (since orders tab is active by default)
+				loadOrdersData();
+
 				// Tab switching
 				$('.wc-tp-tab-button').on('click', function() {
 					const tabName = $(this).data('tab');
@@ -795,38 +831,6 @@ class WC_Team_Payroll_Employee_Detail {
 					currentPage = 1;
 					loadOrdersData();
 				});
-
-				function loadOrdersData() {
-					const startDate = $('#wc-tp-orders-start-date').val();
-					const endDate = $('#wc-tp-orders-end-date').val();
-					const statusFilter = $('#wc-tp-orders-status-filter').val();
-					const flagFilter = $('#wc-tp-orders-flag-filter').val();
-					const searchQuery = $('#wc-tp-orders-search').val();
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_employee_orders',
-							user_id: userId,
-							start_date: startDate,
-							end_date: endDate,
-							status: statusFilter,
-							flag: flagFilter,
-							search: searchQuery
-						},
-						success: function(response) {
-							if (response.success) {
-								allOrdersData = response.data.orders || [];
-								renderOrdersTable(allOrdersData);
-								renderOrdersPagination(allOrdersData);
-							}
-						},
-						error: function() {
-							// Silent error handling
-						}
-					});
-				}
 
 				function renderOrdersTable(orders) {
 					const container = $('#wc-tp-orders-table-container');
