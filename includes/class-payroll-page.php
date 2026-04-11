@@ -41,7 +41,19 @@ class WC_Team_Payroll_Page {
 
 			<!-- Payroll Table Section -->
 			<div class="wc-tp-table-section" id="wc-tp-payroll-table-section">
-				<h2><?php esc_html_e( 'Payroll Details', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Payroll Details', 'wc-team-payroll' ); ?></h2>
+					<div style="display: flex; gap: 10px; align-items: center;">
+						<label for="wc-tp-payroll-per-page" style="margin: 0; font-weight: 600; color: #212B36;"><?php esc_html_e( 'Items per page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payroll-per-page" style="padding: 6px 10px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;">
+							<option value="10">10</option>
+							<option value="20" selected>20</option>
+							<option value="30">30</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
 				<div id="wc-tp-payroll-table-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -398,8 +410,25 @@ class WC_Team_Payroll_Page {
 				let currentPage = 1;
 				let allPayrollData = [];
 				let searchQuery = '';
+				let itemsPerPage = 20; // Default
+
+				// Load saved items per page from localStorage
+				const savedItemsPerPage = localStorage.getItem('wc_tp_payroll_items_per_page');
+				if (savedItemsPerPage) {
+					itemsPerPage = parseInt(savedItemsPerPage);
+					$('#wc-tp-payroll-per-page').val(itemsPerPage);
+				}
 
 				loadPayrollData();
+
+				// Items per page change
+				$('#wc-tp-payroll-per-page').on('change', function() {
+					itemsPerPage = parseInt($(this).val());
+					localStorage.setItem('wc_tp_payroll_items_per_page', itemsPerPage);
+					currentPage = 1;
+					renderPayrollTable(allPayrollData);
+					renderPagination(allPayrollData);
+				});
 
 				$('#wc-tp-payroll-filter-btn').on('click', function() {
 					currentPage = 1;
@@ -470,7 +499,6 @@ class WC_Team_Payroll_Page {
 						return;
 					}
 
-					const itemsPerPage = 30;
 					let payrollArray = payroll;
 					
 					// If payroll is an object (from AJAX), convert to array
@@ -590,7 +618,6 @@ class WC_Team_Payroll_Page {
 
 				function renderPagination(payroll) {
 					const container = $('#wc-tp-payroll-pagination');
-					const itemsPerPage = 30;
 					
 					// Handle both array and object formats
 					let totalItems = 0;

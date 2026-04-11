@@ -33,7 +33,19 @@ class WC_Team_Payroll_Employee_Management {
 
 			<!-- Employees Table Section -->
 			<div class="wc-tp-table-section" id="wc-tp-employees-table-section">
-				<h2><?php esc_html_e( 'Team Members', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Team Members', 'wc-team-payroll' ); ?></h2>
+					<div style="display: flex; gap: 10px; align-items: center;">
+						<label for="wc-tp-employees-per-page" style="margin: 0; font-weight: 600; color: #212B36;"><?php esc_html_e( 'Items per page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-employees-per-page" style="padding: 6px 10px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;">
+							<option value="10">10</option>
+							<option value="20" selected>20</option>
+							<option value="30">30</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
 				<div id="wc-tp-employees-table-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -385,8 +397,25 @@ class WC_Team_Payroll_Employee_Management {
 				let allEmployeesData = [];
 				let searchQuery = '';
 				let salaryTypeFilter = '';
+				let itemsPerPage = 20; // Default
+
+				// Load saved items per page from localStorage
+				const savedItemsPerPage = localStorage.getItem('wc_tp_employees_items_per_page');
+				if (savedItemsPerPage) {
+					itemsPerPage = parseInt(savedItemsPerPage);
+					$('#wc-tp-employees-per-page').val(itemsPerPage);
+				}
 
 				loadEmployeesData();
+
+				// Items per page change
+				$('#wc-tp-employees-per-page').on('change', function() {
+					itemsPerPage = parseInt($(this).val());
+					localStorage.setItem('wc_tp_employees_items_per_page', itemsPerPage);
+					currentPage = 1;
+					renderEmployeesTable(allEmployeesData);
+					renderPagination(allEmployeesData);
+				});
 
 				$('#wc-tp-employees-search').on('keyup', function() {
 					currentPage = 1;
@@ -440,7 +469,6 @@ class WC_Team_Payroll_Employee_Management {
 						return;
 					}
 
-					const itemsPerPage = 30;
 					const startIndex = (currentPage - 1) * itemsPerPage;
 					const endIndex = startIndex + itemsPerPage;
 					const pageData = employees.slice(startIndex, endIndex);
@@ -517,7 +545,7 @@ class WC_Team_Payroll_Employee_Management {
 							return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
 						});
 						
-						// Reset to first page and re-render
+						// Reset to first page and update global data
 						currentPage = 1;
 						allEmployeesData = sortedData;
 						
@@ -533,7 +561,6 @@ class WC_Team_Payroll_Employee_Management {
 
 				function renderPagination(employees) {
 					const container = $('#wc-tp-employees-pagination');
-					const itemsPerPage = 30;
 					const totalPages = Math.ceil(employees.length / itemsPerPage);
 
 					if (totalPages <= 1) {
