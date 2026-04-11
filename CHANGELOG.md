@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.6.0] - 2026-04-11
+
+### Optimization: Payroll Page CSS/JS Extraction
+- Extracted all inline CSS from payroll page to `assets/css/payroll.css`
+- Extracted all inline JavaScript from payroll page to `assets/js/payroll.js`
+- Added proper asset enqueuing to payroll page class with constructor
+- Reduced payroll page PHP file from 635 lines to ~100 lines
+- Improved code maintainability and performance
+- All functionality preserved - 100% backward compatible
+- Better browser caching and parallel asset loading
+- Cleaner, more organized code structure
+
 ## [5.5.3] - 2026-04-11
 
 ### Code Cleanup: Unified CSS/JS Architecture
