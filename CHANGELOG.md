@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.5.3] - 2026-04-11
+
+### Code Cleanup: Unified CSS/JS Architecture
+- Moved all inline CSS from employee detail page to `assets/css/common.css`
+- Moved all inline JavaScript from employee detail page to `assets/js/common.js`
+- Created `assets/js/employee-detail.js` for page initialization
+- Reduced employee detail PHP file from 935 lines to ~250 lines
+- Improved code maintainability and reusability
+- All functionality preserved - 100% backward compatible
+- Cleaner, more organized code structure
+
 ## [5.5.2] - 2026-04-11
 
 ### Restoration: Full v5.4.10 Functionality with New Structure
