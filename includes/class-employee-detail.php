@@ -163,6 +163,22 @@ class WC_Team_Payroll_Employee_Detail {
 				<div class="wc-tp-orders-filters">
 					<div class="wc-tp-filter-group">
 						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-orders-date-preset">
+							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Custom Date Range (Hidden by default) -->
+					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-custom-date-range" style="display: none;">
 						<input type="date" id="wc-tp-orders-start-date" value="<?php echo esc_attr( date( 'Y-m-01' ) ); ?>" />
 						<span class="wc-tp-date-separator">to</span>
 						<input type="date" id="wc-tp-orders-end-date" value="<?php echo esc_attr( date( 'Y-m-t' ) ); ?>" />
@@ -510,6 +526,18 @@ class WC_Team_Payroll_Employee_Detail {
 				padding: 0 8px;
 			}
 
+			.wc-tp-custom-date-range {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-custom-date-range input[type="date"] {
+				flex: 1;
+				min-width: 150px;
+			}
+
 			.wc-tp-data-table {
 				width: 100%;
 				border-collapse: collapse;
@@ -720,6 +748,16 @@ class WC_Team_Payroll_Employee_Detail {
 					width: 100%;
 				}
 
+				.wc-tp-custom-date-range {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-custom-date-range input[type="date"] {
+					width: 100%;
+					min-width: unset;
+				}
+
 				.wc-tp-data-table {
 					font-size: 12px;
 				}
@@ -760,6 +798,32 @@ class WC_Team_Payroll_Employee_Detail {
 				let currentPage = 1;
 				let allOrdersData = [];
 				let itemsPerPage = 20;
+				let lastPresetRange = { start: '', end: '' }; // Store last preset range
+
+				// Initialize with default preset (This Month)
+				updateDateRangeFromPreset('this-month');
+
+				// Date preset change
+				$('#wc-tp-orders-date-preset').on('change', function() {
+					const preset = $(this).val();
+					
+					if (preset === 'custom') {
+						// Show custom date inputs with last preset values
+						$('#wc-tp-custom-date-range').slideDown(200);
+					} else {
+						// Hide custom date inputs and update dates
+						$('#wc-tp-custom-date-range').slideUp(200);
+						updateDateRangeFromPreset(preset);
+						currentPage = 1;
+						loadOrdersData();
+					}
+				});
+
+				// Custom date range change
+				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
+					currentPage = 1;
+					loadOrdersData();
+				});
 
 				// Load orders data function
 				function loadOrdersData() {
@@ -768,6 +832,10 @@ class WC_Team_Payroll_Employee_Detail {
 					const statusFilter = $('#wc-tp-orders-status-filter').val();
 					const flagFilter = $('#wc-tp-orders-flag-filter').val();
 					const searchQuery = $('#wc-tp-orders-search').val();
+
+					if (!startDate || !endDate) {
+						return;
+					}
 
 					$.ajax({
 						url: ajaxurl,
@@ -792,6 +860,96 @@ class WC_Team_Payroll_Employee_Detail {
 							// Silent error handling
 						}
 					});
+				}
+
+				function getDateRangeFromPreset(preset) {
+					const today = new Date();
+					const year = today.getFullYear();
+					const month = String(today.getMonth() + 1).padStart(2, '0');
+					const date = String(today.getDate()).padStart(2, '0');
+					const todayStr = `${year}-${month}-${date}`;
+
+					let startDate, endDate;
+
+					switch (preset) {
+						case 'today':
+							startDate = todayStr;
+							endDate = todayStr;
+							break;
+
+						case 'this-week':
+							const firstDay = new Date(today);
+							firstDay.setDate(today.getDate() - today.getDay());
+							startDate = formatDateForInput(firstDay);
+							endDate = todayStr;
+							break;
+
+						case 'this-month':
+							startDate = `${year}-${month}-01`;
+							endDate = todayStr;
+							break;
+
+						case 'this-year':
+							startDate = `${year}-01-01`;
+							endDate = todayStr;
+							break;
+
+						case 'last-week':
+							const lastWeekEnd = new Date(today);
+							lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+							const lastWeekStart = new Date(lastWeekEnd);
+							lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+							startDate = formatDateForInput(lastWeekStart);
+							endDate = formatDateForInput(lastWeekEnd);
+							break;
+
+						case 'last-month':
+							const lastMonthDate = new Date(year, parseInt(month) - 2, 1);
+							const lastMonthYear = lastMonthDate.getFullYear();
+							const lastMonthMonth = String(lastMonthDate.getMonth() + 1).padStart(2, '0');
+							startDate = `${lastMonthYear}-${lastMonthMonth}-01`;
+							const lastMonthLastDay = new Date(lastMonthYear, parseInt(lastMonthMonth), 0);
+							endDate = `${lastMonthYear}-${lastMonthMonth}-${String(lastMonthLastDay.getDate()).padStart(2, '0')}`;
+							break;
+
+						case 'last-year':
+							const lastYear = year - 1;
+							startDate = `${lastYear}-01-01`;
+							endDate = `${lastYear}-12-31`;
+							break;
+
+						case 'last-6-months':
+							const sixMonthsAgo = new Date(today);
+							sixMonthsAgo.setMonth(today.getMonth() - 6);
+							startDate = formatDateForInput(sixMonthsAgo);
+							endDate = todayStr;
+							break;
+
+						case 'all-time':
+							startDate = '2000-01-01';
+							endDate = todayStr;
+							break;
+
+						default:
+							startDate = `${year}-${month}-01`;
+							endDate = todayStr;
+					}
+
+					return { start: startDate, end: endDate };
+				}
+
+				function formatDateForInput(date) {
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				}
+
+				function updateDateRangeFromPreset(preset) {
+					const range = getDateRangeFromPreset(preset);
+					lastPresetRange = range; // Store for custom mode
+					$('#wc-tp-orders-start-date').val(range.start);
+					$('#wc-tp-orders-end-date').val(range.end);
 				}
 
 				// Load orders on page load (since orders tab is active by default)
