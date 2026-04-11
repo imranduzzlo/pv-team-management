@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.4.10] - 2026-04-11
+
+### New Features
+
+#### Employee Type Filter on Payroll Page
+- Added salary type filter dropdown to payroll page
+- Filter by: All Types, Commission Based, Fixed Salary, or Combined (Base + Commission)
+- Works alongside existing search and date range filters
+- Helps quickly identify payroll by employee salary type
+
+#### Employee Creation Date Filter on Team Members Page
+- Added date range filter for employee creation/registration date
+- Filter employees by when they were created
+- Includes "Clear Dates" button for quick reset
+- Useful for tracking new hires and employee onboarding
+
+### Bug Fixes
+
+#### Fixed Custom Fields Hook Issue
+- **FIXED**: Custom fields were interfering with WooCommerce user fields
+- **FIXED**: Profile picture field was causing WooCommerce fields to disappear
+- Changed from `show_user_profile` and `edit_user_profile` hooks to `personal_options` hook
+- Prevents custom fields from interfering with WooCommerce fields
+- Profile picture field now properly coexists with all WooCommerce user fields
+- Improved HTML structure with proper `<tbody>` tags
+
+### Technical Details
+
+- Payroll page now sends `salary_type` parameter to AJAX handler
+- Team Members page now sends `start_date` and `end_date` parameters for employee creation date filtering
+- All filters are independent and can be combined for precise filtering
+- Maintains existing design system and styling consistency
+
+---
+
 ## [5.4.9] - 2026-04-11
 
 ### CRITICAL FIX - Dashboard Total Orders Now Shows Unique Orders Only
