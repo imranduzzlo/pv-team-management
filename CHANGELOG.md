@@ -1,5 +1,66 @@
 # Changelog
 
+## [5.4.9] - 2026-04-11
+
+### CRITICAL FIX - Dashboard Total Orders Now Shows Unique Orders Only
+- **FIXED**: Dashboard "Total Orders" was counting same order multiple times
+- **FIXED**: If order had both Agent and Processor, it counted as 2 orders
+- **IMPROVED**: Dashboard now shows actual unique order count
+- **IMPROVED**: Team Members page still shows all associated orders per employee
+
+### The Problem
+
+Dashboard "Total Orders" was summing up orders from each employee:
+- ❌ Order #100 with Agent A and Processor B counted as 2 orders
+- ❌ Same order appeared in both employees' order counts
+- ❌ Dashboard showed inflated total order count
+
+### The Solution
+
+Dashboard now counts unique orders only:
+- ✅ Order #100 counts as 1 order (not 2)
+- ✅ Only orders with commission data are counted
+- ✅ Accurate dashboard total order count
+- ✅ Team Members page still shows all associated orders per employee
+
+### Example
+
+**Before v5.4.9:**
+```
+Order #100: Agent A + Processor B
+Dashboard Total Orders: 2 (counted twice)
+Employee A Total Orders: 1
+Employee B Total Orders: 1
+```
+
+**After v5.4.9:**
+```
+Order #100: Agent A + Processor B
+Dashboard Total Orders: 1 (unique count)
+Employee A Total Orders: 1 (still shows all associated)
+Employee B Total Orders: 1 (still shows all associated)
+```
+
+### Behavior
+
+- **Dashboard**: Shows unique orders (actual commission-included orders)
+- **Team Members page**: Shows all orders associated with that employee
+- **Employee Detail page**: Shows all orders associated with that employee
+- **Payroll page**: Shows all orders associated with that employee
+
+### Files Modified
+
+- `woocommerce-team-payroll.php` - Updated dashboard AJAX handler to count unique orders
+- `CHANGELOG.md` - Updated with v5.4.9 changes
+
+### Testing Recommendations
+
+1. Create an order with both Agent and Processor
+2. Check dashboard "Total Orders" - should show 1
+3. Check Team Members page for each employee - should show 1 each
+4. Create multiple orders with different agent/processor combinations
+5. Verify dashboard shows correct unique count
+
 ## [5.4.8] - 2026-04-11
 
 ### CRITICAL FIX - Employee Detail Orders Tab Not Loading on Page Load
