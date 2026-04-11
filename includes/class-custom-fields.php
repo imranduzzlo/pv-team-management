@@ -14,8 +14,9 @@ class WC_Team_Payroll_Custom_Fields {
 		add_action( 'save_post_product', array( $this, 'save_product_meta' ) );
 
 		// Add user meta box for vb_user_id and profile picture
-		// Use personal_options hook to add fields BEFORE personal options section
-		add_action( 'personal_options', array( $this, 'add_user_meta_box' ) );
+		// Use show_user_profile and edit_user_profile hooks to add fields AFTER all default sections
+		add_action( 'show_user_profile', array( $this, 'add_user_meta_box' ) );
+		add_action( 'edit_user_profile', array( $this, 'add_user_meta_box' ) );
 		add_action( 'personal_options_update', array( $this, 'save_user_meta' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_user_meta' ) );
 
@@ -162,7 +163,7 @@ class WC_Team_Payroll_Custom_Fields {
 		wp_nonce_field( 'wc_tp_user_nonce', 'wc_tp_user_nonce' );
 		?>
 		<h2><?php esc_html_e( 'Team Payroll Settings', 'wc-team-payroll' ); ?></h2>
-		<table class="form-table">
+		<table class="form-table" role="presentation">
 			<tbody>
 				<tr>
 					<th scope="row">
