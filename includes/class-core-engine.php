@@ -62,6 +62,10 @@ class WC_Team_Payroll_Core_Engine {
 			'calculated_at'  => current_time( 'mysql' ),
 		);
 
+		// Check if order is refunded
+		$order_status = $order->get_status();
+		$is_refunded = ( 'refunded' === $order_status );
+
 		// Calculate item commissions
 		foreach ( $order->get_items() as $item ) {
 			$product_id = $item->get_product_id();
@@ -83,6 +87,23 @@ class WC_Team_Payroll_Core_Engine {
 			);
 
 			$commission_data['total_commission'] += $item_commission;
+		}
+
+		// Handle refunded orders - apply refund commission settings
+		if ( $is_refunded ) {
+			$refund_type = isset( $settings['refund_commission_type'] ) ? $settings['refund_commission_type'] : 'none';
+			$refund_value = isset( $settings['refund_commission_value'] ) ? floatval( $settings['refund_commission_value'] ) : 0;
+
+			if ( 'none' === $refund_type ) {
+				// No commission for refunded orders
+				$commission_data['total_commission'] = 0;
+			} elseif ( 'percentage' === $refund_type ) {
+				// Apply percentage of original commission
+				$commission_data['total_commission'] = ( $commission_data['total_commission'] * $refund_value ) / 100;
+			} elseif ( 'flat' === $refund_type ) {
+				// Apply flat amount
+				$commission_data['total_commission'] = $refund_value;
+			}
 		}
 
 		// Get order date for salary type checking (check salary type AT order creation time)
@@ -160,7 +181,7 @@ class WC_Team_Payroll_Core_Engine {
 		}
 
 		// Find the salary type that was active at the check_date
-		$active_type = 'commission'; // Default to commission-based
+		$active_type = null;
 		
 		foreach ( $history as $entry ) {
 			$entry_date = strtotime( $entry['date'] );
@@ -173,6 +194,13 @@ class WC_Team_Payroll_Core_Engine {
 				// History entries are chronological, so we can stop here
 				break;
 			}
+		}
+
+		// If no history found before check_date, use CURRENT salary type
+		// This handles new employees who have no salary history yet
+		if ( $active_type === null ) {
+			$is_fixed = (bool) get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			$active_type = $is_fixed ? 'fixed' : 'commission';
 		}
 
 		// Only fixed salary blocks commission

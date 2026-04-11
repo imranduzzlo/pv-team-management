@@ -53,7 +53,7 @@ class WC_Team_Payroll_Custom_Fields {
 	}
 
 	/**
-	 * Auto-generate vb_user_id for employees
+	 * Auto-generate vb_user_id for employees and initialize salary history
 	 */
 	public function auto_set_user_custom_id( $user_id ) {
 		$user = get_userdata( $user_id );
@@ -69,19 +69,38 @@ class WC_Team_Payroll_Custom_Fields {
 		// Check if vb_user_id already exists
 		$existing_id = get_user_meta( $user_id, 'vb_user_id', true );
 		if ( ! empty( $existing_id ) ) {
-			return; // Don't overwrite existing ID
+			// vb_user_id already exists, but still check if we need to initialize salary history
+		} else {
+			// Get prefix from settings
+			$prefix = get_option( 'wc_tp_user_id_prefix', 'PVVB-EMID' );
+
+			// Generate custom ID
+			$custom_id = $prefix . $user_id;
+			update_user_meta( $user_id, 'vb_user_id', $custom_id );
+
+			// Also update ACF field if available
+			if ( function_exists( 'update_field' ) ) {
+				update_field( 'vb_user_id', $custom_id, 'user_' . $user_id );
+			}
 		}
 
-		// Get prefix from settings
-		$prefix = get_option( 'wc_tp_user_id_prefix', 'PVVB-EMID' );
-
-		// Generate custom ID
-		$custom_id = $prefix . $user_id;
-		update_user_meta( $user_id, 'vb_user_id', $custom_id );
-
-		// Also update ACF field if available
-		if ( function_exists( 'update_field' ) ) {
-			update_field( 'vb_user_id', $custom_id, 'user_' . $user_id );
+		// Initialize salary history if it doesn't exist yet
+		$history = get_user_meta( $user_id, '_wc_tp_salary_history', true );
+		if ( ! is_array( $history ) || empty( $history ) ) {
+			// Create initial salary history entry with default "Commission Based"
+			$initial_history = array(
+				array(
+					'date'           => current_time( 'mysql' ),
+					'old_type'       => null,
+					'old_amount'     => null,
+					'old_frequency'  => null,
+					'new_type'       => 'commission',
+					'new_amount'     => null,
+					'new_frequency'  => null,
+					'changed_by'     => get_current_user_id(),
+				),
+			);
+			update_user_meta( $user_id, '_wc_tp_salary_history', $initial_history );
 		}
 	}
 

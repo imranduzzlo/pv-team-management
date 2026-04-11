@@ -1,5 +1,109 @@
 # Changelog
 
+## [5.4.6] - 2026-04-11
+
+### CRITICAL FIXES - Auto Salary History & Refund Commission Handling
+- **FIXED**: New employees now automatically get salary history initialized as "Commission Based"
+- **FIXED**: Refund commission settings now properly applied to refunded orders
+- **IMPROVED**: All new employees have salary history from day one (no more null history)
+- **IMPROVED**: Refunded orders respect refund commission type (None/Percentage/Flat)
+
+### Auto Salary History Initialization
+
+When a new user is created with an employee role (shop_employee, shop_manager, administrator):
+- Automatic salary history entry is created
+- Default type: "Commission Based"
+- Timestamp: User creation time
+- This ensures all employees have a salary history baseline
+
+**Benefits:**
+- No more null/empty history for new employees
+- Commission calculations work correctly from day one
+- Historical salary type lookup always finds a baseline entry
+
+### Refund Commission Handling
+
+When an order is refunded, the system now applies refund commission settings:
+
+**Refund Commission Type: None**
+- Refunded orders get ৳0 commission
+- Employee gets no earnings from refunded order
+
+**Refund Commission Type: Percentage**
+- Refunded orders get X% of original commission
+- Example: 50% refund commission on ৳100 commission = ৳50
+- Employee gets earnings based on their salary type
+
+**Refund Commission Type: Flat Amount**
+- Refunded orders get fixed amount (e.g., ৳120)
+- Example: ৳120 flat refund commission
+- Employee gets earnings based on their salary type
+
+**Salary Type Still Applies:**
+- Fixed salary employees: ৳0 (even with refund commission)
+- Commission-based employees: Full refund commission amount
+- Combined salary employees: Full refund commission amount
+
+### Example Scenarios
+
+**Scenario 1: Refund with Flat Amount (৳120)**
+```
+Original Commission: ৳100
+Refund Commission Type: Flat (৳120)
+Agent: Commission-based
+Processor: Fixed salary
+
+Result:
+- Total Commission: ৳120 (flat amount)
+- Agent gets: ৳84 (70% of ৳120)
+- Processor gets: ৳0 (fixed salary)
+```
+
+**Scenario 2: Refund with Percentage (50%)**
+```
+Original Commission: ৳100
+Refund Commission Type: Percentage (50%)
+Agent: Commission-based
+Processor: Commission-based
+
+Result:
+- Total Commission: ৳50 (50% of ৳100)
+- Agent gets: ৳35 (70% of ৳50)
+- Processor gets: ৳15 (30% of ৳50)
+```
+
+**Scenario 3: Refund with None**
+```
+Original Commission: ৳100
+Refund Commission Type: None
+Agent: Commission-based
+Processor: Commission-based
+
+Result:
+- Total Commission: ৳0
+- Agent gets: ৳0
+- Processor gets: ৳0
+```
+
+### Technical Changes
+- Updated `auto_set_user_custom_id()` to initialize salary history for new employees
+- Updated `calculate_commission()` to handle refunded orders with settings
+- Refund commission applied BEFORE salary type split
+- Salary type eligibility still determines final earnings
+
+### Files Modified
+- `includes/class-custom-fields.php` - Auto-initialize salary history
+- `includes/class-core-engine.php` - Handle refund commission settings
+- `woocommerce-team-payroll.php` - Version updated to 5.4.6
+- `CHANGELOG.md` - Updated with v5.4.6 changes
+
+### Testing Recommendations
+1. Create new employee and verify salary history is auto-created
+2. Create order and refund it with different refund commission settings
+3. Verify commission is calculated correctly for refunded orders
+4. Test with fixed salary employees (should get ৳0)
+5. Test with commission-based employees (should get refund commission)
+
 ## [5.4.5] - 2026-04-11
 
 ### CRITICAL FIX - Combined Salary Commission Eligibility & Historical Salary Type Checking
