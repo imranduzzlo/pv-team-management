@@ -21,13 +21,38 @@ class WC_Team_Payroll_Dashboard {
 		<div class="wrap wc-team-payroll-dashboard">
 			<h1><?php esc_html_e( 'Dashboard', 'wc-team-payroll' ); ?></h1>
 
-			<!-- Date Range Filter -->
-			<div class="wc-tp-date-filter">
-				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
-				<input type="date" id="wc-tp-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
-				<span class="wc-tp-date-separator">to</span>
-				<input type="date" id="wc-tp-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
-				<button type="button" class="button button-primary" id="wc-tp-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+			<!-- Unified Filter Section -->
+			<div class="wc-tp-unified-filter">
+				<div class="wc-tp-filter-row">
+					<!-- Date Range Preset -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-dashboard-date-preset">
+							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Custom Date Range (Hidden by default) -->
+					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-dashboard-custom-date-range" style="display: none;">
+						<input type="date" id="wc-tp-dashboard-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
+						<span class="wc-tp-date-separator">to</span>
+						<input type="date" id="wc-tp-dashboard-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
+					</div>
+
+					<!-- Filter Button -->
+					<div class="wc-tp-filter-group">
+						<button type="button" class="button button-primary" id="wc-tp-dashboard-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+					</div>
+				</div>
 			</div>
 
 			<!-- Stats Cards -->
@@ -37,7 +62,10 @@ class WC_Team_Payroll_Dashboard {
 
 			<!-- Employee Payroll Details (TOP) -->
 			<div class="wc-tp-table-section" id="wc-tp-payroll-section">
-				<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+				</div>
 				<div id="wc-tp-payroll-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -47,7 +75,10 @@ class WC_Team_Payroll_Dashboard {
 			<div class="wc-tp-dashboard-grid">
 				<!-- Top Earners -->
 				<div class="wc-tp-table-section" id="wc-tp-earners-section">
-					<h2><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+						<h2 style="margin: 0;"><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
+						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+					</div>
 					<div id="wc-tp-top-earners-container">
 						<!-- Content will be loaded via AJAX -->
 					</div>
@@ -55,7 +86,10 @@ class WC_Team_Payroll_Dashboard {
 
 				<!-- Recent Payments -->
 				<div class="wc-tp-table-section" id="wc-tp-payments-section">
-					<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+						<h2 style="margin: 0;"><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
+						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+					</div>
 					<div id="wc-tp-recent-payments-container">
 						<!-- Content will be loaded via AJAX -->
 					</div>
@@ -64,7 +98,10 @@ class WC_Team_Payroll_Dashboard {
 
 			<!-- Latest Employees (10) - BOTTOM -->
 			<div class="wc-tp-table-section" id="wc-tp-employees-section">
-				<h2><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+					<h2 style="margin: 0;"><?php esc_html_e( 'Latest Employees', 'wc-team-payroll' ); ?></h2>
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employees' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+				</div>
 				<div id="wc-tp-latest-employees-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
@@ -120,36 +157,61 @@ class WC_Team_Payroll_Dashboard {
 				margin-bottom: 24px;
 			}
 
-			.wc-tp-date-filter {
+			.wc-tp-unified-filter {
 				background: var(--color-card-bg);
 				padding: 16px;
 				border-radius: 8px;
 				margin-bottom: 24px;
 				border: 1px solid var(--color-border-light);
+			}
+
+			.wc-tp-filter-row {
 				display: flex;
 				gap: 12px;
-				align-items: center;
+				align-items: flex-end;
 				flex-wrap: wrap;
 			}
 
-			.wc-tp-date-filter label {
-				font-weight: var(--fw-semibold);
-				color: var(--text-main);
-				font-size: var(--fs-body);
+			.wc-tp-filter-group {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
 			}
 
-			.wc-tp-date-filter input[type="date"] {
+			.wc-tp-filter-group label {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+			}
+
+			.wc-tp-filter-group select,
+			.wc-tp-filter-group input[type="date"] {
 				padding: 8px 12px;
 				border: 1px solid var(--color-border-light);
 				border-radius: 6px;
 				font-size: var(--fs-body);
 				font-family: var(--font-family);
 				color: var(--text-main);
+				background: var(--color-card-bg);
+				cursor: pointer;
+			}
+
+			.wc-tp-custom-date-range {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-custom-date-range input[type="date"] {
+				flex: 1;
+				min-width: 150px;
 			}
 
 			.wc-tp-date-separator {
 				color: var(--text-muted);
 				font-weight: var(--fw-medium);
+				font-size: var(--fs-meta);
 			}
 
 			.wc-tp-stats-grid {
@@ -643,27 +705,104 @@ class WC_Team_Payroll_Dashboard {
 				let wcCurrency = 'USD';
 				let wcCurrencySymbol = '$';
 				let wcCurrencyPos = 'left';
+				let lastDatePreset = 'all-time';
 
 				// Load dashboard data on page load
 				loadDashboardData();
 
+				// Date preset change - show/hide custom date range
+				$('#wc-tp-dashboard-date-preset').on('change', function() {
+					const preset = $(this).val();
+					lastDatePreset = preset;
+					
+					if (preset === 'custom') {
+						$('#wc-tp-dashboard-custom-date-range').show();
+					} else {
+						$('#wc-tp-dashboard-custom-date-range').hide();
+					}
+				});
+
 				// Filter button click
-				$('#wc-tp-filter-btn').on('click', function() {
+				$('#wc-tp-dashboard-filter-btn').on('click', function() {
 					loadDashboardData();
 				});
 
+				// Calculate date range based on preset
+				function getDateRange(preset) {
+					const today = new Date();
+					let startDate, endDate;
+
+					switch(preset) {
+						case 'today':
+							startDate = new Date(today);
+							endDate = new Date(today);
+							break;
+						case 'this-week':
+							const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+							startDate = new Date(firstDay);
+							endDate = new Date();
+							break;
+						case 'this-month':
+							startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+							endDate = new Date();
+							break;
+						case 'this-year':
+							startDate = new Date(today.getFullYear(), 0, 1);
+							endDate = new Date();
+							break;
+						case 'last-week':
+							const today2 = new Date();
+							const lastWeekEnd = new Date(today2.setDate(today2.getDate() - today2.getDay() - 1));
+							const lastWeekStart = new Date(lastWeekEnd.setDate(lastWeekEnd.getDate() - 6));
+							startDate = new Date(lastWeekStart);
+							endDate = new Date(lastWeekEnd);
+							break;
+						case 'last-month':
+							const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+							const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+							startDate = new Date(lastMonthStart);
+							endDate = new Date(lastMonthEnd);
+							break;
+						case 'last-year':
+							startDate = new Date(today.getFullYear() - 1, 0, 1);
+							endDate = new Date(today.getFullYear() - 1, 11, 31);
+							break;
+						case 'last-6-months':
+							const sixMonthsAgo = new Date(today);
+							sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+							startDate = new Date(sixMonthsAgo);
+							endDate = new Date();
+							break;
+						case 'custom':
+							const customStart = $('#wc-tp-dashboard-start-date').val();
+							const customEnd = $('#wc-tp-dashboard-end-date').val();
+							if (!customStart || !customEnd) {
+								alert('Please select both start and end dates');
+								return null;
+							}
+							return { start: customStart, end: customEnd };
+						case 'all-time':
+						default:
+							return { start: '2000-01-01', end: new Date().toISOString().split('T')[0] };
+					}
+
+					return {
+						start: startDate.toISOString().split('T')[0],
+						end: endDate.toISOString().split('T')[0]
+					};
+				}
+
 				// Load all dashboard data via AJAX
 				function loadDashboardData() {
-					const startDate = $('#wc-tp-start-date').val();
-					const endDate = $('#wc-tp-end-date').val();
+					const preset = $('#wc-tp-dashboard-date-preset').val();
+					const dateRange = getDateRange(preset);
 
-					if (!startDate || !endDate) {
-						alert('Please select both start and end dates');
+					if (!dateRange) {
 						return;
 					}
 
 					// Show loading state
-					$('#wc-tp-filter-btn').prop('disabled', true).text('Loading...');
+					$('#wc-tp-dashboard-filter-btn').prop('disabled', true).text('Loading...');
 
 					// AJAX request
 					$.ajax({
@@ -671,8 +810,9 @@ class WC_Team_Payroll_Dashboard {
 						type: 'POST',
 						data: {
 							action: 'wc_tp_get_dashboard_data',
-							start_date: startDate,
-							end_date: endDate
+							date_preset: preset,
+							start_date: dateRange.start,
+							end_date: dateRange.end
 						},
 						success: function(response) {
 							if (response.success) {
@@ -697,7 +837,7 @@ class WC_Team_Payroll_Dashboard {
 							// Silent error handling
 						},
 						complete: function() {
-							$('#wc-tp-filter-btn').prop('disabled', false).text('Filter');
+							$('#wc-tp-dashboard-filter-btn').prop('disabled', false).text('Filter');
 						}
 					});
 				}

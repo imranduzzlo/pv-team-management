@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.5.0
+ * Version: 5.6.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -135,10 +135,11 @@ add_action( 'plugins_loaded', function() {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
+		$date_preset = isset( $_POST['date_preset'] ) ? sanitize_text_field( $_POST['date_preset'] ) : 'all-time';
 		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
 
-		// Get payroll data
+		// Get payroll data (filtered by order creation/modification date)
 		$payroll = array();
 		if ( class_exists( 'WC_Team_Payroll_Payroll_Engine' ) ) {
 			$payroll = WC_Team_Payroll_Payroll_Engine::get_payroll_by_date_range( $start_date, $end_date );
@@ -165,20 +166,17 @@ add_action( 'plugins_loaded', function() {
 		$payroll = $processed_payroll;
 
 		// Calculate stats
-		$total_employees = 0;
 		$total_earnings = 0;
 		$total_paid = 0;
 		$total_due = 0;
-		$total_orders = 0;
 
 		foreach ( $payroll as $data ) {
-			$total_employees++;
 			$total_earnings += $data['total'];
 			$total_paid += $data['paid'];
 			$total_due += $data['due'];
 		}
 
-		// Count unique orders (not summing employee orders, as same order can be counted twice)
+		// Count unique orders (filtered by order creation/modification date)
 		$unique_orders = array();
 		$args = array(
 			'limit'  => -1,
@@ -202,16 +200,32 @@ add_action( 'plugins_loaded', function() {
 		}
 		$total_orders = count( $unique_orders );
 
-		// Get latest employees
+		// Get latest employees (filtered by user creation date)
 		$latest_employees_data = array();
-		$latest_employees = get_users( array(
+		$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+		$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+		
+		$all_employees = get_users( array(
 			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
 			'orderby'  => 'user_registered',
 			'order'    => 'DESC',
-			'number'   => 10,
+			'number'   => -1,
 		) );
 
-		foreach ( $latest_employees as $employee ) {
+		$filtered_employees = array();
+		foreach ( $all_employees as $employee ) {
+			$user_registered_timestamp = strtotime( $employee->user_registered );
+			
+			// Filter by user creation date
+			if ( $user_registered_timestamp >= $start_timestamp && $user_registered_timestamp <= $end_timestamp ) {
+				$filtered_employees[] = $employee;
+			}
+		}
+
+		// Get only latest 10 from filtered employees
+		$filtered_employees = array_slice( $filtered_employees, 0, 10 );
+
+		foreach ( $filtered_employees as $employee ) {
 			$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
 			$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
 			$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
@@ -242,7 +256,10 @@ add_action( 'plugins_loaded', function() {
 			);
 		}
 
-		// Get top earners (only those with at least 1 order, up to 10)
+		// Count total employees (filtered by user creation date)
+		$total_employees = count( $filtered_employees );
+
+		// Get top earners (filtered by order creation/modification date, only those with at least 1 order, up to 10)
 		$top_earners_data = array();
 		$sorted_payroll = $payroll;
 		usort( $sorted_payroll, function( $a, $b ) {
@@ -270,18 +287,18 @@ add_action( 'plugins_loaded', function() {
 			$count++;
 		}
 
-		// Get recent payments (from user meta, filtered by date range)
+		// Get recent payments (filtered by payment date)
 		global $wpdb;
 		$recent_payments_data = array();
 		
 		// Get all employees
-		$all_employees = get_users( array(
+		$all_employees_for_payments = get_users( array(
 			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
 			'number'   => -1,
 		) );
 
 		$all_payments = array();
-		foreach ( $all_employees as $employee ) {
+		foreach ( $all_employees_for_payments as $employee ) {
 			$payments = get_user_meta( $employee->ID, '_wc_tp_payments', true );
 			if ( is_array( $payments ) ) {
 				foreach ( $payments as $payment ) {
@@ -293,10 +310,8 @@ add_action( 'plugins_loaded', function() {
 					}
 					
 					$payment_timestamp = strtotime( $payment_date_str );
-					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
-					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
 					
-					// Only include payments within date range
+					// Filter by payment date
 					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 						$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
 						$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
@@ -328,7 +343,7 @@ add_action( 'plugins_loaded', function() {
 		}
 
 		wp_send_json_success( array(
-			'total_employees'   => count( $latest_employees ),
+			'total_employees'   => $total_employees,
 			'total_orders'      => $total_orders,
 			'total_earnings'    => $total_earnings,
 			'total_paid'        => $total_paid,

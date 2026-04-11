@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.6.0] - 2026-04-11
+
+### New Features
+
+#### Dashboard Unified Filter System with Section-Wise Date Filtering
+- **Dashboard Filter**: Added unified filter with predefined date range options
+- Predefined options: All Time, Today, This Week, This Month, This Year, Last Week, Last Month, Last Year, Last 6 Months, Custom
+- Custom date range reveals when selected and remembers last preset range
+
+#### Section-Wise Date Filtering Rules
+- **Payroll Section**: Filters by order creation/modification date
+- **Employee Section**: Filters by employee/user creation date
+- **Top Earners Section**: Filters by order creation/modification date
+- **Recent Payments Section**: Filters by payment date
+- **Employee Total Stat Card**: Filters by employee creation date
+- **Default**: All Time (shows all data)
+
+#### View All Buttons
+- Each dashboard section now includes a "View All" button
+- Payroll Section → Links to Payroll page
+- Employee Section → Links to Team Members page
+- Top Earners Section → Links to Payroll page
+- Recent Payments Section → Links to Payroll page
+
+### Technical Details
+
+- Updated AJAX handler `wc_tp_get_dashboard_data` to accept date preset parameter
+- Implemented section-wise date filtering logic based on data type
+- Employee count now reflects filtered employees by creation date
+- Order count reflects filtered orders by creation/modification date
+- Payment filtering uses payment date for accurate date range filtering
+- All sections maintain independent filtering while using same date range
+
+---
+
 ## [5.5.0] - 2026-04-11
 
 ### New Features
