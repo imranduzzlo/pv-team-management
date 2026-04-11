@@ -503,15 +503,12 @@ class WC_Team_Payroll_Employee_Management {
 						// Hide custom date inputs and update dates
 						$('#wc-tp-custom-date-range').slideUp(200);
 						updateDateRangeFromPreset(preset);
-						currentPage = 1;
-						loadEmployeesData();
 					}
 				});
 
-				// Custom date range change
+				// Custom date range change - just update values, don't load
 				$('#wc-tp-employees-start-date, #wc-tp-employees-end-date').on('change', function() {
-					currentPage = 1;
-					loadEmployeesData();
+					// Just update the values, don't trigger load
 				});
 
 				// Items per page change
@@ -544,7 +541,7 @@ class WC_Team_Payroll_Employee_Management {
 				$('#wc-tp-salary-type-filter').on('change', function() {
 					currentPage = 1;
 					salaryTypeFilter = $(this).val();
-					loadEmployeesData();
+					// Don't load here, wait for Filter button click
 				});
 
 				function getDateRangeFromPreset(preset) {

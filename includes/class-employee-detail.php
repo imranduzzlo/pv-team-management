@@ -814,15 +814,13 @@ class WC_Team_Payroll_Employee_Detail {
 						// Hide custom date inputs and update dates
 						$('#wc-tp-custom-date-range').slideUp(200);
 						updateDateRangeFromPreset(preset);
-						currentPage = 1;
-						loadOrdersData();
+						// Don't load here, wait for Filter button click
 					}
 				});
 
-				// Custom date range change
+				// Custom date range change - just update values, don't load
 				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
-					currentPage = 1;
-					loadOrdersData();
+					// Just update the values, don't trigger load
 				});
 
 				// Load orders data function
