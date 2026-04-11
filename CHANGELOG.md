@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.6.3] - 2026-04-11
+
+### CRITICAL FIX: Payroll Page Asset Enqueuing
+- **MAIN CULPRIT FOUND**: Payroll page screen ID detection was incorrect
+- Fixed screen ID check from `'woocommerce_page_wc-team-payroll'` to `'woocommerce_page_wc-team-payroll-details'`
+- This was preventing CSS and JS from loading on the payroll page
+- Now CSS and JS load properly, styles display correctly
+- Payroll page now shows content without browser warnings
+- Updated all asset enqueue versions to 5.6.2
+- All functionality preserved - 100% backward compatible
+
 ## [5.6.2] - 2026-04-11
 
 ### Bug Fix: Payroll & Employee Management Pages
