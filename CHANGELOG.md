@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.5.0] - 2026-04-11
+
+### New Features
+
+#### Unified Filter System with Predefined Date Ranges
+- **Payroll Page**: Added unified filter with predefined date range options
+- **Team Members Page**: Added unified filter with predefined date range options
+- **Employee Detail Page**: Added unified filter to Orders tab with predefined date range options
+- Predefined options: All Time, Today, This Week, This Month, This Year, Last Week, Last Month, Last Year, Last 6 Months, Custom
+- Custom date range reveals when selected and remembers last preset range
+- Example: Select "This Month" → Select "Custom" → dates pre-fill with this month's range
+- Then select "Last Week" → Select "Custom" again → dates pre-fill with last week's range
+
+#### Improved User Edit Page
+- **FIXED**: Custom fields no longer interfere with default WordPress fields
+- **FIXED**: WooCommerce fields now display properly on user edit page
+- Profile Picture and VB User ID fields now appear cleanly at the bottom
+- No conflicts with existing user profile fields
+
+### Technical Details
+
+- Unified filter system provides consistent UX across all pages
+- Date range calculations handle month/year boundaries correctly
+- Custom date range state persists across preset selections
+- Changed custom fields hook from `personal_options` to `show_user_profile`/`edit_user_profile`
+- All filters maintain independent operation while working together
+- Mobile-responsive design for all filter sections
+
+---
+
 ## [5.4.10] - 2026-04-11
 
 ### New Features
