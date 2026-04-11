@@ -26,7 +26,7 @@ class WC_Team_Payroll_Page {
 
 			<!-- Search Filter -->
 			<div class="wc-tp-search-filter">
-				<input type="text" id="wc-tp-payroll-search" placeholder="<?php esc_attr_e( 'Search by name, vb_user_id, user ID, email, or phone...', 'wc-team-payroll' ); ?>" />
+				<input type="text" id="wc-tp-payroll-search" placeholder="<?php esc_attr_e( 'Search by Name, Email, User ID, or Phone...', 'wc-team-payroll' ); ?>" />
 				<button type="button" class="button button-secondary" id="wc-tp-payroll-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
 			</div>
 
@@ -509,6 +509,81 @@ class WC_Team_Payroll_Page {
 
 					html += '</tbody></table>';
 					container.html(html);
+					
+					// Store payroll array for sorting
+					container.data('payrollArray', payrollArray);
+					attachPayrollSortHandlers(container, payrollArray);
+				}
+
+				function attachPayrollSortHandlers(container, payrollArray) {
+					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
+					
+					// Restore sort state classes if they exist
+					if (currentSort.field) {
+						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
+						if (header.length) {
+							header.addClass('wc-tp-sort-active');
+							if (currentSort.direction === 'asc') {
+								header.addClass('wc-tp-sort-asc');
+							} else {
+								header.addClass('wc-tp-sort-desc');
+							}
+						}
+					}
+					
+					container.find('.wc-tp-sortable-header').on('click', function() {
+						const sortField = $(this).data('sort');
+						if (!sortField) return;
+						
+						const isNumeric = ['orders', 'total', 'paid', 'due'].includes(sortField);
+						
+						// Check if clicking the same field
+						if (currentSort.field === sortField) {
+							// Toggle direction
+							currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+						} else {
+							// New field, start with ascending
+							currentSort.field = sortField;
+							currentSort.direction = 'asc';
+						}
+						
+						// Save sort state to container
+						container.data('sortState', currentSort);
+						
+						// Sort data
+						let sortedData = [...payrollArray].sort((a, b) => {
+							let aVal = a[sortField];
+							let bVal = b[sortField];
+							
+							if (aVal === undefined || aVal === null) aVal = '';
+							if (bVal === undefined || bVal === null) bVal = '';
+							
+							if (isNumeric) {
+								aVal = parseFloat(aVal) || 0;
+								bVal = parseFloat(bVal) || 0;
+								return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+							} else {
+								aVal = String(aVal).toLowerCase();
+								bVal = String(bVal).toLowerCase();
+								return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+							}
+						});
+						
+						// Reset to first page and re-render
+						currentPage = 1;
+						allPayrollData = {};
+						$.each(sortedData, function(i, item) {
+							allPayrollData[item.userId] = item;
+						});
+						
+						renderPayrollTable(allPayrollData);
+						renderPagination(allPayrollData);
+						
+						// Re-attach handlers to new headers with updated sort state
+						setTimeout(function() {
+							attachPayrollSortHandlers(container, sortedData);
+						}, 10);
+					});
 				}
 
 				function renderPagination(payroll) {

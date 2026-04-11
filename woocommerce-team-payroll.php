@@ -456,6 +456,83 @@ add_action( 'plugins_loaded', function() {
 			'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
 		) );
 	} );
+
+	add_action( 'wp_ajax_wc_tp_get_employees_data', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$search_query = isset( $_POST['search_query'] ) ? sanitize_text_field( $_POST['search_query'] ) : '';
+		$salary_type = isset( $_POST['salary_type'] ) ? sanitize_text_field( $_POST['salary_type'] ) : '';
+
+		// Get all employees
+		$employees = get_users( array(
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'number'   => -1,
+		) );
+
+		$employees_data = array();
+
+		foreach ( $employees as $employee ) {
+			$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+			$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
+			$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
+			$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
+
+			// Determine salary type
+			if ( $is_fixed_salary ) {
+				$type = __( 'Fixed Salary', 'wc-team-payroll' );
+				$type_key = 'fixed';
+				$salary_info = wc_price( $salary ) . ' / ' . esc_html( $frequency );
+			} elseif ( $is_combined_salary ) {
+				$type = __( 'Combined (Base + Commission)', 'wc-team-payroll' );
+				$type_key = 'combined';
+				$salary_info = wc_price( $salary ) . ' / ' . esc_html( $frequency );
+			} else {
+				$type = __( 'Commission Based', 'wc-team-payroll' );
+				$type_key = 'commission';
+				$salary_info = __( 'Commission Based', 'wc-team-payroll' );
+			}
+
+			// Apply salary type filter
+			if ( ! empty( $salary_type ) && $salary_type !== $type_key ) {
+				continue;
+			}
+
+			// Apply search filter
+			if ( ! empty( $search_query ) ) {
+				$matches = false;
+				if ( stripos( $employee->display_name, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( $employee->user_email, $search_query ) !== false ) {
+					$matches = true;
+				} elseif ( stripos( $vb_user_id, $search_query ) !== false ) {
+					$matches = true;
+				}
+
+				if ( ! $matches ) {
+					continue;
+				}
+			}
+
+			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+
+			$employees_data[] = array(
+				'user_id'      => $employee->ID,
+				'vb_user_id'   => $vb_user_id,
+				'display_name' => $employee_name,
+				'user_email'   => $employee->user_email,
+				'type'         => $type,
+				'salary_info'  => $salary_info,
+				'manage_url'   => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
+			);
+		}
+
+		wp_send_json_success( array(
+			'employees' => $employees_data,
+		) );
+	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================
@@ -499,7 +576,7 @@ add_action( 'admin_menu', function() {
 		__( 'Payroll', 'wc-team-payroll' ),
 		__( 'Payroll', 'wc-team-payroll' ),
 		'manage_options',
-		'wc-team-payroll-payroll',
+		'wc-team-payroll-details',
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Page' ) ) {
 				$payroll_page = new WC_Team_Payroll_Page();

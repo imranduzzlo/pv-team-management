@@ -10,64 +10,572 @@ class WC_Team_Payroll_Employee_Management {
 			wp_die( esc_html__( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		$employees = get_users( array(
-			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
-			'orderby'  => 'display_name',
-			'order'    => 'ASC',
-		) );
-
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Team Members Management', 'wc-team-payroll' ); ?></h1>
+		<div class="wrap wc-team-payroll-employees">
+			<h1><?php esc_html_e( 'Team Members', 'wc-team-payroll' ); ?></h1>
 
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Type', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Salary/Commission', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $employees as $employee ) : ?>
-						<tr>
-							<td><?php echo esc_html( $employee->display_name ); ?></td>
-							<td><?php echo esc_html( $employee->user_email ); ?></td>
-							<td>
-								<?php
-								$is_fixed_salary = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
-								$is_combined_salary = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
-								
-								if ( $is_fixed_salary ) {
-									echo esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-								} elseif ( $is_combined_salary ) {
-									echo esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
-								} else {
-									echo esc_html__( 'Commission Based', 'wc-team-payroll' );
-								}
-								?>
-							</td>
-							<td>
-								<?php
-								if ( $is_fixed_salary || $is_combined_salary ) {
-									$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
-									$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
-									echo wp_kses_post( wc_price( $salary ) . ' / ' . esc_html( $frequency ) );
-								} else {
-									echo esc_html__( 'Commission Based', 'wc-team-payroll' );
-								}
-								?>
-							</td>
-							<td>
-								<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ) ); ?>" class="button button-small"><?php esc_html_e( 'Manage', 'wc-team-payroll' ); ?></a>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+			<!-- Search Filter -->
+			<div class="wc-tp-search-filter">
+				<input type="text" id="wc-tp-employees-search" placeholder="<?php esc_attr_e( 'Search by name, email, or vb_user_id...', 'wc-team-payroll' ); ?>" />
+				<button type="button" class="button button-secondary" id="wc-tp-employees-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
+			</div>
+
+			<!-- Salary Type Filter -->
+			<div class="wc-tp-salary-filter">
+				<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
+				<select id="wc-tp-salary-type-filter">
+					<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
+					<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+					<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+					<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+				</select>
+			</div>
+
+			<!-- Employees Table Section -->
+			<div class="wc-tp-table-section" id="wc-tp-employees-table-section">
+				<h2><?php esc_html_e( 'Team Members', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-employees-table-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+				<!-- Pagination -->
+				<div id="wc-tp-employees-pagination" style="margin-top: 20px; text-align: center;"></div>
+			</div>
 		</div>
+
+		<style>
+			:root {
+				--color-primary: #FF9900;
+				--color-primary-hover: #E68A00;
+				--color-primary-subtle: #FFF4E5;
+				--color-secondary: #212B36;
+				--color-site-bg: #FDFBF8;
+				--color-card-bg: #FFFFFF;
+				--color-border-light: #E5EAF0;
+				--color-accent-alert: #FF5500;
+				--color-accent-link: #0077EE;
+				--color-accent-success: #388E3C;
+				--color-accent-muted: #F4F4F4;
+				--text-main: #212B36;
+				--text-body: #454F5B;
+				--text-muted: #919EAB;
+				--font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+				--fs-h1: 2rem;
+				--fs-h2: 1.5rem;
+				--fs-body: 1rem;
+				--fs-meta: 0.875rem;
+				--fs-small: 0.75rem;
+				--fw-bold: 700;
+				--fw-semibold: 600;
+				--fw-medium: 500;
+				--lh-body: 1.5;
+			}
+
+			.wc-team-payroll-employees {
+				background: var(--color-site-bg);
+				padding: 24px;
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-team-payroll-employees h1 {
+				font-size: var(--fs-h1);
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+				margin-bottom: 24px;
+			}
+
+			.wc-tp-search-filter {
+				background: var(--color-card-bg);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 16px;
+				border: 1px solid var(--color-border-light);
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-search-filter input[type="text"] {
+				flex: 1;
+				min-width: 250px;
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-search-filter input[type="text"]::placeholder {
+				color: var(--text-muted);
+			}
+
+			.wc-tp-search-filter .button-secondary {
+				background: var(--color-accent-muted);
+				border-color: var(--color-border-light);
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-search-filter .button-secondary:hover {
+				background: var(--color-border-light);
+				border-color: var(--color-border-light);
+			}
+
+			.wc-tp-salary-filter {
+				background: var(--color-card-bg);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 24px;
+				border: 1px solid var(--color-border-light);
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-salary-filter label {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-body);
+			}
+
+			.wc-tp-salary-filter select {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+				background: var(--color-card-bg);
+				cursor: pointer;
+			}
+
+			.wc-tp-table-section {
+				background: var(--color-card-bg);
+				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid var(--color-border-light);
+				margin-bottom: 20px;
+			}
+
+			.wc-tp-table-section h2 {
+				margin-top: 0;
+				margin-bottom: 20px;
+				color: var(--text-main);
+				border-left: 4px solid var(--color-primary);
+				padding-left: 12px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
+			}
+
+			.wc-tp-empty-state {
+				text-align: center;
+				padding: 40px 20px;
+				color: var(--text-muted);
+			}
+
+			.wc-tp-empty-icon {
+				font-size: 48px;
+				margin-bottom: 15px;
+				display: block;
+				opacity: 0.5;
+			}
+
+			.wc-tp-empty-state p {
+				margin: 0;
+				font-size: var(--fs-body);
+				color: var(--text-muted);
+			}
+
+			.wc-tp-data-table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+
+			.wc-tp-data-table thead {
+				background: var(--color-accent-muted);
+			}
+
+			.wc-tp-data-table th {
+				padding: 14px 12px;
+				text-align: left;
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+				border-bottom: 1px solid var(--color-border-light);
+			}
+
+			.wc-tp-sortable-header {
+				cursor: pointer;
+				user-select: none;
+				position: relative;
+				padding-right: 24px;
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-sortable-header::after {
+				content: '⇅';
+				position: absolute;
+				right: 8px;
+				opacity: 0.3;
+				font-size: 12px;
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-sortable-header:hover {
+				background-color: var(--color-primary-subtle);
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active {
+				background-color: var(--color-primary-subtle) !important;
+				color: var(--color-primary) !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active::after {
+				opacity: 1 !important;
+				color: var(--color-primary) !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-asc::after {
+				content: '↑' !important;
+			}
+
+			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-desc::after {
+				content: '↓' !important;
+			}
+
+			.wc-tp-data-table td {
+				padding: 12px;
+				border-bottom: 1px solid var(--color-border-light);
+				font-size: var(--fs-body);
+				color: var(--text-body);
+			}
+
+			.wc-tp-data-table tbody tr:hover {
+				background: var(--color-primary-subtle);
+			}
+
+			.wc-tp-badge {
+				background: var(--color-primary);
+				color: white;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
+			}
+
+			.button-primary {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.button-primary:hover {
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
+			}
+
+			.wc-tp-pagination {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-pagination a,
+			.wc-tp-pagination span {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 4px;
+				text-decoration: none;
+				color: var(--text-main);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-pagination a:hover {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-pagination .current {
+				background: var(--color-primary);
+				color: white;
+				border-color: var(--color-primary);
+				font-weight: var(--fw-semibold);
+			}
+
+			@media (max-width: 768px) {
+				.wc-team-payroll-employees {
+					padding: 12px;
+				}
+
+				.wc-tp-search-filter {
+					flex-direction: column;
+					gap: 8px;
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-search-filter input[type="text"] {
+					width: 100%;
+					min-width: unset;
+				}
+
+				.wc-tp-search-filter .button-secondary {
+					width: 100%;
+				}
+
+				.wc-tp-salary-filter {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-salary-filter select {
+					width: 100%;
+				}
+
+				.wc-tp-table-section {
+					padding: 12px;
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-table-section h2 {
+					font-size: 1.25rem;
+					margin-bottom: 12px;
+					padding-left: 8px;
+				}
+
+				.wc-tp-data-table {
+					font-size: 12px;
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 6px;
+				}
+
+				.button,
+				.button-small {
+					padding: 4px 6px;
+					font-size: 10px;
+				}
+
+				.wc-tp-badge {
+					padding: 2px 4px;
+					font-size: 10px;
+				}
+			}
+		</style>
+
+		<script>
+			jQuery(document).ready(function($) {
+				let currentPage = 1;
+				let allEmployeesData = [];
+				let searchQuery = '';
+				let salaryTypeFilter = '';
+
+				loadEmployeesData();
+
+				$('#wc-tp-employees-search').on('keyup', function() {
+					currentPage = 1;
+					searchQuery = $(this).val();
+					loadEmployeesData();
+				});
+
+				$('#wc-tp-employees-search-clear').on('click', function() {
+					$('#wc-tp-employees-search').val('');
+					searchQuery = '';
+					currentPage = 1;
+					loadEmployeesData();
+				});
+
+				$('#wc-tp-salary-type-filter').on('change', function() {
+					currentPage = 1;
+					salaryTypeFilter = $(this).val();
+					loadEmployeesData();
+				});
+
+				function loadEmployeesData() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employees_data',
+							search_query: searchQuery,
+							salary_type: salaryTypeFilter
+						},
+						success: function(response) {
+							if (response.success) {
+								const data = response.data;
+								allEmployeesData = data.employees;
+								currentPage = 1;
+								
+								renderEmployeesTable(allEmployeesData);
+								renderPagination(allEmployeesData);
+							}
+						},
+						error: function() {
+							// Silent error handling
+						}
+					});
+				}
+
+				function renderEmployeesTable(employees) {
+					const container = $('#wc-tp-employees-table-container');
+					
+					if (!employees || employees.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">👥</div><p>No team members found</p></div>');
+						return;
+					}
+
+					const itemsPerPage = 30;
+					const startIndex = (currentPage - 1) * itemsPerPage;
+					const endIndex = startIndex + itemsPerPage;
+					const pageData = employees.slice(startIndex, endIndex);
+
+					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
+					html += '<th class="wc-tp-sortable-header" data-sort="display_name">Name</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="type">Type</th>';
+					html += '<th>Salary/Commission</th>';
+					html += '<th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(pageData, function(i, emp) {
+						html += '<tr>';
+						html += '<td><strong>' + emp.display_name + '</strong></td>';
+						html += '<td>' + emp.user_email + '</td>';
+						html += '<td>' + emp.type + '</td>';
+						html += '<td>' + emp.salary_info + '</td>';
+						html += '<td><a href="' + emp.manage_url + '" class="button button-small button-primary">Manage</a></td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+					
+					// Store employees array for sorting
+					container.data('employeesArray', employees);
+					attachEmployeesSortHandlers(container, employees);
+				}
+
+				function attachEmployeesSortHandlers(container, employeesArray) {
+					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
+					
+					// Restore sort state classes if they exist
+					if (currentSort.field) {
+						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
+						if (header.length) {
+							header.addClass('wc-tp-sort-active');
+							if (currentSort.direction === 'asc') {
+								header.addClass('wc-tp-sort-asc');
+							} else {
+								header.addClass('wc-tp-sort-desc');
+							}
+						}
+					}
+					
+					container.find('.wc-tp-sortable-header').on('click', function() {
+						const sortField = $(this).data('sort');
+						if (!sortField) return;
+						
+						// Check if clicking the same field
+						if (currentSort.field === sortField) {
+							// Toggle direction
+							currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+						} else {
+							// New field, start with ascending
+							currentSort.field = sortField;
+							currentSort.direction = 'asc';
+						}
+						
+						// Save sort state to container
+						container.data('sortState', currentSort);
+						
+						// Sort data
+						let sortedData = [...employeesArray].sort((a, b) => {
+							let aVal = a[sortField];
+							let bVal = b[sortField];
+							
+							if (aVal === undefined || aVal === null) aVal = '';
+							if (bVal === undefined || bVal === null) bVal = '';
+							
+							aVal = String(aVal).toLowerCase();
+							bVal = String(bVal).toLowerCase();
+							return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+						});
+						
+						// Reset to first page and re-render
+						currentPage = 1;
+						allEmployeesData = sortedData;
+						
+						renderEmployeesTable(allEmployeesData);
+						renderPagination(allEmployeesData);
+						
+						// Re-attach handlers to new headers with updated sort state
+						setTimeout(function() {
+							attachEmployeesSortHandlers(container, sortedData);
+						}, 10);
+					});
+				}
+
+				function renderPagination(employees) {
+					const container = $('#wc-tp-employees-pagination');
+					const itemsPerPage = 30;
+					const totalPages = Math.ceil(employees.length / itemsPerPage);
+
+					if (totalPages <= 1) {
+						container.html('');
+						return;
+					}
+
+					let html = '<div class="wc-tp-pagination">';
+
+					// Previous button
+					if (currentPage > 1) {
+						html += '<a href="#" data-page="' + (currentPage - 1) + '">← Previous</a>';
+					}
+
+					// Page numbers
+					for (let i = 1; i <= totalPages; i++) {
+						if (i === currentPage) {
+							html += '<span class="current">' + i + '</span>';
+						} else {
+							html += '<a href="#" data-page="' + i + '">' + i + '</a>';
+						}
+					}
+
+					// Next button
+					if (currentPage < totalPages) {
+						html += '<a href="#" data-page="' + (currentPage + 1) + '">Next →</a>';
+					}
+
+					html += '</div>';
+					container.html(html);
+
+					// Pagination click handler
+					container.find('a').on('click', function(e) {
+						e.preventDefault();
+						currentPage = parseInt($(this).data('page'));
+						renderEmployeesTable(allEmployeesData);
+						renderPagination(allEmployeesData);
+						$('html, body').animate({ scrollTop: $('#wc-tp-employees-table-section').offset().top - 100 }, 300);
+					});
+				}
+			});
+		</script>
 		<?php
 	}
 
