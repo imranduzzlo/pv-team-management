@@ -412,6 +412,7 @@ add_action( 'plugins_loaded', function() {
 		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
 		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
 		$search_query = isset( $_POST['search_query'] ) ? sanitize_text_field( $_POST['search_query'] ) : '';
+		$salary_type = isset( $_POST['salary_type'] ) ? sanitize_text_field( $_POST['salary_type'] ) : '';
 
 		// Get payroll data
 		$payroll = array();
@@ -425,6 +426,18 @@ add_action( 'plugins_loaded', function() {
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
 			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
 			
+			// Determine salary type
+			$is_fixed_salary = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_fixed_salary', true ) : false;
+			$is_combined_salary = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_combined_salary', true ) : false;
+			
+			if ( $is_fixed_salary ) {
+				$type_key = 'fixed';
+			} elseif ( $is_combined_salary ) {
+				$type_key = 'combined';
+			} else {
+				$type_key = 'commission';
+			}
+			
 			$processed_payroll[ $user_id ] = array(
 				'user_id'    => $data['user_id'],
 				'user'       => $data['user'],
@@ -434,9 +447,21 @@ add_action( 'plugins_loaded', function() {
 				'orders'     => $data['orders'],
 				'paid'       => $data['paid'],
 				'due'        => $data['due'],
+				'salary_type' => $type_key,
 			);
 		}
 		$payroll = $processed_payroll;
+
+		// Apply salary type filter if provided
+		if ( ! empty( $salary_type ) ) {
+			$filtered_payroll = array();
+			foreach ( $payroll as $user_id => $data ) {
+				if ( $data['salary_type'] === $salary_type ) {
+					$filtered_payroll[ $user_id ] = $data;
+				}
+			}
+			$payroll = $filtered_payroll;
+		}
 
 		// Apply search filter if search query is provided
 		if ( ! empty( $search_query ) ) {
@@ -487,6 +512,8 @@ add_action( 'plugins_loaded', function() {
 
 		$search_query = isset( $_POST['search_query'] ) ? sanitize_text_field( $_POST['search_query'] ) : '';
 		$salary_type = isset( $_POST['salary_type'] ) ? sanitize_text_field( $_POST['salary_type'] ) : '';
+		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : '';
+		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : '';
 
 		// Get all employees
 		$employees = get_users( array(
@@ -521,6 +548,17 @@ add_action( 'plugins_loaded', function() {
 			// Apply salary type filter
 			if ( ! empty( $salary_type ) && $salary_type !== $type_key ) {
 				continue;
+			}
+
+			// Apply date range filter (employee creation date)
+			if ( ! empty( $start_date ) || ! empty( $end_date ) ) {
+				$employee_created = strtotime( $employee->user_registered );
+				$filter_start = ! empty( $start_date ) ? strtotime( $start_date ) : 0;
+				$filter_end = ! empty( $end_date ) ? strtotime( $end_date . ' 23:59:59' ) : PHP_INT_MAX;
+
+				if ( $employee_created < $filter_start || $employee_created > $filter_end ) {
+					continue;
+				}
 			}
 
 			// Apply search filter

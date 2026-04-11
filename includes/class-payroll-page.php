@@ -39,6 +39,17 @@ class WC_Team_Payroll_Page {
 				<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
 			</div>
 
+			<!-- Salary Type Filter -->
+			<div class="wc-tp-salary-filter">
+				<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
+				<select id="wc-tp-payroll-salary-type-filter">
+					<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
+					<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+					<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+					<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+				</select>
+			</div>
+
 			<!-- Payroll Table Section -->
 			<div class="wc-tp-table-section" id="wc-tp-payroll-table-section">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -410,6 +421,7 @@ class WC_Team_Payroll_Page {
 				let currentPage = 1;
 				let allPayrollData = [];
 				let searchQuery = '';
+				let salaryTypeFilter = '';
 				let itemsPerPage = 20; // Default
 
 				// Load saved items per page from localStorage
@@ -431,6 +443,12 @@ class WC_Team_Payroll_Page {
 				});
 
 				$('#wc-tp-payroll-filter-btn').on('click', function() {
+					currentPage = 1;
+					loadPayrollData();
+				});
+
+				$('#wc-tp-payroll-salary-type-filter').on('change', function() {
+					salaryTypeFilter = $(this).val();
 					currentPage = 1;
 					loadPayrollData();
 				});
@@ -466,7 +484,8 @@ class WC_Team_Payroll_Page {
 							action: 'wc_tp_get_payroll_data_range',
 							start_date: startDate,
 							end_date: endDate,
-							search_query: searchQuery
+							search_query: searchQuery,
+							salary_type: salaryTypeFilter
 						},
 						success: function(response) {
 							if (response.success) {

@@ -13,9 +13,9 @@ class WC_Team_Payroll_Custom_Fields {
 		add_action( 'add_meta_boxes', array( $this, 'add_product_meta_box' ) );
 		add_action( 'save_post_product', array( $this, 'save_product_meta' ) );
 
-		// Add user meta box for vb_user_id
-		add_action( 'show_user_profile', array( $this, 'add_user_meta_box' ) );
-		add_action( 'edit_user_profile', array( $this, 'add_user_meta_box' ) );
+		// Add user meta box for vb_user_id and profile picture
+		// Use personal_options hook to add fields BEFORE personal options section
+		add_action( 'personal_options', array( $this, 'add_user_meta_box' ) );
 		add_action( 'personal_options_update', array( $this, 'save_user_meta' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_user_meta' ) );
 
@@ -161,35 +161,37 @@ class WC_Team_Payroll_Custom_Fields {
 		
 		wp_nonce_field( 'wc_tp_user_nonce', 'wc_tp_user_nonce' );
 		?>
-		<h3><?php esc_html_e( 'Team Payroll', 'wc-team-payroll' ); ?></h3>
+		<h2><?php esc_html_e( 'Team Payroll Settings', 'wc-team-payroll' ); ?></h2>
 		<table class="form-table">
-			<tr>
-				<th scope="row">
-					<label for="vb_user_id"><?php esc_html_e( 'VB User ID', 'wc-team-payroll' ); ?></label>
-				</th>
-				<td>
-					<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />
-					<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">
-					<label for="wc_tp_profile_picture"><?php esc_html_e( 'Profile Picture', 'wc-team-payroll' ); ?></label>
-				</th>
-				<td>
-					<div id="wc-tp-profile-picture-preview" style="margin-bottom: 10px;">
-						<?php if ( $profile_picture_url ) : ?>
-							<img src="<?php echo esc_url( $profile_picture_url ); ?>" style="max-width: 150px; height: auto; border-radius: 8px;" />
+			<tbody>
+				<tr>
+					<th scope="row">
+						<label for="vb_user_id"><?php esc_html_e( 'VB User ID', 'wc-team-payroll' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />
+						<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="wc_tp_profile_picture"><?php esc_html_e( 'Profile Picture', 'wc-team-payroll' ); ?></label>
+					</th>
+					<td>
+						<div id="wc-tp-profile-picture-preview" style="margin-bottom: 10px;">
+							<?php if ( $profile_picture_url ) : ?>
+								<img src="<?php echo esc_url( $profile_picture_url ); ?>" style="max-width: 150px; height: auto; border-radius: 8px;" />
+							<?php endif; ?>
+						</div>
+						<input type="hidden" id="wc_tp_profile_picture" name="wc_tp_profile_picture" value="<?php echo esc_attr( $profile_picture_id ); ?>" />
+						<button type="button" class="button" id="wc-tp-upload-profile-picture"><?php esc_html_e( 'Upload Picture', 'wc-team-payroll' ); ?></button>
+						<?php if ( $profile_picture_id ) : ?>
+							<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_html_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>
 						<?php endif; ?>
-					</div>
-					<input type="hidden" id="wc_tp_profile_picture" name="wc_tp_profile_picture" value="<?php echo esc_attr( $profile_picture_id ); ?>" />
-					<button type="button" class="button" id="wc-tp-upload-profile-picture"><?php esc_html_e( 'Upload Picture', 'wc-team-payroll' ); ?></button>
-					<?php if ( $profile_picture_id ) : ?>
-						<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_html_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>
-					<?php endif; ?>
-					<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
-				</td>
-			</tr>
+						<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
+					</td>
+				</tr>
+			</tbody>
 		</table>
 		<script>
 			jQuery(document).ready(function($) {

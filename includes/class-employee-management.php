@@ -31,6 +31,15 @@ class WC_Team_Payroll_Employee_Management {
 				</select>
 			</div>
 
+			<!-- Employee Creation Date Filter -->
+			<div class="wc-tp-date-filter">
+				<label><?php esc_html_e( 'Employee Created:', 'wc-team-payroll' ); ?></label>
+				<input type="date" id="wc-tp-employees-start-date" />
+				<span class="wc-tp-date-separator">to</span>
+				<input type="date" id="wc-tp-employees-end-date" />
+				<button type="button" class="button button-secondary" id="wc-tp-employees-date-clear"><?php esc_html_e( 'Clear Dates', 'wc-team-payroll' ); ?></button>
+			</div>
+
 			<!-- Employees Table Section -->
 			<div class="wc-tp-table-section" id="wc-tp-employees-table-section">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -397,6 +406,8 @@ class WC_Team_Payroll_Employee_Management {
 				let allEmployeesData = [];
 				let searchQuery = '';
 				let salaryTypeFilter = '';
+				let startDate = '';
+				let endDate = '';
 				let itemsPerPage = 20; // Default
 
 				// Load saved items per page from localStorage
@@ -436,6 +447,27 @@ class WC_Team_Payroll_Employee_Management {
 					loadEmployeesData();
 				});
 
+				$('#wc-tp-employees-start-date').on('change', function() {
+					currentPage = 1;
+					startDate = $(this).val();
+					loadEmployeesData();
+				});
+
+				$('#wc-tp-employees-end-date').on('change', function() {
+					currentPage = 1;
+					endDate = $(this).val();
+					loadEmployeesData();
+				});
+
+				$('#wc-tp-employees-date-clear').on('click', function() {
+					$('#wc-tp-employees-start-date').val('');
+					$('#wc-tp-employees-end-date').val('');
+					startDate = '';
+					endDate = '';
+					currentPage = 1;
+					loadEmployeesData();
+				});
+
 				function loadEmployeesData() {
 					$.ajax({
 						url: ajaxurl,
@@ -443,7 +475,9 @@ class WC_Team_Payroll_Employee_Management {
 						data: {
 							action: 'wc_tp_get_employees_data',
 							search_query: searchQuery,
-							salary_type: salaryTypeFilter
+							salary_type: salaryTypeFilter,
+							start_date: startDate,
+							end_date: endDate
 						},
 						success: function(response) {
 							if (response.success) {
