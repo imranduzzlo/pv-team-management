@@ -16,15 +16,6 @@ param(
     [string]$Repository = "imranduzzlo/pv-team-payroll"
 )
 
-# Get GitHub token from environment variable if not provided
-if (-not $GitHubToken) {
-    $GitHubToken = $env:GITHUB_TOKEN
-    if (-not $GitHubToken) {
-        Write-Error-Custom "GitHub token not provided. Set GITHUB_TOKEN environment variable or pass -GitHubToken parameter"
-        exit 1
-    }
-}
-
 # Color output functions
 function Write-Success {
     param([string]$Message)
@@ -39,6 +30,15 @@ function Write-Error-Custom {
 function Write-Info {
     param([string]$Message)
     Write-Host "ℹ $Message" -ForegroundColor Cyan
+}
+
+# Get GitHub token from environment variable if not provided
+if (-not $GitHubToken) {
+    $GitHubToken = $env:GITHUB_TOKEN
+    if (-not $GitHubToken) {
+        Write-Error-Custom "GitHub token not provided. Set GITHUB_TOKEN environment variable or pass -GitHubToken parameter"
+        exit 1
+    }
 }
 
 # Step 1: Update version in main plugin file
