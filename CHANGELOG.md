@@ -1,5 +1,80 @@
 # Changelog
 
+## [5.4.7] - 2026-04-11
+
+### CRITICAL FIX - Refunded Orders Now Included in Payroll & Dashboard
+- **FIXED**: Refunded orders were being excluded from payroll calculations
+- **FIXED**: Refunded orders now show in dashboard and payroll pages
+- **FIXED**: Refund commission settings now properly applied and visible
+- **IMPROVED**: All order statuses (completed, processing, refunded) included in calculations
+
+### What Was Wrong
+
+Refunded orders were being filtered out from:
+- Dashboard calculations
+- Payroll page
+- Employee earnings reports
+- Total earnings calculations
+
+This meant refund commission settings were being ignored and not showing in reports.
+
+### What's Fixed Now
+
+Refunded orders are now included in all calculations:
+- ✅ Dashboard shows refunded orders with refund commission
+- ✅ Payroll page includes refunded orders
+- ✅ Employee earnings include refund commission
+- ✅ Total earnings calculations include refunded orders
+- ✅ Refund commission settings (None/Percentage/Flat) now work correctly
+
+### Example
+
+**Before v5.4.7:**
+```
+Order refunded with ৳120 flat refund commission
+→ Order not shown in payroll
+→ Employee doesn't see refund commission
+→ Dashboard shows 0 orders
+```
+
+**After v5.4.7:**
+```
+Order refunded with ৳120 flat refund commission
+→ Order shown in payroll with ৳120 commission
+→ Employee sees refund commission in earnings
+→ Dashboard shows order with refund commission
+```
+
+### Files Modified
+
+- `includes/class-core-engine.php` - Include 'refunded' in order status queries
+- `includes/class-payroll-engine.php` - Include 'refunded' in payroll calculations
+- `includes/class-employee-management.php` - Include 'refunded' in employee queries
+- `includes/class-myaccount.php` - Include 'refunded' in frontend earnings
+- `includes/class-shortcodes.php` - Include 'refunded' in shortcode calculations
+- `woocommerce-team-payroll.php` - Version updated to 5.4.7
+- `CHANGELOG.md` - Updated with v5.4.7 changes
+
+### Testing Recommendations
+
+1. Create an order with commission
+2. Refund the order
+3. Set refund commission to "Flat (৳120)"
+4. Check dashboard - order should appear with ৳120 commission
+5. Check payroll page - order should appear with ৳120 commission
+6. Check employee earnings - should include refund commission
+7. Test with different refund commission types (None, Percentage, Flat)
+
+### Compatibility
+
+- ✅ WooCommerce 5.0+
+- ✅ WordPress 5.0+
+- ✅ PHP 7.2+
+
+### Breaking Changes
+
+None - this is a bug fix release.
+
 ## [5.4.6] - 2026-04-11
 
 ### CRITICAL FIXES - Auto Salary History & Refund Commission Handling
