@@ -938,6 +938,7 @@ class WC_Team_Payroll_Employee_Detail {
 					const searchQuery = $('#wc-tp-orders-search').val();
 
 					if (!startDate || !endDate) {
+						console.log('Date range not set:', { startDate, endDate });
 						return;
 					}
 
@@ -954,14 +955,15 @@ class WC_Team_Payroll_Employee_Detail {
 							search: searchQuery
 						},
 						success: function(response) {
+							console.log('AJAX response:', response);
 							if (response.success) {
 								allOrdersData = response.data.orders || [];
 								renderOrdersTable(allOrdersData);
 								renderOrdersPagination(allOrdersData);
 							}
 						},
-						error: function() {
-							// Silent error handling
+						error: function(xhr, status, error) {
+							console.error('AJAX error:', { xhr, status, error });
 						}
 					});
 				}
@@ -1061,7 +1063,9 @@ class WC_Team_Payroll_Employee_Detail {
 
 				// Tab switching
 				$('.wc-tp-tab-button').on('click', function() {
+					console.log('Tab button clicked');
 					const tabName = $(this).data('tab');
+					console.log('Tab name:', tabName);
 					
 					// Remove active class from all buttons and contents
 					$('.wc-tp-tab-button').removeClass('wc-tp-tab-active');
