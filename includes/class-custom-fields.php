@@ -161,6 +161,26 @@ class WC_Team_Payroll_Custom_Fields {
 
 		// Enqueue media library
 		wp_enqueue_media();
+
+		// Enqueue custom script for profile picture upload
+		wp_enqueue_script(
+			'wc-tp-profile-picture',
+			plugins_url( 'assets/js/profile-picture.js', dirname( __FILE__ ) ),
+			array( 'jquery', 'media-upload' ),
+			'1.0.0',
+			true
+		);
+
+		// Localize script
+		wp_localize_script(
+			'wc-tp-profile-picture',
+			'wcTPProfilePicture',
+			array(
+				'selectTitle' => __( 'Select Profile Picture', 'wc-team-payroll' ),
+				'useButton'   => __( 'Use this image', 'wc-team-payroll' ),
+				'removeText'  => __( 'Remove Picture', 'wc-team-payroll' ),
+			)
+		);
 	}
 
 	/**
@@ -204,51 +224,6 @@ class WC_Team_Payroll_Custom_Fields {
 				<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
 			</td>
 		</tr>
-		<script>
-			jQuery(document).ready(function($) {
-				let mediaUploader;
-
-				$('#wc-tp-upload-profile-picture').on('click', function(e) {
-					e.preventDefault();
-
-					if (mediaUploader) {
-						mediaUploader.open();
-						return;
-					}
-
-					mediaUploader = wp.media.frames.file_frame = wp.media({
-						title: '<?php esc_js_e( 'Select Profile Picture', 'wc-team-payroll' ); ?>',
-						button: {
-							text: '<?php esc_js_e( 'Use this image', 'wc-team-payroll' ); ?>'
-						},
-						multiple: false,
-						library: {
-							type: 'image'
-						}
-					});
-
-					mediaUploader.on('select', function() {
-						const attachment = mediaUploader.state().get('selection').first().toJSON();
-						$('#wc_tp_profile_picture').val(attachment.id);
-						$('#wc-tp-profile-picture-preview').html('<img src="' + attachment.url + '" style="max-width: 150px; height: auto; border-radius: 8px;" />');
-						
-						// Show remove button
-						if (!$('#wc-tp-remove-profile-picture').length) {
-							$('#wc-tp-upload-profile-picture').after('<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_js_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>');
-						}
-					});
-
-					mediaUploader.open();
-				});
-
-				$(document).on('click', '#wc-tp-remove-profile-picture', function(e) {
-					e.preventDefault();
-					$('#wc_tp_profile_picture').val('');
-					$('#wc-tp-profile-picture-preview').html('');
-					$(this).remove();
-				});
-			});
-		</script>
 		<?php
 	}
 
