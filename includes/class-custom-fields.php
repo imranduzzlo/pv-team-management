@@ -13,12 +13,14 @@ class WC_Team_Payroll_Custom_Fields {
 		add_action( 'add_meta_boxes', array( $this, 'add_product_meta_box' ) );
 		add_action( 'save_post_product', array( $this, 'save_product_meta' ) );
 
-		// Add user meta box for vb_user_id and profile picture
-		// Use show_user_profile and edit_user_profile hooks to add fields AFTER all default sections
-		add_action( 'show_user_profile', array( $this, 'add_user_meta_box' ) );
-		add_action( 'edit_user_profile', array( $this, 'add_user_meta_box' ) );
+		// Add user meta fields INSIDE the form using personal_options hook
+		// This hook runs BEFORE the form closes, so fields are inside the form
+		add_action( 'personal_options', array( $this, 'add_user_meta_fields' ), 5 );
 		add_action( 'personal_options_update', array( $this, 'save_user_meta' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_user_meta' ) );
+
+		// Enqueue media library script for profile picture upload
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_media_scripts' ) );
 
 		// Auto-generate vb_user_id on user register and profile update
 		add_action( 'user_register', array( $this, 'auto_set_user_custom_id' ) );
@@ -149,9 +151,22 @@ class WC_Team_Payroll_Custom_Fields {
 	}
 
 	/**
-	 * Add user meta box for vb_user_id and profile picture
+	 * Enqueue media library scripts
 	 */
-	public function add_user_meta_box( $user ) {
+	public function enqueue_media_scripts( $hook ) {
+		// Only load on user edit pages
+		if ( 'user-edit.php' !== $hook && 'profile.php' !== $hook ) {
+			return;
+		}
+
+		// Enqueue media library
+		wp_enqueue_media();
+	}
+
+	/**
+	 * Add user meta fields INSIDE the form (using personal_options hook)
+	 */
+	public function add_user_meta_fields( $user ) {
 		$vb_user_id = get_user_meta( $user->ID, 'vb_user_id', true );
 		$profile_picture_id = get_user_meta( $user->ID, '_wc_tp_profile_picture', true );
 		$profile_picture_url = '';
@@ -162,38 +177,33 @@ class WC_Team_Payroll_Custom_Fields {
 		
 		wp_nonce_field( 'wc_tp_user_nonce', 'wc_tp_user_nonce' );
 		?>
-		<h2><?php esc_html_e( 'Team Payroll Settings', 'wc-team-payroll' ); ?></h2>
-		<table class="form-table" role="presentation">
-			<tbody>
-				<tr>
-					<th scope="row">
-						<label for="vb_user_id"><?php esc_html_e( 'VB User ID', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="wc_tp_profile_picture"><?php esc_html_e( 'Profile Picture', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<div id="wc-tp-profile-picture-preview" style="margin-bottom: 10px;">
-							<?php if ( $profile_picture_url ) : ?>
-								<img src="<?php echo esc_url( $profile_picture_url ); ?>" style="max-width: 150px; height: auto; border-radius: 8px;" />
-							<?php endif; ?>
-						</div>
-						<input type="hidden" id="wc_tp_profile_picture" name="wc_tp_profile_picture" value="<?php echo esc_attr( $profile_picture_id ); ?>" />
-						<button type="button" class="button" id="wc-tp-upload-profile-picture"><?php esc_html_e( 'Upload Picture', 'wc-team-payroll' ); ?></button>
-						<?php if ( $profile_picture_id ) : ?>
-							<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_html_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>
-						<?php endif; ?>
-						<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<tr>
+			<th scope="row">
+				<label for="vb_user_id"><?php esc_html_e( 'VB User ID', 'wc-team-payroll' ); ?></label>
+			</th>
+			<td>
+				<input type="text" id="vb_user_id" name="vb_user_id" value="<?php echo esc_attr( $vb_user_id ); ?>" class="regular-text" />
+				<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row">
+				<label for="wc_tp_profile_picture"><?php esc_html_e( 'Profile Picture', 'wc-team-payroll' ); ?></label>
+			</th>
+			<td>
+				<div id="wc-tp-profile-picture-preview" style="margin-bottom: 10px;">
+					<?php if ( $profile_picture_url ) : ?>
+						<img src="<?php echo esc_url( $profile_picture_url ); ?>" style="max-width: 150px; height: auto; border-radius: 8px;" />
+					<?php endif; ?>
+				</div>
+				<input type="hidden" id="wc_tp_profile_picture" name="wc_tp_profile_picture" value="<?php echo esc_attr( $profile_picture_id ); ?>" />
+				<button type="button" class="button" id="wc-tp-upload-profile-picture"><?php esc_html_e( 'Upload Picture', 'wc-team-payroll' ); ?></button>
+				<?php if ( $profile_picture_id ) : ?>
+					<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_html_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>
+				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
+			</td>
+		</tr>
 		<script>
 			jQuery(document).ready(function($) {
 				let mediaUploader;
@@ -231,7 +241,7 @@ class WC_Team_Payroll_Custom_Fields {
 					mediaUploader.open();
 				});
 
-				$('#wc-tp-profile-picture-preview').on('click', '#wc-tp-remove-profile-picture', function(e) {
+				$(document).on('click', '#wc-tp-remove-profile-picture', function(e) {
 					e.preventDefault();
 					$('#wc_tp_profile_picture').val('');
 					$('#wc-tp-profile-picture-preview').html('');
