@@ -818,11 +818,6 @@ class WC_Team_Payroll_Employee_Detail {
 				color: var(--color-primary);
 			}
 
-			.wc-tp-sortable-header[data-column="<?php echo isset($currentSortColumn) ? esc_attr($currentSortColumn) : 'date'; ?>"] {
-				background: var(--color-primary-subtle);
-				color: var(--color-primary);
-			}
-
 			.wc-tp-data-table td {
 				padding: 12px;
 				border-bottom: 1px solid var(--color-border-light);
@@ -1271,6 +1266,13 @@ class WC_Team_Payroll_Employee_Detail {
 					let itemsPerPage = 10;
 					let allOrders = [];
 
+					// Load saved items per page from localStorage
+					const savedOrdersPerPage = localStorage.getItem('wc_tp_orders_per_page');
+					if (savedOrdersPerPage) {
+						itemsPerPage = parseInt(savedOrdersPerPage);
+						$('#wc-tp-orders-per-page').val(itemsPerPage);
+					}
+
 					// Initialize with default preset (This Month)
 					updateDateRangeFromPreset('this-month');
 					loadOrdersData();
@@ -1278,6 +1280,7 @@ class WC_Team_Payroll_Employee_Detail {
 					// Screen options for items per page
 					$('#wc-tp-orders-per-page').on('change', function() {
 						itemsPerPage = parseInt($(this).val());
+						localStorage.setItem('wc_tp_orders_per_page', itemsPerPage);
 						currentPage = 1;
 						renderOrdersTable(allOrders);
 					});
@@ -1611,12 +1614,26 @@ class WC_Team_Payroll_Employee_Detail {
 					let paymentMethodsPerPage = 10;
 					let allPaymentMethods = [];
 
+					// Load saved items per page from localStorage
+					const savedPaymentHistoryPerPage = localStorage.getItem('wc_tp_payment_history_per_page');
+					if (savedPaymentHistoryPerPage) {
+						paymentHistoryPerPage = parseInt(savedPaymentHistoryPerPage);
+						$('#wc-tp-payment-history-per-page').val(paymentHistoryPerPage);
+					}
+
+					const savedPaymentMethodsPerPage = localStorage.getItem('wc_tp_payment_methods_per_page');
+					if (savedPaymentMethodsPerPage) {
+						paymentMethodsPerPage = parseInt(savedPaymentMethodsPerPage);
+						$('#wc-tp-payment-methods-per-page').val(paymentMethodsPerPage);
+					}
+
 					loadPaymentMethods();
 					loadPaymentHistory();
 
 					// Payment History Screen Options
 					$('#wc-tp-payment-history-per-page').on('change', function() {
 						paymentHistoryPerPage = parseInt($(this).val());
+						localStorage.setItem('wc_tp_payment_history_per_page', paymentHistoryPerPage);
 						paymentHistoryPage = 1;
 						renderPaymentHistory(allPayments);
 					});
@@ -1624,6 +1641,7 @@ class WC_Team_Payroll_Employee_Detail {
 					// Payment Methods Screen Options
 					$('#wc-tp-payment-methods-per-page').on('change', function() {
 						paymentMethodsPerPage = parseInt($(this).val());
+						localStorage.setItem('wc_tp_payment_methods_per_page', paymentMethodsPerPage);
 						paymentMethodsPage = 1;
 						renderPaymentMethods(allPaymentMethods);
 					});
@@ -1711,6 +1729,83 @@ class WC_Team_Payroll_Employee_Detail {
 						});
 					});
 
+					// Edit Payment Method
+					$(document).on('click', '.wc-tp-edit-method', function() {
+						const row = $(this).closest('tr');
+						const methodId = $(this).data('method-id');
+						const methodName = row.find('td:eq(1)').text();
+						const methodDetails = row.find('td:eq(2)').text();
+
+						// Show edit form
+						const editForm = $(`
+							<tr class="wc-tp-edit-method-row">
+								<td colspan="4">
+									<div class="wc-tp-inline-edit-form">
+										<div class="wc-tp-form-row">
+											<div class="wc-tp-form-group">
+												<label>Payment Method</label>
+												<input type="text" class="wc-tp-edit-method-name" value="${methodName}" />
+											</div>
+											<div class="wc-tp-form-group">
+												<label>Account/Details</label>
+												<input type="text" class="wc-tp-edit-method-details" value="${methodDetails}" />
+											</div>
+											<div class="wc-tp-form-group">
+												<button type="button" class="button button-primary wc-tp-save-method-edit" data-method-id="${methodId}">Save</button>
+												<button type="button" class="button wc-tp-cancel-method-edit">Cancel</button>
+											</div>
+										</div>
+									</div>
+								</td>
+							</tr>
+						`);
+
+						row.hide();
+						row.after(editForm);
+					});
+
+					// Save Payment Method Edit
+					$(document).on('click', '.wc-tp-save-method-edit', function() {
+						const methodId = $(this).data('method-id');
+						const methodName = $('.wc-tp-edit-method-name').val();
+						const methodDetails = $('.wc-tp-edit-method-details').val();
+
+						if (!methodName || !methodDetails) {
+							wcTPToast('Please fill in all fields', 'error');
+							return;
+						}
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_update_payment_method',
+								user_id: userId,
+								method_id: methodId,
+								method_name: methodName,
+								method_details: methodDetails,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									wcTPToast('Payment method updated successfully');
+									loadPaymentMethods();
+								} else {
+									wcTPToast('Failed to update payment method: ' + response.data, 'error');
+								}
+							},
+							error: function() {
+								wcTPToast('Error updating payment method', 'error');
+							}
+						});
+					});
+
+					// Cancel Payment Method Edit
+					$(document).on('click', '.wc-tp-cancel-method-edit', function() {
+						$('.wc-tp-edit-method-row').remove();
+						$('tr').show();
+					});
+
 					// Delete Payment Method (Single)
 					$(document).on('click', '.wc-tp-delete-method', function() {
 						const methodId = $(this).data('method-id');
@@ -1762,7 +1857,10 @@ class WC_Team_Payroll_Employee_Detail {
 					$(document).on('click', '.wc-tp-bulk-delete-methods', function() {
 						const selectedIds = [];
 						$('.wc-tp-method-checkbox:checked').each(function() {
-							selectedIds.push($(this).data('method-id'));
+							const methodId = $(this).data('method-id');
+							if (methodId) {
+								selectedIds.push(methodId);
+							}
 						});
 
 						if (selectedIds.length === 0) {
@@ -1781,6 +1879,7 @@ class WC_Team_Payroll_Employee_Detail {
 								// Delete each method
 								let completed = 0;
 								let failed = 0;
+								const totalToDelete = selectedIds.length;
 
 								selectedIds.forEach(function(methodId) {
 									$.ajax({
@@ -1808,7 +1907,7 @@ class WC_Team_Payroll_Employee_Detail {
 								});
 
 								function checkCompletion() {
-									if (completed + failed === selectedIds.length) {
+									if (completed + failed === totalToDelete) {
 										if (failed === 0) {
 											wcTPToast(completed + ' payment method(s) deleted successfully');
 										} else {
@@ -1882,7 +1981,10 @@ class WC_Team_Payroll_Employee_Detail {
 					$(document).on('click', '.wc-tp-bulk-delete-payments', function() {
 						const selectedIds = [];
 						$('.wc-tp-payment-checkbox:checked').each(function() {
-							selectedIds.push($(this).data('payment-id'));
+							const paymentId = $(this).data('payment-id');
+							if (paymentId) {
+								selectedIds.push(paymentId);
+							}
 						});
 
 						if (selectedIds.length === 0) {
@@ -1901,6 +2003,7 @@ class WC_Team_Payroll_Employee_Detail {
 								// Delete each payment
 								let completed = 0;
 								let failed = 0;
+								const totalToDelete = selectedIds.length;
 
 								selectedIds.forEach(function(paymentId) {
 									$.ajax({
@@ -1928,7 +2031,7 @@ class WC_Team_Payroll_Employee_Detail {
 								});
 
 								function checkCompletion() {
-									if (completed + failed === selectedIds.length) {
+									if (completed + failed === totalToDelete) {
 										if (failed === 0) {
 											wcTPToast(completed + ' payment(s) deleted successfully');
 										} else {
@@ -1958,6 +2061,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const amount = row.find('.wc-tp-payment-amount').data('amount');
 						const date = row.find('.wc-tp-payment-date').data('date');
 						const method = row.find('.wc-tp-payment-method').data('method') || '';
+						const note = row.find('.wc-tp-payment-note').data('note') || '';
 
 						// Convert date format for datetime-local input
 						const dateObj = new Date(date.replace(' ', 'T'));
@@ -1969,7 +2073,7 @@ class WC_Team_Payroll_Employee_Detail {
 						// Show edit form
 						const editForm = $(`
 							<tr class="wc-tp-edit-payment-row">
-								<td colspan="5">
+								<td colspan="6">
 									<div class="wc-tp-inline-edit-form">
 										<div class="wc-tp-form-row">
 											<div class="wc-tp-form-group">
@@ -1983,6 +2087,10 @@ class WC_Team_Payroll_Employee_Detail {
 											<div class="wc-tp-form-group">
 												<label>Method</label>
 												<select class="wc-tp-edit-method"></select>
+											</div>
+											<div class="wc-tp-form-group">
+												<label>Note</label>
+												<input type="text" class="wc-tp-edit-note" value="${note}" />
 											</div>
 											<div class="wc-tp-form-group">
 												<button type="button" class="button button-primary wc-tp-save-payment-edit" data-payment-id="${paymentId}">Save</button>
@@ -2008,6 +2116,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const amount = $('.wc-tp-edit-amount').val();
 						const date = $('.wc-tp-edit-date').val();
 						const method = $('.wc-tp-edit-method').val();
+						const note = $('.wc-tp-edit-note').val();
 
 						if (!amount || !date) {
 							wcTPToast('Please fill in all fields', 'error');
@@ -2024,6 +2133,7 @@ class WC_Team_Payroll_Employee_Detail {
 								amount: amount,
 								date: date,
 								payment_method: method || '',
+								note: note,
 								nonce: nonce
 							},
 							success: function(response) {
@@ -2100,6 +2210,7 @@ class WC_Team_Payroll_Employee_Detail {
 							html += '<td><strong>' + method.method_name + '</strong></td>';
 							html += '<td>' + method.method_details + '</td>';
 							html += '<td><div class="wc-tp-action-icons">';
+							html += '<button class="wc-tp-action-icon wc-tp-edit-method" data-method-id="' + method.id + '" title="Edit Method"><span class="dashicons dashicons-edit"></span></button>';
 							html += '<button class="wc-tp-action-icon wc-tp-delete-btn wc-tp-delete-method" data-method-id="' + method.id + '" title="Delete Method"><span class="dashicons dashicons-trash"></span></button>';
 							html += '</div></td>';
 							html += '</tr>';
@@ -2236,6 +2347,7 @@ class WC_Team_Payroll_Employee_Detail {
 						html += '<th class="wc-tp-sortable-header" data-column="amount" data-table="payment-history">Amount' + getPaymentSortIcon('amount') + '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="date" data-table="payment-history">Date' + getPaymentSortIcon('date') + '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="payment_method" data-table="payment-history">Method' + getPaymentSortIcon('payment_method') + '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="note" data-table="payment-history">Note' + getPaymentSortIcon('note') + '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="added_by_name" data-table="payment-history">Added By' + getPaymentSortIcon('added_by_name') + '</th>';
 						html += '<th>Actions</th>';
 						html += '</tr></thead><tbody>';
@@ -2258,6 +2370,7 @@ class WC_Team_Payroll_Employee_Detail {
 							html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '"><strong>' + formatCurrency(payment.amount) + '</strong></td>';
 							html += '<td class="wc-tp-payment-date" data-date="' + rawDate + '">' + formattedDate + '</td>';
 							html += '<td class="wc-tp-payment-method" data-method="' + (payment.payment_method || '') + '">' + (payment.payment_method || '-') + '</td>';
+							html += '<td class="wc-tp-payment-note" data-note="' + (payment.note || '') + '">' + (payment.note || '-') + '</td>';
 							html += '<td>' + userHtml + '</td>';
 							html += '<td><div class="wc-tp-action-icons">';
 							html += '<button class="wc-tp-action-icon wc-tp-edit-payment" data-payment-id="' + payment.id + '" title="Edit Payment"><span class="dashicons dashicons-edit"></span></button>';

@@ -21,6 +21,22 @@ class WC_Team_Payroll_Dashboard {
 		<div class="wrap wc-team-payroll-dashboard">
 			<h1><?php esc_html_e( 'Dashboard', 'wc-team-payroll' ); ?></h1>
 
+			<!-- Global Search Box -->
+			<div class="wc-tp-global-search-container" style="margin-bottom: 24px; position: relative;">
+				<div style="display: flex; gap: 12px; align-items: center;">
+					<div style="flex: 1; position: relative;">
+						<input 
+							type="text" 
+							id="wc-tp-global-search" 
+							class="wc-tp-search-input" 
+							placeholder="<?php esc_attr_e( 'Search for anything... (User ID, Customer Name, Employee Name, Status, etc.)', 'wc-team-payroll' ); ?>"
+							style="width: 100%; padding: 10px 12px; border: 1px solid #E5EAF0; border-radius: 6px; font-size: 14px;"
+						/>
+						<div id="wc-tp-search-results" class="wc-tp-search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5EAF0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 4px; max-height: 400px; overflow-y: auto;"></div>
+					</div>
+				</div>
+			</div>
+
 			<!-- Unified Filter Section -->
 			<div class="wc-tp-unified-filter">
 				<div class="wc-tp-filter-row">
@@ -213,25 +229,26 @@ class WC_Team_Payroll_Dashboard {
 
 			.wc-tp-stats-grid {
 				display: grid;
-				grid-template-columns: repeat(4, 1fr);
+				grid-template-columns: repeat(5, 1fr);
 				gap: 16px;
 				margin-bottom: 32px;
 			}
 
 			.wc-tp-stat-card {
 				background: var(--color-card-bg);
-				padding: 20px;
+				padding: 16px;
 				border-radius: 8px;
 				border: 1px solid var(--color-border-light);
 				display: flex;
-				flex-direction: row;
-				align-items: center;
+				flex-direction: column;
+				align-items: flex-start;
 				justify-content: flex-start;
-				gap: 16px;
+				gap: 12px;
 				transition: all 0.3s ease;
 				cursor: pointer;
-				min-height: 120px;
+				min-height: 100px;
 				text-align: left;
+				position: relative;
 			}
 
 			.wc-tp-stat-link {
@@ -251,14 +268,18 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-stat-icon {
-				font-size: 32px;
-				min-width: 50px;
+				font-size: 24px;
+				position: absolute;
+				top: 12px;
+				right: 12px;
 				text-align: center;
 				flex-shrink: 0;
 			}
 
 			.wc-tp-stat-content {
 				flex: 1;
+				width: 100%;
+				padding-right: 30px;
 			}
 
 			.wc-tp-stat-value {
@@ -348,40 +369,13 @@ class WC_Team_Payroll_Dashboard {
 			.wc-tp-sortable-header {
 				cursor: pointer;
 				user-select: none;
-				position: relative;
-				padding-right: 24px;
 				transition: all 0.2s ease;
-			}
-
-			.wc-tp-sortable-header::after {
-				content: '⇅';
-				position: absolute;
-				right: 8px;
-				opacity: 0.3;
-				font-size: 12px;
-				transition: all 0.2s ease;
+				white-space: nowrap;
 			}
 
 			.wc-tp-sortable-header:hover {
-				background-color: var(--color-primary-subtle);
-			}
-
-			.wc-tp-sortable-header.wc-tp-sort-active {
-				background-color: var(--color-primary-subtle) !important;
-				color: var(--color-primary) !important;
-			}
-
-			.wc-tp-sortable-header.wc-tp-sort-active::after {
-				opacity: 1 !important;
-				color: var(--color-primary) !important;
-			}
-
-			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-asc::after {
-				content: '↑' !important;
-			}
-
-			.wc-tp-sortable-header.wc-tp-sort-active.wc-tp-sort-desc::after {
-				content: '↓' !important;
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
 			}
 
 			.wc-tp-data-table td {
@@ -495,7 +489,7 @@ class WC_Team_Payroll_Dashboard {
 			/* Mobile Responsive */
 			@media (max-width: 1024px) {
 				.wc-tp-stats-grid {
-					grid-template-columns: repeat(2, 1fr);
+					grid-template-columns: repeat(3, 1fr);
 				}
 
 				.wc-tp-dashboard-grid {
@@ -897,26 +891,30 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="display_name">Name</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="type">Type</th>';
-					html += '<th>Salary/Commission</th>';
-					html += '<th>Action</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="display_name">Name' + getSortIconDashboard('display_name', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="type">Type' + getSortIconDashboard('type', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="salary_info">Salary/Commission' + getSortIconDashboard('salary_info', container) + '</th>';
+					html += '<th>Status</th>';
+					html += '<th style="width: 50px; text-align: center;">Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(employees, function(i, emp) {
+						const profileImg = emp.profile_picture ? '<img src="' + emp.profile_picture + '" alt="' + emp.display_name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const tooltip = 'Name: ' + emp.display_name + '\nEmail: ' + emp.user_email + '\nPhone: ' + (emp.phone || 'N/A') + '\nRole: ' + emp.user_role;
+						const nameHtml = '<a href="' + emp.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + emp.vb_user_id + ' ' + emp.display_name.split(' ').slice(0, 1).join(' ') + '</span></a>';
+						
 						html += '<tr>';
-						html += '<td><strong>' + emp.display_name + '</strong></td>';
-						html += '<td>' + emp.user_email + '</td>';
+						html += '<td>' + nameHtml + '</td>';
 						html += '<td>' + emp.type + '</td>';
 						html += '<td>' + emp.salary_info + '</td>';
-						html += '<td><a href="' + emp.manage_url + '" class="button button-small button-primary">Manage</a></td>';
+						html += '<td><span class="wc-tp-badge" style="background: #E8F5E9; color: #388E3C;">Active</span></td>';
+						html += '<td style="text-align: center;"><a href="' + emp.manage_url + '" class="wc-tp-action-icon" title="Manage Employee"><span class="dashicons dashicons-edit"></span></a></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, employees, ['display_name', 'user_email', 'type']);
+					attachSortHandlers(container, employees, ['display_name', 'type', 'salary_info']);
 				}
 
 				// Render top earners table
@@ -929,22 +927,26 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable wc-tp-no-action"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="earnings">Earnings</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee' + getSortIconDashboard('name', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders' + getSortIconDashboard('orders', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="earnings">Total Earnings' + getSortIconDashboard('earnings', container) + '</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(earners, function(i, earner) {
+						const profileImg = earner.profile_picture ? '<img src="' + earner.profile_picture + '" alt="' + earner.name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const tooltip = 'Name: ' + earner.name + '\nEmail: ' + earner.user_email + '\nPhone: ' + (earner.phone || 'N/A') + '\nRole: ' + earner.user_role;
+						const nameHtml = '<a href="' + earner.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + earner.name + '</span></a>';
+						
 						html += '<tr>';
-						html += '<td><strong>' + earner.name + '</strong></td>';
-						html += '<td>' + formatCurrency(earner.earnings) + '</td>';
+						html += '<td>' + nameHtml + '</td>';
 						html += '<td><span class="wc-tp-badge">' + earner.orders + '</span></td>';
+						html += '<td><strong>' + formatCurrency(earner.earnings) + '</strong></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, earners, ['name', 'earnings', 'orders']);
+					attachSortHandlers(container, earners, ['name', 'orders', 'earnings']);
 				}
 
 				// Render recent payments table
@@ -957,22 +959,26 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable wc-tp-no-action"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="date">Date</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="employee_name">Employee' + getSortIconDashboard('employee_name', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="date">Date' + getSortIconDashboard('date', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="amount">Amount' + getSortIconDashboard('amount', container) + '</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(payments, function(i, payment) {
+						const profileImg = payment.profile_picture ? '<img src="' + payment.profile_picture + '" alt="' + payment.employee_name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const tooltip = 'Name: ' + payment.employee_name + '\nEmail: ' + payment.user_email + '\nPhone: ' + (payment.phone || 'N/A') + '\nRole: ' + payment.user_role;
+						const nameHtml = '<a href="' + payment.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + payment.employee_name + '</span></a>';
+						
 						html += '<tr data-payment-user-id="' + payment.user_id + '">';
-						html += '<td><strong>' + payment.employee_name + '</strong></td>';
-						html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '">' + formatCurrency(payment.amount) + '</td>';
+						html += '<td>' + nameHtml + '</td>';
 						html += '<td class="wc-tp-payment-date" data-date="' + payment.date + '">' + payment.date + '</td>';
+						html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '"><strong>' + formatCurrency(payment.amount) + '</strong></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, payments, ['employee_name', 'amount', 'date']);
+					attachSortHandlers(container, payments, ['employee_name', 'date', 'amount']);
 				}
 
 				// Render payroll table
@@ -985,13 +991,12 @@ class WC_Team_Payroll_Dashboard {
 					}
 
 					let html = '<table class="wc-tp-data-table wc-tp-sortable"><thead><tr>';
-					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="paid">Paid</th>';
-					html += '<th class="wc-tp-sortable-header" data-sort="due">Due</th>';
-					html += '<th>Action</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="name">Employee' + getSortIconDashboard('name', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="orders">Orders' + getSortIconDashboard('orders', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="total">Total Earnings' + getSortIconDashboard('total', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="paid">Paid' + getSortIconDashboard('paid', container) + '</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="due">Due' + getSortIconDashboard('due', container) + '</th>';
+					html += '<th style="width: 50px; text-align: center;">Action</th>';
 					html += '</tr></thead><tbody>';
 
 					let payrollArray = [];
@@ -1004,28 +1009,45 @@ class WC_Team_Payroll_Dashboard {
 							total: data.total,
 							paid: data.paid,
 							due: data.due,
-							user: data.user
+							user: data.user,
+							profile_picture: data.profile_picture,
+							phone: data.phone,
+							user_role: data.user_role,
+							manage_url: data.manage_url
 						});
 					});
 
 					$.each(payrollArray, function(i, data) {
+						const profileImg = data.profile_picture ? '<img src="' + data.profile_picture + '" alt="' + data.name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const tooltip = 'Name: ' + data.name + '\nEmail: ' + data.user_email + '\nPhone: ' + (data.phone || 'N/A') + '\nRole: ' + data.user_role;
+						const nameHtml = '<a href="' + data.manage_url + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + data.name + '</span></a>';
+						
 						html += '<tr data-user-id="' + data.userId + '">';
-						html += '<td><strong>' + data.name + '</strong></td>';
-						html += '<td>' + data.user_email + '</td>';
+						html += '<td>' + nameHtml + '</td>';
 						html += '<td><span class="wc-tp-badge">' + data.orders + '</span></td>';
 						html += '<td>' + formatCurrency(data.total) + '</td>';
 						html += '<td class="wc-tp-paid-cell" data-paid="' + data.paid + '">' + formatCurrency(data.paid) + '</td>';
 						html += '<td class="wc-tp-due-cell" data-due="' + data.due + '">' + formatCurrency(data.due) + '</td>';
-						html += '<td><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-employee-detail&user_id=' + data.userId) + '" class="button button-small button-primary">View</a></td>';
+						html += '<td style="text-align: center;"><a href="' + data.manage_url + '" class="wc-tp-action-icon" title="View Details"><span class="dashicons dashicons-visibility"></span></a></td>';
 						html += '</tr>';
 					});
 
 					html += '</tbody></table>';
 					container.html(html);
-					attachSortHandlers(container, payrollArray, ['name', 'user_email', 'orders', 'total', 'paid', 'due']);
+					attachSortHandlers(container, payrollArray, ['name', 'orders', 'total', 'paid', 'due']);
 				}
 
 				// Attach sort handlers to table headers
+				function getSortIconDashboard(column, container) {
+					const sortState = container.data('sortState') || { field: null, direction: 'asc' };
+					if (sortState.field !== column) {
+						return '';
+					}
+					
+					const icon = sortState.direction === 'asc' ? 'arrow-up' : 'arrow-down';
+					return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
+				}
+
 				function attachSortHandlers(container, data, sortableFields) {
 					// Get or initialize sort state from container data
 					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };

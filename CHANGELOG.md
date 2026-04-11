@@ -1,5 +1,76 @@
 # Changelog
 
+## [5.7.8] - 2026-04-12
+
+### MAJOR IMPROVEMENTS - Dashboard UI Enhancements & Global Search
+
+#### Dashboard Stats Cards Layout
+- ✅ **5 Columns Per Row**: Changed from 4 to 5 columns for better space utilization
+- ✅ **Reduced Height**: Decreased card height from 120px to 100px for compact look
+- ✅ **Floating Icons**: Icons moved from left side to top-right corner with absolute positioning
+- ✅ **Smaller Icons**: Reduced icon size from 32px to 24px for cleaner appearance
+- ✅ **Vertical Layout**: Changed flex direction to column for better text organization
+- ✅ **Responsive Breakpoints**: 3 columns at 1024px, 1 column at 768px
+
+#### Global Search Feature
+- ✅ **Search Box**: Added before filter section with "Search for anything..." placeholder
+- ✅ **Live Results**: Floating results box with real-time search as you type
+- ✅ **Multi-Type Search**: Searches across Orders, Employees, Customers, and Payments
+- ✅ **Result Badges**: Type indicators (Order, Employee, Customer, Payment) with color coding
+- ✅ **Pagination**: Results paginated at 10 items per page
+- ✅ **Clickable Results**: Each result links to relevant detail page
+- ✅ **Hover Tooltips**: Shows full details on hover
+- ✅ **Responsive Design**: Adapts to all screen sizes
+- ✅ **AJAX Handler**: `wc_tp_global_search` for efficient searching
+
+#### Dashboard Table Improvements
+- ✅ **Profile Pictures**: All employee names now show profile picture (32x32px circular)
+- ✅ **Employee Format**: Shows as "[Picture] VBID FirstName" (e.g., "PVVB-EMID1 Imran")
+- ✅ **Clickable Names**: Employee names link to their detail page
+- ✅ **Hover Tooltips**: Shows Name, Email, Phone, Role on hover
+- ✅ **Removed Email Column**: Email now only in tooltip for cleaner tables
+- ✅ **Relevant Columns**: Added context-specific columns per table
+
+#### Dashboard Table Column Updates
+- **Latest Employees**: Added Status column (shows "Active" badge)
+- **Top Earners**: Reordered to show Orders before Total Earnings
+- **Recent Payments**: Reordered to show Date before Amount
+- **Payroll Table**: Removed email, kept Orders, Total Earnings, Paid, Due
+
+#### Dashboard Table Sorting & Styling
+- ✅ **Dashicon Arrows**: Changed from Unicode arrows to dashicons (arrow-up/arrow-down)
+- ✅ **Active Sort Indicator**: Icons only show on currently sorted column
+- ✅ **Consistent Styling**: Headers use `var(--color-accent-muted)` background
+- ✅ **Proper Padding**: Headers 14px 12px, cells 12px for organized look
+- ✅ **Hover Effects**: Background changes to `var(--color-primary-subtle)` on hover
+- ✅ **Clean Headers**: No persistent highlighting, only arrow indicator
+
+#### Employee Detail Page - Payment Methods
+- ✅ **Edit Icon**: Added edit button next to delete for payment methods
+- ✅ **Inline Editing**: Edit form similar to payment history editing
+- ✅ **Update Handler**: `wc_tp_update_payment_method` AJAX handler for updates
+- ✅ **Edit Fields**: Can edit payment method name and account details inline
+
+#### Screen Options Persistence
+- ✅ **localStorage Integration**: Items per page preference saved to browser storage
+- ✅ **Orders Tab**: Key `wc_tp_orders_per_page`
+- ✅ **Payment History**: Key `wc_tp_payment_history_per_page`
+- ✅ **Payment Methods**: Key `wc_tp_payment_methods_per_page`
+- ✅ **Persistent Across Sessions**: User preferences survive browser restarts
+
+#### Bulk Delete Bug Fix
+- ✅ **Fixed Select All Issue**: Bulk delete now works correctly when selecting all via header checkbox
+- ✅ **Proper Validation**: Added validation to check if IDs exist before adding to array
+- ✅ **Correct Counter**: Uses `totalToDelete` variable to avoid scope issues
+- ✅ **All Items Deleted**: Selecting all items now deletes all, not just first item
+
+### Technical Improvements
+- ✅ **Global Search Script**: Enqueued only on dashboard page for performance
+- ✅ **Profile Picture Meta**: Uses custom field `_wc_tp_profile_picture`
+- ✅ **Consistent UX**: All dashboard tables follow same styling and interaction patterns
+- ✅ **Performance**: Optimized AJAX calls for search and data fetching
+- ✅ **Accessibility**: Proper ARIA labels and keyboard support throughout
+
 ## [5.7.7] - 2026-04-12
 
 ### MAJOR IMPROVEMENTS - Employee Detail Page & Global Features

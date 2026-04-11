@@ -929,6 +929,7 @@ class WC_Team_Payroll_Employee_Management {
 		$amount = floatval( $_POST['amount'] );
 		$payment_date = sanitize_text_field( $_POST['payment_date'] );
 		$payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( $_POST['payment_method'] ) : '';
+		$note = isset( $_POST['note'] ) ? sanitize_textarea_field( $_POST['note'] ) : '';
 
 		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
 		if ( ! is_array( $payments ) ) {
@@ -940,6 +941,7 @@ class WC_Team_Payroll_Employee_Management {
 			'amount'         => $amount,
 			'date'           => $payment_date,
 			'payment_method' => $payment_method,
+			'note'           => $note,
 			'created_at'     => current_time( 'mysql' ),
 			'created_by'     => get_current_user_id(),
 			'status'         => 'completed',

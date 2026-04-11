@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.7.7
+ * Version: 5.7.8
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.7.7' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.7.8' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -160,6 +160,46 @@ add_action( 'plugins_loaded', function() {
 		wp_send_json_success( array( 'message' => __( 'Payment method deleted', 'wc-team-payroll' ) ) );
 	} );
 
+	// Update Payment Method AJAX Handler
+	add_action( 'wp_ajax_wc_tp_update_payment_method', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = intval( $_POST['user_id'] );
+		$method_id = intval( $_POST['method_id'] );
+		$method_name = sanitize_text_field( $_POST['method_name'] );
+		$method_details = sanitize_text_field( $_POST['method_details'] );
+
+		if ( ! $user_id || ! $method_id || ! $method_name || ! $method_details ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
+		}
+
+		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+		if ( ! is_array( $methods ) ) {
+			wp_send_json_error( __( 'No payment methods found', 'wc-team-payroll' ) );
+		}
+
+		// Find and update the method
+		$found = false;
+		foreach ( $methods as &$method ) {
+			if ( $method['id'] === $method_id ) {
+				$method['method_name'] = $method_name;
+				$method['method_details'] = $method_details;
+				$found = true;
+				break;
+			}
+		}
+
+		if ( ! $found ) {
+			wp_send_json_error( __( 'Payment method not found', 'wc-team-payroll' ) );
+		}
+
+		update_user_meta( $user_id, '_wc_tp_payment_methods', $methods );
+
+		wp_send_json_success( array( 'message' => __( 'Payment method updated', 'wc-team-payroll' ) ) );
+	} );
+
 	// Employee Payments AJAX Handler
 	add_action( 'wp_ajax_wc_tp_get_employee_payments', function() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -187,6 +227,7 @@ add_action( 'plugins_loaded', function() {
 				'amount' => isset( $payment['amount'] ) ? $payment['amount'] : 0,
 				'date' => isset( $payment['date'] ) ? $payment['date'] : date( 'Y-m-d H:i' ),
 				'payment_method' => isset( $payment['payment_method'] ) ? $payment['payment_method'] : '',
+				'note' => isset( $payment['note'] ) ? $payment['note'] : '',
 				'added_by_id' => $added_by_id,
 				'added_by_name' => $added_by_user ? $added_by_user->display_name : 'System',
 				'added_by_email' => $added_by_user ? $added_by_user->user_email : '',
@@ -274,6 +315,7 @@ add_action( 'plugins_loaded', function() {
 		$amount = floatval( $_POST['amount'] );
 		$date = sanitize_text_field( $_POST['date'] );
 		$payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( $_POST['payment_method'] ) : '';
+		$note = isset( $_POST['note'] ) ? sanitize_textarea_field( $_POST['note'] ) : '';
 
 		if ( ! $user_id || ! $payment_id || ! $amount || ! $date ) {
 			wp_send_json_error( __( 'Invalid parameters', 'wc-team-payroll' ) );
@@ -291,6 +333,7 @@ add_action( 'plugins_loaded', function() {
 				$payment['amount'] = $amount;
 				$payment['date'] = $date;
 				$payment['payment_method'] = $payment_method;
+				$payment['note'] = $note;
 				$found = true;
 				break;
 			}
@@ -338,17 +381,28 @@ add_action( 'plugins_loaded', function() {
 		foreach ( $payroll as $user_id => $data ) {
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
 			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$profile_picture_id = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_profile_picture', true ) : '';
+			$profile_picture_url = '';
+			$phone = $data['user'] ? get_user_meta( $data['user']->ID, 'billing_phone', true ) : '';
+
+			if ( $profile_picture_id ) {
+				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+			}
 			
 			$processed_payroll[ $user_id ] = array(
-				'user_id'    => $data['user_id'],
-				'user'       => $data['user'],
-				'user_email' => $data['user'] ? $data['user']->user_email : 'N/A',
-				'vb_user_id' => $vb_user_id,
-				'name'       => $employee_name,
-				'total'      => $data['total'],
-				'orders'     => $data['orders'],
-				'paid'       => $data['paid'],
-				'due'        => $data['due'],
+				'user_id'         => $data['user_id'],
+				'user'            => $data['user'],
+				'user_email'      => $data['user'] ? $data['user']->user_email : 'N/A',
+				'vb_user_id'      => $vb_user_id,
+				'name'            => $employee_name,
+				'total'           => $data['total'],
+				'orders'          => $data['orders'],
+				'paid'            => $data['paid'],
+				'due'             => $data['due'],
+				'profile_picture' => $profile_picture_url,
+				'phone'           => $phone,
+				'user_role'       => $data['user'] ? implode( ', ', $data['user']->roles ) : 'N/A',
+				'manage_url'      => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ),
 			);
 		}
 		$payroll = $processed_payroll;
@@ -419,6 +473,13 @@ add_action( 'plugins_loaded', function() {
 			$salary = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
 			$frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
 			$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
+			$profile_picture_id = get_user_meta( $employee->ID, '_wc_tp_profile_picture', true );
+			$profile_picture_url = '';
+			$phone = get_user_meta( $employee->ID, 'billing_phone', true );
+
+			if ( $profile_picture_id ) {
+				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+			}
 
 			if ( $is_fixed_salary ) {
 				$type = __( 'Fixed Salary', 'wc-team-payroll' );
@@ -434,13 +495,16 @@ add_action( 'plugins_loaded', function() {
 			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
 
 			$latest_employees_data[] = array(
-				'user_id'      => $employee->ID,
-				'vb_user_id'   => $vb_user_id,
-				'display_name' => $employee_name,
-				'user_email'   => $employee->user_email,
-				'type'         => $type,
-				'salary_info'  => $salary_info,
-				'manage_url'   => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
+				'user_id'           => $employee->ID,
+				'vb_user_id'        => $vb_user_id,
+				'display_name'      => $employee_name,
+				'user_email'        => $employee->user_email,
+				'phone'             => $phone,
+				'type'              => $type,
+				'salary_info'       => $salary_info,
+				'manage_url'        => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
+				'profile_picture'   => $profile_picture_url,
+				'user_role'         => implode( ', ', $employee->roles ),
 			);
 		}
 
@@ -465,12 +529,24 @@ add_action( 'plugins_loaded', function() {
 			}
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
 			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$profile_picture_id = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_profile_picture', true ) : '';
+			$profile_picture_url = '';
+			$phone = $data['user'] ? get_user_meta( $data['user']->ID, 'billing_phone', true ) : '';
+
+			if ( $profile_picture_id ) {
+				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+			}
 			
 			$top_earners_data[] = array(
-				'user_id'   => $data['user_id'],
-				'name'      => $employee_name,
-				'earnings'  => $data['total'],
-				'orders'    => $data['orders'],
+				'user_id'         => $data['user_id'],
+				'name'            => $employee_name,
+				'earnings'        => $data['total'],
+				'orders'          => $data['orders'],
+				'profile_picture' => $profile_picture_url,
+				'user_email'      => $data['user'] ? $data['user']->user_email : 'N/A',
+				'phone'           => $phone,
+				'user_role'       => $data['user'] ? implode( ', ', $data['user']->roles ) : 'N/A',
+				'manage_url'      => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $data['user_id'] ), admin_url( 'admin.php' ) ),
 			);
 			$count++;
 		}
@@ -503,14 +579,26 @@ add_action( 'plugins_loaded', function() {
 					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 						$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
 						$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+						$profile_picture_id = get_user_meta( $employee->ID, '_wc_tp_profile_picture', true );
+						$profile_picture_url = '';
+						$phone = get_user_meta( $employee->ID, 'billing_phone', true );
+
+						if ( $profile_picture_id ) {
+							$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+						}
 						
 						$all_payments[] = array(
-							'user_id'       => $employee->ID,
-							'employee_name' => $employee_name,
-							'amount'        => $payment['amount'] ?? 0,
-							'date'          => date( 'M d, Y', $payment_timestamp ),
-							'timestamp'     => $payment_timestamp,
-							'status'        => $payment['status'] ?? 'pending',
+							'user_id'         => $employee->ID,
+							'employee_name'   => $employee_name,
+							'amount'          => $payment['amount'] ?? 0,
+							'date'            => date( 'M d, Y', $payment_timestamp ),
+							'timestamp'       => $payment_timestamp,
+							'status'          => $payment['status'] ?? 'pending',
+							'profile_picture' => $profile_picture_url,
+							'user_email'      => $employee->user_email,
+							'phone'           => $phone,
+							'user_role'       => implode( ', ', $employee->roles ),
+							'manage_url'      => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
 						);
 					}
 				}
@@ -1230,6 +1318,12 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 	wp_enqueue_style( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/css/dashboard.css', array(), WC_TEAM_PAYROLL_VERSION );
 	wp_enqueue_script( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/js/dashboard.js', array( 'jquery', 'jquery-datatables' ), WC_TEAM_PAYROLL_VERSION, true );
+
+	// Enqueue global search on dashboard page
+	if ( strpos( $hook, 'wc-team-payroll-dashboard' ) !== false ) {
+		wp_enqueue_script( 'wc-team-payroll-global-search', WC_TEAM_PAYROLL_URL . 'assets/js/global-search.js', array( 'jquery' ), WC_TEAM_PAYROLL_VERSION, true );
+		wp_localize_script( 'wc-team-payroll-global-search', 'wc_tp_search_nonce', wp_create_nonce( 'wc_tp_search_nonce' ) );
+	}
 } );
 
 // ============================================================================
@@ -1256,4 +1350,155 @@ register_activation_hook( __FILE__, function() {
 
 register_deactivation_hook( __FILE__, function() {
 	// Cleanup if needed
+} );
+
+// Global Search AJAX Handler
+add_action( 'wp_ajax_wc_tp_global_search', function() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+	}
+
+	$query = isset( $_POST['query'] ) ? sanitize_text_field( $_POST['query'] ) : '';
+
+	if ( strlen( $query ) < 2 ) {
+		wp_send_json_error( __( 'Query too short', 'wc-team-payroll' ) );
+	}
+
+	$results = array();
+
+	// Search Orders
+	$orders = wc_get_orders( array(
+		'limit'  => -1,
+		'status' => array( 'wc-completed', 'wc-processing', 'wc-pending' ),
+	) );
+
+	foreach ( $orders as $order ) {
+		$order_id = $order->get_id();
+		$customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+		$order_total = wc_price( $order->get_total() );
+		$order_status = $order->get_status();
+
+		// Search in order ID, customer name, or status
+		if ( stripos( $order_id, $query ) !== false || 
+		     stripos( $customer_name, $query ) !== false || 
+		     stripos( $order_status, $query ) !== false ) {
+			$results[] = array(
+				'type'  => 'order',
+				'title' => 'Order #' . $order_id . ' - ' . $customer_name,
+				'meta'  => array(
+					'Total: ' . $order_total,
+					'Status: ' . ucfirst( $order_status ),
+				),
+				'url'   => admin_url( 'post.php?post=' . $order_id . '&action=edit' ),
+			);
+		}
+	}
+
+	// Search Employees
+	$employees = get_users( array(
+		'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+		'number'   => -1,
+	) );
+
+	foreach ( $employees as $employee ) {
+		$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
+		$employee_name = $employee->display_name;
+		$employee_email = $employee->user_email;
+		$is_fixed = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+		$is_combined = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+
+		$employee_type = 'Commission';
+		if ( $is_fixed ) {
+			$employee_type = 'Fixed';
+		} elseif ( $is_combined ) {
+			$employee_type = 'Combined';
+		}
+
+		// Search in employee name, VB user ID, or email
+		if ( stripos( $employee_name, $query ) !== false || 
+		     stripos( $vb_user_id, $query ) !== false || 
+		     stripos( $employee_email, $query ) !== false ) {
+			$results[] = array(
+				'type'  => 'employee',
+				'title' => $employee_name . ( $vb_user_id ? ' (' . $vb_user_id . ')' : '' ),
+				'meta'  => array(
+					'Email: ' . $employee_email,
+					'Type: ' . $employee_type,
+				),
+				'url'   => admin_url( 'admin.php?page=wc-team-payroll-employees&employee_id=' . $employee->ID ),
+			);
+		}
+	}
+
+	// Search Customers (WooCommerce customers)
+	$customers = get_users( array(
+		'role'   => 'customer',
+		'number' => -1,
+	) );
+
+	foreach ( $customers as $customer ) {
+		$customer_name = $customer->display_name;
+		$customer_email = $customer->user_email;
+		$customer_phone = get_user_meta( $customer->ID, 'billing_phone', true );
+
+		// Search in customer name, email, or phone
+		if ( stripos( $customer_name, $query ) !== false || 
+		     stripos( $customer_email, $query ) !== false || 
+		     stripos( $customer_phone, $query ) !== false ) {
+			$results[] = array(
+				'type'  => 'customer',
+				'title' => $customer_name,
+				'meta'  => array(
+					'Email: ' . $customer_email,
+					$customer_phone ? 'Phone: ' . $customer_phone : '',
+				),
+				'url'   => admin_url( 'user-edit.php?user_id=' . $customer->ID ),
+			);
+		}
+	}
+
+	// Search Payments
+	$all_employees = get_users( array(
+		'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+		'number'   => -1,
+	) );
+
+	foreach ( $all_employees as $employee ) {
+		$payments = get_user_meta( $employee->ID, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			continue;
+		}
+
+		foreach ( $payments as $payment ) {
+			$payment_amount = isset( $payment['amount'] ) ? $payment['amount'] : 0;
+			$payment_date = isset( $payment['date'] ) ? $payment['date'] : '';
+			$payment_method = isset( $payment['payment_method'] ) ? $payment['payment_method'] : '';
+
+			// Search in payment amount, date, or method
+			if ( stripos( $payment_amount, $query ) !== false || 
+			     stripos( $payment_date, $query ) !== false || 
+			     stripos( $payment_method, $query ) !== false ) {
+				$results[] = array(
+					'type'  => 'payment',
+					'title' => 'Payment: ' . wc_price( $payment_amount ) . ' - ' . $employee->display_name,
+					'meta'  => array(
+						'Date: ' . $payment_date,
+						'Method: ' . ( $payment_method ? $payment_method : 'N/A' ),
+					),
+					'url'   => admin_url( 'admin.php?page=wc-team-payroll-employees&employee_id=' . $employee->ID . '&tab=payments' ),
+				);
+			}
+		}
+	}
+
+	// Remove duplicates and limit results
+	$results = array_slice( array_unique( $results, SORT_REGULAR ), 0, 100 );
+
+	if ( empty( $results ) ) {
+		wp_send_json_error( __( 'No results found', 'wc-team-payroll' ) );
+	}
+
+	wp_send_json_success( array(
+		'results' => $results,
+	) );
 } );
