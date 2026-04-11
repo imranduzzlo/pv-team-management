@@ -30,24 +30,49 @@ class WC_Team_Payroll_Page {
 				<button type="button" class="button button-secondary" id="wc-tp-payroll-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
 			</div>
 
-			<!-- Date Range Filter -->
-			<div class="wc-tp-date-filter">
-				<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
-				<input type="date" id="wc-tp-payroll-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
-				<span class="wc-tp-date-separator">to</span>
-				<input type="date" id="wc-tp-payroll-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
-				<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-			</div>
+			<!-- Unified Filter Section -->
+			<div class="wc-tp-unified-filter">
+				<div class="wc-tp-filter-row">
+					<!-- Date Range Preset -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payroll-date-preset">
+							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
 
-			<!-- Salary Type Filter -->
-			<div class="wc-tp-salary-filter">
-				<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
-				<select id="wc-tp-payroll-salary-type-filter">
-					<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
-					<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
-					<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
-					<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
-				</select>
+					<!-- Custom Date Range (Hidden by default) -->
+					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-custom-date-range" style="display: none;">
+						<input type="date" id="wc-tp-payroll-start-date" value="<?php echo esc_attr( $start_date ); ?>" />
+						<span class="wc-tp-date-separator">to</span>
+						<input type="date" id="wc-tp-payroll-end-date" value="<?php echo esc_attr( $end_date ); ?>" />
+					</div>
+
+					<!-- Salary Type Filter -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Salary Type:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-payroll-salary-type-filter">
+							<option value=""><?php esc_html_e( 'All Types', 'wc-team-payroll' ); ?></option>
+							<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+							<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+							<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Filter Button -->
+					<div class="wc-tp-filter-group">
+						<button type="button" class="button button-primary" id="wc-tp-payroll-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+					</div>
+				</div>
 			</div>
 
 			<!-- Payroll Table Section -->
@@ -158,36 +183,61 @@ class WC_Team_Payroll_Page {
 				border-color: var(--color-border-light);
 			}
 
-			.wc-tp-date-filter {
+			.wc-tp-unified-filter {
 				background: var(--color-card-bg);
 				padding: 16px;
 				border-radius: 8px;
 				margin-bottom: 24px;
 				border: 1px solid var(--color-border-light);
+			}
+
+			.wc-tp-filter-row {
 				display: flex;
 				gap: 12px;
-				align-items: center;
+				align-items: flex-end;
 				flex-wrap: wrap;
 			}
 
-			.wc-tp-date-filter label {
-				font-weight: var(--fw-semibold);
-				color: var(--text-main);
-				font-size: var(--fs-body);
+			.wc-tp-filter-group {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
 			}
 
-			.wc-tp-date-filter input[type="date"] {
+			.wc-tp-filter-group label {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+			}
+
+			.wc-tp-filter-group select,
+			.wc-tp-filter-group input[type="date"] {
 				padding: 8px 12px;
 				border: 1px solid var(--color-border-light);
 				border-radius: 6px;
 				font-size: var(--fs-body);
 				font-family: var(--font-family);
 				color: var(--text-main);
+				background: var(--color-card-bg);
+				cursor: pointer;
+			}
+
+			.wc-tp-custom-date-range {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-custom-date-range input[type="date"] {
+				flex: 1;
+				min-width: 150px;
 			}
 
 			.wc-tp-date-separator {
 				color: var(--text-muted);
 				font-weight: var(--fw-medium);
+				font-size: var(--fs-meta);
 			}
 
 			.wc-tp-table-section {
@@ -371,13 +421,32 @@ class WC_Team_Payroll_Page {
 					width: 100%;
 				}
 
-				.wc-tp-date-filter {
+				.wc-tp-unified-filter {
+					margin-bottom: 12px;
+				}
+
+				.wc-tp-filter-row {
 					flex-direction: column;
 					gap: 8px;
 				}
 
-				.wc-tp-date-filter input[type="date"] {
+				.wc-tp-filter-group {
 					width: 100%;
+				}
+
+				.wc-tp-filter-group select,
+				.wc-tp-filter-group input[type="date"] {
+					width: 100%;
+				}
+
+				.wc-tp-custom-date-range {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-custom-date-range input[type="date"] {
+					width: 100%;
+					min-width: unset;
 				}
 
 				.wc-tp-table-section {
@@ -423,6 +492,7 @@ class WC_Team_Payroll_Page {
 				let searchQuery = '';
 				let salaryTypeFilter = '';
 				let itemsPerPage = 20; // Default
+				let lastPresetRange = { start: '', end: '' }; // Store last preset range
 
 				// Load saved items per page from localStorage
 				const savedItemsPerPage = localStorage.getItem('wc_tp_payroll_items_per_page');
@@ -431,7 +501,31 @@ class WC_Team_Payroll_Page {
 					$('#wc-tp-payroll-per-page').val(itemsPerPage);
 				}
 
+				// Initialize with default preset (This Month)
+				updateDateRangeFromPreset('this-month');
 				loadPayrollData();
+
+				// Date preset change
+				$('#wc-tp-payroll-date-preset').on('change', function() {
+					const preset = $(this).val();
+					
+					if (preset === 'custom') {
+						// Show custom date inputs with last preset values
+						$('#wc-tp-custom-date-range').slideDown(200);
+					} else {
+						// Hide custom date inputs and update dates
+						$('#wc-tp-custom-date-range').slideUp(200);
+						updateDateRangeFromPreset(preset);
+						currentPage = 1;
+						loadPayrollData();
+					}
+				});
+
+				// Custom date range change
+				$('#wc-tp-payroll-start-date, #wc-tp-payroll-end-date').on('change', function() {
+					currentPage = 1;
+					loadPayrollData();
+				});
 
 				// Items per page change
 				$('#wc-tp-payroll-per-page').on('change', function() {
@@ -466,12 +560,101 @@ class WC_Team_Payroll_Page {
 					loadPayrollData();
 				});
 
+				function getDateRangeFromPreset(preset) {
+					const today = new Date();
+					const year = today.getFullYear();
+					const month = String(today.getMonth() + 1).padStart(2, '0');
+					const date = String(today.getDate()).padStart(2, '0');
+					const todayStr = `${year}-${month}-${date}`;
+
+					let startDate, endDate;
+
+					switch (preset) {
+						case 'today':
+							startDate = todayStr;
+							endDate = todayStr;
+							break;
+
+						case 'this-week':
+							const firstDay = new Date(today);
+							firstDay.setDate(today.getDate() - today.getDay());
+							startDate = formatDateForInput(firstDay);
+							endDate = todayStr;
+							break;
+
+						case 'this-month':
+							startDate = `${year}-${month}-01`;
+							endDate = todayStr;
+							break;
+
+						case 'this-year':
+							startDate = `${year}-01-01`;
+							endDate = todayStr;
+							break;
+
+						case 'last-week':
+							const lastWeekEnd = new Date(today);
+							lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+							const lastWeekStart = new Date(lastWeekEnd);
+							lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+							startDate = formatDateForInput(lastWeekStart);
+							endDate = formatDateForInput(lastWeekEnd);
+							break;
+
+						case 'last-month':
+							const lastMonthDate = new Date(year, parseInt(month) - 2, 1);
+							const lastMonthYear = lastMonthDate.getFullYear();
+							const lastMonthMonth = String(lastMonthDate.getMonth() + 1).padStart(2, '0');
+							startDate = `${lastMonthYear}-${lastMonthMonth}-01`;
+							const lastMonthLastDay = new Date(lastMonthYear, parseInt(lastMonthMonth), 0);
+							endDate = `${lastMonthYear}-${lastMonthMonth}-${String(lastMonthLastDay.getDate()).padStart(2, '0')}`;
+							break;
+
+						case 'last-year':
+							const lastYear = year - 1;
+							startDate = `${lastYear}-01-01`;
+							endDate = `${lastYear}-12-31`;
+							break;
+
+						case 'last-6-months':
+							const sixMonthsAgo = new Date(today);
+							sixMonthsAgo.setMonth(today.getMonth() - 6);
+							startDate = formatDateForInput(sixMonthsAgo);
+							endDate = todayStr;
+							break;
+
+						case 'all-time':
+							startDate = '2000-01-01';
+							endDate = todayStr;
+							break;
+
+						default:
+							startDate = `${year}-${month}-01`;
+							endDate = todayStr;
+					}
+
+					return { start: startDate, end: endDate };
+				}
+
+				function formatDateForInput(date) {
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				}
+
+				function updateDateRangeFromPreset(preset) {
+					const range = getDateRangeFromPreset(preset);
+					lastPresetRange = range; // Store for custom mode
+					$('#wc-tp-payroll-start-date').val(range.start);
+					$('#wc-tp-payroll-end-date').val(range.end);
+				}
+
 				function loadPayrollData() {
 					const startDate = $('#wc-tp-payroll-start-date').val();
 					const endDate = $('#wc-tp-payroll-end-date').val();
 
 					if (!startDate || !endDate) {
-						alert('Please select both start and end dates');
 						return;
 					}
 
