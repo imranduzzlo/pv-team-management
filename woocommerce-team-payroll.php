@@ -803,7 +803,7 @@ add_action( 'admin_menu', function() {
 		'wc-team-payroll-employees',
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Employee_Management' ) ) {
-				$employees = new WC_Team_Payroll_Employee_Management();
+				$employees = new WC_Team_Payroll_Employee_Management(); // Constructor will enqueue assets
 				$employees->render_employees_page();
 			} else {
 				echo '<div class="wrap"><h1>Team Members</h1>';
