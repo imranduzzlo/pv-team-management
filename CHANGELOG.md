@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.7.2] - 2026-04-11
+
+### CRITICAL BUG FIX - Employee Detail Page Orders Table & Tab Switching
+
+#### Root Cause Identified
+- Date input elements were hidden by default (`display: none`)
+- jQuery couldn't properly access values from hidden input elements
+- `loadOrdersData()` was receiving empty date values and returning early
+- AJAX call was never being made to fetch orders
+
+#### The Fix
+- **Store dates in JavaScript variables** instead of relying on hidden inputs
+- Added `currentStartDate` and `currentEndDate` variables to track date range
+- Updated `updateDateRangeFromPreset()` to store dates in JS variables
+- Updated `loadOrdersData()` to use JS variables for date values
+- Added fallback for `ajaxurl` in case it's not defined globally
+- Added console logging for debugging AJAX issues
+
+#### What Now Works
+- ✅ Orders table displays immediately on page load
+- ✅ Tab switching between Orders, Payments, and Salary Management works correctly
+- ✅ All tab-specific data loads properly when switching tabs
+- ✅ Date filtering works correctly
+- ✅ Search and status filters work as expected
+
+#### Technical Details
+- Removed dependency on hidden input values for date storage
+- JavaScript variables now serve as the source of truth for date ranges
+- AJAX calls now have proper date values and execute successfully
+- Console logging helps identify any remaining issues
+
+### Files Modified
+- `includes/class-employee-detail.php` - Fixed date handling and AJAX calls
+
 ## [5.7.1] - 2026-04-11
 
 ### Bug Fixes
