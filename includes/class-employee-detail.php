@@ -220,7 +220,47 @@ class WC_Team_Payroll_Employee_Detail {
 
 				<!-- Salary Tab -->
 				<div class="wc-tp-tab-content" id="salary-tab">
-					<p><?php esc_html_e( 'Salary management tab content coming soon...', 'wc-team-payroll' ); ?></p>
+					<!-- Salary Management Form -->
+					<div class="wc-tp-salary-form-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h3>
+						
+						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+							<div class="wc-tp-form-group">
+								<label for="wc-tp-salary-type" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
+								<select id="wc-tp-salary-type" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
+									<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+									<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+									<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+								</select>
+							</div>
+
+							<div class="wc-tp-form-group" id="wc-tp-salary-amount-group" style="display: none;">
+								<label for="wc-tp-salary-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
+								<input type="number" id="wc-tp-salary-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
+							</div>
+
+							<div class="wc-tp-form-group" id="wc-tp-salary-frequency-group" style="display: none;">
+								<label for="wc-tp-salary-frequency" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></label>
+								<select id="wc-tp-salary-frequency" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
+									<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
+									<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
+									<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
+									<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
+								</select>
+							</div>
+						</div>
+
+						<button type="button" class="button button-primary" id="wc-tp-update-salary-btn"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
+					</div>
+
+					<!-- Salary History Section -->
+					<div class="wc-tp-salary-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
+						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h3>
+						
+						<div id="wc-tp-salary-history-container">
+							<!-- Salary history will be loaded via AJAX -->
+						</div>
+					</div>
 				</div>
 
 				<!-- Payments Tab -->
@@ -1340,6 +1380,139 @@ class WC_Team_Payroll_Employee_Detail {
 						}
 					});
 				};
+
+				// Load salary data on salary tab click
+				$(document).on('click', '.wc-tp-tab-button[data-tab="salary"]', function() {
+					loadSalaryData();
+					loadSalaryHistory();
+				});
+
+				// Load salary data
+				function loadSalaryData() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employee_salary',
+							user_id: userId
+						},
+						success: function(response) {
+							if (response.success) {
+								const salary = response.data;
+								$('#wc-tp-salary-type').val(salary.type);
+								$('#wc-tp-salary-amount').val(salary.amount || '');
+								$('#wc-tp-salary-frequency').val(salary.frequency || 'monthly');
+								toggleSalaryFields();
+							}
+						}
+					});
+				}
+
+				// Toggle salary fields based on type
+				$('#wc-tp-salary-type').on('change', function() {
+					toggleSalaryFields();
+				});
+
+				function toggleSalaryFields() {
+					const type = $('#wc-tp-salary-type').val();
+					if (type === 'fixed' || type === 'combined') {
+						$('#wc-tp-salary-amount-group').slideDown(200);
+						$('#wc-tp-salary-frequency-group').slideDown(200);
+					} else {
+						$('#wc-tp-salary-amount-group').slideUp(200);
+						$('#wc-tp-salary-frequency-group').slideUp(200);
+					}
+				}
+
+				// Update salary
+				$('#wc-tp-update-salary-btn').on('click', function() {
+					const type = $('#wc-tp-salary-type').val();
+					const amount = $('#wc-tp-salary-amount').val();
+					const frequency = $('#wc-tp-salary-frequency').val();
+
+					if ((type === 'fixed' || type === 'combined') && (!amount || amount <= 0)) {
+						alert('<?php esc_js_e( 'Please enter a valid salary amount', 'wc-team-payroll' ); ?>');
+						return;
+					}
+
+					$(this).prop('disabled', true).text('<?php esc_js_e( 'Updating...', 'wc-team-payroll' ); ?>');
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_update_employee_salary',
+							user_id: userId,
+							salary_type: type,
+							salary_amount: amount || 0,
+							salary_frequency: frequency
+						},
+						success: function(response) {
+							if (response.success) {
+								loadSalaryHistory();
+								alert('<?php esc_js_e( 'Salary updated successfully', 'wc-team-payroll' ); ?>');
+							} else {
+								alert('<?php esc_js_e( 'Error updating salary', 'wc-team-payroll' ); ?>');
+							}
+						},
+						error: function() {
+							alert('<?php esc_js_e( 'Error updating salary', 'wc-team-payroll' ); ?>');
+						},
+						complete: function() {
+							$('#wc-tp-update-salary-btn').prop('disabled', false).text('<?php esc_js_e( 'Update Salary', 'wc-team-payroll' ); ?>');
+						}
+					});
+				});
+
+				// Load salary history
+				function loadSalaryHistory() {
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_salary_history',
+							user_id: userId
+						},
+						success: function(response) {
+							if (response.success) {
+								renderSalaryHistory(response.data.history || []);
+							}
+						}
+					});
+				}
+
+				// Render salary history
+				function renderSalaryHistory(history) {
+					const container = $('#wc-tp-salary-history-container');
+					
+					if (!history || history.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📋</div><p>No salary history</p></div>');
+						return;
+					}
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Date</th>';
+					html += '<th>Old Type</th>';
+					html += '<th>Old Amount</th>';
+					html += '<th>New Type</th>';
+					html += '<th>New Amount</th>';
+					html += '<th>Changed By</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(history, function(i, entry) {
+						html += '<tr>';
+						html += '<td>' + entry.date + '</td>';
+						html += '<td>' + (entry.old_type ? entry.old_type.charAt(0).toUpperCase() + entry.old_type.slice(1) : '-') + '</td>';
+						html += '<td>' + (entry.old_amount ? formatCurrency(entry.old_amount) : '-') + '</td>';
+						html += '<td>' + (entry.new_type ? entry.new_type.charAt(0).toUpperCase() + entry.new_type.slice(1) : '-') + '</td>';
+						html += '<td>' + (entry.new_amount ? formatCurrency(entry.new_amount) : '-') + '</td>';
+						html += '<td>' + entry.changed_by + '</td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
 			});
 		</script>
 		<?php
