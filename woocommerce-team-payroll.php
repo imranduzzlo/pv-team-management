@@ -176,8 +176,31 @@ add_action( 'plugins_loaded', function() {
 			$total_earnings += $data['total'];
 			$total_paid += $data['paid'];
 			$total_due += $data['due'];
-			$total_orders += $data['orders'];
 		}
+
+		// Count unique orders (not summing employee orders, as same order can be counted twice)
+		$unique_orders = array();
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing', 'refunded' ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+		$orders = wc_get_orders( $args );
+		foreach ( $orders as $order ) {
+			$commission_data = $order->get_meta( '_commission_data' );
+			
+			// Only count orders that have commission data
+			if ( $commission_data ) {
+				$unique_orders[ $order->get_id() ] = true;
+			}
+		}
+		$total_orders = count( $unique_orders );
 
 		// Get latest employees
 		$latest_employees_data = array();
