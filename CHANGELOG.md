@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.7.4] - 2026-04-11
+
+### ADDED - Debugging to Employee Detail Page
+
+- Added console logging to AJAX calls for troubleshooting
+- Added console logging to tab switching for debugging
+- Improved error handling in AJAX calls to show actual errors
+- This helps identify why orders table is not showing and tabs are not switching
+
 ## [5.7.3] - 2026-04-11
 
 ### FIXED - Employee Detail Page Now Working Properly
