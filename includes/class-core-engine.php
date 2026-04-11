@@ -89,21 +89,9 @@ class WC_Team_Payroll_Core_Engine {
 			$commission_data['total_commission'] += $item_commission;
 		}
 
-		// Handle refunded orders - apply refund commission settings
+		// Handle refunded orders - no commission
 		if ( $is_refunded ) {
-			$refund_type = isset( $settings['refund_commission_type'] ) ? $settings['refund_commission_type'] : 'none';
-			$refund_value = isset( $settings['refund_commission_value'] ) ? floatval( $settings['refund_commission_value'] ) : 0;
-
-			if ( 'none' === $refund_type ) {
-				// No commission for refunded orders
-				$commission_data['total_commission'] = 0;
-			} elseif ( 'percentage' === $refund_type ) {
-				// Apply percentage of original commission
-				$commission_data['total_commission'] = ( $commission_data['total_commission'] * $refund_value ) / 100;
-			} elseif ( 'flat' === $refund_type ) {
-				// Apply flat amount
-				$commission_data['total_commission'] = $refund_value;
-			}
+			$commission_data['total_commission'] = 0;
 		}
 
 		// Get order date for salary type checking (check salary type AT order creation time)

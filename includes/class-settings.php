@@ -92,24 +92,7 @@ class WC_Team_Payroll_Settings {
 								<p class="description">Percentage of commission for processor</p>
 							</td>
 						</tr>
-						<tr>
-							<th><label>Refunded Order Commission</label></th>
-							<td>
-								<select name="wc_team_payroll_settings[refund_commission_type]">
-									<option value="none" <?php selected( isset( $settings['refund_commission_type'] ) ? $settings['refund_commission_type'] : 'none', 'none' ); ?>>No Commission</option>
-									<option value="percentage" <?php selected( isset( $settings['refund_commission_type'] ) ? $settings['refund_commission_type'] : 'none', 'percentage' ); ?>>Percentage of Order</option>
-									<option value="flat" <?php selected( isset( $settings['refund_commission_type'] ) ? $settings['refund_commission_type'] : 'none', 'flat' ); ?>>Flat Amount</option>
-								</select>
-								<p class="description">Commission type for refunded orders</p>
-							</td>
-						</tr>
-						<tr>
-							<th><label for="refund_commission_value">Refunded Order Commission Value</label></th>
-							<td>
-								<input type="number" id="refund_commission_value" name="wc_team_payroll_settings[refund_commission_value]" value="<?php echo esc_attr( isset( $settings['refund_commission_value'] ) ? $settings['refund_commission_value'] : 0 ); ?>" step="0.01" min="0" />
-								<p class="description">Percentage (%) or flat amount for refunded orders</p>
-							</td>
-						</tr>
+
 					</table>
 				<?php endif; ?>
 
