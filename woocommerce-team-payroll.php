@@ -45,16 +45,23 @@ add_action( 'plugins_loaded', function() {
 	}
 
 	// Load all classes
+	// Core & Engine
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-core-engine.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-engine.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-settings.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-dashboard.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payroll-page.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
+
+	// Backend (Admin Pages)
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/backend/class-settings.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/backend/class-dashboard.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/backend/class-payroll-page.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/backend/class-employee-management.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/backend/class-employee-detail.php';
+
+	// Frontend (Customer-Facing)
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/frontend/class-myaccount.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/frontend/class-shortcodes.php';
 
 	// Initialize custom fields (creates meta fields)
 	new WC_Team_Payroll_Custom_Fields();

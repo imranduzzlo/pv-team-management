@@ -1,5 +1,278 @@
 /* WooCommerce Team Payroll Dashboard Styles */
 
+/* Stats Grid */
+.wc-tp-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px;
+	margin-bottom: 32px;
+}
+
+.wc-tp-stat-card {
+	background: var(--color-card-bg);
+	padding: 20px;
+	border-radius: 8px;
+	border: 1px solid var(--color-border-light);
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 16px;
+	transition: all 0.3s ease;
+	cursor: pointer;
+	min-height: 120px;
+	text-align: left;
+}
+
+.wc-tp-stat-link {
+	text-decoration: none;
+	color: inherit;
+}
+
+.wc-tp-stat-link:hover {
+	text-decoration: none;
+	color: inherit;
+}
+
+.wc-tp-stat-card:hover {
+	border-color: var(--color-primary);
+	box-shadow: 0 4px 12px rgba(255, 153, 0, 0.1);
+	transform: translateY(-2px);
+}
+
+.wc-tp-stat-icon {
+	font-size: 32px;
+	min-width: 50px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.wc-tp-stat-content {
+	flex: 1;
+}
+
+.wc-tp-stat-value {
+	font-size: 1.5rem;
+	font-weight: var(--fw-bold);
+	color: var(--color-primary);
+	margin-bottom: 4px;
+	line-height: 1.3;
+	word-break: keep-all;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wc-tp-stat-label {
+	font-size: var(--fs-meta);
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-weight: var(--fw-medium);
+	word-break: keep-all;
+	white-space: normal;
+}
+
+/* Dashboard Grid */
+.wc-tp-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+	gap: 20px;
+	margin-bottom: 20px;
+}
+
+/* Status Badges */
+.wc-tp-status {
+	padding: 4px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 600;
+	display: inline-block;
+}
+
+.wc-tp-status-paid {
+	background: #d4edda;
+	color: #155724;
+}
+
+.wc-tp-status-pending {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.wc-tp-status-failed {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.wc-tp-paid {
+	color: var(--color-accent-success);
+	font-weight: var(--fw-semibold);
+}
+
+.wc-tp-due {
+	color: var(--color-accent-alert);
+	font-weight: var(--fw-semibold);
+}
+
+.wc-tp-no-action td {
+	padding: 10px 12px !important;
+}
+
+.wc-tp-quick-edit {
+	background: var(--color-accent-link);
+	border-color: var(--color-accent-link);
+	color: white;
+	padding: 4px 8px;
+	font-size: 12px;
+	height: auto;
+	line-height: 1.5;
+}
+
+.wc-tp-quick-edit:hover {
+	background: #0066cc;
+	border-color: #0066cc;
+}
+
+.wc-tp-edit-input {
+	width: 100%;
+	padding: 6px;
+	border: 1px solid var(--color-primary);
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.wc-tp-save-edit {
+	background: var(--color-accent-success);
+	border-color: var(--color-accent-success);
+	color: white;
+}
+
+.wc-tp-cancel-edit {
+	background: #dc3545;
+	border-color: #dc3545;
+	color: white;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+	.wc-tp-stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.wc-tp-dashboard-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-data-table {
+		font-size: 13px;
+	}
+
+	.wc-tp-data-table th,
+	.wc-tp-data-table td {
+		padding: 8px;
+	}
+
+	.button-small {
+		padding: 4px 8px;
+		font-size: 11px;
+	}
+}
+
+@media (max-width: 768px) {
+	.wc-tp-stats-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-stat-card {
+		flex-direction: column;
+		text-align: center;
+		align-items: center;
+		justify-content: center;
+		padding: 15px;
+		gap: 8px;
+		min-height: 100px;
+	}
+
+	.wc-tp-stat-icon {
+		font-size: 28px;
+		min-width: auto;
+	}
+
+	.wc-tp-stat-value {
+		font-size: 1.25rem;
+	}
+
+	.wc-tp-dashboard-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-data-table {
+		font-size: 12px;
+	}
+
+	.wc-tp-data-table th,
+	.wc-tp-data-table td {
+		padding: 6px;
+	}
+
+	.button,
+	.button-small {
+		padding: 4px 6px;
+		font-size: 10px;
+	}
+
+	.wc-tp-badge {
+		padding: 2px 4px;
+		font-size: 10px;
+	}
+
+	.wc-tp-edit-input {
+		padding: 4px;
+		font-size: 12px;
+	}
+}
+
+@media (max-width: 480px) {
+	.wc-tp-stats-grid {
+		gap: 8px;
+	}
+
+	.wc-tp-stat-card {
+		padding: 10px;
+		gap: 6px;
+		min-height: 90px;
+	}
+
+	.wc-tp-stat-icon {
+		font-size: 24px;
+	}
+
+	.wc-tp-stat-value {
+		font-size: 1.1rem;
+	}
+
+	.wc-tp-stat-label {
+		font-size: 0.7rem;
+	}
+
+	.wc-tp-data-table {
+		font-size: 11px;
+	}
+
+	.wc-tp-data-table th,
+	.wc-tp-data-table td {
+		padding: 4px;
+	}
+
+	.button,
+	.button-small {
+		padding: 3px 5px;
+		font-size: 9px;
+	}
+}
+
+/* Legacy Styles */
 .wc-tp-date-filter {
 	background: white;
 	padding: 15px;
@@ -52,13 +325,6 @@
 
 .wc-team-payroll-filters button {
 	padding: 8px 16px;
-}
-
-.wc-tp-dashboard-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-	gap: 20px;
-	margin-bottom: 20px;
 }
 
 /* Dashboard Tables */
@@ -245,60 +511,4 @@
 	font-weight: 600;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-	.wc-team-payroll-filters form {
-		flex-direction: column;
-	}
 
-	.earnings-summary,
-	.wc-team-payroll-report-cards {
-		grid-template-columns: 1fr;
-	}
-
-	.wc-team-payroll-orders-table {
-		font-size: 13px;
-	}
-
-	.wc-team-payroll-orders-table th,
-	.wc-team-payroll-orders-table td {
-		padding: 8px;
-	}
-}
-
-
-.wc-tp-status {
-	padding: 4px 8px;
-	border-radius: 3px;
-	font-size: 12px;
-	font-weight: 600;
-	display: inline-block;
-}
-
-.wc-tp-status-paid {
-	background: #d4edda;
-	color: #155724;
-}
-
-.wc-tp-status-pending {
-	background: #fff3cd;
-	color: #856404;
-}
-
-.wc-tp-status-failed {
-	background: #f8d7da;
-	color: #721c24;
-}
-
-.wc-tp-dashboard-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-	gap: 20px;
-	margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-	.wc-tp-dashboard-grid {
-		grid-template-columns: 1fr;
-	}
-}
