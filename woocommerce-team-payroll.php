@@ -747,6 +747,123 @@ add_action( 'plugins_loaded', function() {
 			'orders' => $orders_data,
 		) );
 	} );
+
+	// AJAX handler for getting all payments
+	add_action( 'wp_ajax_wc_tp_get_all_payments', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : date( 'Y-m-01' );
+		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : date( 'Y-m-t' );
+		$salary_type = isset( $_POST['salary_type'] ) ? sanitize_text_field( $_POST['salary_type'] ) : '';
+		$search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
+
+		$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+		$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+
+		// Get all employees
+		$all_employees = get_users( array(
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'number'   => -1,
+		) );
+
+		$all_payments = array();
+		foreach ( $all_employees as $employee ) {
+			// Filter by salary type if specified
+			if ( $salary_type ) {
+				$is_fixed = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+				$is_combined = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+				
+				$employee_type = 'commission';
+				if ( $is_fixed ) {
+					$employee_type = 'fixed';
+				} elseif ( $is_combined ) {
+					$employee_type = 'combined';
+				}
+
+				if ( $employee_type !== $salary_type ) {
+					continue;
+				}
+			}
+
+			// Get employee details for search
+			$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
+			$user_phone = get_user_meta( $employee->ID, 'billing_phone', true );
+			$employee_name = $vb_user_id ? '(' . $vb_user_id . ') ' . $employee->display_name : $employee->display_name;
+
+			// Search filter
+			if ( $search ) {
+				$search_lower = strtolower( $search );
+				$match = false;
+
+				if ( stripos( $employee->display_name, $search ) !== false ||
+				     stripos( $employee->user_email, $search ) !== false ||
+				     stripos( $vb_user_id, $search ) !== false ||
+				     stripos( $user_phone, $search ) !== false ) {
+					$match = true;
+				}
+
+				if ( ! $match ) {
+					continue;
+				}
+			}
+
+			// Get payments for this employee
+			$payments = get_user_meta( $employee->ID, '_wc_tp_payments', true );
+			if ( is_array( $payments ) ) {
+				foreach ( $payments as $payment ) {
+					$payment_date_str = $payment['date'] ?? current_time( 'mysql' );
+					
+					// Convert datetime-local format
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+					
+					$payment_timestamp = strtotime( $payment_date_str );
+					
+					// Filter by payment date
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+						// Get salary type label
+						$is_fixed = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+						$is_combined = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+						
+						$salary_type_label = __( 'Commission Based', 'wc-team-payroll' );
+						if ( $is_fixed ) {
+							$salary_type_label = __( 'Fixed Salary', 'wc-team-payroll' );
+						} elseif ( $is_combined ) {
+							$salary_type_label = __( 'Combined', 'wc-team-payroll' );
+						}
+
+						// Get who added the payment
+						$added_by_id = $payment['created_by'] ?? 0;
+						$added_by_user = get_user_by( 'ID', $added_by_id );
+						$added_by_name = $added_by_user ? $added_by_user->display_name : __( 'Unknown', 'wc-team-payroll' );
+
+						$all_payments[] = array(
+							'user_id'       => $employee->ID,
+							'employee_name' => $employee_name,
+							'vb_user_id'    => $vb_user_id ? $vb_user_id : '-',
+							'amount'        => $payment['amount'] ?? 0,
+							'date'          => date( 'M d, Y H:i', $payment_timestamp ),
+							'timestamp'     => $payment_timestamp,
+							'added_by'      => $added_by_name,
+							'salary_type'   => $salary_type_label,
+						);
+					}
+				}
+			}
+		}
+
+		// Sort by date descending (newest first)
+		usort( $all_payments, function( $a, $b ) {
+			return $b['timestamp'] - $a['timestamp'];
+		} );
+
+		wp_send_json_success( array(
+			'payments' => $all_payments,
+		) );
+	} );
 }, 20 ); // Priority 20 - after WooCommerce loads (priority 10)
 
 // ============================================================================
