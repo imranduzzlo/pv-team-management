@@ -1,6 +1,4 @@
-/**
- * WooCommerce Team Payroll Dashboard JS
- */
+/* WooCommerce Team Payroll - Dashboard Page JavaScript */
 
 jQuery(document).ready(function($) {
 	// Store currency globally
