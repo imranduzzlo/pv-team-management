@@ -179,9 +179,9 @@ class WC_Team_Payroll_Employee_Detail {
 
 					<!-- Custom Date Range (Hidden by default) -->
 					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-custom-date-range" style="display: none;">
-						<input type="date" id="wc-tp-orders-start-date" value="<?php echo esc_attr( date( 'Y-m-01' ) ); ?>" />
+						<input type="date" id="wc-tp-orders-start-date" />
 						<span class="wc-tp-date-separator">to</span>
-						<input type="date" id="wc-tp-orders-end-date" value="<?php echo esc_attr( date( 'Y-m-t' ) ); ?>" />
+						<input type="date" id="wc-tp-orders-end-date" />
 					</div>
 
 					<div class="wc-tp-filter-group">
@@ -898,6 +898,11 @@ class WC_Team_Payroll_Employee_Detail {
 
 		<script>
 			jQuery(document).ready(function($) {
+				// Ensure ajaxurl is defined
+				if (typeof ajaxurl === 'undefined') {
+					ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>';
+				}
+
 				const userId = <?php echo intval( $user_id ); ?>;
 				const wcCurrencySymbol = '<?php echo esc_js( $wc_currency_symbol ); ?>';
 				const wcCurrencyPos = '<?php echo esc_js( $wc_currency_pos ); ?>';
@@ -905,6 +910,8 @@ class WC_Team_Payroll_Employee_Detail {
 				let allOrdersData = [];
 				let itemsPerPage = 20;
 				let lastPresetRange = { start: '', end: '' }; // Store last preset range
+				let currentStartDate = ''; // Store current start date
+				let currentEndDate = ''; // Store current end date
 
 				// Helper functions first
 				function getDateRangeFromPreset(preset) {
@@ -993,6 +1000,8 @@ class WC_Team_Payroll_Employee_Detail {
 				function updateDateRangeFromPreset(preset) {
 					const range = getDateRangeFromPreset(preset);
 					lastPresetRange = range; // Store for custom mode
+					currentStartDate = range.start; // Store in JS variable
+					currentEndDate = range.end; // Store in JS variable
 					$('#wc-tp-orders-start-date').val(range.start);
 					$('#wc-tp-orders-end-date').val(range.end);
 				}
@@ -1024,20 +1033,32 @@ class WC_Team_Payroll_Employee_Detail {
 					}
 				});
 
-				// Custom date range change - just update values, don't load
+				// Custom date range change - update JS variables
 				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
-					// Just update the values, don't trigger load
+					currentStartDate = $('#wc-tp-orders-start-date').val();
+					currentEndDate = $('#wc-tp-orders-end-date').val();
 				});
 
 				// Load orders data function
 				function loadOrdersData() {
-					const startDate = $('#wc-tp-orders-start-date').val();
-					const endDate = $('#wc-tp-orders-end-date').val();
+					// Use stored date values from JS variables
+					let startDate = currentStartDate;
+					let endDate = currentEndDate;
+					
+					// If not set, try to read from inputs
+					if (!startDate) {
+						startDate = $('#wc-tp-orders-start-date').val();
+					}
+					if (!endDate) {
+						endDate = $('#wc-tp-orders-end-date').val();
+					}
+					
 					const statusFilter = $('#wc-tp-orders-status-filter').val();
 					const flagFilter = $('#wc-tp-orders-flag-filter').val();
 					const searchQuery = $('#wc-tp-orders-search').val();
 
 					if (!startDate || !endDate) {
+						console.log('Date range not set. Start:', startDate, 'End:', endDate);
 						return;
 					}
 
@@ -1058,10 +1079,12 @@ class WC_Team_Payroll_Employee_Detail {
 								allOrdersData = response.data.orders || [];
 								renderOrdersTable(allOrdersData);
 								renderOrdersPagination(allOrdersData);
+							} else {
+								console.log('AJAX error:', response);
 							}
 						},
-						error: function() {
-							// Silent error handling
+						error: function(xhr, status, error) {
+							console.log('AJAX request failed:', error, xhr.responseText);
 						}
 					});
 				}
