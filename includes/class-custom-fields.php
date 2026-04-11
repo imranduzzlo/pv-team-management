@@ -129,10 +129,17 @@ class WC_Team_Payroll_Custom_Fields {
 	}
 
 	/**
-	 * Add user meta box for vb_user_id
+	 * Add user meta box for vb_user_id and profile picture
 	 */
 	public function add_user_meta_box( $user ) {
 		$vb_user_id = get_user_meta( $user->ID, 'vb_user_id', true );
+		$profile_picture_id = get_user_meta( $user->ID, '_wc_tp_profile_picture', true );
+		$profile_picture_url = '';
+		
+		if ( $profile_picture_id ) {
+			$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+		}
+		
 		wp_nonce_field( 'wc_tp_user_nonce', 'wc_tp_user_nonce' );
 		?>
 		<h3><?php esc_html_e( 'Team Payroll', 'wc-team-payroll' ); ?></h3>
@@ -146,7 +153,70 @@ class WC_Team_Payroll_Custom_Fields {
 					<p class="description"><?php esc_html_e( 'Auto-generated employee ID. Edit to customize.', 'wc-team-payroll' ); ?></p>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row">
+					<label for="wc_tp_profile_picture"><?php esc_html_e( 'Profile Picture', 'wc-team-payroll' ); ?></label>
+				</th>
+				<td>
+					<div id="wc-tp-profile-picture-preview" style="margin-bottom: 10px;">
+						<?php if ( $profile_picture_url ) : ?>
+							<img src="<?php echo esc_url( $profile_picture_url ); ?>" style="max-width: 150px; height: auto; border-radius: 8px;" />
+						<?php endif; ?>
+					</div>
+					<input type="hidden" id="wc_tp_profile_picture" name="wc_tp_profile_picture" value="<?php echo esc_attr( $profile_picture_id ); ?>" />
+					<button type="button" class="button" id="wc-tp-upload-profile-picture"><?php esc_html_e( 'Upload Picture', 'wc-team-payroll' ); ?></button>
+					<?php if ( $profile_picture_id ) : ?>
+						<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_html_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>
+					<?php endif; ?>
+					<p class="description"><?php esc_html_e( 'Upload a profile picture for this employee.', 'wc-team-payroll' ); ?></p>
+				</td>
+			</tr>
 		</table>
+		<script>
+			jQuery(document).ready(function($) {
+				let mediaUploader;
+
+				$('#wc-tp-upload-profile-picture').on('click', function(e) {
+					e.preventDefault();
+
+					if (mediaUploader) {
+						mediaUploader.open();
+						return;
+					}
+
+					mediaUploader = wp.media.frames.file_frame = wp.media({
+						title: '<?php esc_js_e( 'Select Profile Picture', 'wc-team-payroll' ); ?>',
+						button: {
+							text: '<?php esc_js_e( 'Use this image', 'wc-team-payroll' ); ?>'
+						},
+						multiple: false,
+						library: {
+							type: 'image'
+						}
+					});
+
+					mediaUploader.on('select', function() {
+						const attachment = mediaUploader.state().get('selection').first().toJSON();
+						$('#wc_tp_profile_picture').val(attachment.id);
+						$('#wc-tp-profile-picture-preview').html('<img src="' + attachment.url + '" style="max-width: 150px; height: auto; border-radius: 8px;" />');
+						
+						// Show remove button
+						if (!$('#wc-tp-remove-profile-picture').length) {
+							$('#wc-tp-upload-profile-picture').after('<button type="button" class="button" id="wc-tp-remove-profile-picture" style="margin-left: 5px;"><?php esc_js_e( 'Remove Picture', 'wc-team-payroll' ); ?></button>');
+						}
+					});
+
+					mediaUploader.open();
+				});
+
+				$('#wc-tp-profile-picture-preview').on('click', '#wc-tp-remove-profile-picture', function(e) {
+					e.preventDefault();
+					$('#wc_tp_profile_picture').val('');
+					$('#wc-tp-profile-picture-preview').html('');
+					$(this).remove();
+				});
+			});
+		</script>
 		<?php
 	}
 
@@ -161,6 +231,15 @@ class WC_Team_Payroll_Custom_Fields {
 		if ( isset( $_POST['vb_user_id'] ) ) {
 			$vb_user_id = sanitize_text_field( $_POST['vb_user_id'] );
 			update_user_meta( $user_id, 'vb_user_id', $vb_user_id );
+		}
+
+		if ( isset( $_POST['wc_tp_profile_picture'] ) ) {
+			$profile_picture_id = intval( $_POST['wc_tp_profile_picture'] );
+			if ( $profile_picture_id ) {
+				update_user_meta( $user_id, '_wc_tp_profile_picture', $profile_picture_id );
+			} else {
+				delete_user_meta( $user_id, '_wc_tp_profile_picture' );
+			}
 		}
 	}
 }

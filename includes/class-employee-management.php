@@ -502,6 +502,9 @@ class WC_Team_Payroll_Employee_Management {
 				function attachEmployeesSortHandlers(container, employeesArray) {
 					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
 					
+					// Remove old event handlers to prevent duplicates
+					container.find('.wc-tp-sortable-header').off('click');
+					
 					// Restore sort state classes if they exist
 					if (currentSort.field) {
 						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');
@@ -660,18 +663,52 @@ class WC_Team_Payroll_Employee_Management {
 			$history = array();
 		}
 
-		$history[] = array(
-			'date'           => current_time( 'mysql' ),
-			'old_type'       => $old_type,
-			'old_amount'     => $old_amount,
-			'old_frequency'  => $old_frequency,
-			'new_type'       => $new_type,
-			'new_amount'     => $new_amount,
-			'new_frequency'  => $new_frequency,
-			'changed_by'     => get_current_user_id(),
+		// Only add to history if the type actually changed
+		if ( $old_type !== $new_type ) {
+			$history[] = array(
+				'date'           => current_time( 'mysql' ),
+				'old_type'       => $old_type,
+				'old_amount'     => $old_amount,
+				'old_frequency'  => $old_frequency,
+				'new_type'       => $new_type,
+				'new_amount'     => $new_amount,
+				'new_frequency'  => $new_frequency,
+				'changed_by'     => get_current_user_id(),
+			);
+
+			update_user_meta( $user_id, '_wc_tp_salary_history', $history );
+
+			// Recalculate commissions for all orders involving this user
+			$this->recalculate_user_commissions( $user_id );
+		}
+	}
+
+	/**
+	 * Recalculate commissions for all orders involving a user
+	 */
+	private function recalculate_user_commissions( $user_id ) {
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+
+		// Get all orders where this user is agent or processor
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing' ),
 		);
 
-		update_user_meta( $user_id, '_wc_tp_salary_history', $history );
+		$orders = wc_get_orders( $args );
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+
+			// Check if this user is involved in this order
+			if ( intval( $agent_id ) === intval( $user_id ) || intval( $processor_id ) === intval( $user_id ) ) {
+				// Recalculate and update the commission
+				$commission_data = $core_engine->calculate_commission( $order, $agent_id, $processor_id );
+				$order->update_meta_data( '_commission_data', $commission_data );
+				$order->save();
+			}
+		}
 	}
 
 	public function ajax_add_payment() {

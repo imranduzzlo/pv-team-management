@@ -551,6 +551,9 @@ class WC_Team_Payroll_Page {
 				function attachPayrollSortHandlers(container, payrollArray) {
 					let currentSort = container.data('sortState') || { field: null, direction: 'asc' };
 					
+					// Remove old event handlers to prevent duplicates
+					container.find('.wc-tp-sortable-header').off('click');
+					
 					// Restore sort state classes if they exist
 					if (currentSort.field) {
 						const header = container.find('.wc-tp-sortable-header[data-sort="' + currentSort.field + '"]');

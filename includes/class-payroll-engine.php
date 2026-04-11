@@ -136,18 +136,20 @@ class WC_Team_Payroll_Payroll_Engine {
 
 		$orders = wc_get_orders( $args );
 		$payroll = array();
+		$core_engine = new WC_Team_Payroll_Core_Engine();
 
 		foreach ( $orders as $order ) {
 			$agent_id = $order->get_meta( '_primary_agent_id' );
 			$processor_id = $order->get_meta( '_processor_user_id' );
 			$commission_data = $order->get_meta( '_commission_data' );
 
-			if ( ! $commission_data ) {
-				continue;
+			// Recalculate commission based on current salary types
+			if ( $commission_data ) {
+				$commission_data = $core_engine->calculate_commission( $order, $agent_id, $processor_id );
 			}
 
 			// Add agent earnings
-			if ( $agent_id && $commission_data['agent_earnings'] > 0 ) {
+			if ( $agent_id && $commission_data && $commission_data['agent_earnings'] > 0 ) {
 				if ( ! isset( $payroll[ $agent_id ] ) ) {
 					$payroll[ $agent_id ] = array(
 						'user_id'    => $agent_id,
@@ -163,7 +165,7 @@ class WC_Team_Payroll_Payroll_Engine {
 			}
 
 			// Add processor earnings
-			if ( $processor_id && $commission_data['processor_earnings'] > 0 ) {
+			if ( $processor_id && $commission_data && $commission_data['processor_earnings'] > 0 ) {
 				if ( ! isset( $payroll[ $processor_id ] ) ) {
 					$payroll[ $processor_id ] = array(
 						'user_id'    => $processor_id,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Employee Detail Page - Salary, Payments, Bonuses, History
+ * Employee Detail Page - Profile, Orders, Salary, Payments
  */
 
 class WC_Team_Payroll_Employee_Detail {
@@ -20,362 +20,920 @@ class WC_Team_Payroll_Employee_Detail {
 			wp_die( esc_html__( 'User not found', 'wc-team-payroll' ) );
 		}
 
-		$employee_mgmt = new WC_Team_Payroll_Employee_Management();
-		$is_fixed_salary = $employee_mgmt->is_fixed_salary( $user_id );
-		$is_combined_salary = $employee_mgmt->is_combined_salary( $user_id );
-		$salary_info = $employee_mgmt->get_user_salary( $user_id );
-		$salary_history = $employee_mgmt->get_salary_history( $user_id );
-		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
-		if ( ! is_array( $payments ) ) {
-			$payments = array();
+		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
+		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
+		$profile_picture_url = '';
+		
+		if ( $profile_picture_id ) {
+			$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
 		}
 
-		$year = isset( $_GET['year'] ) ? intval( $_GET['year'] ) : date( 'Y' );
-		$month = isset( $_GET['month'] ) ? intval( $_GET['month'] ) : date( 'm' );
+		$employee_mgmt = new WC_Team_Payroll_Employee_Management();
+		$user_phone = get_user_meta( $user_id, 'billing_phone', true );
+		$user_address = get_user_meta( $user_id, 'billing_address_1', true );
+		$user_bio = get_user_meta( $user_id, 'description', true );
 
-		$total_paid = $employee_mgmt->get_user_total_paid( $user_id, $year, $month );
+		// Get dashboard stats
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+		$total_orders = $core_engine->get_user_total_orders( $user_id );
+		$total_earnings = $core_engine->get_user_total_earnings( $user_id );
+		$total_paid = $core_engine->get_user_total_paid( $user_id );
+		$total_due = $total_earnings - $total_paid;
+
+		$wc_currency = get_woocommerce_currency();
+		$wc_currency_symbol = get_woocommerce_currency_symbol( $wc_currency );
+		$wc_currency_pos = get_option( 'woocommerce_currency_pos', 'left' );
 
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html( $user->display_name ); ?> - <?php esc_html_e( 'Employee Detail', 'wc-team-payroll' ); ?></h1>
-
-			<!-- Salary Section -->
-			<h2><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h2>
-			<table class="form-table">
-				<tr>
-					<th scope="row">
-						<label><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<select id="salary_type" onchange="toggleSalaryFields()">
-							<option value="commission" <?php selected( ! $is_fixed_salary && ! $is_combined_salary, true ); ?>><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
-							<option value="fixed" <?php selected( $is_fixed_salary, true ); ?>><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
-							<option value="combined" <?php selected( $is_combined_salary, true ); ?>><?php esc_html_e( 'Combined (Base Salary + Commission)', 'wc-team-payroll' ); ?></option>
-						</select>
-					</td>
-				</tr>
-
-				<tr id="salary_amount_row" style="<?php echo ( $is_fixed_salary || $is_combined_salary ) ? '' : 'display:none;'; ?>">
-					<th scope="row">
-						<label for="salary_amount"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<input type="number" id="salary_amount" value="<?php echo esc_attr( $salary_info ? $salary_info['amount'] : 0 ); ?>" step="0.01" min="0" />
-					</td>
-				</tr>
-
-				<tr id="salary_frequency_row" style="<?php echo ( $is_fixed_salary || $is_combined_salary ) ? '' : 'display:none;'; ?>">
-					<th scope="row">
-						<label for="salary_frequency"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<select id="salary_frequency">
-							<option value="daily" <?php selected( $salary_info ? $salary_info['frequency'] : '', 'daily' ); ?>><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
-							<option value="weekly" <?php selected( $salary_info ? $salary_info['frequency'] : '', 'weekly' ); ?>><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
-							<option value="monthly" <?php selected( $salary_info ? $salary_info['frequency'] : '', 'monthly' ); ?>><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
-							<option value="yearly" <?php selected( $salary_info ? $salary_info['frequency'] : '', 'yearly' ); ?>><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
-						</select>
-					</td>
-				</tr>
-
-				<tr>
-					<td colspan="2">
-						<button type="button" class="button button-primary" onclick="updateEmployeeSalary(<?php echo esc_attr( $user_id ); ?>)"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
-					</td>
-				</tr>
-			</table>
-
-			<!-- Salary History -->
-			<h2><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h2>
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Old Type', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Old Amount', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'New Type', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'New Amount', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Changed By', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $salary_history as $history ) : ?>
-						<tr>
-							<td><?php echo esc_html( $history['date'] ); ?></td>
-							<td><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?></td>
-							<td><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?></td>
-							<td><?php echo esc_html( get_user_by( 'ID', $history['changed_by'] )->display_name ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-
-			<!-- Payments Section -->
-			<h2><?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?></h2>
-			<div class="wc-tp-filters">
-				<form method="get">
-					<input type="hidden" name="page" value="wc-team-payroll-employee-detail" />
-					<input type="hidden" name="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
-					<select name="month">
-						<?php for ( $m = 1; $m <= 12; $m++ ) : ?>
-							<option value="<?php echo esc_attr( $m ); ?>" <?php selected( $month, $m ); ?>><?php echo esc_html( date( 'F', mktime( 0, 0, 0, $m, 1 ) ) ); ?></option>
-						<?php endfor; ?>
-					</select>
-					<input type="number" name="year" value="<?php echo esc_attr( $year ); ?>" min="2020" max="2099" />
-					<button type="submit" class="button"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-				</form>
+		<div class="wrap wc-team-payroll-employee-detail">
+			<!-- Back Button -->
+			<div style="margin-bottom: 20px;">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employees' ) ); ?>" class="button button-secondary">← <?php esc_html_e( 'Back to Team Members', 'wc-team-payroll' ); ?></a>
 			</div>
 
-			<div class="wc-tp-payment-summary">
-				<div class="payment-card">
-					<span class="label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></span>
-					<span class="amount"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></span>
+			<!-- Profile Header Section -->
+			<div class="wc-tp-profile-header">
+				<div class="wc-tp-profile-picture-container">
+					<?php if ( $profile_picture_url ) : ?>
+						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="wc-tp-profile-picture" />
+					<?php else : ?>
+						<div class="wc-tp-profile-picture-placeholder">
+							<span><?php echo esc_html( substr( $user->display_name, 0, 1 ) ); ?></span>
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<div class="wc-tp-profile-info">
+					<div class="wc-tp-profile-name-section">
+						<h1><?php echo esc_html( $user->display_name ); ?></h1>
+						<span class="wc-tp-vb-user-id"><?php echo esc_html( $vb_user_id ); ?></span>
+					</div>
+
+					<div class="wc-tp-profile-details">
+						<div class="wc-tp-detail-item">
+							<span class="label">Email:</span>
+							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+						</div>
+						<?php if ( $user_phone ) : ?>
+							<div class="wc-tp-detail-item">
+								<span class="label">Phone:</span>
+								<span class="value"><?php echo esc_html( $user_phone ); ?></span>
+							</div>
+						<?php endif; ?>
+						<?php if ( $user_address ) : ?>
+							<div class="wc-tp-detail-item">
+								<span class="label">Address:</span>
+								<span class="value"><?php echo esc_html( $user_address ); ?></span>
+							</div>
+						<?php endif; ?>
+						<?php if ( $user_bio ) : ?>
+							<div class="wc-tp-detail-item">
+								<span class="label">Bio:</span>
+								<span class="value"><?php echo esc_html( $user_bio ); ?></span>
+							</div>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<div class="wc-tp-profile-actions">
+					<a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) ); ?>" class="button button-primary">
+						<?php esc_html_e( 'Edit Profile', 'wc-team-payroll' ); ?>
+					</a>
 				</div>
 			</div>
 
-			<!-- Add Payment Form -->
-			<h3><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></h3>
-			<table class="form-table">
-				<tr>
-					<th scope="row">
-						<label for="payment_amount"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<input type="number" id="payment_amount" step="0.01" min="0" />
-					</td>
-				</tr>
+			<!-- Dashboard Cards Section -->
+			<div class="wc-tp-stats-cards">
+				<div class="wc-tp-stat-card">
+					<div class="wc-tp-stat-icon">📦</div>
+					<div class="wc-tp-stat-content">
+						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></span>
+						<span class="wc-tp-stat-value"><?php echo esc_html( $total_orders ); ?></span>
+					</div>
+				</div>
 
-				<tr>
-					<th scope="row">
-						<label for="payment_date"><?php esc_html_e( 'Payment Date', 'wc-team-payroll' ); ?></label>
-					</th>
-					<td>
-						<input type="datetime-local" id="payment_date" value="<?php echo esc_attr( date( 'Y-m-d\TH:i' ) ); ?>" />
-					</td>
-				</tr>
+				<div class="wc-tp-stat-card">
+					<div class="wc-tp-stat-icon">💰</div>
+					<div class="wc-tp-stat-content">
+						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></span>
+						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_earnings, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+					</div>
+				</div>
 
-				<tr>
-					<td colspan="2">
-						<button type="button" class="button button-primary" onclick="addPayment(<?php echo esc_attr( $user_id ); ?>)"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></button>
-					</td>
-				</tr>
-			</table>
+				<div class="wc-tp-stat-card">
+					<div class="wc-tp-stat-icon">✅</div>
+					<div class="wc-tp-stat-content">
+						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></span>
+						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_paid, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+					</div>
+				</div>
 
-			<!-- Payments List -->
-			<h3><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h3>
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Added By', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $payments as $payment ) : ?>
-						<tr>
-							<td><?php echo esc_html( $payment['date'] ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $payment['amount'] ) ); ?></td>
-							<td><?php echo esc_html( get_user_by( 'ID', $payment['created_by'] )->display_name ); ?></td>
-							<td>
-								<button type="button" class="button button-small" onclick="deletePayment(<?php echo esc_attr( $user_id ); ?>, '<?php echo esc_attr( $payment['id'] ); ?>')"><?php esc_html_e( 'Delete', 'wc-team-payroll' ); ?></button>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+				<div class="wc-tp-stat-card">
+					<div class="wc-tp-stat-icon">⏳</div>
+					<div class="wc-tp-stat-content">
+						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></span>
+						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_due, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tabs Section -->
+			<div class="wc-tp-tabs-container">
+				<div class="wc-tp-tabs-nav">
+					<button class="wc-tp-tab-button wc-tp-tab-active" data-tab="orders">
+						<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="wc-tp-tab-button" data-tab="salary">
+						<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="wc-tp-tab-button" data-tab="payments">
+						<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+
+				<!-- Orders Tab -->
+				<div class="wc-tp-tab-content wc-tp-tab-active" id="orders-tab">
+					<!-- Search Filter -->
+				<div class="wc-tp-orders-search-filter">
+					<input type="text" id="wc-tp-orders-search" placeholder="<?php esc_attr_e( 'Search by Order ID, Customer Name, Email, Phone...', 'wc-team-payroll' ); ?>" />
+					<button type="button" class="button button-secondary" id="wc-tp-orders-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
+				</div>
+
+				<!-- Filters Row -->
+				<div class="wc-tp-orders-filters">
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+						<input type="date" id="wc-tp-orders-start-date" value="<?php echo esc_attr( date( 'Y-m-01' ) ); ?>" />
+						<span class="wc-tp-date-separator">to</span>
+						<input type="date" id="wc-tp-orders-end-date" value="<?php echo esc_attr( date( 'Y-m-t' ) ); ?>" />
+					</div>
+
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-orders-status-filter">
+							<option value=""><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
+							<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
+							<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
+							<option value="pending"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></option>
+							<option value="cancelled"><?php esc_html_e( 'Cancelled', 'wc-team-payroll' ); ?></option>
+							<option value="refunded"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Flag:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-orders-flag-filter">
+							<option value=""><?php esc_html_e( 'All Flags', 'wc-team-payroll' ); ?></option>
+							<option value="owner"><?php esc_html_e( 'Order Owner', 'wc-team-payroll' ); ?></option>
+							<option value="affiliate_to"><?php esc_html_e( 'Affiliate To', 'wc-team-payroll' ); ?></option>
+							<option value="affiliate_from"><?php esc_html_e( 'Affiliate From', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<button type="button" class="button button-primary" id="wc-tp-orders-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+				</div>
+
+				<!-- Orders Table -->
+				<div id="wc-tp-orders-table-container" style="margin-top: 20px;">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+
+				<!-- Pagination -->
+				<div id="wc-tp-orders-pagination" style="margin-top: 20px; text-align: center;"></div>
+				</div>
+
+				<!-- Salary Tab -->
+				<div class="wc-tp-tab-content" id="salary-tab">
+					<p><?php esc_html_e( 'Salary management tab content coming soon...', 'wc-team-payroll' ); ?></p>
+				</div>
+
+				<!-- Payments Tab -->
+				<div class="wc-tp-tab-content" id="payments-tab">
+					<p><?php esc_html_e( 'Payments tab content coming soon...', 'wc-team-payroll' ); ?></p>
+				</div>
+			</div>
 		</div>
 
-		<script>
-			function toggleSalaryFields() {
-				const type = document.getElementById('salary_type').value;
-				document.getElementById('salary_amount_row').style.display = type === 'fixed' || type === 'combined' ? '' : 'none';
-				document.getElementById('salary_frequency_row').style.display = type === 'fixed' || type === 'combined' ? '' : 'none';
-			}
-
-			function updateEmployeeSalary(userId) {
-				const type = document.getElementById('salary_type').value;
-				const amount = document.getElementById('salary_amount').value;
-				const frequency = document.getElementById('salary_frequency').value;
-
-				jQuery.ajax({
-					url: ajaxurl,
-					type: 'POST',
-					data: {
-						action: 'wc_tp_update_employee_salary',
-						user_id: userId,
-						salary_type: type,
-						salary_amount: amount,
-						salary_frequency: frequency,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							alert('<?php esc_html_e( 'Salary updated', 'wc-team-payroll' ); ?>');
-							location.reload();
-						} else {
-							alert('Error: ' + response.data);
-						}
-					},
-					error: function() {
-						alert('<?php esc_html_e( 'Error updating salary', 'wc-team-payroll' ); ?>');
-					}
-				});
-			}
-
-			function addPayment(userId) {
-				const amount = document.getElementById('payment_amount').value;
-				const date = document.getElementById('payment_date').value;
-
-				if (!amount || !date) {
-					alert('<?php esc_html_e( 'Please fill all fields', 'wc-team-payroll' ); ?>');
-					return;
-				}
-
-				jQuery.ajax({
-					url: ajaxurl,
-					type: 'POST',
-					data: {
-						action: 'wc_tp_add_payment',
-						user_id: userId,
-						amount: amount,
-						payment_date: date,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							document.getElementById('payment_amount').value = '';
-							document.getElementById('payment_date').value = new Date().toISOString().slice(0, 16);
-							refreshPaymentList(userId);
-							alert('<?php esc_html_e( 'Payment added', 'wc-team-payroll' ); ?>');
-						} else {
-							alert('Error: ' + response.data);
-						}
-					},
-					error: function() {
-						alert('<?php esc_html_e( 'Error adding payment', 'wc-team-payroll' ); ?>');
-					}
-				});
-			}
-
-			function deletePayment(userId, paymentId) {
-				if (!confirm('<?php esc_html_e( 'Delete this payment?', 'wc-team-payroll' ); ?>')) {
-					return;
-				}
-
-				jQuery.ajax({
-					url: ajaxurl,
-					type: 'POST',
-					data: {
-						action: 'wc_tp_delete_payment',
-						user_id: userId,
-						payment_id: paymentId,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							refreshPaymentList(userId);
-							alert('<?php esc_html_e( 'Payment deleted', 'wc-team-payroll' ); ?>');
-						} else {
-							alert('Error: ' + response.data);
-						}
-					},
-					error: function() {
-						alert('<?php esc_html_e( 'Error deleting payment', 'wc-team-payroll' ); ?>');
-					}
-				});
-			}
-
-			function refreshPaymentList(userId) {
-				const year = new URLSearchParams(window.location.search).get('year') || new Date().getFullYear();
-				const month = new URLSearchParams(window.location.search).get('month') || (new Date().getMonth() + 1);
-
-				jQuery.ajax({
-					url: ajaxurl,
-					type: 'POST',
-					data: {
-						action: 'wc_tp_get_payment_data',
-						user_id: userId,
-						year: year,
-						month: month,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							const totalPaid = response.data.total_paid;
-							const totalPaidElement = document.querySelector('.payment-card .amount');
-							if (totalPaidElement) {
-								totalPaidElement.textContent = new Intl.NumberFormat('en-US', {
-									style: 'currency',
-									currency: 'USD'
-								}).format(totalPaid);
-							}
-
-							const tbody = document.querySelector('table.widefat tbody');
-							if (tbody && response.data.payments) {
-								tbody.innerHTML = '';
-								response.data.payments.forEach(payment => {
-									const row = document.createElement('tr');
-									row.innerHTML = `
-										<td>${payment.date}</td>
-										<td>${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(payment.amount)}</td>
-										<td><button type="button" class="button button-small" onclick="deletePayment(${userId}, '${payment.id}')"><?php esc_html_e( 'Delete', 'wc-team-payroll' ); ?></button></td>
-									`;
-									tbody.appendChild(row);
-								});
-							}
-						}
-					}
-				});
-			}
-		</script>
-
 		<style>
-			.wc-tp-filters {
-				margin: 20px 0;
-				padding: 15px;
-				background: #f5f5f5;
-				border-radius: 4px;
+			:root {
+				--color-primary: #FF9900;
+				--color-primary-hover: #E68A00;
+				--color-primary-subtle: #FFF4E5;
+				--color-secondary: #212B36;
+				--color-site-bg: #FDFBF8;
+				--color-card-bg: #FFFFFF;
+				--color-border-light: #E5EAF0;
+				--color-accent-alert: #FF5500;
+				--color-accent-link: #0077EE;
+				--color-accent-success: #388E3C;
+				--color-accent-muted: #F4F4F4;
+				--text-main: #212B36;
+				--text-body: #454F5B;
+				--text-muted: #919EAB;
+				--font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+				--fs-h1: 2rem;
+				--fs-h2: 1.5rem;
+				--fs-body: 1rem;
+				--fs-meta: 0.875rem;
+				--fs-small: 0.75rem;
+				--fw-bold: 700;
+				--fw-semibold: 600;
+				--fw-medium: 500;
+				--lh-body: 1.5;
 			}
 
-			.wc-tp-filters form {
+			.wc-team-payroll-employee-detail {
+				background: var(--color-site-bg);
+				padding: 24px;
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-profile-header {
+				background: var(--color-card-bg);
+				border: 1px solid var(--color-border-light);
+				border-radius: 8px;
+				padding: 24px;
+				margin-bottom: 24px;
 				display: flex;
-				gap: 10px;
+				gap: 24px;
+				align-items: flex-start;
+			}
+
+			.wc-tp-profile-picture-container {
+				flex-shrink: 0;
+			}
+
+			.wc-tp-profile-picture {
+				width: 120px;
+				height: 120px;
+				border-radius: 8px;
+				object-fit: cover;
+				border: 2px solid var(--color-border-light);
+			}
+
+			.wc-tp-profile-picture-placeholder {
+				width: 120px;
+				height: 120px;
+				border-radius: 8px;
+				background: var(--color-primary-subtle);
+				border: 2px solid var(--color-border-light);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 48px;
+				font-weight: var(--fw-bold);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-profile-info {
+				flex: 1;
+			}
+
+			.wc-tp-profile-name-section {
+				margin-bottom: 16px;
+			}
+
+			.wc-tp-profile-name-section h1 {
+				margin: 0 0 8px 0;
+				font-size: var(--fs-h1);
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+			}
+
+			.wc-tp-vb-user-id {
+				display: inline-block;
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
+				padding: 4px 12px;
+				border-radius: 4px;
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-semibold);
+			}
+
+			.wc-tp-profile-details {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+				gap: 12px;
+			}
+
+			.wc-tp-detail-item {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+			}
+
+			.wc-tp-detail-item .label {
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-semibold);
+				color: var(--text-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+
+			.wc-tp-detail-item .value {
+				font-size: var(--fs-body);
+				color: var(--text-body);
+			}
+
+			.wc-tp-profile-actions {
+				flex-shrink: 0;
+			}
+
+			.wc-tp-stats-cards {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 16px;
+				margin-bottom: 24px;
+			}
+
+			.wc-tp-stat-card {
+				background: var(--color-card-bg);
+				border: 1px solid var(--color-border-light);
+				border-radius: 8px;
+				padding: 20px;
+				display: flex;
+				gap: 16px;
 				align-items: center;
 			}
 
-			.wc-tp-payment-summary {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-				gap: 15px;
-				margin: 20px 0;
+			.wc-tp-stat-icon {
+				font-size: 32px;
+				flex-shrink: 0;
 			}
 
-			.payment-card {
-				background: #fff;
-				border: 1px solid #ddd;
+			.wc-tp-stat-content {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+			}
+
+			.wc-tp-stat-label {
+				font-size: var(--fs-meta);
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
+			}
+
+			.wc-tp-stat-value {
+				font-size: 1.5rem;
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+			}
+
+			.wc-tp-tabs-container {
+				background: var(--color-card-bg);
+				border: 1px solid var(--color-border-light);
+				border-radius: 8px;
+				overflow: hidden;
+			}
+
+			.wc-tp-tabs-nav {
+				display: flex;
+				border-bottom: 1px solid var(--color-border-light);
+				background: var(--color-accent-muted);
+			}
+
+			.wc-tp-tab-button {
+				flex: 1;
+				padding: 16px;
+				border: none;
+				background: transparent;
+				color: var(--text-body);
+				font-size: var(--fs-body);
+				font-weight: var(--fw-semibold);
+				cursor: pointer;
+				transition: all 0.2s ease;
+				border-bottom: 3px solid transparent;
+				margin-bottom: -1px;
+			}
+
+			.wc-tp-tab-button:hover {
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-tab-button.wc-tp-tab-active {
+				background: var(--color-primary-subtle);
+				color: var(--color-primary);
+				border-bottom-color: var(--color-primary);
+			}
+
+			.wc-tp-tab-content {
+				display: none;
+				padding: 24px;
+			}
+
+			.wc-tp-tab-content.wc-tp-tab-active {
+				display: block;
+			}
+
+			/* Orders Tab Styles */
+			.wc-tp-orders-search-filter {
+				background: var(--color-accent-muted);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 16px;
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-orders-search-filter input[type="text"] {
+				flex: 1;
+				min-width: 250px;
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+			}
+
+			.wc-tp-orders-search-filter input[type="text"]::placeholder {
+				color: var(--text-muted);
+			}
+
+			.wc-tp-orders-search-filter .button-secondary {
+				background: var(--color-card-bg);
+				border-color: var(--color-border-light);
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-orders-search-filter .button-secondary:hover {
+				background: var(--color-border-light);
+				border-color: var(--color-border-light);
+			}
+
+			.wc-tp-orders-filters {
+				background: var(--color-accent-muted);
+				padding: 16px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+				display: flex;
+				gap: 12px;
+				align-items: flex-end;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-filter-group {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+			}
+
+			.wc-tp-filter-group label {
+				font-size: var(--fs-meta);
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+			}
+
+			.wc-tp-filter-group input[type="date"],
+			.wc-tp-filter-group select {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+				background: var(--color-card-bg);
+			}
+
+			.wc-tp-date-separator {
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
+				padding: 0 8px;
+			}
+
+			.wc-tp-data-table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+
+			.wc-tp-data-table thead {
+				background: var(--color-accent-muted);
+			}
+
+			.wc-tp-data-table th {
+				padding: 14px 12px;
+				text-align: left;
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+				border-bottom: 1px solid var(--color-border-light);
+			}
+
+			.wc-tp-data-table td {
+				padding: 12px;
+				border-bottom: 1px solid var(--color-border-light);
+				font-size: var(--fs-body);
+				color: var(--text-body);
+			}
+
+			.wc-tp-data-table tbody tr:hover {
+				background: var(--color-primary-subtle);
+			}
+
+			.wc-tp-flag-badge {
+				display: inline-block;
+				padding: 4px 8px;
 				border-radius: 4px;
-				padding: 20px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
+				white-space: nowrap;
+			}
+
+			.wc-tp-flag-owner {
+				background: #E3F2FD;
+				color: #1976D2;
+			}
+
+			.wc-tp-flag-affiliate-to {
+				background: #F3E5F5;
+				color: #7B1FA2;
+			}
+
+			.wc-tp-flag-affiliate-from {
+				background: #E8F5E9;
+				color: #388E3C;
+			}
+
+			.wc-tp-badge {
+				background: var(--color-primary);
+				color: white;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
+			}
+
+			.button-primary {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.button-primary:hover {
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
+			}
+
+			.wc-tp-pagination {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-pagination a,
+			.wc-tp-pagination span {
+				padding: 8px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 4px;
+				text-decoration: none;
+				color: var(--text-main);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-pagination a:hover {
+				background: var(--color-primary-subtle);
+				border-color: var(--color-primary);
+				color: var(--color-primary);
+			}
+
+			.wc-tp-pagination .current {
+				background: var(--color-primary);
+				color: white;
+				border-color: var(--color-primary);
+				font-weight: var(--fw-semibold);
+			}
+
+			.wc-tp-empty-state {
 				text-align: center;
+				padding: 40px 20px;
+				color: var(--text-muted);
 			}
 
-			.payment-card .label {
+			.wc-tp-empty-icon {
+				font-size: 48px;
+				margin-bottom: 15px;
 				display: block;
-				color: #666;
-				font-size: 14px;
-				margin-bottom: 10px;
+				opacity: 0.5;
 			}
 
-			.payment-card .amount {
-				display: block;
-				font-size: 24px;
-				font-weight: 600;
-				color: #0073aa;
+			.wc-tp-empty-state p {
+				margin: 0;
+				font-size: var(--fs-body);
+				color: var(--text-muted);
+			}
+
+			@media (max-width: 768px) {
+				.wc-team-payroll-employee-detail {
+					padding: 12px;
+				}
+
+				.wc-tp-profile-header {
+					flex-direction: column;
+					padding: 16px;
+					gap: 16px;
+				}
+
+				.wc-tp-profile-picture {
+					width: 100px;
+					height: 100px;
+				}
+
+				.wc-tp-profile-picture-placeholder {
+					width: 100px;
+					height: 100px;
+					font-size: 40px;
+				}
+
+				.wc-tp-profile-details {
+					grid-template-columns: 1fr;
+				}
+
+				.wc-tp-stats-cards {
+					grid-template-columns: repeat(2, 1fr);
+					gap: 12px;
+				}
+
+				.wc-tp-stat-card {
+					padding: 16px;
+				}
+
+				.wc-tp-stat-icon {
+					font-size: 24px;
+				}
+
+				.wc-tp-stat-value {
+					font-size: 1.25rem;
+				}
+
+				.wc-tp-tabs-nav {
+					flex-wrap: wrap;
+				}
+
+				.wc-tp-tab-button {
+					flex: 1;
+					min-width: 100px;
+					padding: 12px;
+					font-size: var(--fs-meta);
+				}
+
+				.wc-tp-tab-content {
+					padding: 16px;
+				}
+
+				.wc-tp-orders-search-filter {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-orders-search-filter input[type="text"] {
+					width: 100%;
+					min-width: unset;
+				}
+
+				.wc-tp-orders-search-filter .button-secondary {
+					width: 100%;
+				}
+
+				.wc-tp-orders-filters {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.wc-tp-filter-group input[type="date"],
+				.wc-tp-filter-group select {
+					width: 100%;
+				}
+
+				.wc-tp-data-table {
+					font-size: 12px;
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 6px;
+				}
+
+				.button,
+				.button-small {
+					padding: 4px 6px;
+					font-size: 10px;
+				}
+			}
+
+			@media (max-width: 480px) {
+				.wc-tp-stats-cards {
+					grid-template-columns: 1fr;
+				}
+
+				.wc-tp-stat-card {
+					flex-direction: column;
+					text-align: center;
+				}
+
+				.wc-tp-stat-icon {
+					font-size: 28px;
+				}
 			}
 		</style>
+
+		<script>
+			jQuery(document).ready(function($) {
+				const userId = <?php echo intval( $user_id ); ?>;
+				const wcCurrencySymbol = '<?php echo esc_js( $wc_currency_symbol ); ?>';
+				const wcCurrencyPos = '<?php echo esc_js( $wc_currency_pos ); ?>';
+				let currentPage = 1;
+				let allOrdersData = [];
+				let itemsPerPage = 20;
+
+				// Tab switching
+				$('.wc-tp-tab-button').on('click', function() {
+					const tabName = $(this).data('tab');
+					
+					// Remove active class from all buttons and contents
+					$('.wc-tp-tab-button').removeClass('wc-tp-tab-active');
+					$('.wc-tp-tab-content').removeClass('wc-tp-tab-active');
+					
+					// Add active class to clicked button and corresponding content
+					$(this).addClass('wc-tp-tab-active');
+					$('#' + tabName + '-tab').addClass('wc-tp-tab-active');
+
+					// Load orders data when orders tab is clicked
+					if (tabName === 'orders') {
+						loadOrdersData();
+					}
+				});
+
+				// Orders Tab Functionality
+				$('#wc-tp-orders-filter-btn').on('click', function() {
+					currentPage = 1;
+					loadOrdersData();
+				});
+
+				$('#wc-tp-orders-search').on('keyup', function() {
+					currentPage = 1;
+					loadOrdersData();
+				});
+
+				$('#wc-tp-orders-search-clear').on('click', function() {
+					$('#wc-tp-orders-search').val('');
+					currentPage = 1;
+					loadOrdersData();
+				});
+
+				function loadOrdersData() {
+					const startDate = $('#wc-tp-orders-start-date').val();
+					const endDate = $('#wc-tp-orders-end-date').val();
+					const statusFilter = $('#wc-tp-orders-status-filter').val();
+					const flagFilter = $('#wc-tp-orders-flag-filter').val();
+					const searchQuery = $('#wc-tp-orders-search').val();
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_employee_orders',
+							user_id: userId,
+							start_date: startDate,
+							end_date: endDate,
+							status: statusFilter,
+							flag: flagFilter,
+							search: searchQuery
+						},
+						success: function(response) {
+							if (response.success) {
+								allOrdersData = response.data.orders || [];
+								renderOrdersTable(allOrdersData);
+								renderOrdersPagination(allOrdersData);
+							}
+						},
+						error: function() {
+							// Silent error handling
+						}
+					});
+				}
+
+				function renderOrdersTable(orders) {
+					const container = $('#wc-tp-orders-table-container');
+					
+					if (!orders || orders.length === 0) {
+						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📭</div><p>No orders found</p></div>');
+						return;
+					}
+
+					const startIndex = (currentPage - 1) * itemsPerPage;
+					const endIndex = startIndex + itemsPerPage;
+					const pageData = orders.slice(startIndex, endIndex);
+
+					let html = '<table class="wc-tp-data-table"><thead><tr>';
+					html += '<th>Order ID</th>';
+					html += '<th>Customer</th>';
+					html += '<th>Total</th>';
+					html += '<th>Status</th>';
+					html += '<th>Commission</th>';
+					html += '<th>Your Earnings</th>';
+					html += '<th>Flag</th>';
+					html += '<th>Date</th>';
+					html += '<th>Action</th>';
+					html += '</tr></thead><tbody>';
+
+					$.each(pageData, function(i, order) {
+						html += '<tr>';
+						html += '<td><strong>#' + order.order_id + '</strong></td>';
+						html += '<td>' + order.customer_name + '</td>';
+						html += '<td>' + formatCurrency(order.total) + '</td>';
+						html += '<td><span class="wc-tp-badge">' + order.status + '</span></td>';
+						html += '<td>' + formatCurrency(order.commission) + '</td>';
+						html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
+						html += '<td><span class="wc-tp-flag-badge wc-tp-flag-' + order.flag.toLowerCase().replace(/_/g, '-') + '">' + order.flag_label + '</span></td>';
+						html += '<td>' + order.date + '</td>';
+						html += '<td>';
+						html += '<a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-order-detail&order_id=' + order.order_id) + '" class="button button-small" title="View">👁️</a> ';
+						html += '<a href="' + ajaxurl.replace('admin-ajax.php', 'post.php?post=' + order.order_id + '&action=edit') + '" class="button button-small" title="Edit">✏️</a>';
+						html += '</td>';
+						html += '</tr>';
+					});
+
+					html += '</tbody></table>';
+					container.html(html);
+				}
+
+				function renderOrdersPagination(orders) {
+					const container = $('#wc-tp-orders-pagination');
+					const totalPages = Math.ceil(orders.length / itemsPerPage);
+
+					if (totalPages <= 1) {
+						container.html('');
+						return;
+					}
+
+					let html = '<div class="wc-tp-pagination">';
+
+					if (currentPage > 1) {
+						html += '<a href="#" data-page="' + (currentPage - 1) + '">← Previous</a>';
+					}
+
+					for (let i = 1; i <= totalPages; i++) {
+						if (i === currentPage) {
+							html += '<span class="current">' + i + '</span>';
+						} else {
+							html += '<a href="#" data-page="' + i + '">' + i + '</a>';
+						}
+					}
+
+					if (currentPage < totalPages) {
+						html += '<a href="#" data-page="' + (currentPage + 1) + '">Next →</a>';
+					}
+
+					html += '</div>';
+					container.html(html);
+
+					container.find('a').on('click', function(e) {
+						e.preventDefault();
+						currentPage = parseInt($(this).data('page'));
+						renderOrdersTable(allOrdersData);
+						renderOrdersPagination(allOrdersData);
+						$('html, body').animate({ scrollTop: $('#wc-tp-orders-table-container').offset().top - 100 }, 300);
+					});
+				}
+
+				function formatCurrency(value) {
+					const amount = parseFloat(value).toFixed(2);
+					if (wcCurrencyPos === 'right') {
+						return amount + ' ' + wcCurrencySymbol;
+					} else {
+						return wcCurrencySymbol + ' ' + amount;
+					}
+				}
+			});
+		</script>
 		<?php
+	}
+
+	/**
+	 * Format currency
+	 */
+	private function format_currency( $amount, $symbol, $position ) {
+		$formatted = number_format( $amount, 2 );
+		if ( $position === 'right' ) {
+			return $formatted . ' ' . $symbol;
+		} else {
+			return $symbol . ' ' . $formatted;
+		}
 	}
 }

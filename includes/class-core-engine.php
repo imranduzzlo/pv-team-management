@@ -85,18 +85,99 @@ class WC_Team_Payroll_Core_Engine {
 			$commission_data['total_commission'] += $item_commission;
 		}
 
-		// Apply split logic
+		// Get order date for salary type checking (check salary type AT order creation time)
+		$order_date = $order->get_date_created();
+		$order_date_str = $order_date ? $order_date->format( 'Y-m-d H:i:s' ) : current_time( 'mysql' );
+
+		// Check if users were commission-eligible AT THE TIME the order was created
+		// Commission-eligible = commission-based OR combined salary
+		// Commission-blocked = ONLY fixed salary
+		$agent_is_commission_based = $this->is_user_commission_based( $agent_id, $order_date_str );
+		$processor_is_commission_based = $this->is_user_commission_based( $processor_id, $order_date_str );
+
+		// Apply split logic with salary type awareness
 		if ( $agent_id === $processor_id || ! $processor_id ) {
-			// Same user or no processor - gets 100%
-			$commission_data['agent_earnings'] = $commission_data['total_commission'];
-			$commission_data['processor_earnings'] = 0;
+			// Same user or no processor
+			if ( $agent_is_commission_based ) {
+				// Commission-eligible user gets 100%
+				$commission_data['agent_earnings'] = $commission_data['total_commission'];
+				$commission_data['processor_earnings'] = 0;
+			} else {
+				// Fixed salary user gets 0% (commission vanishes)
+				$commission_data['agent_earnings'] = 0;
+				$commission_data['processor_earnings'] = 0;
+			}
 		} else {
-			// Different users - split
-			$commission_data['agent_earnings'] = ( $commission_data['total_commission'] * $agent_percentage ) / 100;
-			$commission_data['processor_earnings'] = ( $commission_data['total_commission'] * $processor_percentage ) / 100;
+			// Different users - apply salary-aware split (NO REDIRECTION)
+			if ( $agent_is_commission_based && $processor_is_commission_based ) {
+				// Both commission-eligible - normal split
+				$commission_data['agent_earnings'] = ( $commission_data['total_commission'] * $agent_percentage ) / 100;
+				$commission_data['processor_earnings'] = ( $commission_data['total_commission'] * $processor_percentage ) / 100;
+			} elseif ( $agent_is_commission_based && ! $processor_is_commission_based ) {
+				// Agent commission-eligible, processor fixed salary
+				// Agent gets their share, processor gets 0 (their share vanishes)
+				$commission_data['agent_earnings'] = ( $commission_data['total_commission'] * $agent_percentage ) / 100;
+				$commission_data['processor_earnings'] = 0;
+			} elseif ( ! $agent_is_commission_based && $processor_is_commission_based ) {
+				// Agent fixed salary, processor commission-eligible
+				// Agent gets 0 (their share vanishes), processor gets their share
+				$commission_data['agent_earnings'] = 0;
+				$commission_data['processor_earnings'] = ( $commission_data['total_commission'] * $processor_percentage ) / 100;
+			} else {
+				// Both fixed salary - both shares vanish
+				$commission_data['agent_earnings'] = 0;
+				$commission_data['processor_earnings'] = 0;
+			}
 		}
 
 		return $commission_data;
+	}
+
+	/**
+	 * Check if user is commission-based at a specific date (or currently if no date provided)
+	 * 
+	 * Commission-eligible: commission-based OR combined salary
+	 * Commission-blocked: ONLY fixed salary
+	 */
+	private function is_user_commission_based( $user_id, $check_date = null ) {
+		if ( ! $user_id ) {
+			return false;
+		}
+
+		// If no date provided, check current status
+		if ( ! $check_date ) {
+			$is_fixed = (bool) get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			
+			// Only fixed salary blocks commission
+			// Commission-based OR combined salary = commission eligible
+			return ! $is_fixed;
+		}
+
+		// Check salary type at specific date using history
+		$history = get_user_meta( $user_id, '_wc_tp_salary_history', true );
+		if ( ! is_array( $history ) ) {
+			$history = array();
+		}
+
+		// Find the salary type that was active at the check_date
+		$active_type = 'commission'; // Default to commission-based
+		
+		foreach ( $history as $entry ) {
+			$entry_date = strtotime( $entry['date'] );
+			$check_timestamp = strtotime( $check_date );
+			
+			// If this history entry is before or at the check date, it's relevant
+			if ( $entry_date <= $check_timestamp ) {
+				$active_type = $entry['new_type'];
+			} else {
+				// History entries are chronological, so we can stop here
+				break;
+			}
+		}
+
+		// Only fixed salary blocks commission
+		// Commission-based OR combined salary = commission eligible
+		return $active_type !== 'fixed';
 	}
 
 	/**
@@ -206,5 +287,77 @@ class WC_Team_Payroll_Core_Engine {
 			'total_earnings' => $total_earnings,
 			'orders' => $orders_data,
 		);
+	}
+
+	/**
+	 * Get total orders for a user
+	 */
+	public function get_user_total_orders( $user_id ) {
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing' ),
+		);
+
+		$orders = wc_get_orders( $args );
+		$count = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+
+			if ( intval( $agent_id ) === intval( $user_id ) || intval( $processor_id ) === intval( $user_id ) ) {
+				$count++;
+			}
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Get total earnings for a user (all time)
+	 */
+	public function get_user_total_earnings( $user_id ) {
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing' ),
+		);
+
+		$orders = wc_get_orders( $args );
+		$total_earnings = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['agent_earnings'];
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['processor_earnings'];
+			}
+		}
+
+		return $total_earnings;
+	}
+
+	/**
+	 * Get total paid for a user (all time)
+	 */
+	public function get_user_total_paid( $user_id ) {
+		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			return 0;
+		}
+
+		$total_paid = 0;
+		foreach ( $payments as $payment ) {
+			$total_paid += floatval( $payment['amount'] );
+		}
+
+		return $total_paid;
 	}
 }
