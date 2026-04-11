@@ -165,9 +165,9 @@ class WC_Team_Payroll_Custom_Fields {
 		// Enqueue custom script for profile picture upload
 		wp_enqueue_script(
 			'wc-tp-profile-picture',
-			plugins_url( 'assets/js/profile-picture.js', dirname( __FILE__ ) ),
+			WC_TEAM_PAYROLL_URL . 'assets/js/profile-picture.js',
 			array( 'jquery', 'media-upload' ),
-			'1.0.0',
+			WC_TEAM_PAYROLL_VERSION,
 			true
 		);
 
