@@ -1,5 +1,48 @@
 # Changelog
 
+## [5.4.8] - 2026-04-11
+
+### CRITICAL FIX - Employee Detail Orders Tab Not Loading on Page Load
+- **FIXED**: Orders table was empty on initial page load
+- **FIXED**: Orders only appeared after switching tabs and back
+- **IMPROVED**: Orders now load automatically when page loads
+- **IMPROVED**: Orders tab is immediately populated with data
+
+### The Problem
+
+When navigating to the employee detail page:
+- ❌ Orders tab was empty/blank
+- ❌ No orders displayed on initial load
+- ❌ Orders only appeared after switching to another tab and back
+- ❌ User had to manually trigger tab switch to see data
+
+### The Solution
+
+Added automatic `loadOrdersData()` call on page load:
+- ✅ Orders load immediately when page loads
+- ✅ Orders tab is populated with data by default
+- ✅ No need to switch tabs to see orders
+- ✅ Smooth user experience
+
+### Technical Details
+
+The issue was that `loadOrdersData()` was only called when the orders tab was clicked, not on initial page load. Since the orders tab is marked as active by default in the HTML, the data was never loaded.
+
+**Fix:** Added `loadOrdersData()` call immediately after jQuery ready, before any event handlers.
+
+### Files Modified
+
+- `includes/class-employee-detail.php` - Added initial loadOrdersData() call
+- `woocommerce-team-payroll.php` - Version updated to 5.4.8
+- `CHANGELOG.md` - Updated with v5.4.8 changes
+
+### Testing Recommendations
+
+1. Navigate to Team Members page
+2. Click on an employee to view details
+3. Verify orders table is populated immediately
+4. No need to switch tabs - orders should be visible
+
 ## [5.4.7] - 2026-04-11
 
 ### CRITICAL FIX - Refunded Orders Now Included in Payroll & Dashboard
