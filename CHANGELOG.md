@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.5.2] - 2026-04-11
+
+### Restoration: Full v5.4.10 Functionality with New Structure
+- Restored all working functionality from v5.4.10 with new folder structure
+- Replaced incomplete refactored classes with fully working v5.4.10 versions
+- All backend pages now in `includes/backend/` folder
+- All frontend pages now in `includes/frontend/` folder
+- Maintained backward compatibility with all existing features
+- All AJAX handlers working correctly
+- My Account tabs fully functional
+- Employee management, dashboard, payroll, and settings pages fully operational
+- Shortcodes system fully restored
+
+### What's Preserved
+- Commission calculation engine (salary-aware, historical tracking)
+- Employee ID system (vb_user_id) with auto-generation
+- Dashboard with AJAX data loading and filtering
+- Payroll page with date range and employee type filters
+- Team Members page with creation date filtering
+- Employee detail page with orders, salary, and payments tabs
+- My Account integration with earnings and orders tabs
+- Shortcodes system for displaying earnings
+- Checkout field integration with ThemeHigh
+- GitHub auto-updater
+- All existing functionality from v5.4.10
+
 ## [5.5.1] - 2026-04-11
 
 ### Bug Fixes
