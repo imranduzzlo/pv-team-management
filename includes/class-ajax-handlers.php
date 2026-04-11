@@ -211,6 +211,21 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$user_id = intval( $_POST['user_id'] );
 		$amount = floatval( $_POST['amount'] ?? 0 );
 		$payment_date = sanitize_text_field( $_POST['payment_date'] ?? '' );
+		$payment_method_id = sanitize_text_field( $_POST['payment_method_id'] ?? '' );
+
+		// Get payment method name
+		$payment_method_name = '';
+		if ( $payment_method_id ) {
+			$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+			if ( is_array( $methods ) ) {
+				foreach ( $methods as $method ) {
+					if ( $method['id'] === $payment_method_id ) {
+						$payment_method_name = $method['method_name'] . ' - ' . $method['method_details'];
+						break;
+					}
+				}
+			}
+		}
 
 		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
 		if ( ! is_array( $payments ) ) {
@@ -221,6 +236,7 @@ class WC_Team_Payroll_AJAX_Handlers {
 			'id' => uniqid(),
 			'date' => $payment_date,
 			'amount' => $amount,
+			'payment_method' => $payment_method_name,
 			'added_by' => wp_get_current_user()->display_name,
 		);
 
@@ -278,8 +294,9 @@ class WC_Team_Payroll_AJAX_Handlers {
 		}
 
 		$user_id = intval( $_POST['user_id'] );
-		$method_type = sanitize_text_field( $_POST['method_type'] ?? '' );
+		$method_name = sanitize_text_field( $_POST['method_name'] ?? '' );
 		$method_details = sanitize_text_field( $_POST['method_details'] ?? '' );
+		$note = sanitize_text_field( $_POST['note'] ?? '' );
 
 		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
 		if ( ! is_array( $methods ) ) {
@@ -288,8 +305,9 @@ class WC_Team_Payroll_AJAX_Handlers {
 
 		$methods[] = array(
 			'id' => uniqid(),
-			'method_type' => $method_type,
+			'method_name' => $method_name,
 			'method_details' => $method_details,
+			'note' => $note,
 			'added_date' => current_time( 'Y-m-d H:i:s' ),
 		);
 

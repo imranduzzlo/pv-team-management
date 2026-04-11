@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.7.5
+ * Version: 5.7.6
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.7.5' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.7.6' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -763,7 +763,33 @@ add_action( 'plugins_loaded', function() {
 		) );
 	} );
 
+	add_action( 'wp_ajax_wc_tp_get_employee_stats', function() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Invalid user ID', 'wc-team-payroll' ) );
+		}
+
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+		$total_earnings = $core_engine->get_user_total_earnings( $user_id );
+		$total_paid = $core_engine->get_user_total_paid( $user_id );
+		$total_due = $total_earnings - $total_paid;
+
+		wp_send_json_success( array(
+			'total_earnings' => $total_earnings,
+			'total_paid'     => $total_paid,
+			'total_due'      => $total_due,
+		) );
+	} );
+
 	add_action( 'wp_ajax_wc_tp_get_employee_orders', function() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
@@ -821,7 +847,7 @@ add_action( 'plugins_loaded', function() {
 
 			// Determine flag
 			$flag = 'owner';
-			$flag_label = __( 'Order Owner', 'wc-team-payroll' );
+			$flag_label = __( 'Owner', 'wc-team-payroll' );
 
 			if ( $agent_id && $processor_id && intval( $agent_id ) !== intval( $processor_id ) ) {
 				if ( $user_role === 'agent' ) {

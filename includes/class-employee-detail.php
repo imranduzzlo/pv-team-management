@@ -1,6 +1,6 @@
 <?php
 /**
- * Employee Detail Page - Profile, Orders, Salary, Payments
+ * Employee Detail Page
  */
 
 class WC_Team_Payroll_Employee_Detail {
@@ -12,7 +12,7 @@ class WC_Team_Payroll_Employee_Detail {
 
 		$user_id = isset( $_GET['user_id'] ) ? intval( $_GET['user_id'] ) : 0;
 		if ( ! $user_id ) {
-			wp_die( esc_html__( 'User not found', 'wc-team-payroll' ) );
+			wp_die( esc_html__( 'Invalid user ID', 'wc-team-payroll' ) );
 		}
 
 		$user = get_user_by( 'ID', $user_id );
@@ -20,151 +20,136 @@ class WC_Team_Payroll_Employee_Detail {
 			wp_die( esc_html__( 'User not found', 'wc-team-payroll' ) );
 		}
 
-		// Get current tab from URL
-		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'orders';
-
+		// Get user meta
+		$profile_picture = get_user_meta( $user_id, 'profile_picture', true );
+		$phone = get_user_meta( $user_id, 'billing_phone', true );
+		$bio = get_user_meta( $user_id, 'description', true );
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
-		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
-		$profile_picture_url = '';
-		
-		if ( $profile_picture_id ) {
-			$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
-		}
 
-		$employee_mgmt = new WC_Team_Payroll_Employee_Management();
-		$user_phone = get_user_meta( $user_id, 'billing_phone', true );
-		$user_address = get_user_meta( $user_id, 'billing_address_1', true );
-		$user_bio = get_user_meta( $user_id, 'description', true );
-
-		// Get dashboard stats
+		// Get stats
 		$core_engine = new WC_Team_Payroll_Core_Engine();
 		$total_orders = $core_engine->get_user_total_orders( $user_id );
 		$total_earnings = $core_engine->get_user_total_earnings( $user_id );
 		$total_paid = $core_engine->get_user_total_paid( $user_id );
 		$total_due = $total_earnings - $total_paid;
 
-		$wc_currency = get_woocommerce_currency();
-		$wc_currency_symbol = get_woocommerce_currency_symbol( $wc_currency );
-		$wc_currency_pos = get_option( 'woocommerce_currency_pos', 'left' );
+		// Add styles
+		$this->add_styles();
+		// Add scripts
+		$this->add_scripts();
 
 		?>
-		<div class="wrap wc-team-payroll-employee-detail">
-			<!-- Back Button -->
-			<div style="margin-bottom: 20px;">
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employees' ) ); ?>" class="button button-secondary">← <?php esc_html_e( 'Back to Team Members', 'wc-team-payroll' ); ?></a>
-			</div>
+		<div class="wrap wc-tp-employee-detail">
+			<h1><?php esc_html_e( 'Employee Details', 'wc-team-payroll' ); ?></h1>
 
-			<!-- Profile Header Section -->
-			<div class="wc-tp-profile-header">
-				<div class="wc-tp-profile-picture-container">
-					<?php if ( $profile_picture_url ) : ?>
-						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="wc-tp-profile-picture" />
-					<?php else : ?>
-						<div class="wc-tp-profile-picture-placeholder">
-							<span><?php echo esc_html( substr( $user->display_name, 0, 1 ) ); ?></span>
+			<!-- Profile Section -->
+			<div class="wc-tp-profile-section">
+				<div class="wc-tp-profile-header">
+					<div class="wc-tp-profile-left">
+						<div class="wc-tp-profile-picture">
+							<?php if ( $profile_picture ) : ?>
+								<img src="<?php echo esc_url( $profile_picture ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" />
+							<?php else : ?>
+								<div class="wc-tp-profile-placeholder">
+									<span class="dashicons dashicons-admin-users"></span>
+								</div>
+							<?php endif; ?>
 						</div>
-					<?php endif; ?>
-				</div>
-
-				<div class="wc-tp-profile-info">
-					<div class="wc-tp-profile-name-section">
-						<h1><?php echo esc_html( $user->display_name ); ?></h1>
-						<span class="wc-tp-vb-user-id"><?php echo esc_html( $vb_user_id ); ?></span>
-					</div>
-
-					<div class="wc-tp-profile-details">
-						<div class="wc-tp-detail-item">
-							<span class="label">Email:</span>
-							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+						<div class="wc-tp-profile-info">
+							<h2><?php echo esc_html( $user->display_name ); ?></h2>
+							<?php if ( $vb_user_id ) : ?>
+								<p class="wc-tp-user-id"><strong><?php esc_html_e( 'ID:', 'wc-team-payroll' ); ?></strong> <?php echo esc_html( $vb_user_id ); ?></p>
+							<?php endif; ?>
+							<p class="wc-tp-email"><strong><?php esc_html_e( 'Email:', 'wc-team-payroll' ); ?></strong> <?php echo esc_html( $user->user_email ); ?></p>
+							<?php if ( $phone ) : ?>
+								<p class="wc-tp-phone"><strong><?php esc_html_e( 'Phone:', 'wc-team-payroll' ); ?></strong> <?php echo esc_html( $phone ); ?></p>
+							<?php endif; ?>
+							<?php if ( $bio ) : ?>
+								<p class="wc-tp-bio"><strong><?php esc_html_e( 'Bio:', 'wc-team-payroll' ); ?></strong> <?php echo esc_html( $bio ); ?></p>
+							<?php endif; ?>
 						</div>
-						<?php if ( $user_phone ) : ?>
-							<div class="wc-tp-detail-item">
-								<span class="label">Phone:</span>
-								<span class="value"><?php echo esc_html( $user_phone ); ?></span>
-							</div>
-						<?php endif; ?>
-						<?php if ( $user_address ) : ?>
-							<div class="wc-tp-detail-item">
-								<span class="label">Address:</span>
-								<span class="value"><?php echo esc_html( $user_address ); ?></span>
-							</div>
-						<?php endif; ?>
-						<?php if ( $user_bio ) : ?>
-							<div class="wc-tp-detail-item">
-								<span class="label">Bio:</span>
-								<span class="value"><?php echo esc_html( $user_bio ); ?></span>
-							</div>
-						<?php endif; ?>
 					</div>
-				</div>
-
-				<div class="wc-tp-profile-actions">
-					<a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) ); ?>" class="button button-primary">
-						<?php esc_html_e( 'Edit Profile', 'wc-team-payroll' ); ?>
-					</a>
+					<div class="wc-tp-profile-right">
+						<a href="<?php echo esc_url( get_edit_user_link( $user_id ) ); ?>" class="button button-primary">
+							<span class="dashicons dashicons-edit"></span> <?php esc_html_e( 'Edit Profile', 'wc-team-payroll' ); ?>
+						</a>
+					</div>
 				</div>
 			</div>
 
-			<!-- Dashboard Cards Section -->
-			<div class="wc-tp-stats-cards">
+			<!-- Stats Cards -->
+			<div class="wc-tp-stats-grid">
 				<div class="wc-tp-stat-card">
 					<div class="wc-tp-stat-icon">📦</div>
 					<div class="wc-tp-stat-content">
-						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></span>
-						<span class="wc-tp-stat-value"><?php echo esc_html( $total_orders ); ?></span>
+						<div class="wc-tp-stat-value"><?php echo esc_html( $total_orders ); ?></div>
+						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></div>
 					</div>
 				</div>
-
 				<div class="wc-tp-stat-card">
 					<div class="wc-tp-stat-icon">💰</div>
 					<div class="wc-tp-stat-content">
-						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></span>
-						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_earnings, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+						<div class="wc-tp-stat-value"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></div>
+						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></div>
 					</div>
 				</div>
-
 				<div class="wc-tp-stat-card">
 					<div class="wc-tp-stat-icon">✅</div>
 					<div class="wc-tp-stat-content">
-						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></span>
-						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_paid, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+						<div class="wc-tp-stat-value"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></div>
+						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></div>
 					</div>
 				</div>
-
 				<div class="wc-tp-stat-card">
 					<div class="wc-tp-stat-icon">⏳</div>
 					<div class="wc-tp-stat-content">
-						<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></span>
-						<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_due, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
+						<div class="wc-tp-stat-value"><?php echo wp_kses_post( wc_price( $total_due ) ); ?></div>
+						<div class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></div>
 					</div>
 				</div>
 			</div>
 
-			<!-- Tabs Section -->
-			<div class="wc-tp-tabs-container">
-				<nav class="nav-tab-wrapper">
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=orders' ) ); ?>" class="nav-tab <?php echo $current_tab === 'orders' ? 'nav-tab-active' : ''; ?>">
-						<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
-					</a>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=payments' ) ); ?>" class="nav-tab <?php echo $current_tab === 'payments' ? 'nav-tab-active' : ''; ?>">
-						<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
-					</a>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-team-payroll-employee-detail&user_id=' . $user_id . '&tab=salary' ) ); ?>" class="nav-tab <?php echo $current_tab === 'salary' ? 'nav-tab-active' : ''; ?>">
-						<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
-					</a>
-				</nav>
+			<!-- Tabs Navigation -->
+			<nav class="nav-tab-wrapper wc-tp-tabs">
+				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=orders" class="nav-tab <?php echo ( ! isset( $_GET['tab'] ) || $_GET['tab'] === 'orders' ) ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
+				</a>
+				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=payments" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'payments' ) ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
+				</a>
+				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=salary" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'salary' ) ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
+				</a>
+			</nav>
 
-				<!-- Orders Tab -->
-				<?php if ( $current_tab === 'orders' ) : ?>
-				<div class="wc-tp-tab-content">
-					<!-- Search Filter -->
-				<div class="wc-tp-orders-search-filter">
-					<input type="text" id="wc-tp-orders-search" placeholder="<?php esc_attr_e( 'Search by Order ID, Customer Name, Email, Phone...', 'wc-team-payroll' ); ?>" />
-					<button type="button" class="button button-secondary" id="wc-tp-orders-search-clear"><?php esc_html_e( 'Clear', 'wc-team-payroll' ); ?></button>
-				</div>
+			<!-- Tab Content -->
+			<div class="wc-tp-tab-content">
+				<?php
+				$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'orders';
 
-				<!-- Filters Row -->
-				<div class="wc-tp-orders-filters">
+				if ( $current_tab === 'orders' ) {
+					$this->render_orders_tab( $user_id );
+				} elseif ( $current_tab === 'payments' ) {
+					$this->render_payments_tab( $user_id );
+				} elseif ( $current_tab === 'salary' ) {
+					$this->render_salary_tab( $user_id );
+				}
+				?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render Orders Tab
+	 */
+	private function render_orders_tab( $user_id ) {
+		?>
+		<div class="wc-tp-orders-tab">
+			<!-- Unified Filter Section -->
+			<div class="wc-tp-unified-filter">
+				<div class="wc-tp-filter-row">
+					<!-- Date Range Preset -->
 					<div class="wc-tp-filter-group">
 						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-orders-date-preset">
@@ -182,12 +167,13 @@ class WC_Team_Payroll_Employee_Detail {
 					</div>
 
 					<!-- Custom Date Range (Hidden by default) -->
-					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-custom-date-range" style="display: none;">
-						<input type="date" id="wc-tp-orders-start-date" value="<?php echo esc_attr( date( 'Y-m-01' ) ); ?>" />
+					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-orders-custom-date-range" style="display: none;">
+						<input type="date" id="wc-tp-orders-start-date" />
 						<span class="wc-tp-date-separator">to</span>
-						<input type="date" id="wc-tp-orders-end-date" value="<?php echo esc_attr( date( 'Y-m-t' ) ); ?>" />
+						<input type="date" id="wc-tp-orders-end-date" />
 					</div>
 
+					<!-- Status Filter -->
 					<div class="wc-tp-filter-group">
 						<label><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-orders-status-filter">
@@ -200,150 +186,195 @@ class WC_Team_Payroll_Employee_Detail {
 						</select>
 					</div>
 
+					<!-- Flag Filter -->
 					<div class="wc-tp-filter-group">
 						<label><?php esc_html_e( 'Flag:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-orders-flag-filter">
 							<option value=""><?php esc_html_e( 'All Flags', 'wc-team-payroll' ); ?></option>
-							<option value="owner"><?php esc_html_e( 'Order Owner', 'wc-team-payroll' ); ?></option>
+							<option value="owner"><?php esc_html_e( 'Owner', 'wc-team-payroll' ); ?></option>
 							<option value="affiliate_to"><?php esc_html_e( 'Affiliate To', 'wc-team-payroll' ); ?></option>
 							<option value="affiliate_from"><?php esc_html_e( 'Affiliate From', 'wc-team-payroll' ); ?></option>
 						</select>
 					</div>
 
-					<button type="button" class="button button-primary" id="wc-tp-orders-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-				</div>
+					<!-- Search -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Search:', 'wc-team-payroll' ); ?></label>
+						<input type="text" id="wc-tp-orders-search" placeholder="<?php esc_attr_e( 'Order ID, Customer...', 'wc-team-payroll' ); ?>" />
+					</div>
 
-				<!-- Orders Table -->
-				<div id="wc-tp-orders-table-container" style="margin-top: 20px;">
+					<!-- Filter Button -->
+					<div class="wc-tp-filter-group">
+						<button type="button" class="button button-primary" id="wc-tp-orders-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Orders Table -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Order History', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-orders-table-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
-
-				<!-- Pagination -->
-				<div id="wc-tp-orders-pagination" style="margin-top: 20px; text-align: center;"></div>
-				<?php endif; ?>
-
-				<!-- Payments Tab -->
-				<?php if ( $current_tab === 'payments' ) : ?>
-				<div class="wc-tp-tab-content">
-					<!-- Payment Stats Cards -->
-					<div class="wc-tp-stats-cards" style="margin-bottom: 30px;">
-						<div class="wc-tp-stat-card">
-							<div class="wc-tp-stat-icon">💰</div>
-							<div class="wc-tp-stat-content">
-								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></span>
-								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_earnings, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
-							</div>
-						</div>
-
-						<div class="wc-tp-stat-card">
-							<div class="wc-tp-stat-icon">✅</div>
-							<div class="wc-tp-stat-content">
-								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></span>
-								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_paid, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
-							</div>
-						</div>
-
-						<div class="wc-tp-stat-card">
-							<div class="wc-tp-stat-icon">⏳</div>
-							<div class="wc-tp-stat-content">
-								<span class="wc-tp-stat-label"><?php esc_html_e( 'Total Due', 'wc-team-payroll' ); ?></span>
-								<span class="wc-tp-stat-value"><?php echo esc_html( $this->format_currency( $total_due, $wc_currency_symbol, $wc_currency_pos ) ); ?></span>
-							</div>
-						</div>
-					</div>
-
-					<!-- Payment Methods Section -->
-					<div class="wc-tp-payment-methods-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
-						
-						<div id="wc-tp-payment-methods-list" class="wc-tp-payment-methods-list">
-							<!-- Payment methods will be loaded via AJAX -->
-						</div>
-
-						<button type="button" class="button button-primary" id="wc-tp-add-payment-method-btn" style="margin-top: 20px;">
-							<?php esc_html_e( '+ Add Payment Method', 'wc-team-payroll' ); ?>
-						</button>
-					</div>
-
-					<!-- Add Payment Form -->
-					<div class="wc-tp-add-payment-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></h3>
-						
-						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
-							<div class="wc-tp-form-group">
-								<label for="wc-tp-payment-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></label>
-								<input type="number" id="wc-tp-payment-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
-							</div>
-
-							<div class="wc-tp-form-group">
-								<label for="wc-tp-payment-date" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Payment Date', 'wc-team-payroll' ); ?></label>
-								<input type="datetime-local" id="wc-tp-payment-date" value="<?php echo esc_attr( date( 'Y-m-d\TH:i' ) ); ?>" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
-							</div>
-						</div>
-
-						<button type="button" class="button button-primary" id="wc-tp-add-payment-btn"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></button>
-					</div>
-
-					<!-- Payment History Section -->
-					<div class="wc-tp-payment-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h3>
-						
-						<div id="wc-tp-payment-history-container">
-							<!-- Payment history will be loaded via AJAX -->
-						</div>
-					</div>
-				</div>
-				<?php endif; ?>
-
-				<!-- Salary Tab -->
-				<?php if ( $current_tab === 'salary' ) : ?>
-				<div class="wc-tp-tab-content">
-					<!-- Salary Management Form -->
-					<div class="wc-tp-salary-form-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px; margin-bottom: 30px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h3>
-						
-						<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
-							<div class="wc-tp-form-group">
-								<label for="wc-tp-salary-type" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
-								<select id="wc-tp-salary-type" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
-									<option value="commission"><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
-									<option value="fixed"><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
-									<option value="combined"><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
-								</select>
-							</div>
-
-							<div class="wc-tp-form-group" id="wc-tp-salary-amount-group" style="display: none;">
-								<label for="wc-tp-salary-amount" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
-								<input type="number" id="wc-tp-salary-amount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;" />
-							</div>
-
-							<div class="wc-tp-form-group" id="wc-tp-salary-frequency-group" style="display: none;">
-								<label for="wc-tp-salary-frequency" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></label>
-								<select id="wc-tp-salary-frequency" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-light); border-radius: 6px; font-size: 14px;">
-									<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
-									<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
-									<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
-									<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
-								</select>
-							</div>
-						</div>
-
-						<button type="button" class="button button-primary" id="wc-tp-update-salary-btn"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
-					</div>
-
-					<!-- Salary History Section -->
-					<div class="wc-tp-salary-history-section" style="background: var(--color-card-bg); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 24px;">
-						<h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); border-left: 4px solid var(--color-primary); padding-left: 12px;"><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h3>
-						
-						<div id="wc-tp-salary-history-container">
-							<!-- Salary history will be loaded via AJAX -->
-						</div>
-					</div>
-				</div>
-				<?php endif; ?>
 			</div>
 		</div>
 
+		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<?php
+		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+	}
+
+	/**
+	 * Render Payments Tab
+	 */
+	private function render_payments_tab( $user_id ) {
+		?>
+		<div class="wc-tp-payments-tab">
+			<!-- Add Payment Form -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></h2>
+				<form id="wc-tp-add-payment-form" class="wc-tp-form">
+					<div class="wc-tp-form-row">
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-payment-amount"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></label>
+							<input type="number" id="wc-tp-payment-amount" step="0.01" min="0" required />
+						</div>
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-payment-date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></label>
+							<input type="datetime-local" id="wc-tp-payment-date" value="<?php echo esc_attr( date( 'Y-m-d\TH:i' ) ); ?>" required />
+						</div>
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-payment-method"><?php esc_html_e( 'Payment Method', 'wc-team-payroll' ); ?></label>
+							<select id="wc-tp-payment-method">
+								<option value=""><?php esc_html_e( 'Select Method', 'wc-team-payroll' ); ?></option>
+								<!-- Will be populated via AJAX -->
+							</select>
+						</div>
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-payment-note"><?php esc_html_e( 'Note (Optional)', 'wc-team-payroll' ); ?></label>
+							<input type="text" id="wc-tp-payment-note" />
+						</div>
+						<div class="wc-tp-form-group">
+							<button type="submit" class="button button-primary"><?php esc_html_e( 'Add Payment', 'wc-team-payroll' ); ?></button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Payment History -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-payment-history-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+			</div>
+
+			<!-- Add Payment Method Form -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Add Payment Method', 'wc-team-payroll' ); ?></h2>
+				<form id="wc-tp-add-payment-method-form" class="wc-tp-form">
+					<div class="wc-tp-form-row">
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-method-name"><?php esc_html_e( 'Payment Method', 'wc-team-payroll' ); ?></label>
+							<input type="text" id="wc-tp-method-name" placeholder="<?php esc_attr_e( 'e.g., bKash Personal', 'wc-team-payroll' ); ?>" required />
+						</div>
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-method-account"><?php esc_html_e( 'Account/Details', 'wc-team-payroll' ); ?></label>
+							<input type="text" id="wc-tp-method-account" placeholder="<?php esc_attr_e( 'e.g., 01712345678', 'wc-team-payroll' ); ?>" required />
+						</div>
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-method-note"><?php esc_html_e( 'Note (Optional)', 'wc-team-payroll' ); ?></label>
+							<input type="text" id="wc-tp-method-note" />
+						</div>
+						<div class="wc-tp-form-group">
+							<button type="submit" class="button button-primary"><?php esc_html_e( 'Add Method', 'wc-team-payroll' ); ?></button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Payment Methods List -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-payment-methods-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+			</div>
+		</div>
+
+		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<?php
+		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+	}
+
+	/**
+	 * Render Salary Tab
+	 */
+	private function render_salary_tab( $user_id ) {
+		$is_fixed = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
+
+		$salary_type = 'commission';
+		if ( $is_fixed ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined ) {
+			$salary_type = 'combined';
+		}
+		?>
+		<div class="wc-tp-salary-tab">
+			<!-- Salary Management Form -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?></h2>
+				<form id="wc-tp-salary-form" class="wc-tp-form">
+					<div class="wc-tp-form-row">
+						<div class="wc-tp-form-group">
+							<label for="wc-tp-salary-type"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></label>
+							<select id="wc-tp-salary-type">
+								<option value="commission" <?php selected( $salary_type, 'commission' ); ?>><?php esc_html_e( 'Commission Based', 'wc-team-payroll' ); ?></option>
+								<option value="fixed" <?php selected( $salary_type, 'fixed' ); ?>><?php esc_html_e( 'Fixed Salary', 'wc-team-payroll' ); ?></option>
+								<option value="combined" <?php selected( $salary_type, 'combined' ); ?>><?php esc_html_e( 'Combined (Base + Commission)', 'wc-team-payroll' ); ?></option>
+							</select>
+						</div>
+						<div class="wc-tp-form-group wc-tp-salary-amount-group" style="<?php echo ( $salary_type === 'commission' ) ? 'display: none;' : ''; ?>">
+							<label for="wc-tp-salary-amount"><?php esc_html_e( 'Salary Amount', 'wc-team-payroll' ); ?></label>
+							<input type="number" id="wc-tp-salary-amount" step="0.01" min="0" value="<?php echo esc_attr( $salary_amount ); ?>" />
+						</div>
+						<div class="wc-tp-form-group wc-tp-salary-frequency-group" style="<?php echo ( $salary_type === 'commission' ) ? 'display: none;' : ''; ?>">
+							<label for="wc-tp-salary-frequency"><?php esc_html_e( 'Frequency', 'wc-team-payroll' ); ?></label>
+							<select id="wc-tp-salary-frequency">
+								<option value="monthly" <?php selected( $salary_frequency, 'monthly' ); ?>><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
+								<option value="weekly" <?php selected( $salary_frequency, 'weekly' ); ?>><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
+								<option value="daily" <?php selected( $salary_frequency, 'daily' ); ?>><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
+							</select>
+						</div>
+						<div class="wc-tp-form-group">
+							<button type="submit" class="button button-primary"><?php esc_html_e( 'Update Salary', 'wc-team-payroll' ); ?></button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Salary History -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Salary History', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-salary-history-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+			</div>
+		</div>
+
+		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<?php
+		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+	}
+
+	/**
+	 * Add inline styles
+	 */
+	public function add_styles() {
+		?>
 		<style>
 			:root {
 				--color-primary: #FF9900;
@@ -372,234 +403,230 @@ class WC_Team_Payroll_Employee_Detail {
 				--lh-body: 1.5;
 			}
 
-			.wc-team-payroll-employee-detail {
+			.wc-tp-employee-detail {
 				background: var(--color-site-bg);
 				padding: 24px;
 				font-family: var(--font-family);
 				color: var(--text-main);
 			}
 
-			.wc-tp-profile-header {
+			.wc-tp-employee-detail h1 {
+				font-size: var(--fs-h1);
+				font-weight: var(--fw-bold);
+				color: var(--text-main);
+				margin-bottom: 24px;
+			}
+
+			/* Profile Section */
+			.wc-tp-profile-section {
 				background: var(--color-card-bg);
 				border: 1px solid var(--color-border-light);
 				border-radius: 8px;
 				padding: 24px;
 				margin-bottom: 24px;
-				display: flex;
-				gap: 24px;
-				align-items: flex-start;
 			}
 
-			.wc-tp-profile-picture-container {
-				flex-shrink: 0;
+			.wc-tp-profile-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				gap: 20px;
+			}
+
+			.wc-tp-profile-left {
+				display: flex;
+				gap: 20px;
+				flex: 1;
 			}
 
 			.wc-tp-profile-picture {
 				width: 120px;
 				height: 120px;
 				border-radius: 8px;
-				object-fit: cover;
+				overflow: hidden;
 				border: 2px solid var(--color-border-light);
+				flex-shrink: 0;
 			}
 
-			.wc-tp-profile-picture-placeholder {
-				width: 120px;
-				height: 120px;
-				border-radius: 8px;
-				background: var(--color-primary-subtle);
-				border: 2px solid var(--color-border-light);
+			.wc-tp-profile-picture img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+
+			.wc-tp-profile-placeholder {
+				width: 100%;
+				height: 100%;
+				background: var(--color-accent-muted);
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 48px;
-				font-weight: var(--fw-bold);
-				color: var(--color-primary);
+			}
+
+			.wc-tp-profile-placeholder .dashicons {
+				font-size: 60px;
+				width: 60px;
+				height: 60px;
+				color: var(--text-muted);
 			}
 
 			.wc-tp-profile-info {
 				flex: 1;
 			}
 
-			.wc-tp-profile-name-section {
-				margin-bottom: 16px;
-			}
-
-			.wc-tp-profile-name-section h1 {
-				margin: 0 0 8px 0;
-				font-size: var(--fs-h1);
+			.wc-tp-profile-info h2 {
+				margin: 0 0 12px 0;
+				font-size: 1.75rem;
 				font-weight: var(--fw-bold);
 				color: var(--text-main);
 			}
 
-			.wc-tp-vb-user-id {
-				display: inline-block;
-				background: var(--color-primary-subtle);
-				color: var(--color-primary);
-				padding: 4px 12px;
-				border-radius: 4px;
-				font-size: var(--fs-meta);
-				font-weight: var(--fw-semibold);
-			}
-
-			.wc-tp-profile-details {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-				gap: 12px;
-			}
-
-			.wc-tp-detail-item {
-				display: flex;
-				flex-direction: column;
-				gap: 4px;
-			}
-
-			.wc-tp-detail-item .label {
-				font-size: var(--fs-meta);
-				font-weight: var(--fw-semibold);
-				color: var(--text-muted);
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
-			}
-
-			.wc-tp-detail-item .value {
+			.wc-tp-profile-info p {
+				margin: 8px 0;
 				font-size: var(--fs-body);
 				color: var(--text-body);
+				line-height: var(--lh-body);
 			}
 
-			.wc-tp-profile-actions {
+			.wc-tp-profile-info p strong {
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+			}
+
+			.wc-tp-user-id {
+				color: var(--color-primary);
+				font-weight: var(--fw-semibold);
+			}
+
+			.wc-tp-profile-right {
 				flex-shrink: 0;
 			}
 
-			.wc-tp-stats-cards {
+			.wc-tp-profile-right .button-primary {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 10px 20px;
+				font-size: var(--fs-body);
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-profile-right .button-primary:hover {
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
+			}
+
+			.wc-tp-profile-right .button-primary .dashicons {
+				font-size: 18px;
+				width: 18px;
+				height: 18px;
+			}
+
+			/* Stats Cards */
+			.wc-tp-stats-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				grid-template-columns: repeat(4, 1fr);
 				gap: 16px;
 				margin-bottom: 24px;
 			}
 
 			.wc-tp-stat-card {
 				background: var(--color-card-bg);
-				border: 1px solid var(--color-border-light);
-				border-radius: 8px;
 				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid var(--color-border-light);
 				display: flex;
-				gap: 16px;
 				align-items: center;
+				gap: 16px;
+				transition: all 0.3s ease;
+			}
+
+			.wc-tp-stat-card:hover {
+				border-color: var(--color-primary);
+				box-shadow: 0 4px 12px rgba(255, 153, 0, 0.1);
+				transform: translateY(-2px);
 			}
 
 			.wc-tp-stat-icon {
 				font-size: 32px;
+				min-width: 50px;
+				text-align: center;
 				flex-shrink: 0;
 			}
 
 			.wc-tp-stat-content {
-				display: flex;
-				flex-direction: column;
-				gap: 4px;
-			}
-
-			.wc-tp-stat-label {
-				font-size: var(--fs-meta);
-				color: var(--text-muted);
-				font-weight: var(--fw-medium);
+				flex: 1;
 			}
 
 			.wc-tp-stat-value {
 				font-size: 1.5rem;
 				font-weight: var(--fw-bold);
-				color: var(--text-main);
+				color: var(--color-primary);
+				margin-bottom: 4px;
+				line-height: 1.3;
 			}
 
-			.wc-tp-tabs-container {
-				background: var(--color-card-bg);
-				border: 1px solid var(--color-border-light);
-				border-radius: 8px;
-				overflow: hidden;
+			.wc-tp-stat-label {
+				font-size: var(--fs-meta);
+				color: var(--text-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+				font-weight: var(--fw-medium);
 			}
 
-			.nav-tab-wrapper {
+			/* Tabs */
+			.wc-tp-tabs {
+				margin-bottom: 0;
 				border-bottom: 1px solid var(--color-border-light);
-				background: var(--color-accent-muted);
-				margin: 0;
 			}
 
-			.nav-tab {
-				padding: 16px 24px;
-				border: none;
-				background: transparent;
-				color: var(--text-body);
+			.wc-tp-tabs .nav-tab {
 				font-size: var(--fs-body);
 				font-weight: var(--fw-semibold);
-				text-decoration: none;
-				display: inline-block;
+				color: var(--text-body);
+				border: none;
 				border-bottom: 3px solid transparent;
-				margin-bottom: -1px;
+				background: transparent;
+				padding: 12px 24px;
+				margin: 0;
 				transition: all 0.2s ease;
 			}
 
-			.nav-tab:hover {
-				background: var(--color-primary-subtle);
+			.wc-tp-tabs .nav-tab:hover {
 				color: var(--color-primary);
+				background: var(--color-primary-subtle);
 			}
 
-			.nav-tab.nav-tab-active {
-				background: var(--color-primary-subtle);
+			.wc-tp-tabs .nav-tab-active {
 				color: var(--color-primary);
 				border-bottom-color: var(--color-primary);
+				background: transparent;
 			}
 
+			/* Tab Content */
 			.wc-tp-tab-content {
+				background: var(--color-card-bg);
+				border: 1px solid var(--color-border-light);
+				border-top: none;
+				border-radius: 0 0 8px 8px;
 				padding: 24px;
 			}
 
-			/* Orders Tab Styles */
-			.wc-tp-orders-search-filter {
+			/* Unified Filter */
+			.wc-tp-unified-filter {
 				background: var(--color-accent-muted);
 				padding: 16px;
 				border-radius: 8px;
-				margin-bottom: 16px;
-				display: flex;
-				gap: 12px;
-				align-items: center;
-				flex-wrap: wrap;
-			}
-
-			.wc-tp-orders-search-filter input[type="text"] {
-				flex: 1;
-				min-width: 250px;
-				padding: 8px 12px;
+				margin-bottom: 24px;
 				border: 1px solid var(--color-border-light);
-				border-radius: 6px;
-				font-size: var(--fs-body);
-				font-family: var(--font-family);
-				color: var(--text-main);
 			}
 
-			.wc-tp-orders-search-filter input[type="text"]::placeholder {
-				color: var(--text-muted);
-			}
-
-			.wc-tp-orders-search-filter .button-secondary {
-				background: var(--color-card-bg);
-				border-color: var(--color-border-light);
-				color: var(--text-main);
-				font-weight: var(--fw-semibold);
-				border-radius: 6px;
-				padding: 8px 16px;
-				font-size: var(--fs-meta);
-				transition: all 0.2s ease;
-			}
-
-			.wc-tp-orders-search-filter .button-secondary:hover {
-				background: var(--color-border-light);
-				border-color: var(--color-border-light);
-			}
-
-			.wc-tp-orders-filters {
-				background: var(--color-accent-muted);
-				padding: 16px;
-				border-radius: 8px;
-				margin-bottom: 20px;
+			.wc-tp-filter-row {
 				display: flex;
 				gap: 12px;
 				align-items: flex-end;
@@ -613,13 +640,14 @@ class WC_Team_Payroll_Employee_Detail {
 			}
 
 			.wc-tp-filter-group label {
-				font-size: var(--fs-meta);
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
+				font-size: var(--fs-meta);
 			}
 
+			.wc-tp-filter-group select,
 			.wc-tp-filter-group input[type="date"],
-			.wc-tp-filter-group select {
+			.wc-tp-filter-group input[type="text"] {
 				padding: 8px 12px;
 				border: 1px solid var(--color-border-light);
 				border-radius: 6px;
@@ -627,12 +655,7 @@ class WC_Team_Payroll_Employee_Detail {
 				font-family: var(--font-family);
 				color: var(--text-main);
 				background: var(--color-card-bg);
-			}
-
-			.wc-tp-date-separator {
-				color: var(--text-muted);
-				font-weight: var(--fw-medium);
-				padding: 0 8px;
+				min-width: 150px;
 			}
 
 			.wc-tp-custom-date-range {
@@ -645,6 +668,31 @@ class WC_Team_Payroll_Employee_Detail {
 			.wc-tp-custom-date-range input[type="date"] {
 				flex: 1;
 				min-width: 150px;
+			}
+
+			.wc-tp-date-separator {
+				color: var(--text-muted);
+				font-weight: var(--fw-medium);
+				font-size: var(--fs-meta);
+			}
+
+			/* Table Section */
+			.wc-tp-table-section {
+				background: var(--color-card-bg);
+				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid var(--color-border-light);
+				margin-bottom: 20px;
+			}
+
+			.wc-tp-table-section h2 {
+				margin-top: 0;
+				margin-bottom: 20px;
+				color: var(--text-main);
+				border-left: 4px solid var(--color-primary);
+				padding-left: 12px;
+				font-size: var(--fs-h2);
+				font-weight: var(--fw-bold);
 			}
 
 			.wc-tp-data-table {
@@ -676,86 +724,6 @@ class WC_Team_Payroll_Employee_Detail {
 				background: var(--color-primary-subtle);
 			}
 
-			.wc-tp-flag-badge {
-				display: inline-block;
-				padding: 4px 8px;
-				border-radius: 4px;
-				font-size: var(--fs-small);
-				font-weight: var(--fw-semibold);
-				white-space: nowrap;
-			}
-
-			.wc-tp-flag-owner {
-				background: #E3F2FD;
-				color: #1976D2;
-			}
-
-			.wc-tp-flag-affiliate-to {
-				background: #F3E5F5;
-				color: #7B1FA2;
-			}
-
-			.wc-tp-flag-affiliate-from {
-				background: #E8F5E9;
-				color: #388E3C;
-			}
-
-			.wc-tp-badge {
-				background: var(--color-primary);
-				color: white;
-				padding: 4px 8px;
-				border-radius: 4px;
-				font-size: var(--fs-small);
-				font-weight: var(--fw-semibold);
-			}
-
-			.button-primary {
-				background: var(--color-primary);
-				border-color: var(--color-primary);
-				color: white;
-				font-weight: var(--fw-semibold);
-				border-radius: 6px;
-				padding: 8px 16px;
-				font-size: var(--fs-meta);
-				transition: all 0.2s ease;
-			}
-
-			.button-primary:hover {
-				background: var(--color-primary-hover);
-				border-color: var(--color-primary-hover);
-			}
-
-			.wc-tp-pagination {
-				display: flex;
-				gap: 8px;
-				justify-content: center;
-				align-items: center;
-				flex-wrap: wrap;
-			}
-
-			.wc-tp-pagination a,
-			.wc-tp-pagination span {
-				padding: 8px 12px;
-				border: 1px solid var(--color-border-light);
-				border-radius: 4px;
-				text-decoration: none;
-				color: var(--text-main);
-				transition: all 0.2s ease;
-			}
-
-			.wc-tp-pagination a:hover {
-				background: var(--color-primary-subtle);
-				border-color: var(--color-primary);
-				color: var(--color-primary);
-			}
-
-			.wc-tp-pagination .current {
-				background: var(--color-primary);
-				color: white;
-				border-color: var(--color-primary);
-				font-weight: var(--fw-semibold);
-			}
-
 			.wc-tp-empty-state {
 				text-align: center;
 				padding: 40px 20px;
@@ -775,116 +743,267 @@ class WC_Team_Payroll_Employee_Detail {
 				color: var(--text-muted);
 			}
 
+			/* Forms */
+			.wc-tp-form {
+				background: var(--color-accent-muted);
+				padding: 20px;
+				border-radius: 8px;
+			}
+
+			.wc-tp-form-row {
+				display: flex;
+				gap: 16px;
+				align-items: flex-end;
+				flex-wrap: wrap;
+			}
+
+			.wc-tp-form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				flex: 1;
+				min-width: 200px;
+			}
+
+			.wc-tp-form-group label {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				font-size: var(--fs-meta);
+			}
+
+			.wc-tp-form-group input[type="text"],
+			.wc-tp-form-group input[type="number"],
+			.wc-tp-form-group input[type="datetime-local"],
+			.wc-tp-form-group select {
+				padding: 10px 12px;
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+				font-size: var(--fs-body);
+				font-family: var(--font-family);
+				color: var(--text-main);
+				background: var(--color-card-bg);
+			}
+
+			.wc-tp-form-group input:focus,
+			.wc-tp-form-group select:focus {
+				outline: none;
+				border-color: var(--color-primary);
+				box-shadow: 0 0 0 3px var(--color-primary-subtle);
+			}
+
+			/* Buttons */
+			.button-primary {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 10px 20px;
+				font-size: var(--fs-body);
+				transition: all 0.2s ease;
+				cursor: pointer;
+			}
+
+			.button-primary:hover {
+				background: var(--color-primary-hover);
+				border-color: var(--color-primary-hover);
+			}
+
+			.button-secondary {
+				background: var(--color-accent-muted);
+				border-color: var(--color-border-light);
+				color: var(--text-main);
+				font-weight: var(--fw-semibold);
+				border-radius: 6px;
+				padding: 8px 16px;
+				font-size: var(--fs-meta);
+				transition: all 0.2s ease;
+			}
+
+			.button-secondary:hover {
+				background: var(--color-border-light);
+				border-color: var(--color-border-light);
+			}
+
+			.button-small {
+				padding: 6px 12px;
+				font-size: var(--fs-small);
+			}
+
+			/* Action Icons */
+			.wc-tp-action-icons {
+				display: flex;
+				gap: 8px;
+			}
+
+			.wc-tp-action-icon {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 32px;
+				height: 32px;
+				border-radius: 4px;
+				border: 1px solid var(--color-border-light);
+				background: var(--color-card-bg);
+				color: var(--text-body);
+				transition: all 0.2s ease;
+				text-decoration: none;
+			}
+
+			.wc-tp-action-icon:hover {
+				background: var(--color-primary);
+				border-color: var(--color-primary);
+				color: white;
+			}
+
+			.wc-tp-action-icon .dashicons {
+				font-size: 16px;
+				width: 16px;
+				height: 16px;
+			}
+
+			/* Badges */
+			.wc-tp-badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				font-weight: var(--fw-semibold);
+			}
+
+			.wc-tp-badge-owner {
+				background: #E3F2FD;
+				color: #1976D2;
+			}
+
+			.wc-tp-badge-affiliate-to {
+				background: #FFF3E0;
+				color: #F57C00;
+			}
+
+			.wc-tp-badge-affiliate-from {
+				background: #F3E5F5;
+				color: #7B1FA2;
+			}
+
+			.wc-tp-status-completed {
+				background: #D4EDDA;
+				color: #155724;
+			}
+
+			.wc-tp-status-processing {
+				background: #D1ECF1;
+				color: #0C5460;
+			}
+
+			.wc-tp-status-pending {
+				background: #FFF3CD;
+				color: #856404;
+			}
+
+			.wc-tp-status-cancelled {
+				background: #F8D7DA;
+				color: #721C24;
+			}
+
+			.wc-tp-status-refunded {
+				background: #E2E3E5;
+				color: #383D41;
+			}
+
+			/* Payment Methods List */
+			.wc-tp-payment-methods-list {
+				display: grid;
+				gap: 12px;
+			}
+
+			.wc-tp-payment-method-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 16px;
+				background: var(--color-accent-muted);
+				border: 1px solid var(--color-border-light);
+				border-radius: 6px;
+			}
+
+			.wc-tp-payment-method-info {
+				flex: 1;
+			}
+
+			.wc-tp-payment-method-name {
+				font-weight: var(--fw-semibold);
+				color: var(--text-main);
+				margin-bottom: 4px;
+			}
+
+			.wc-tp-payment-method-details {
+				font-size: var(--fs-meta);
+				color: var(--text-body);
+			}
+
+			.wc-tp-payment-method-actions {
+				display: flex;
+				gap: 8px;
+			}
+
+			.wc-tp-delete-btn {
+				background: #dc3545;
+				border-color: #dc3545;
+				color: white;
+				padding: 6px 12px;
+				border-radius: 4px;
+				font-size: var(--fs-small);
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+
+			.wc-tp-delete-btn:hover {
+				background: #c82333;
+				border-color: #c82333;
+			}
+
+			/* Responsive Design */
+			@media (max-width: 1024px) {
+				.wc-tp-stats-grid {
+					grid-template-columns: repeat(2, 1fr);
+				}
+
+				.wc-tp-filter-row {
+					flex-direction: column;
+					align-items: stretch;
+				}
+
+				.wc-tp-filter-group {
+					width: 100%;
+				}
+			}
+
 			@media (max-width: 768px) {
-				.wc-team-payroll-employee-detail {
+				.wc-tp-employee-detail {
 					padding: 12px;
 				}
 
 				.wc-tp-profile-header {
 					flex-direction: column;
-					padding: 16px;
-					gap: 16px;
 				}
 
-				.wc-tp-profile-picture {
-					width: 100px;
-					height: 100px;
-				}
-
-				.wc-tp-profile-picture-placeholder {
-					width: 100px;
-					height: 100px;
-					font-size: 40px;
-				}
-
-				.wc-tp-profile-details {
-					grid-template-columns: 1fr;
-				}
-
-				.wc-tp-stats-cards {
-					grid-template-columns: repeat(2, 1fr);
-					gap: 12px;
-				}
-
-				.wc-tp-stat-card {
-					padding: 16px;
-				}
-
-				.wc-tp-stat-icon {
-					font-size: 24px;
-				}
-
-				.wc-tp-stat-value {
-					font-size: 1.25rem;
-				}
-
-				.wc-tp-tabs-nav {
-					flex-wrap: wrap;
-				}
-
-				.wc-tp-tab-button {
-					flex: 1;
-					min-width: 100px;
-					padding: 12px;
-					font-size: var(--fs-meta);
-				}
-
-				.wc-tp-tab-content {
-					padding: 16px;
-				}
-
-				.wc-tp-orders-search-filter {
+				.wc-tp-profile-left {
 					flex-direction: column;
-					gap: 8px;
+					align-items: center;
+					text-align: center;
 				}
 
-				.wc-tp-orders-search-filter input[type="text"] {
-					width: 100%;
-					min-width: unset;
-				}
-
-				.wc-tp-orders-search-filter .button-secondary {
+				.wc-tp-profile-right {
 					width: 100%;
 				}
 
-				.wc-tp-orders-filters {
-					flex-direction: column;
-					gap: 8px;
-				}
-
-				.wc-tp-filter-group input[type="date"],
-				.wc-tp-filter-group select {
+				.wc-tp-profile-right .button-primary {
 					width: 100%;
+					justify-content: center;
 				}
 
-				.wc-tp-custom-date-range {
-					flex-direction: column;
-					gap: 8px;
-				}
-
-				.wc-tp-custom-date-range input[type="date"] {
-					width: 100%;
-					min-width: unset;
-				}
-
-				.wc-tp-data-table {
-					font-size: 12px;
-				}
-
-				.wc-tp-data-table th,
-				.wc-tp-data-table td {
-					padding: 6px;
-				}
-
-				.button,
-				.button-small {
-					padding: 4px 6px;
-					font-size: 10px;
-				}
-			}
-
-			@media (max-width: 480px) {
-				.wc-tp-stats-cards {
+				.wc-tp-stats-grid {
 					grid-template-columns: 1fr;
 				}
 
@@ -893,619 +1012,839 @@ class WC_Team_Payroll_Employee_Detail {
 					text-align: center;
 				}
 
-				.wc-tp-stat-icon {
-					font-size: 28px;
+				.wc-tp-form-row {
+					flex-direction: column;
+				}
+
+				.wc-tp-form-group {
+					width: 100%;
+					min-width: unset;
+				}
+
+				.wc-tp-data-table {
+					font-size: var(--fs-small);
+				}
+
+				.wc-tp-data-table th,
+				.wc-tp-data-table td {
+					padding: 8px 6px;
 				}
 			}
 		</style>
-
-		<script>
-			jQuery(document).ready(function($) {
-				const userId = <?php echo intval( $user_id ); ?>;
-				const wcCurrencySymbol = '<?php echo esc_js( $wc_currency_symbol ); ?>';
-				const wcCurrencyPos = '<?php echo esc_js( $wc_currency_pos ); ?>';
-				let currentPage = 1;
-				let allOrdersData = [];
-				let itemsPerPage = 20;
-				let lastPresetRange = { start: '', end: '' }; // Store last preset range
-
-				// Initialize with default preset (This Month)
-				updateDateRangeFromPreset('this-month');
-
-				// Date preset change
-				$('#wc-tp-orders-date-preset').on('change', function() {
-					const preset = $(this).val();
-					
-					if (preset === 'custom') {
-						// Show custom date inputs with last preset values
-						$('#wc-tp-custom-date-range').slideDown(200);
-					} else {
-						// Hide custom date inputs and update dates
-						$('#wc-tp-custom-date-range').slideUp(200);
-						updateDateRangeFromPreset(preset);
-						// Don't load here, wait for Filter button click
-					}
-				});
-
-				// Custom date range change - just update values, don't load
-				$('#wc-tp-orders-start-date, #wc-tp-orders-end-date').on('change', function() {
-					// Just update the values, don't trigger load
-				});
-
-				// Load orders data function
-				function loadOrdersData() {
-					const startDate = $('#wc-tp-orders-start-date').val();
-					const endDate = $('#wc-tp-orders-end-date').val();
-					const statusFilter = $('#wc-tp-orders-status-filter').val();
-					const flagFilter = $('#wc-tp-orders-flag-filter').val();
-					const searchQuery = $('#wc-tp-orders-search').val();
-
-					if (!startDate || !endDate) {
-						console.log('Date range not set:', { startDate, endDate });
-						return;
-					}
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_employee_orders',
-							user_id: userId,
-							start_date: startDate,
-							end_date: endDate,
-							status: statusFilter,
-							flag: flagFilter,
-							search: searchQuery
-						},
-						success: function(response) {
-							console.log('AJAX response:', response);
-							if (response.success) {
-								allOrdersData = response.data.orders || [];
-								renderOrdersTable(allOrdersData);
-								renderOrdersPagination(allOrdersData);
-							}
-						},
-						error: function(xhr, status, error) {
-							console.error('AJAX error:', { xhr, status, error });
-						}
-					});
-				}
-
-				function getDateRangeFromPreset(preset) {
-					const today = new Date();
-					const year = today.getFullYear();
-					const month = String(today.getMonth() + 1).padStart(2, '0');
-					const date = String(today.getDate()).padStart(2, '0');
-					const todayStr = `${year}-${month}-${date}`;
-
-					let startDate, endDate;
-
-					switch (preset) {
-						case 'today':
-							startDate = todayStr;
-							endDate = todayStr;
-							break;
-
-						case 'this-week':
-							const firstDay = new Date(today);
-							firstDay.setDate(today.getDate() - today.getDay());
-							startDate = formatDateForInput(firstDay);
-							endDate = todayStr;
-							break;
-
-						case 'this-month':
-							startDate = `${year}-${month}-01`;
-							endDate = todayStr;
-							break;
-
-						case 'this-year':
-							startDate = `${year}-01-01`;
-							endDate = todayStr;
-							break;
-
-						case 'last-week':
-							const lastWeekEnd = new Date(today);
-							lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
-							const lastWeekStart = new Date(lastWeekEnd);
-							lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
-							startDate = formatDateForInput(lastWeekStart);
-							endDate = formatDateForInput(lastWeekEnd);
-							break;
-
-						case 'last-month':
-							const lastMonthDate = new Date(year, parseInt(month) - 2, 1);
-							const lastMonthYear = lastMonthDate.getFullYear();
-							const lastMonthMonth = String(lastMonthDate.getMonth() + 1).padStart(2, '0');
-							startDate = `${lastMonthYear}-${lastMonthMonth}-01`;
-							const lastMonthLastDay = new Date(lastMonthYear, parseInt(lastMonthMonth), 0);
-							endDate = `${lastMonthYear}-${lastMonthMonth}-${String(lastMonthLastDay.getDate()).padStart(2, '0')}`;
-							break;
-
-						case 'last-year':
-							const lastYear = year - 1;
-							startDate = `${lastYear}-01-01`;
-							endDate = `${lastYear}-12-31`;
-							break;
-
-						case 'last-6-months':
-							const sixMonthsAgo = new Date(today);
-							sixMonthsAgo.setMonth(today.getMonth() - 6);
-							startDate = formatDateForInput(sixMonthsAgo);
-							endDate = todayStr;
-							break;
-
-						case 'all-time':
-							startDate = '2000-01-01';
-							endDate = todayStr;
-							break;
-
-						default:
-							startDate = `${year}-${month}-01`;
-							endDate = todayStr;
-					}
-
-					return { start: startDate, end: endDate };
-				}
-
-				function formatDateForInput(date) {
-					const year = date.getFullYear();
-					const month = String(date.getMonth() + 1).padStart(2, '0');
-					const day = String(date.getDate()).padStart(2, '0');
-					return `${year}-${month}-${day}`;
-				}
-
-				function updateDateRangeFromPreset(preset) {
-					const range = getDateRangeFromPreset(preset);
-					lastPresetRange = range; // Store for custom mode
-					$('#wc-tp-orders-start-date').val(range.start);
-					$('#wc-tp-orders-end-date').val(range.end);
-				}
-
-				// Initialize based on current tab
-				const currentTab = '<?php echo esc_js( $current_tab ); ?>';
-				
-				if (currentTab === 'orders') {
-					loadOrdersData();
-				}
-
-				// Orders Tab Functionality
-				$('#wc-tp-orders-filter-btn').on('click', function() {
-					currentPage = 1;
-					loadOrdersData();
-				});
-
-				$('#wc-tp-orders-search').on('keyup', function() {
-					currentPage = 1;
-					loadOrdersData();
-				});
-
-				$('#wc-tp-orders-search-clear').on('click', function() {
-					$('#wc-tp-orders-search').val('');
-					currentPage = 1;
-					loadOrdersData();
-				});
-
-				function renderOrdersTable(orders) {
-					const container = $('#wc-tp-orders-table-container');
-					
-					if (!orders || orders.length === 0) {
-						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📭</div><p>No orders found</p></div>');
-						return;
-					}
-
-					const startIndex = (currentPage - 1) * itemsPerPage;
-					const endIndex = startIndex + itemsPerPage;
-					const pageData = orders.slice(startIndex, endIndex);
-
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Order ID</th>';
-					html += '<th>Customer</th>';
-					html += '<th>Total</th>';
-					html += '<th>Status</th>';
-					html += '<th>Commission</th>';
-					html += '<th>Your Earnings</th>';
-					html += '<th>Flag</th>';
-					html += '<th>Date</th>';
-					html += '<th>Action</th>';
-					html += '</tr></thead><tbody>';
-
-					$.each(pageData, function(i, order) {
-						html += '<tr>';
-						html += '<td><strong>#' + order.order_id + '</strong></td>';
-						html += '<td>' + order.customer_name + '</td>';
-						html += '<td>' + formatCurrency(order.total) + '</td>';
-						html += '<td><span class="wc-tp-badge">' + order.status + '</span></td>';
-						html += '<td>' + formatCurrency(order.commission) + '</td>';
-						html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
-						html += '<td><span class="wc-tp-flag-badge wc-tp-flag-' + order.flag.toLowerCase().replace(/_/g, '-') + '">' + order.flag_label + '</span></td>';
-						html += '<td>' + order.date + '</td>';
-						html += '<td>';
-						html += '<a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=wc-team-payroll-order-detail&order_id=' + order.order_id) + '" class="button button-small" title="View">👁️</a> ';
-						html += '<a href="' + ajaxurl.replace('admin-ajax.php', 'post.php?post=' + order.order_id + '&action=edit') + '" class="button button-small" title="Edit">✏️</a>';
-						html += '</td>';
-						html += '</tr>';
-					});
-
-					html += '</tbody></table>';
-					container.html(html);
-				}
-
-				function renderOrdersPagination(orders) {
-					const container = $('#wc-tp-orders-pagination');
-					const totalPages = Math.ceil(orders.length / itemsPerPage);
-
-					if (totalPages <= 1) {
-						container.html('');
-						return;
-					}
-
-					let html = '<div class="wc-tp-pagination">';
-
-					if (currentPage > 1) {
-						html += '<a href="#" data-page="' + (currentPage - 1) + '">← Previous</a>';
-					}
-
-					for (let i = 1; i <= totalPages; i++) {
-						if (i === currentPage) {
-							html += '<span class="current">' + i + '</span>';
-						} else {
-							html += '<a href="#" data-page="' + i + '">' + i + '</a>';
-						}
-					}
-
-					if (currentPage < totalPages) {
-						html += '<a href="#" data-page="' + (currentPage + 1) + '">Next →</a>';
-					}
-
-					html += '</div>';
-					container.html(html);
-
-					container.find('a').on('click', function(e) {
-						e.preventDefault();
-						currentPage = parseInt($(this).data('page'));
-						renderOrdersTable(allOrdersData);
-						renderOrdersPagination(allOrdersData);
-						$('html, body').animate({ scrollTop: $('#wc-tp-orders-table-container').offset().top - 100 }, 300);
-					});
-				}
-
-				function formatCurrency(value) {
-					const amount = parseFloat(value).toFixed(2);
-					if (wcCurrencyPos === 'right') {
-						return amount + ' ' + wcCurrencySymbol;
-					} else {
-						return wcCurrencySymbol + ' ' + amount;
-					}
-				}
-
-				// Payment Methods Functions
-				if (currentTab === 'payments') {
-					loadPaymentMethods();
-					loadPaymentHistory();
-				}
-
-				function loadPaymentMethods() {
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_payment_methods',
-							user_id: userId
-						},
-						success: function(response) {
-							if (response.success) {
-								renderPaymentMethods(response.data.methods || []);
-							}
-						}
-					});
-				}
-
-				function renderPaymentMethods(methods) {
-					const container = $('#wc-tp-payment-methods-list');
-					
-					if (!methods || methods.length === 0) {
-						container.html('<p style="color: var(--text-muted); text-align: center; padding: 20px;">No payment methods added yet</p>');
-						return;
-					}
-
-					let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">';
-					
-					$.each(methods, function(i, method) {
-						html += '<div style="background: var(--color-accent-muted); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 16px;">';
-						html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">';
-						html += '<div>';
-						html += '<strong style="display: block; margin-bottom: 4px; color: var(--text-main);">' + method.method_name + '</strong>';
-						html += '<span style="font-size: 13px; color: var(--text-muted);">' + method.method_details + '</span>';
-						html += '</div>';
-						html += '<button type="button" class="button button-small" onclick="deletePaymentMethod(' + userId + ', ' + method.id + ')" style="background: #dc3545; border-color: #dc3545; color: white;">Delete</button>';
-						html += '</div>';
-						html += '</div>';
-					});
-
-					html += '</div>';
-					container.html(html);
-				}
-
-				$('#wc-tp-add-payment-method-btn').on('click', function() {
-					const methodName = prompt('<?php esc_js_e( 'Enter payment method name (e.g., bKash Personal)', 'wc-team-payroll' ); ?>');
-					if (!methodName) return;
-
-					const methodDetails = prompt('<?php esc_js_e( 'Enter payment details (e.g., bKash number, account info)', 'wc-team-payroll' ); ?>');
-					if (!methodDetails) return;
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_add_payment_method',
-							user_id: userId,
-							method_name: methodName,
-							method_details: methodDetails
-						},
-						success: function(response) {
-							if (response.success) {
-								loadPaymentMethods();
-								alert('<?php esc_js_e( 'Payment method added', 'wc-team-payroll' ); ?>');
-							}
-						}
-					});
-				});
-
-				window.deletePaymentMethod = function(userId, methodId) {
-					if (!confirm('<?php esc_js_e( 'Delete this payment method?', 'wc-team-payroll' ); ?>')) return;
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_delete_payment_method',
-							user_id: userId,
-							method_id: methodId
-						},
-						success: function(response) {
-							if (response.success) {
-								loadPaymentMethods();
-								alert('<?php esc_js_e( 'Payment method deleted', 'wc-team-payroll' ); ?>');
-							}
-						}
-					});
-				};
-
-				// Payment History Functions
-				function loadPaymentHistory() {
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_employee_payments',
-							user_id: userId
-						},
-						success: function(response) {
-							if (response.success) {
-								renderPaymentHistory(response.data.payments || []);
-							}
-						}
-					});
-				}
-
-				function renderPaymentHistory(payments) {
-					const container = $('#wc-tp-payment-history-container');
-					
-					if (!payments || payments.length === 0) {
-						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💳</div><p>No payments recorded</p></div>');
-						return;
-					}
-
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Date</th>';
-					html += '<th>Amount</th>';
-					html += '<th>Added By</th>';
-					html += '<th>Action</th>';
-					html += '</tr></thead><tbody>';
-
-					$.each(payments, function(i, payment) {
-						html += '<tr>';
-						html += '<td>' + payment.date + '</td>';
-						html += '<td><strong>' + formatCurrency(payment.amount) + '</strong></td>';
-						html += '<td>' + payment.added_by + '</td>';
-						html += '<td><button type="button" class="button button-small" onclick="deletePayment(' + userId + ', \'' + payment.id + '\')" style="background: #dc3545; border-color: #dc3545; color: white;">Delete</button></td>';
-						html += '</tr>';
-					});
-
-					html += '</tbody></table>';
-					container.html(html);
-				}
-
-				$('#wc-tp-add-payment-btn').on('click', function() {
-					const amount = $('#wc-tp-payment-amount').val();
-					const date = $('#wc-tp-payment-date').val();
-
-					if (!amount || !date) {
-						alert('<?php esc_js_e( 'Please fill all fields', 'wc-team-payroll' ); ?>');
-						return;
-					}
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_add_payment',
-							user_id: userId,
-							amount: amount,
-							payment_date: date
-						},
-						success: function(response) {
-							if (response.success) {
-								$('#wc-tp-payment-amount').val('');
-								$('#wc-tp-payment-date').val(new Date().toISOString().slice(0, 16));
-								loadPaymentHistory();
-								alert('<?php esc_js_e( 'Payment added', 'wc-team-payroll' ); ?>');
-							}
-						}
-					});
-				});
-
-				window.deletePayment = function(userId, paymentId) {
-					if (!confirm('<?php esc_js_e( 'Delete this payment?', 'wc-team-payroll' ); ?>')) return;
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_delete_payment',
-							user_id: userId,
-							payment_id: paymentId
-						},
-						success: function(response) {
-							if (response.success) {
-								loadPaymentHistory();
-								alert('<?php esc_js_e( 'Payment deleted', 'wc-team-payroll' ); ?>');
-							}
-						}
-					});
-				};
-
-				// Salary Management Functions
-				if (currentTab === 'salary') {
-					loadSalaryData();
-					loadSalaryHistory();
-				}
-
-				function loadSalaryData() {
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_employee_salary',
-							user_id: userId
-						},
-						success: function(response) {
-							if (response.success) {
-								const salary = response.data;
-								$('#wc-tp-salary-type').val(salary.type);
-								$('#wc-tp-salary-amount').val(salary.amount || '');
-								$('#wc-tp-salary-frequency').val(salary.frequency || 'monthly');
-								toggleSalaryFields();
-							}
-						}
-					});
-				}
-
-				$('#wc-tp-salary-type').on('change', function() {
-					toggleSalaryFields();
-				});
-
-				function toggleSalaryFields() {
-					const type = $('#wc-tp-salary-type').val();
-					if (type === 'fixed' || type === 'combined') {
-						$('#wc-tp-salary-amount-group').slideDown(200);
-						$('#wc-tp-salary-frequency-group').slideDown(200);
-					} else {
-						$('#wc-tp-salary-amount-group').slideUp(200);
-						$('#wc-tp-salary-frequency-group').slideUp(200);
-					}
-				}
-
-				$('#wc-tp-update-salary-btn').on('click', function() {
-					const type = $('#wc-tp-salary-type').val();
-					const amount = $('#wc-tp-salary-amount').val();
-					const frequency = $('#wc-tp-salary-frequency').val();
-
-					if ((type === 'fixed' || type === 'combined') && (!amount || amount <= 0)) {
-						alert('<?php esc_js_e( 'Please enter a valid salary amount', 'wc-team-payroll' ); ?>');
-						return;
-					}
-
-					$(this).prop('disabled', true).text('<?php esc_js_e( 'Updating...', 'wc-team-payroll' ); ?>');
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_update_employee_salary',
-							user_id: userId,
-							salary_type: type,
-							salary_amount: amount || 0,
-							salary_frequency: frequency
-						},
-						success: function(response) {
-							if (response.success) {
-								loadSalaryHistory();
-								alert('<?php esc_js_e( 'Salary updated successfully', 'wc-team-payroll' ); ?>');
-							} else {
-								alert('<?php esc_js_e( 'Error updating salary', 'wc-team-payroll' ); ?>');
-							}
-						},
-						error: function() {
-							alert('<?php esc_js_e( 'Error updating salary', 'wc-team-payroll' ); ?>');
-						},
-						complete: function() {
-							$('#wc-tp-update-salary-btn').prop('disabled', false).text('<?php esc_js_e( 'Update Salary', 'wc-team-payroll' ); ?>');
-						}
-					});
-				});
-
-				function loadSalaryHistory() {
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_salary_history',
-							user_id: userId
-						},
-						success: function(response) {
-							if (response.success) {
-								renderSalaryHistory(response.data.history || []);
-							}
-						}
-					});
-				}
-
-				function renderSalaryHistory(history) {
-					const container = $('#wc-tp-salary-history-container');
-					
-					if (!history || history.length === 0) {
-						container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📋</div><p>No salary history</p></div>');
-						return;
-					}
-
-					let html = '<table class="wc-tp-data-table"><thead><tr>';
-					html += '<th>Date</th>';
-					html += '<th>Old Type</th>';
-					html += '<th>Old Amount</th>';
-					html += '<th>New Type</th>';
-					html += '<th>New Amount</th>';
-					html += '<th>Changed By</th>';
-					html += '</tr></thead><tbody>';
-
-					$.each(history, function(i, entry) {
-						html += '<tr>';
-						html += '<td>' + entry.date + '</td>';
-						html += '<td>' + (entry.old_type ? entry.old_type.charAt(0).toUpperCase() + entry.old_type.slice(1) : '-') + '</td>';
-						html += '<td>' + (entry.old_amount ? formatCurrency(entry.old_amount) : '-') + '</td>';
-						html += '<td>' + (entry.new_type ? entry.new_type.charAt(0).toUpperCase() + entry.new_type.slice(1) : '-') + '</td>';
-						html += '<td>' + (entry.new_amount ? formatCurrency(entry.new_amount) : '-') + '</td>';
-						html += '<td>' + entry.changed_by + '</td>';
-						html += '</tr>';
-					});
-
-					html += '</tbody></table>';
-					container.html(html);
-				}
-			});
-		</script>
 		<?php
 	}
 
 	/**
-	 * Format currency
+	 * Add inline scripts
 	 */
-	private function format_currency( $amount, $symbol, $position ) {
-		$formatted = number_format( $amount, 2 );
-		if ( $position === 'right' ) {
-			return $formatted . ' ' . $symbol;
-		} else {
-			return $symbol . ' ' . $formatted;
-		}
+	public function add_scripts() {
+		?>
+		<script>
+			jQuery(document).ready(function($) {
+				const userId = $('#wc-tp-current-user-id').val();
+				const nonce = $('#wc_team_payroll_nonce').val();
+
+				// ============================================================================
+				// GLOBAL TOAST NOTIFICATION SYSTEM
+				// ============================================================================
+				window.wcTPToast = function(message, type = 'success') {
+					const toastId = 'wc-tp-toast-' + Date.now();
+					const toast = $(`
+						<div id="${toastId}" class="wc-tp-toast wc-tp-toast-${type}">
+							<span>${message}</span>
+							<button class="wc-tp-toast-close" data-toast-id="${toastId}">×</button>
+						</div>
+					`);
+
+					$('body').append(toast);
+
+					// Auto hide after 4 seconds
+					setTimeout(() => {
+						toast.fadeOut(300, function() {
+							$(this).remove();
+						});
+					}, 4000);
+
+					// Manual close
+					$(document).on('click', '.wc-tp-toast-close', function() {
+						const id = $(this).data('toast-id');
+						$('#' + id).fadeOut(300, function() {
+							$(this).remove();
+						});
+					});
+				};
+
+				// Toast CSS (add once)
+				if (!$('#wc-tp-toast-styles').length) {
+					$('head').append(`
+						<style id="wc-tp-toast-styles">
+							.wc-tp-toast {
+								position: fixed;
+								top: 20px;
+								right: 20px;
+								background: #388E3C;
+								color: white;
+								padding: 16px 20px;
+								border-radius: 6px;
+								box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+								display: flex;
+								align-items: center;
+								gap: 12px;
+								z-index: 9999;
+								font-size: 14px;
+								font-weight: 500;
+								animation: wcTPSlideIn 0.3s ease;
+							}
+
+							.wc-tp-toast-error {
+								background: #dc3545;
+							}
+
+							.wc-tp-toast-close {
+								background: none;
+								border: none;
+								color: white;
+								font-size: 24px;
+								cursor: pointer;
+								padding: 0;
+								line-height: 1;
+								transition: all 0.2s ease;
+							}
+
+							.wc-tp-toast-close:hover {
+								opacity: 0.8;
+							}
+
+							@keyframes wcTPSlideIn {
+								from {
+									transform: translateX(400px);
+									opacity: 0;
+								}
+								to {
+									transform: translateX(0);
+									opacity: 1;
+								}
+							}
+
+							@media (max-width: 768px) {
+								.wc-tp-toast {
+									top: 10px;
+									right: 10px;
+									left: 10px;
+									width: auto;
+								}
+							}
+
+							.wc-tp-inline-edit-form {
+								padding: 16px;
+								background: #f9f9f9;
+								border-radius: 6px;
+							}
+
+							.wc-tp-inline-edit-form .wc-tp-form-row {
+								display: flex;
+								gap: 12px;
+								align-items: flex-end;
+								flex-wrap: wrap;
+							}
+
+							.wc-tp-inline-edit-form .wc-tp-form-group {
+								display: flex;
+								flex-direction: column;
+								gap: 6px;
+								flex: 1;
+								min-width: 150px;
+							}
+
+							.wc-tp-inline-edit-form .wc-tp-form-group label {
+								font-weight: 600;
+								font-size: 12px;
+								color: #212B36;
+							}
+
+							.wc-tp-inline-edit-form .wc-tp-form-group input {
+								padding: 8px 12px;
+								border: 1px solid #E5EAF0;
+								border-radius: 6px;
+								font-size: 14px;
+							}
+						</style>
+					`);
+				}
+
+				// ============================================================================
+				// ORDERS TAB
+				// ============================================================================
+				if ($('.wc-tp-orders-tab').length) {
+					let currentStartDate = '';
+					let currentEndDate = '';
+
+					// Initialize with default preset (This Month)
+					updateDateRangeFromPreset('this-month');
+					loadOrdersData();
+
+					// Date preset change
+					$('#wc-tp-orders-date-preset').on('change', function() {
+						const preset = $(this).val();
+						
+						if (preset === 'custom') {
+							$('#wc-tp-orders-custom-date-range').slideDown(200);
+						} else {
+							$('#wc-tp-orders-custom-date-range').slideUp(200);
+							updateDateRangeFromPreset(preset);
+						}
+					});
+
+					// Filter button click
+					$('#wc-tp-orders-filter-btn').on('click', function() {
+						loadOrdersData();
+					});
+
+					// Search on enter key
+					$('#wc-tp-orders-search').on('keypress', function(e) {
+						if (e.which === 13) {
+							loadOrdersData();
+						}
+					});
+
+					function getDateRangeFromPreset(preset) {
+						const today = new Date();
+						const year = today.getFullYear();
+						const month = String(today.getMonth() + 1).padStart(2, '0');
+						const date = String(today.getDate()).padStart(2, '0');
+						const todayStr = `${year}-${month}-${date}`;
+
+						let startDate, endDate;
+
+						switch (preset) {
+							case 'today':
+								startDate = todayStr;
+								endDate = todayStr;
+								break;
+							case 'this-week':
+								const firstDay = new Date(today);
+								firstDay.setDate(today.getDate() - today.getDay());
+								startDate = formatDateForInput(firstDay);
+								endDate = todayStr;
+								break;
+							case 'this-month':
+								startDate = `${year}-${month}-01`;
+								endDate = todayStr;
+								break;
+							case 'this-year':
+								startDate = `${year}-01-01`;
+								endDate = todayStr;
+								break;
+							case 'last-week':
+								const lastWeekEnd = new Date(today);
+								lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+								const lastWeekStart = new Date(lastWeekEnd);
+								lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+								startDate = formatDateForInput(lastWeekStart);
+								endDate = formatDateForInput(lastWeekEnd);
+								break;
+							case 'last-month':
+								const lastMonthDate = new Date(year, parseInt(month) - 2, 1);
+								const lastMonthYear = lastMonthDate.getFullYear();
+								const lastMonthMonth = String(lastMonthDate.getMonth() + 1).padStart(2, '0');
+								startDate = `${lastMonthYear}-${lastMonthMonth}-01`;
+								const lastMonthLastDay = new Date(lastMonthYear, parseInt(lastMonthMonth), 0);
+								endDate = `${lastMonthYear}-${lastMonthMonth}-${String(lastMonthLastDay.getDate()).padStart(2, '0')}`;
+								break;
+							case 'last-year':
+								const lastYear = year - 1;
+								startDate = `${lastYear}-01-01`;
+								endDate = `${lastYear}-12-31`;
+								break;
+							case 'last-6-months':
+								const sixMonthsAgo = new Date(today);
+								sixMonthsAgo.setMonth(today.getMonth() - 6);
+								startDate = formatDateForInput(sixMonthsAgo);
+								endDate = todayStr;
+								break;
+							case 'all-time':
+								startDate = '2000-01-01';
+								endDate = todayStr;
+								break;
+							default:
+								startDate = `${year}-${month}-01`;
+								endDate = todayStr;
+						}
+
+						return { start: startDate, end: endDate };
+					}
+
+					function formatDateForInput(date) {
+						const year = date.getFullYear();
+						const month = String(date.getMonth() + 1).padStart(2, '0');
+						const day = String(date.getDate()).padStart(2, '0');
+						return `${year}-${month}-${day}`;
+					}
+
+					function updateDateRangeFromPreset(preset) {
+						const range = getDateRangeFromPreset(preset);
+						currentStartDate = range.start;
+						currentEndDate = range.end;
+						$('#wc-tp-orders-start-date').val(range.start);
+						$('#wc-tp-orders-end-date').val(range.end);
+					}
+
+					function loadOrdersData() {
+						const preset = $('#wc-tp-orders-date-preset').val();
+						
+						if (preset === 'custom') {
+							currentStartDate = $('#wc-tp-orders-start-date').val();
+							currentEndDate = $('#wc-tp-orders-end-date').val();
+						}
+
+						const status = $('#wc-tp-orders-status-filter').val();
+						const flag = $('#wc-tp-orders-flag-filter').val();
+						const search = $('#wc-tp-orders-search').val();
+
+						if (!currentStartDate || !currentEndDate) {
+							return;
+						}
+
+						$('#wc-tp-orders-filter-btn').prop('disabled', true).text('Loading...');
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_employee_orders',
+								user_id: userId,
+								start_date: currentStartDate,
+								end_date: currentEndDate,
+								status: status,
+								flag: flag,
+								search: search,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									renderOrdersTable(response.data.orders);
+								} else {
+									$('#wc-tp-orders-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📦</div><p>Failed to load orders</p></div>');
+								}
+							},
+							error: function() {
+								$('#wc-tp-orders-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">❌</div><p>Error loading orders</p></div>');
+							},
+							complete: function() {
+								$('#wc-tp-orders-filter-btn').prop('disabled', false).text('Filter');
+							}
+						});
+					}
+
+					function renderOrdersTable(orders) {
+						const container = $('#wc-tp-orders-table-container');
+						
+						if (!orders || orders.length === 0) {
+							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📦</div><p>No orders found</p></div>');
+							return;
+						}
+
+						let html = '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th>Order ID</th>';
+						html += '<th>Customer</th>';
+						html += '<th>Total</th>';
+						html += '<th>Status</th>';
+						html += '<th>Commission</th>';
+						html += '<th>Your Earnings</th>';
+						html += '<th>Flag</th>';
+						html += '<th>Date</th>';
+						html += '<th>Actions</th>';
+						html += '</tr></thead><tbody>';
+
+						$.each(orders, function(i, order) {
+							const statusClass = 'wc-tp-status-' + order.status.toLowerCase();
+							const flagClass = 'wc-tp-badge-' + order.flag.replace('_', '-');
+							const viewUrl = '<?php echo admin_url("post.php"); ?>?post=' + order.order_id + '&action=edit';
+							const editUrl = viewUrl;
+
+							html += '<tr>';
+							html += '<td><strong>#' + order.order_id + '</strong></td>';
+							html += '<td>' + order.customer_name + '</td>';
+							html += '<td>' + formatCurrency(order.total) + '</td>';
+							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + order.status + '</span></td>';
+							html += '<td>' + formatCurrency(order.commission) + '</td>';
+							html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
+							html += '<td><span class="wc-tp-badge ' + flagClass + '">' + order.flag_label + '</span></td>';
+							html += '<td>' + order.date + '</td>';
+							html += '<td><div class="wc-tp-action-icons">';
+							html += '<a href="' + viewUrl + '" class="wc-tp-action-icon" title="View Order"><span class="dashicons dashicons-visibility"></span></a>';
+							html += '<a href="' + editUrl + '" class="wc-tp-action-icon" title="Edit Order"><span class="dashicons dashicons-edit"></span></a>';
+							html += '</div></td>';
+							html += '</tr>';
+						});
+
+						html += '</tbody></table>';
+						container.html(html);
+					}
+
+					function formatCurrency(value) {
+						return '<?php echo get_woocommerce_currency_symbol(); ?>' + parseFloat(value).toFixed(2);
+					}
+				}
+
+				// ============================================================================
+				// PAYMENTS TAB
+				// ============================================================================
+				if ($('.wc-tp-payments-tab').length) {
+					loadPaymentMethods();
+					loadPaymentHistory();
+
+					// Add Payment Form Submit
+					$('#wc-tp-add-payment-form').on('submit', function(e) {
+						e.preventDefault();
+
+						const amount = $('#wc-tp-payment-amount').val();
+						const date = $('#wc-tp-payment-date').val();
+						const method = $('#wc-tp-payment-method').val();
+						const note = $('#wc-tp-payment-note').val();
+
+						if (!amount || !date) {
+							wcTPToast('Please fill in all required fields', 'error');
+							return;
+						}
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_add_payment',
+								user_id: userId,
+								amount: amount,
+								payment_date: date,
+								payment_method: method,
+								note: note,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									wcTPToast('Payment added successfully');
+									$('#wc-tp-add-payment-form')[0].reset();
+									$('#wc-tp-payment-date').val('<?php echo date("Y-m-d\TH:i"); ?>');
+									loadPaymentHistory();
+									updateStatsCards();
+								} else {
+									wcTPToast('Failed to add payment: ' + response.data, 'error');
+								}
+							},
+							error: function() {
+								wcTPToast('Error adding payment', 'error');
+							}
+						});
+					});
+
+					// Add Payment Method Form Submit
+					$('#wc-tp-add-payment-method-form').on('submit', function(e) {
+						e.preventDefault();
+
+						const methodName = $('#wc-tp-method-name').val();
+						const methodAccount = $('#wc-tp-method-account').val();
+						const methodNote = $('#wc-tp-method-note').val();
+
+						if (!methodName || !methodAccount) {
+							wcTPToast('Please fill in all required fields', 'error');
+							return;
+						}
+
+						const methodDetails = methodAccount + (methodNote ? ' - ' + methodNote : '');
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_add_payment_method',
+								user_id: userId,
+								method_name: methodName,
+								method_details: methodDetails,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									wcTPToast('Payment method added successfully');
+									$('#wc-tp-add-payment-method-form')[0].reset();
+									loadPaymentMethods();
+								} else {
+									wcTPToast('Failed to add payment method: ' + response.data, 'error');
+								}
+							},
+							error: function() {
+								wcTPToast('Error adding payment method', 'error');
+							}
+						});
+					});
+
+					// Delete Payment
+					$(document).on('click', '.wc-tp-delete-payment', function() {
+						if (!confirm('Are you sure you want to delete this payment?')) {
+							return;
+						}
+
+						const paymentId = $(this).data('payment-id');
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_delete_payment',
+								user_id: userId,
+								payment_id: paymentId,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									wcTPToast('Payment deleted successfully');
+									loadPaymentHistory();
+									updateStatsCards();
+								} else {
+									wcTPToast('Failed to delete payment: ' + response.data, 'error');
+								}
+							},
+							error: function() {
+								wcTPToast('Error deleting payment', 'error');
+							}
+						});
+					});
+
+					// Edit Payment
+					$(document).on('click', '.wc-tp-edit-payment', function() {
+						const row = $(this).closest('tr');
+						const paymentId = $(this).data('payment-id');
+						const amount = row.find('.wc-tp-payment-amount').data('amount');
+						const date = row.find('.wc-tp-payment-date').data('date');
+
+						// Convert date format for datetime-local input
+						const dateObj = new Date(date);
+						const formattedDate = dateObj.toISOString().slice(0, 16);
+
+						// Show edit form
+						const editForm = $(`
+							<tr class="wc-tp-edit-payment-row">
+								<td colspan="5">
+									<div class="wc-tp-inline-edit-form">
+										<div class="wc-tp-form-row">
+											<div class="wc-tp-form-group">
+												<label>Amount</label>
+												<input type="number" class="wc-tp-edit-amount" step="0.01" min="0" value="${amount}" />
+											</div>
+											<div class="wc-tp-form-group">
+												<label>Date</label>
+												<input type="datetime-local" class="wc-tp-edit-date" value="${formattedDate}" />
+											</div>
+											<div class="wc-tp-form-group">
+												<button type="button" class="button button-primary wc-tp-save-payment-edit" data-payment-id="${paymentId}">Save</button>
+												<button type="button" class="button wc-tp-cancel-payment-edit">Cancel</button>
+											</div>
+										</div>
+									</div>
+								</td>
+							</tr>
+						`);
+
+						row.hide();
+						row.after(editForm);
+					});
+
+					// Save Payment Edit
+					$(document).on('click', '.wc-tp-save-payment-edit', function() {
+						const paymentId = $(this).data('payment-id');
+						const amount = $('.wc-tp-edit-amount').val();
+						const date = $('.wc-tp-edit-date').val();
+
+						if (!amount || !date) {
+							wcTPToast('Please fill in all fields', 'error');
+							return;
+						}
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_update_payment',
+								user_id: userId,
+								payment_id: paymentId,
+								amount: amount,
+								date: date,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									wcTPToast('Payment updated successfully');
+									loadPaymentHistory();
+									updateStatsCards();
+								} else {
+									wcTPToast('Failed to update payment: ' + response.data, 'error');
+								}
+							},
+							error: function() {
+								wcTPToast('Error updating payment', 'error');
+							}
+						});
+					});
+
+					// Cancel Payment Edit
+					$(document).on('click', '.wc-tp-cancel-payment-edit', function() {
+						$('.wc-tp-edit-payment-row').remove();
+						$('tr').show();
+					});
+
+					function loadPaymentMethods() {
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_payment_methods',
+								user_id: userId,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									renderPaymentMethods(response.data.methods);
+									populatePaymentMethodDropdown(response.data.methods);
+								}
+							}
+						});
+					}
+
+					function renderPaymentMethods(methods) {
+						const container = $('#wc-tp-payment-methods-container');
+						
+						if (!methods || methods.length === 0) {
+							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💳</div><p>No payment methods added yet</p></div>');
+							return;
+						}
+
+						let html = '<div class="wc-tp-payment-methods-list">';
+						
+						$.each(methods, function(i, method) {
+							html += '<div class="wc-tp-payment-method-item">';
+							html += '<div class="wc-tp-payment-method-info">';
+							html += '<div class="wc-tp-payment-method-name">' + method.method_name + '</div>';
+							html += '<div class="wc-tp-payment-method-details">' + method.method_details + '</div>';
+							html += '</div>';
+							html += '<div class="wc-tp-payment-method-actions">';
+							html += '<button class="button wc-tp-delete-btn wc-tp-delete-method" data-method-id="' + method.id + '">Delete</button>';
+							html += '</div>';
+							html += '</div>';
+						});
+
+						html += '</div>';
+						container.html(html);
+					}
+
+					function populatePaymentMethodDropdown(methods) {
+						const dropdown = $('#wc-tp-payment-method');
+						dropdown.find('option:not(:first)').remove();
+
+						if (methods && methods.length > 0) {
+							$.each(methods, function(i, method) {
+								dropdown.append('<option value="' + method.method_name + '">' + method.method_name + '</option>');
+							});
+						}
+					}
+
+					function loadPaymentHistory() {
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_employee_payments',
+								user_id: userId,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									renderPaymentHistory(response.data.payments);
+								}
+							}
+						});
+					}
+
+					function renderPaymentHistory(payments) {
+						const container = $('#wc-tp-payment-history-container');
+						
+						if (!payments || payments.length === 0) {
+							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>No payments yet</p></div>');
+							return;
+						}
+
+						let html = '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th>Amount</th>';
+						html += '<th>Date</th>';
+						html += '<th>Method</th>';
+						html += '<th>Added By</th>';
+						html += '<th>Actions</th>';
+						html += '</tr></thead><tbody>';
+
+						$.each(payments, function(i, payment) {
+							html += '<tr>';
+							html += '<td class="wc-tp-payment-amount" data-amount="' + payment.amount + '"><strong>' + formatCurrency(payment.amount) + '</strong></td>';
+							html += '<td class="wc-tp-payment-date" data-date="' + payment.date + '">' + payment.date + '</td>';
+							html += '<td>' + (payment.payment_method || '-') + '</td>';
+							html += '<td>' + (payment.added_by || 'System') + '</td>';
+							html += '<td><div class="wc-tp-action-icons">';
+							html += '<button class="wc-tp-action-icon wc-tp-edit-payment" data-payment-id="' + payment.id + '" title="Edit Payment"><span class="dashicons dashicons-edit"></span></button>';
+							html += '<button class="wc-tp-action-icon wc-tp-delete-payment" data-payment-id="' + payment.id + '" title="Delete Payment"><span class="dashicons dashicons-trash"></span></button>';
+							html += '</div></td>';
+							html += '</tr>';
+						});
+
+						html += '</tbody></table>';
+						container.html(html);
+					}
+
+					function updateStatsCards() {
+						// Reload stats from server
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_employee_stats',
+								user_id: userId,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									const stats = response.data;
+									$('.wc-tp-stat-card').eq(1).find('.wc-tp-stat-value').text(formatCurrency(stats.total_earnings));
+									$('.wc-tp-stat-card').eq(2).find('.wc-tp-stat-value').text(formatCurrency(stats.total_paid));
+									$('.wc-tp-stat-card').eq(3).find('.wc-tp-stat-value').text(formatCurrency(stats.total_due));
+								}
+							}
+						});
+					}
+
+					function formatCurrency(value) {
+						return '<?php echo get_woocommerce_currency_symbol(); ?>' + parseFloat(value).toFixed(2);
+					}
+				}
+
+				// ============================================================================
+				// SALARY TAB
+				// ============================================================================
+				if ($('.wc-tp-salary-tab').length) {
+					loadSalaryHistory();
+
+					// Salary Type Change - Show/Hide Amount and Frequency
+					$('#wc-tp-salary-type').on('change', function() {
+						const salaryType = $(this).val();
+						
+						if (salaryType === 'commission') {
+							$('.wc-tp-salary-amount-group, .wc-tp-salary-frequency-group').slideUp(200);
+						} else {
+							$('.wc-tp-salary-amount-group, .wc-tp-salary-frequency-group').slideDown(200);
+						}
+					});
+
+					// Salary Form Submit
+					$('#wc-tp-salary-form').on('submit', function(e) {
+						e.preventDefault();
+
+						const salaryType = $('#wc-tp-salary-type').val();
+						const salaryAmount = $('#wc-tp-salary-amount').val();
+						const salaryFrequency = $('#wc-tp-salary-frequency').val();
+
+						if (salaryType !== 'commission' && (!salaryAmount || salaryAmount <= 0)) {
+							alert('Please enter a valid salary amount');
+							return;
+						}
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_update_employee_salary',
+								user_id: userId,
+								salary_type: salaryType,
+								salary_amount: salaryAmount,
+								salary_frequency: salaryFrequency,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									alert('Salary updated successfully');
+									loadSalaryHistory();
+								} else {
+									alert('Failed to update salary: ' + response.data);
+								}
+							},
+							error: function() {
+								alert('Error updating salary');
+							}
+						});
+					});
+
+					function loadSalaryHistory() {
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_salary_history',
+								user_id: userId,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									renderSalaryHistory(response.data.history);
+								}
+							}
+						});
+					}
+
+					function renderSalaryHistory(history) {
+						const container = $('#wc-tp-salary-history-container');
+						
+						if (!history || history.length === 0) {
+							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">📊</div><p>No salary history yet</p></div>');
+							return;
+						}
+
+						let html = '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th>Date</th>';
+						html += '<th>Old Type</th>';
+						html += '<th>New Type</th>';
+						html += '<th>Old Amount</th>';
+						html += '<th>New Amount</th>';
+						html += '<th>Frequency</th>';
+						html += '<th>Changed By</th>';
+						html += '</tr></thead><tbody>';
+
+						$.each(history, function(i, entry) {
+							const changedByUser = entry.changed_by ? 'User #' + entry.changed_by : 'System';
+							
+							html += '<tr>';
+							html += '<td>' + entry.date + '</td>';
+							html += '<td>' + formatSalaryType(entry.old_type) + '</td>';
+							html += '<td><strong>' + formatSalaryType(entry.new_type) + '</strong></td>';
+							html += '<td>' + (entry.old_amount ? formatCurrency(entry.old_amount) : '-') + '</td>';
+							html += '<td><strong>' + (entry.new_amount ? formatCurrency(entry.new_amount) : '-') + '</strong></td>';
+							html += '<td>' + (entry.new_frequency ? entry.new_frequency : '-') + '</td>';
+							html += '<td>' + changedByUser + '</td>';
+							html += '</tr>';
+						});
+
+						html += '</tbody></table>';
+						container.html(html);
+					}
+
+					function formatSalaryType(type) {
+						const types = {
+							'commission': 'Commission Based',
+							'fixed': 'Fixed Salary',
+							'combined': 'Combined (Base + Commission)'
+						};
+						return types[type] || type;
+					}
+
+					function formatCurrency(value) {
+						return '<?php echo get_woocommerce_currency_symbol(); ?>' + parseFloat(value).toFixed(2);
+					}
+				}
+			});
+		</script>
+		<?php
 	}
 }

@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.7.6] - 2026-04-12
+
+### IMPROVED - Employee Detail Page Payments Tab
+
+#### Toast Notification System
+- ✅ **Global Toast System**: Added reusable `wcTPToast()` function for all notifications
+- ✅ **No Browser Alerts**: Replaced all `alert()` with floating toast notifications
+- ✅ **Auto-Hide**: Toasts auto-hide after 4 seconds
+- ✅ **Manual Close**: Small close button (×) for manual dismissal
+- ✅ **Top-Right Position**: Fixed position in top-right corner
+- ✅ **Responsive**: Adapts to mobile screens
+- ✅ **Success/Error States**: Color-coded (green for success, red for error)
+
+#### Payment History Enhancements
+- ✅ **Added Method Column**: Shows payment method used
+- ✅ **Fixed Added By**: Now correctly displays user who added payment (was showing null)
+- ✅ **Action Icons**: Changed from buttons to icon buttons (edit + delete)
+- ✅ **Inline Editing**: Edit button opens inline form with prefilled values
+- ✅ **Edit Payment**: Can edit amount and date inline
+- ✅ **Save/Cancel**: Inline form with save and cancel buttons
+
+#### Stats Card Updates
+- ✅ **Auto-Update**: Stats cards update automatically after payment add/edit/delete
+- ✅ **Real-Time**: Uses new `wc_tp_get_employee_stats` AJAX handler
+- ✅ **Accurate**: Total Paid and Total Due reflect latest changes
+
+#### AJAX Handlers Added
+- ✅ `wc_tp_get_employee_stats` - Fetches updated employee statistics
+- ✅ `wc_tp_update_payment` - Updates existing payment (amount and date)
+
+#### User Experience
+- ✅ No page reloads needed
+- ✅ Smooth animations and transitions
+- ✅ Inline editing without leaving the page
+- ✅ Immediate feedback via toast notifications
+
 ## [5.7.5] - 2026-04-11
 
 ### IMPROVED - Employee Detail Page Tab Architecture
