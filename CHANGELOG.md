@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.6.2] - 2026-04-11
+
+### Bug Fix: Payroll & Employee Management Pages
+- Fixed payroll page showing "Please select both start and end dates" alert on load
+- Fixed employee management page not loading data on page load
+- Payroll page now loads with default dates (current month) automatically
+- Employee management page now loads all employees on page load
+- Removed unnecessary date validation that was blocking initial data load
+- Updated all asset enqueue versions to 5.6.1
+- All functionality preserved - 100% backward compatible
+
 ## [5.6.1] - 2026-04-11
 
 ### Optimization: Employee Management & Settings Pages CSS/JS Extraction
