@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.6.1] - 2026-04-11
+
+### Optimization: Employee Management & Settings Pages CSS/JS Extraction
+- Extracted all inline CSS from employee management page to `assets/css/employees.css`
+- Extracted all inline JavaScript from employee management page to `assets/js/employees.js`
+- Extracted all inline CSS from settings page to `assets/css/settings.css`
+- Extracted all inline JavaScript from settings page to `assets/js/settings.js`
+- Added proper asset enqueuing to both page classes with constructors
+- Reduced employee management PHP file from 671 lines to ~200 lines
+- Reduced settings PHP file from 400+ lines to ~250 lines
+- Improved code maintainability and performance
+- All functionality preserved - 100% backward compatible
+- Better browser caching and parallel asset loading
+
 ## [5.6.0] - 2026-04-11
 
 ### Optimization: Payroll Page CSS/JS Extraction
