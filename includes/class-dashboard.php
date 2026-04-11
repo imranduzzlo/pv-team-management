@@ -75,10 +75,7 @@ class WC_Team_Payroll_Dashboard {
 			<div class="wc-tp-dashboard-grid">
 				<!-- Top Earners -->
 				<div class="wc-tp-table-section" id="wc-tp-earners-section">
-					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-						<h2 style="margin: 0;"><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
-					</div>
+					<h2 style="margin: 0;"><?php esc_html_e( 'Top Earners', 'wc-team-payroll' ); ?></h2>
 					<div id="wc-tp-top-earners-container">
 						<!-- Content will be loaded via AJAX -->
 					</div>
@@ -88,7 +85,7 @@ class WC_Team_Payroll_Dashboard {
 				<div class="wc-tp-table-section" id="wc-tp-payments-section">
 					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
 						<h2 style="margin: 0;"><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
+						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payments' ), admin_url( 'admin.php' ) ) ); ?>" class="button button-secondary"><?php esc_html_e( 'View All', 'wc-team-payroll' ); ?></a>
 					</div>
 					<div id="wc-tp-recent-payments-container">
 						<!-- Content will be loaded via AJAX -->
