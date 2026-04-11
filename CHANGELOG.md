@@ -1,5 +1,54 @@
 # Changelog
 
+## [5.5.0] - 2026-04-11
+
+### Major Refactoring: Code Organization & Reusability
+
+#### Folder Structure Reorganization
+- Created `includes/backend/` for admin/backend pages
+- Created `includes/frontend/` for customer-facing pages
+- Moved backend classes: Dashboard, Payroll Page, Employee Management, Employee Detail, Settings
+- Moved frontend classes: My Account, Shortcodes
+- Updated main plugin file to load from new folder structure
+- Improves code organization and makes it clear which code is admin vs customer-facing
+
+#### Unified Design System
+- Created `assets/css/common.css` (550+ lines) with reusable components
+- Includes CSS variables, page wrapper, search filter, unified filter, table section, data table, badges, buttons, pagination, empty states
+- All pages now use consistent design system
+- Reduces CSS duplication across pages
+
+#### Shared JavaScript Utilities
+- Created `assets/js/common.js` (200+ lines) with shared utility functions
+- Functions: `getDateRange()`, `formatCurrency()`, `handleDatePresetChange()`, `renderPagination()`, `attachSortHandlers()`
+- Created `assets/js/employees.js` for employee management page
+- Created `assets/js/dashboard.js` for dashboard-specific logic
+- Eliminates duplicate JavaScript across pages
+
+#### Page Refactoring
+- **Dashboard**: Removed 1000+ lines of inline CSS, 500+ lines of inline JS
+- **Employee Management**: Removed 663 lines of inline CSS/JS
+- **Employee Detail**: Removed 712 lines of inline CSS/JS
+- **Settings**: Removed 98 lines of inline CSS/JS
+- **My Account**: Removed 60 lines of inline JS
+- **Shortcodes**: Removed 31 lines of inline JS
+- All pages now use common CSS/JS design system
+- Added constructors to all pages for proper WordPress asset enqueuing
+
+#### Code Quality Improvements
+- Total lines removed: ~2,500+ lines of duplicate CSS/JS
+- Improved code maintainability and readability
+- Easier to add new pages using existing components
+- Consistent design across entire plugin
+- All existing functionality preserved - 100% backward compatible
+
+### Technical Details
+- All pages now properly enqueue assets using WordPress hooks
+- Separated admin and customer-facing code for better organization
+- Reusable components reduce development time for new features
+- Design system uses CSS variables for easy customization
+- All AJAX handlers and business logic preserved
+
 ## [5.4.10] - 2026-04-11
 
 ### New Features
