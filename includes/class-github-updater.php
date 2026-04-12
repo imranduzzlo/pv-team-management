@@ -41,6 +41,7 @@ class WC_Team_Payroll_GitHub_Updater {
 	 */
 	public function clear_cache() {
 		delete_transient( 'wc_tp_github_release' );
+		delete_transient( 'wc_tp_last_update_check' );
 		delete_transient( 'update_plugins' );
 	}
 
@@ -91,6 +92,11 @@ class WC_Team_Payroll_GitHub_Updater {
 		// Normalize versions for comparison
 		$latest_version = $this->normalize_version( $latest_release['version'] );
 		$current_version_normalized = $this->normalize_version( $current_version );
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( "WC Team Payroll Update Check: Current={$current_version_normalized}, Latest={$latest_version}" );
+		}
 
 		// Only add to response if there's a newer version
 		if ( version_compare( $latest_version, $current_version_normalized, '>' ) ) {
@@ -199,11 +205,23 @@ class WC_Team_Payroll_GitHub_Updater {
 				'sslverify' => true,
 				'headers'   => array(
 					'Accept' => 'application/vnd.github.v3+json',
+					'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
 				),
 			)
 		);
 
 		if ( is_wp_error( $response ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'WC Team Payroll GitHub API Error: ' . $response->get_error_message() );
+			}
+			return false;
+		}
+
+		$http_code = wp_remote_retrieve_response_code( $response );
+		if ( $http_code !== 200 ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( "WC Team Payroll GitHub API HTTP {$http_code}: " . wp_remote_retrieve_body( $response ) );
+			}
 			return false;
 		}
 
@@ -211,6 +229,9 @@ class WC_Team_Payroll_GitHub_Updater {
 		$release = json_decode( $body, true );
 
 		if ( ! isset( $release['tag_name'] ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'WC Team Payroll GitHub API: No tag_name in response' );
+			}
 			return false;
 		}
 
@@ -224,8 +245,8 @@ class WC_Team_Payroll_GitHub_Updater {
 			'updated'      => $release['published_at'],
 		);
 
-		// Cache for 1 hour (shorter cache for faster updates)
-		set_transient( $transient_key, $result, 1 * HOUR_IN_SECONDS );
+		// Cache for 12 hours (longer cache to avoid rate limiting)
+		set_transient( $transient_key, $result, 12 * HOUR_IN_SECONDS );
 
 		return $result;
 	}
@@ -239,6 +260,9 @@ class WC_Team_Payroll_GitHub_Updater {
 			array(
 				'timeout'   => 10,
 				'sslverify' => true,
+				'headers'   => array(
+					'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
+				),
 			)
 		);
 

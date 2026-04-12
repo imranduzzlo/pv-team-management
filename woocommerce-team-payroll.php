@@ -221,6 +221,75 @@ add_action( 'plugins_loaded', function() {
 		$employees->ajax_update_employee_salary();
 	} );
 
+	// Debug: Check GitHub update status
+	add_action( 'wp_ajax_wc_tp_check_github_update', function() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Clear cache
+		delete_transient( 'wc_tp_github_release' );
+		delete_transient( 'wc_tp_last_update_check' );
+
+		// Get current version
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/woocommerce-team-payroll/woocommerce-team-payroll.php' );
+		$current_version = isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0';
+
+		// Get latest release from GitHub
+		$response = wp_remote_get(
+			'https://api.github.com/repos/imranduzzlo/pv-team-payroll/releases/latest',
+			array(
+				'timeout'   => 10,
+				'sslverify' => true,
+				'headers'   => array(
+					'Accept' => 'application/vnd.github.v3+json',
+					'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array(
+				'message' => 'GitHub API Error: ' . $response->get_error_message(),
+				'current_version' => $current_version,
+			) );
+		}
+
+		$http_code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+		$release = json_decode( $body, true );
+
+		if ( $http_code !== 200 ) {
+			wp_send_json_error( array(
+				'message' => "GitHub API HTTP {$http_code}",
+				'response' => $body,
+				'current_version' => $current_version,
+			) );
+		}
+
+		if ( ! isset( $release['tag_name'] ) ) {
+			wp_send_json_error( array(
+				'message' => 'No tag_name in GitHub response',
+				'response' => $release,
+				'current_version' => $current_version,
+			) );
+		}
+
+		$latest_version = ltrim( $release['tag_name'], 'v' );
+
+		wp_send_json_success( array(
+			'current_version' => $current_version,
+			'latest_version' => $latest_version,
+			'github_tag' => $release['tag_name'],
+			'github_url' => $release['html_url'],
+			'published_at' => $release['published_at'],
+			'update_available' => version_compare( $latest_version, $current_version, '>' ),
+		) );
+	} );
+
 	add_action( 'wp_ajax_wc_tp_add_payment', function() {
 		$employees = new WC_Team_Payroll_Employee_Management();
 		$employees->ajax_add_payment();

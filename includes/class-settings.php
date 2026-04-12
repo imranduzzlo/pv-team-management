@@ -36,6 +36,7 @@ class WC_Team_Payroll_Settings {
 				<a href="?page=wc-team-payroll-settings&tab=roles" class="nav-tab <?php echo $current_tab === 'roles' ? 'nav-tab-active' : ''; ?>">Employee Roles</a>
 				<a href="?page=wc-team-payroll-settings&tab=checkout" class="nav-tab <?php echo $current_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">Checkout</a>
 				<a href="?page=wc-team-payroll-settings&tab=advanced" class="nav-tab <?php echo $current_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
+				<a href="?page=wc-team-payroll-settings&tab=debug" class="nav-tab <?php echo $current_tab === 'debug' ? 'nav-tab-active' : ''; ?>">Debug</a>
 			</nav>
 
 			<form method="post" action="">
@@ -174,6 +175,115 @@ class WC_Team_Payroll_Settings {
 							</td>
 						</tr>
 					</table>
+				<?php endif; ?>
+
+				<?php if ( $current_tab === 'debug' ) : ?>
+					<h2>Debug Information</h2>
+					<p>Use this section to troubleshoot plugin issues and check GitHub update status.</p>
+					
+					<h3>GitHub Update Status</h3>
+					<div id="wc-tp-update-status" style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 15px 0;">
+						<p><strong>Checking GitHub for updates...</strong></p>
+						<p style="color: #666; font-size: 12px;">This may take a few seconds.</p>
+					</div>
+					<button type="button" class="button button-primary" id="wc-tp-check-update-btn">Check for Updates Now</button>
+					<button type="button" class="button" id="wc-tp-clear-cache-btn">Clear Update Cache</button>
+
+					<h3>Plugin Information</h3>
+					<table class="form-table">
+						<tr>
+							<th>Current Version</th>
+							<td id="wc-tp-current-version">Loading...</td>
+						</tr>
+						<tr>
+							<th>GitHub Repository</th>
+							<td><a href="https://github.com/imranduzzlo/pv-team-payroll" target="_blank">imranduzzlo/pv-team-payroll</a></td>
+						</tr>
+						<tr>
+							<th>Latest Release</th>
+							<td id="wc-tp-latest-version">Loading...</td>
+						</tr>
+						<tr>
+							<th>Update Available</th>
+							<td id="wc-tp-update-available">Loading...</td>
+						</tr>
+					</table>
+
+					<script>
+						jQuery(document).ready(function($) {
+							function checkGitHubUpdate() {
+								const statusDiv = $('#wc-tp-update-status');
+								statusDiv.html('<p><strong>Checking GitHub for updates...</strong></p><p style="color: #666; font-size: 12px;">This may take a few seconds.</p>');
+
+								$.ajax({
+									url: ajaxurl,
+									type: 'POST',
+									data: {
+										action: 'wc_tp_check_github_update',
+										nonce: '<?php echo wp_create_nonce( 'wc_team_payroll_nonce' ); ?>'
+									},
+									success: function(response) {
+										if (response.success) {
+											const data = response.data;
+											let html = '<table style="width: 100%; border-collapse: collapse;">';
+											html += '<tr style="background: #f0f0f0;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Current Version:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + data.current_version + '</td></tr>';
+											html += '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Latest Version:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + data.latest_version + '</td></tr>';
+											html += '<tr style="background: #f0f0f0;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>GitHub Tag:</strong></td><td style="padding: 8px; border: 1px solid #ddd;"><a href="' + data.github_url + '" target="_blank">' + data.github_tag + '</a></td></tr>';
+											html += '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Published:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + new Date(data.published_at).toLocaleString() + '</td></tr>';
+											
+											if (data.update_available) {
+												html += '<tr style="background: #fff3cd;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd; color: #856404;"><strong>✅ Update Available!</strong></td></tr>';
+											} else {
+												html += '<tr style="background: #d4edda;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd; color: #155724;"><strong>✅ You are up to date</strong></td></tr>';
+											}
+											
+											html += '</table>';
+											statusDiv.html(html);
+
+											// Update info table
+											$('#wc-tp-current-version').text(data.current_version);
+											$('#wc-tp-latest-version').text(data.latest_version);
+											$('#wc-tp-update-available').html(data.update_available ? '<span style="color: #d9534f;"><strong>Yes - Update Available</strong></span>' : '<span style="color: #5cb85c;"><strong>No - Up to Date</strong></span>');
+										} else {
+											statusDiv.html('<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; color: #721c24;"><strong>Error:</strong> ' + response.data.message + '</div>');
+										}
+									},
+									error: function() {
+										statusDiv.html('<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; color: #721c24;"><strong>Error:</strong> Failed to check GitHub API. Please try again.</div>');
+									}
+								});
+							}
+
+							// Check on page load
+							checkGitHubUpdate();
+
+							// Check button click
+							$('#wc-tp-check-update-btn').on('click', function(e) {
+								e.preventDefault();
+								checkGitHubUpdate();
+							});
+
+							// Clear cache button
+							$('#wc-tp-clear-cache-btn').on('click', function(e) {
+								e.preventDefault();
+								const btn = $(this);
+								btn.prop('disabled', true).text('Clearing...');
+
+								$.ajax({
+									url: ajaxurl,
+									type: 'POST',
+									data: {
+										action: 'wc_tp_check_github_update',
+										nonce: '<?php echo wp_create_nonce( 'wc_team_payroll_nonce' ); ?>'
+									},
+									complete: function() {
+										btn.prop('disabled', false).text('Clear Update Cache');
+										checkGitHubUpdate();
+									}
+								});
+							});
+						});
+					</script>
 				<?php endif; ?>
 
 				<?php submit_button(); ?>
