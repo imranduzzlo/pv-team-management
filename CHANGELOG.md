@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.13] - 2024-12-19
+
+### 🐛 **Critical Bug Fix**
+- **Payment Methods AJAX Handler**: Added missing `check_ajax_referer()` nonce verification
+- **Root Cause**: The AJAX handler was rejecting requests due to missing nonce verification, preventing payment methods from loading
+- **Impact**: Payment methods dropdown now correctly displays employee's payment methods when selected
+
+---
+
 ## [5.8.12] - 2024-12-19
 
 ### 🔧 **Technical Changes**
