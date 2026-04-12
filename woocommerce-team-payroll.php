@@ -1452,25 +1452,6 @@ add_action( 'admin_menu', function() {
 		}
 	);
 
-	// Payments submenu
-	add_submenu_page(
-		'wc-team-payroll',
-		__( 'Payments', 'wc-team-payroll' ),
-		__( 'Payments', 'wc-team-payroll' ),
-		'manage_options',
-		'wc-team-payroll-payments',
-		function() {
-			if ( class_exists( 'WC_Team_Payroll_Payments_Page' ) ) {
-				$payments = new WC_Team_Payroll_Payments_Page();
-				$payments->render_payments();
-			} else {
-				echo '<div class="wrap"><h1>Payments</h1>';
-				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
-				echo '</div>';
-			}
-		}
-	);
-
 	// Settings submenu
 	add_submenu_page(
 		'wc-team-payroll',
