@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.8.10] - 2024-12-19
+
+### ✨ **Features**
+- **Payments Page Form Enhancement**: Updated add payment form to include payment method and note fields
+- **Dynamic Payment Methods**: Payment methods dropdown automatically populates when an employee is selected
+- **Global Toast Notifications**: Replaced browser alerts with global toast notification system
+- **Form Submission**: Changed from button click to form submission for better UX
+
+### 🔧 **Technical Changes**
+- Added nonce field for security
+- Integrated with existing AJAX handlers
+- Consistent with employee details payment entry form
+
+---
+
 ## [5.8.9] - 2024-12-19
 
 ### ✨ **Features**
