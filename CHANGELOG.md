@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.8.16] - 2024-12-19
+
+### 🔄 **Complete Rewrite - Payments Page Form**
+- **Clean Implementation**: Rebuilt payment form from scratch with simple, clean code
+- **Form Fields**: Employee dropdown, Amount, Payment Date (auto-filled), Payment Method (dynamic), Note (optional), Add Payment button
+- **Dynamic Payment Methods**: Payment methods dropdown automatically populates when employee is selected
+- **Simplified JavaScript**: Removed complex code, using vanilla jQuery with IIFE pattern
+- **Global Toast Notifications**: Uses wcTPToast() for user feedback
+- **Nonce Security**: Proper nonce verification for all AJAX requests
+
+### ✨ **Features**
+- Employee selection with formatted names (PVVB-EMID1 Name)
+- Amount input with decimal support
+- Payment date with auto-filled current datetime
+- Dynamic payment method loading based on selected employee
+- Optional note field for payment details
+- Form validation before submission
+- Success/error notifications
+
+---
+
 ## [5.8.15] - 2024-12-19
 
 ### 🔧 **Verification Logging**
