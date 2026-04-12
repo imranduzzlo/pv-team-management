@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.7
+ * Version: 5.8.8
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -897,7 +897,13 @@ add_action( 'plugins_loaded', function() {
 		$processed_payroll = array();
 		foreach ( $payroll as $user_id => $data ) {
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
-			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$profile_picture_id = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_profile_picture', true ) : '';
+			$profile_picture_url = '';
+			
+			if ( $profile_picture_id ) {
+				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+			}
 			
 			// Determine salary type
 			$is_fixed_salary = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_fixed_salary', true ) : false;
@@ -911,6 +917,10 @@ add_action( 'plugins_loaded', function() {
 				$type_key = 'commission';
 			}
 			
+			$user_email = $data['user'] ? $data['user']->user_email : '';
+			$phone = $data['user'] ? get_user_meta( $data['user']->ID, 'billing_phone', true ) : '';
+			$user_role = $data['user'] ? ( isset( $data['user']->roles[0] ) ? $data['user']->roles[0] : '' ) : '';
+			
 			$processed_payroll[ $user_id ] = array(
 				'user_id'    => $data['user_id'],
 				'user'       => $data['user'],
@@ -921,6 +931,10 @@ add_action( 'plugins_loaded', function() {
 				'paid'       => $data['paid'],
 				'due'        => $data['due'],
 				'salary_type' => $type_key,
+				'profile_picture' => $profile_picture_url,
+				'user_email' => $user_email,
+				'phone'      => $phone,
+				'user_role'  => $user_role,
 			);
 		}
 		$payroll = $processed_payroll;

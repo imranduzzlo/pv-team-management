@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.8] - 2024-12-19
+
+### ✨ **Features**
+- **Payroll Details Page**: Added profile pictures and formatted employee names to payroll table
+- **Employee Display**: Shows employee name in format `PVVB-EMID1 Md Imran Hossain` with profile picture
+- **Enhanced Data**: Added user email, phone, and role information to payroll data AJAX response
+
+---
+
 ## [5.8.7] - 2024-12-19
 
 ### 🐛 **Bug Fixes**

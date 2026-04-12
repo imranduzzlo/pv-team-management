@@ -724,7 +724,11 @@ class WC_Team_Payroll_Page {
 								orders: data.orders,
 								total: data.total,
 								paid: data.paid,
-								due: data.due
+								due: data.due,
+								profile_picture: data.profile_picture,
+								user_email: data.user_email,
+								phone: data.phone,
+								user_role: data.user_role
 							});
 						});
 					}
@@ -743,8 +747,13 @@ class WC_Team_Payroll_Page {
 					html += '</tr></thead><tbody>';
 
 					$.each(pageData, function(i, data) {
+						const profileImg = data.profile_picture ? '<img src="' + data.profile_picture + '" alt="' + data.name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const tooltip = 'Name: ' + data.name + '\nEmail: ' + (data.user_email || 'N/A') + '\nPhone: ' + (data.phone || 'N/A') + '\nRole: ' + (data.user_role || 'N/A');
+						const userEditUrl = 'user-edit.php?user_id=' + data.userId;
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + data.name + '</span></a>';
+						
 						html += '<tr data-user-id="' + data.userId + '">';
-						html += '<td><strong>' + data.name + '</strong></td>';
+						html += '<td><strong>' + nameHtml + '</strong></td>';
 						html += '<td><span class="wc-tp-badge">' + data.orders + '</span></td>';
 						html += '<td>' + formatCurrency(data.total) + '</td>';
 						html += '<td>' + formatCurrency(data.paid) + '</td>';
