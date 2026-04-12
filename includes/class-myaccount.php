@@ -436,7 +436,7 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get orders data
 	 */
 	public static function ajax_get_orders_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id || ! self::user_has_agent_role( $user_id ) ) {
@@ -579,7 +579,7 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get order details
 	 */
 	public static function ajax_get_order_details() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id || ! self::user_has_agent_role( $user_id ) ) {

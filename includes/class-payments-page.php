@@ -148,95 +148,91 @@ class WC_Team_Payroll_Payments_Page {
 		</div>
 
 		<script>
-		(function($) {
-			'use strict';
-			
-			$(document).ready(function() {
-				// Load payment methods when employee is selected
-				$('#wc-tp-payment-employee').on('change', function() {
-					var employeeId = $(this).val();
-					var nonce = $('#wc_team_payroll_nonce').val();
-					
-					if (!employeeId) {
-						$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>');
-						return;
-					}
-					
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_get_payment_methods',
-							user_id: employeeId,
-							nonce: nonce
-						},
-						success: function(response) {
-							if (response.success && response.data.methods && response.data.methods.length > 0) {
-								var html = '<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>';
-								$.each(response.data.methods, function(i, method) {
-									html += '<option value="' + method.method_name + '">' + method.method_name + '</option>';
-								});
-								$('#wc-tp-payment-method').html(html);
-							} else {
-								$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'No payment methods', 'wc-team-payroll' ); ?></option>');
-							}
-						},
-						error: function() {
-							$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Error loading methods', 'wc-team-payroll' ); ?></option>');
-						}
-					});
-				});
+		jQuery(document).ready(function($) {
+			// Load payment methods when employee is selected
+			$('#wc-tp-payment-employee').on('change', function() {
+				var employeeId = $(this).val();
+				var nonce = $('#wc_team_payroll_nonce').val();
 				
-				// Add payment form submit
-				$('#wc-tp-add-payment-form').on('submit', function(e) {
-					e.preventDefault();
-					
-					var employeeId = $('#wc-tp-payment-employee').val();
-					var amount = $('#wc-tp-payment-amount').val();
-					var date = $('#wc-tp-payment-date').val();
-					var method = $('#wc-tp-payment-method').val();
-					var note = $('#wc-tp-payment-note').val();
-					var nonce = $('#wc_team_payroll_nonce').val();
-					
-					if (!employeeId || !amount || !date) {
-						wcTPToast('<?php esc_js_e( 'Please fill all required fields', 'wc-team-payroll' ); ?>', 'error');
-						return;
-					}
-					
-					$('#wc-tp-add-payment-btn').prop('disabled', true).text('<?php esc_js_e( 'Adding...', 'wc-team-payroll' ); ?>');
-					
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'wc_tp_add_payment',
-							user_id: employeeId,
-							amount: amount,
-							payment_date: date,
-							payment_method: method || '',
-							note: note,
-							nonce: nonce
-						},
-						success: function(response) {
-							if (response.success) {
-								wcTPToast('<?php esc_js_e( 'Payment added successfully', 'wc-team-payroll' ); ?>');
-								$('#wc-tp-add-payment-form')[0].reset();
-								$('#wc-tp-payment-date').val(new Date().toISOString().slice(0, 16));
-								$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>');
-							} else {
-								wcTPToast('<?php esc_js_e( 'Error adding payment', 'wc-team-payroll' ); ?>', 'error');
-							}
-						},
-						error: function() {
-							wcTPToast('<?php esc_js_e( 'Error adding payment', 'wc-team-payroll' ); ?>', 'error');
-						},
-						complete: function() {
-							$('#wc-tp-add-payment-btn').prop('disabled', false).text('<?php esc_js_e( 'Add Payment', 'wc-team-payroll' ); ?>');
+				if (!employeeId) {
+					$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>');
+					return;
+				}
+				
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'wc_tp_get_payment_methods',
+						user_id: employeeId,
+						wc_team_payroll_nonce: nonce
+					},
+					success: function(response) {
+						if (response.success && response.data.methods && response.data.methods.length > 0) {
+							var html = '<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>';
+							$.each(response.data.methods, function(i, method) {
+								html += '<option value="' + method.method_name + '">' + method.method_name + '</option>';
+							});
+							$('#wc-tp-payment-method').html(html);
+						} else {
+							$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'No payment methods', 'wc-team-payroll' ); ?></option>');
 						}
-					});
+					},
+					error: function() {
+						$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Error loading methods', 'wc-team-payroll' ); ?></option>');
+					}
 				});
 			});
-		})(jQuery);
+			
+			// Add payment form submit
+			$('#wc-tp-add-payment-form').on('submit', function(e) {
+				e.preventDefault();
+				
+				var employeeId = $('#wc-tp-payment-employee').val();
+				var amount = $('#wc-tp-payment-amount').val();
+				var date = $('#wc-tp-payment-date').val();
+				var method = $('#wc-tp-payment-method').val();
+				var note = $('#wc-tp-payment-note').val();
+				var nonce = $('#wc_team_payroll_nonce').val();
+				
+				if (!employeeId || !amount || !date) {
+					wcTPToast('<?php esc_js_e( 'Please fill all required fields', 'wc-team-payroll' ); ?>', 'error');
+					return;
+				}
+				
+				$('#wc-tp-add-payment-btn').prop('disabled', true).text('<?php esc_js_e( 'Adding...', 'wc-team-payroll' ); ?>');
+				
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'wc_tp_add_payment',
+						user_id: employeeId,
+						amount: amount,
+						payment_date: date,
+						payment_method: method || '',
+						note: note,
+						wc_team_payroll_nonce: nonce
+					},
+					success: function(response) {
+						if (response.success) {
+							wcTPToast('<?php esc_js_e( 'Payment added successfully', 'wc-team-payroll' ); ?>');
+							$('#wc-tp-add-payment-form')[0].reset();
+							$('#wc-tp-payment-date').val(new Date().toISOString().slice(0, 16));
+							$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>');
+						} else {
+							wcTPToast('<?php esc_js_e( 'Error adding payment', 'wc-team-payroll' ); ?>', 'error');
+						}
+					},
+					error: function() {
+						wcTPToast('<?php esc_js_e( 'Error adding payment', 'wc-team-payroll' ); ?>', 'error');
+					},
+					complete: function() {
+						$('#wc-tp-add-payment-btn').prop('disabled', false).text('<?php esc_js_e( 'Add Payment', 'wc-team-payroll' ); ?>');
+					}
+				});
+			});
+		});
 		</script>
 		<?php
 	}

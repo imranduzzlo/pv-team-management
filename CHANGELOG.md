@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.8.18] - 2024-12-19
+
+### 🔧 **Critical Bug Fix - Nonce Field Names**
+- **AJAX Nonce Verification**: Fixed all AJAX handlers to use correct nonce field name `wc_team_payroll_nonce` instead of `nonce`
+- **Payment Methods Loading**: Fixed payment methods dropdown not loading in payments page due to nonce verification failure
+- **Consistent Nonce Handling**: Updated all AJAX calls across employee detail, payments page, and other pages to use correct nonce field name
+- **Files Updated**: 
+  - `woocommerce-team-payroll.php`: Fixed nonce field names in AJAX handlers
+  - `includes/class-employee-management.php`: Fixed nonce field names in payment and salary handlers
+  - `includes/class-myaccount.php`: Fixed nonce field names in order data handlers
+  - `includes/class-ajax-handlers.php`: Fixed nonce field names in payroll handlers
+  - `includes/class-employee-detail.php`: Fixed all AJAX calls to use correct nonce field name
+  - `includes/class-payments-page.php`: Fixed payment methods and add payment AJAX calls
+
+### ✨ **Result**
+- Payment methods now correctly load when employee is selected in payments page
+- All AJAX requests properly verify nonce security
+- Consistent nonce handling across entire plugin
+
+---
+
 ## [5.8.17] - 2024-12-19
 
 ### 🔧 **Critical Bug Fix**

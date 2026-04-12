@@ -1344,7 +1344,7 @@ class WC_Team_Payroll_Employee_Detail {
 							action: 'wc_tp_update_employee_status',
 							user_id: userId,
 							status: newStatus,
-							nonce: nonce
+							wc_team_payroll_nonce: nonce
 						},
 						success: function(response) {
 							if (response.success) {
@@ -1597,7 +1597,7 @@ class WC_Team_Payroll_Employee_Detail {
 								status: status,
 								flag: flag,
 								search: search,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -1846,7 +1846,7 @@ class WC_Team_Payroll_Employee_Detail {
 								payment_date: date,
 								payment_method: method || '',
 								note: note,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -1888,7 +1888,7 @@ class WC_Team_Payroll_Employee_Detail {
 								user_id: userId,
 								method_name: methodName,
 								method_details: methodDetails,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -1960,7 +1960,7 @@ class WC_Team_Payroll_Employee_Detail {
 								method_id: methodId,
 								method_name: methodName,
 								method_details: methodDetails,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -1996,7 +1996,7 @@ class WC_Team_Payroll_Employee_Detail {
 										action: 'wc_tp_delete_payment_method',
 										user_id: userId,
 										method_id: methodId,
-										nonce: nonce
+										wc_team_payroll_nonce: nonce
 									},
 									success: function(response) {
 										if (response.success) {
@@ -2065,7 +2065,7 @@ class WC_Team_Payroll_Employee_Detail {
 											action: 'wc_tp_delete_payment_method',
 											user_id: userId,
 											method_id: methodId,
-											nonce: nonce
+											wc_team_payroll_nonce: nonce
 										},
 										success: function(response) {
 											if (response.success) {
@@ -2119,7 +2119,7 @@ class WC_Team_Payroll_Employee_Detail {
 										action: 'wc_tp_delete_payment',
 										user_id: userId,
 										payment_id: paymentId,
-										nonce: nonce
+										wc_team_payroll_nonce: nonce
 									},
 									success: function(response) {
 										if (response.success) {
@@ -2189,7 +2189,7 @@ class WC_Team_Payroll_Employee_Detail {
 											action: 'wc_tp_delete_payment',
 											user_id: userId,
 											payment_id: paymentId,
-											nonce: nonce
+											wc_team_payroll_nonce: nonce
 										},
 										success: function(response) {
 											if (response.success) {
@@ -2310,7 +2310,7 @@ class WC_Team_Payroll_Employee_Detail {
 								date: date,
 								payment_method: method || '',
 								note: note,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -2340,7 +2340,7 @@ class WC_Team_Payroll_Employee_Detail {
 							data: {
 								action: 'wc_tp_get_payment_methods',
 								user_id: userId,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -2490,7 +2490,7 @@ class WC_Team_Payroll_Employee_Detail {
 							data: {
 								action: 'wc_tp_get_employee_payments',
 								user_id: userId,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -2653,7 +2653,7 @@ class WC_Team_Payroll_Employee_Detail {
 							data: {
 								action: 'wc_tp_get_employee_stats',
 								user_id: userId,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -2726,7 +2726,7 @@ class WC_Team_Payroll_Employee_Detail {
 								salary_type: salaryType,
 								salary_amount: salaryAmount,
 								salary_frequency: salaryFrequency,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
@@ -2749,7 +2749,7 @@ class WC_Team_Payroll_Employee_Detail {
 							data: {
 								action: 'wc_tp_get_salary_history',
 								user_id: userId,
-								nonce: nonce
+								wc_team_payroll_nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {

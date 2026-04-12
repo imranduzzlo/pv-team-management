@@ -842,7 +842,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_update_employee_salary() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -944,7 +944,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_add_payment() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -981,7 +981,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_delete_payment() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -1007,7 +1007,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_get_payment_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -1031,7 +1031,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_add_order_bonus() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
