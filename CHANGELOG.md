@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.24] - 2026-04-12
+### Redesigned Employee Header - Modern Profile Card Layout
+- **New Header Layout**: Completely redesigned to match modern profile card design
+  - Left column: Employee ID, Email, Phone (vertical stack with icons)
+  - Center: Large profile picture with negative margin (30-40% out of card)
+  - Below picture: Employee name and role
+  - Bio section: Clean text display with top/bottom borders
+  - Bottom: Social icons (left) and salary type box (right)
+- **Clean Design**: Removed box styling, using clean text with icons
+- **Smart Placeholders**: 
+  - Missing text shows "---" (hyphens)
+  - Missing profile picture shows initials (first letters of display name)
+- **Improved Spacing**: Better visual hierarchy with proper margins and padding
+- **Mobile Responsive**: Optimized for all screen sizes (desktop, tablet, mobile)
+- **Dynamic Styling**: All colors controlled via admin settings
+- **Professional Look**: Matches modern profile card design patterns
+
+## [1.0.23] - 2026-04-12
+### Stable Release - My Account Enhancement Complete
+- **Professional Employee Header**: Fully implemented with connecting lines, profile picture, and organized info boxes
+- **Complete Data Display**: Employee ID, Name, Phone, Email, Role, Status, and Bio sections
+- **Social Media Integration**: Facebook, WhatsApp, Instagram, LinkedIn icons with brand color hovers
+- **Salary Type Section**: Dynamic display with conditional linking to Salary Details page
+- **Mobile Responsive**: Optimized layouts for desktop (1024px+), tablet (768px), and mobile (480px)
+- **Dynamic Styling**: All colors controlled via admin settings (header_border_color, etc.)
+- **Advanced Table Features**: Sorting, pagination, search, and per-page options across all My Account pages
+- **Consistent Design**: Applied professional design pattern across all 4 My Account pages
+- **Admin Settings Integration**: Header border color and styling settings fully functional
+
 ## [1.0.22] - 2026-04-12
 ### Enhanced My Account Implementation
 - **Enhanced Employee Header**: Added comprehensive employee header with profile picture, employee ID, role, display name, phone, email, bio, and status across all My Account pages

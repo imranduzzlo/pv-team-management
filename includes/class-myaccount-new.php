@@ -1174,35 +1174,36 @@ class WC_Team_Payroll_MyAccount_New {
 					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
 				}
 				
-				.wc-tp-employee-header-new .connecting-lines .line {
-					stroke: {$header_border_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .info-item .label {
+				.wc-tp-employee-header-new .stat-label {
 					color: {$text_color} !important;
 					opacity: 0.7 !important;
 				}
 				
-				.wc-tp-employee-header-new .info-item .value {
+				.wc-tp-employee-header-new .stat-value {
 					color: {$heading_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
-				.wc-tp-employee-header-new .value.role-badge {
-					background: {$card_background} !important;
-					color: {$primary_color} !important;
-					border: 1px solid {$border_color} !important;
+				.wc-tp-employee-header-new .stat-icon {
+					background: {$background_color} !important;
+					color: {$header_border_color} !important;
+					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+				}
+				
+				.wc-tp-employee-header-new .profile-name {
+					color: {$heading_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .profile-role {
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
 				}
 				
 				.wc-tp-employee-header-new .header-bio-section {
-					background: {$background_color} !important;
-					border-left: 4px solid {$header_border_color} !important;
-					border-radius: {$card_border_radius}px !important;
-				}
-				
-				.wc-tp-employee-header-new .bio-label {
-					color: {$text_color} !important;
-					opacity: 0.7 !important;
+					background: transparent !important;
+					border-top: 1px solid {$border_color} !important;
+					border-bottom: 1px solid {$border_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .bio-text {
@@ -1211,13 +1212,14 @@ class WC_Team_Payroll_MyAccount_New {
 				}
 				
 				.wc-tp-employee-header-new .header-bottom-section {
-					border-top: 2px solid {$border_color} !important;
+					border-top: none !important;
 				}
 				
 				.wc-tp-employee-header-new .social-icon {
 					background: {$background_color} !important;
 					border: 2px solid {$border_color} !important;
 					color: {$text_color} !important;
+					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
 				}
 				
 				.wc-tp-employee-header-new .social-icon:hover {
@@ -1231,16 +1233,19 @@ class WC_Team_Payroll_MyAccount_New {
 					border: 1px solid {$border_color} !important;
 					color: {$heading_color} !important;
 					font-family: {$font_family} !important;
+					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
 				}
 				
 				.wc-tp-employee-header-new .salary-type-link {
 					background: {$primary_color} !important;
 					color: {$button_text_color} !important;
 					font-family: {$font_family} !important;
+					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
 				}
 				
 				.wc-tp-employee-header-new .salary-type-link:hover {
 					background: {$link_hover_color} !important;
+					box-shadow: 0 4px 12px rgba(0,115,170,0.2) !important;
 				}
 				
 				/* Headings */
@@ -1532,16 +1537,16 @@ class WC_Team_Payroll_MyAccount_New {
 			return '';
 		}
 
-		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
+		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true ) ?: '---';
 		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
 		$profile_picture_url = $profile_picture_id ? wp_get_attachment_url( $profile_picture_id ) : '';
-		$phone = get_user_meta( $user_id, 'billing_phone', true );
+		$phone = get_user_meta( $user_id, 'billing_phone', true ) ?: '---';
+		$email = $user->user_email ?: '---';
 		$bio = get_user_meta( $user_id, 'description', true );
 		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
 		
 		// Get salary information
 		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
-		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
 		
 		// Get user role with proper labeling
 		$user_roles = $user->roles;
@@ -1562,106 +1567,71 @@ class WC_Team_Payroll_MyAccount_New {
 				break;
 			}
 		}
+		
+		// Generate initials for placeholder
+		$name_parts = explode( ' ', $user->display_name );
+		$initials = '';
+		foreach ( $name_parts as $part ) {
+			$initials .= strtoupper( substr( $part, 0, 1 ) );
+		}
+		$initials = substr( $initials, 0, 2 );
 
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
-			<!-- Main Header Section with Connecting Lines -->
-			<div class="header-main-section">
-				<!-- Left Column with Info Boxes -->
-				<div class="header-column header-left">
-					<div class="info-box">
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
-							<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
-						</div>
-						<div class="info-box-icon">
+			<!-- Top Section: Left Stats and Center Profile -->
+			<div class="header-top-section">
+				<!-- Left Column: ID, Email, Phone -->
+				<div class="header-left-stats">
+					<!-- Employee ID -->
+					<div class="stat-item">
+						<div class="stat-icon">
 							<i class="ph ph-identification-badge"></i>
 						</div>
-					</div>
-					
-					<div class="info-box">
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></span>
-							<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
-						</div>
-						<div class="info-box-icon">
-							<i class="ph ph-user"></i>
+						<div class="stat-content">
+							<span class="stat-label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
+							<span class="stat-value"><?php echo esc_html( $vb_user_id ); ?></span>
 						</div>
 					</div>
 					
-					<div class="info-box">
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
-							<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
+					<!-- Email -->
+					<div class="stat-item">
+						<div class="stat-icon">
+							<i class="ph ph-envelope"></i>
 						</div>
-						<div class="info-box-icon">
+						<div class="stat-content">
+							<span class="stat-label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
+							<span class="stat-value"><?php echo esc_html( $email ); ?></span>
+						</div>
+					</div>
+					
+					<!-- Phone -->
+					<div class="stat-item">
+						<div class="stat-icon">
 							<i class="ph ph-phone"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
+							<span class="stat-value"><?php echo esc_html( $phone ); ?></span>
 						</div>
 					</div>
 				</div>
 				
-				<!-- Center Profile Picture with Connecting Lines -->
-				<div class="header-center">
-					<svg class="connecting-lines left-lines" viewBox="0 0 100 300" preserveAspectRatio="none">
-						<line x1="100" y1="50" x2="0" y2="50" class="line" />
-						<line x1="100" y1="150" x2="0" y2="150" class="line" />
-						<line x1="100" y1="250" x2="0" y2="250" class="line" />
-						<polyline points="100,50 90,50 90,150 100,150" class="line" />
-						<polyline points="100,150 90,150 90,250 100,250" class="line" />
-					</svg>
-					
+				<!-- Center: Profile Picture with Name and Role Below -->
+				<div class="header-center-profile">
 					<div class="profile-picture-container">
 						<?php if ( $profile_picture_url ) : ?>
 							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
 						<?php else : ?>
 							<div class="profile-picture-placeholder">
-								<i class="ph ph-user"></i>
+								<span class="initials"><?php echo esc_html( $initials ); ?></span>
 							</div>
 						<?php endif; ?>
 					</div>
 					
-					<svg class="connecting-lines right-lines" viewBox="0 0 100 300" preserveAspectRatio="none">
-						<line x1="0" y1="50" x2="100" y2="50" class="line" />
-						<line x1="0" y1="150" x2="100" y2="150" class="line" />
-						<line x1="0" y1="250" x2="100" y2="250" class="line" />
-						<polyline points="0,50 10,50 10,150 0,150" class="line" />
-						<polyline points="0,150 10,150 10,250 0,250" class="line" />
-					</svg>
-				</div>
-				
-				<!-- Right Column with Info Boxes -->
-				<div class="header-column header-right">
-					<div class="info-box">
-						<div class="info-box-icon">
-							<i class="ph ph-envelope"></i>
-						</div>
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
-							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
-						</div>
-					</div>
-					
-					<div class="info-box">
-						<div class="info-box-icon">
-							<i class="ph ph-briefcase"></i>
-						</div>
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></span>
-							<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
-						</div>
-					</div>
-					
-					<div class="info-box">
-						<div class="info-box-icon">
-							<i class="ph ph-circle-fill"></i>
-						</div>
-						<div class="info-box-content">
-							<span class="label"><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></span>
-							<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
-								<?php echo esc_html( ucfirst( $employee_status ) ); ?>
-							</span>
-						</div>
+					<div class="profile-info">
+						<h3 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h3>
+						<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -1669,7 +1639,6 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Bio Section -->
 			<?php if ( $bio ) : ?>
 				<div class="header-bio-section">
-					<span class="bio-label"><?php esc_html_e( 'About', 'wc-team-payroll' ); ?></span>
 					<p class="bio-text"><?php echo esc_html( $bio ); ?></p>
 				</div>
 			<?php endif; ?>
