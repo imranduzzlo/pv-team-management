@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.22] - 2026-04-12
+
+Added Select2 library for searchable dropdowns. Employee dropdown now displays in format: vb_user_id Display Name for better identification and search capability.
+
+---
+# Changelog
+
 ## [5.8.21] - 2026-04-12
 
 Fixed fatal error on payments page caused by incorrect method name. Changed render_payments() to render_payments_page() in the admin menu callback.
@@ -711,6 +718,7 @@ Added new Payments page with payment entry form, history table with advanced fil
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
 
 
