@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.30] - 2026-04-13
+### Enhanced Header with Interactive Features
+- **ID Icon & Value**: Clickable to copy ID with floating "Copied!" notification (auto-hides after 3s)
+- **Phone**: Clickable to call (tel: link)
+- **Email**: Clickable to email (mailto: link)
+- **Salary Type**: Clickable link to salary-details page (no link if already on that page)
+- **Status Icon**: Changed to `ph-check-square-offset` icon
+- **Placeholders**: All empty fields show "---" hyphens (including bio)
+- **Bio Section**: Always visible (even if empty, shows "---")
+- **Responsive Breakpoint**: Changed from 1024px to 620px for 2-column to single-column layout
+- **Mobile Alignment**: Profile picture left-aligned on mobile (not centered)
+- **Name Styling**: Removed all margins and padding for clean spacing
+
 ## [1.0.29] - 2026-04-13
 ### Fixed Dynamic CSS Class Names
 - Updated dynamic CSS selectors to match new header layout class names

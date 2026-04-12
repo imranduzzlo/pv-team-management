@@ -97,11 +97,12 @@
 }
 
 .profile-name {
-	margin: 0;
+	margin: 0 !important;
+	padding: 0 !important;
 	font-size: 24px;
 	font-weight: 700;
 	color: #212529;
-	line-height: 1.2;
+	line-height: 1;
 	flex: 1;
 }
 
@@ -177,6 +178,44 @@
 	font-weight: 600;
 }
 
+/* Copy notification */
+.copy-notification {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: #28a745;
+	color: #fff;
+	padding: 12px 20px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	font-size: 14px;
+	font-weight: 600;
+	z-index: 9999;
+	animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s;
+}
+
+@keyframes slideIn {
+	from {
+		transform: translateX(400px);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideOut {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(400px);
+		opacity: 0;
+	}
+}
+
 /* Social Icons Row */
 .social-icons-row {
 	display: flex;
@@ -242,8 +281,8 @@
    RESPONSIVE DESIGN
    ============================================================================ */
 
-/* Tablet Responsive */
-@media (max-width: 1024px) {
+/* Tablet Responsive - Start at 620px */
+@media (max-width: 620px) {
 	.header-main-grid {
 		grid-template-columns: 1fr;
 		gap: 20px;

@@ -1510,6 +1510,34 @@ class WC_Team_Payroll_MyAccount_New {
 					$(document).ajaxComplete(function() {
 						setTimeout(addMyAccountIcons, 100);
 					});
+					
+					// Copy to clipboard functionality for header info
+					$(document).on("click", ".wc-tp-employee-header-new [data-copy], .wc-tp-employee-header-new .info-item i[data-copy]", function(e) {
+						e.preventDefault();
+						var textToCopy = $(this).data("copy");
+						
+						if (!textToCopy || textToCopy === "---") {
+							return;
+						}
+						
+						// Copy to clipboard
+						var tempInput = $("<input>");
+						$("body").append(tempInput);
+						tempInput.val(textToCopy).select();
+						document.execCommand("copy");
+						tempInput.remove();
+						
+						// Show notification
+						var notification = $("<div class=\"copy-notification\">Copied!</div>");
+						$("body").append(notification);
+						
+						// Auto-hide after 3 seconds
+						setTimeout(function() {
+							notification.fadeOut(300, function() {
+								$(this).remove();
+							});
+						}, 3000);
+					});
 				});
 			' );
 		}
@@ -1529,7 +1557,7 @@ class WC_Team_Payroll_MyAccount_New {
 		$profile_picture_url = $profile_picture_id ? wp_get_attachment_url( $profile_picture_id ) : '';
 		$phone = get_user_meta( $user_id, 'billing_phone', true ) ?: '---';
 		$email = $user->user_email ?: '---';
-		$bio = get_user_meta( $user_id, 'description', true );
+		$bio = get_user_meta( $user_id, 'description', true ) ?: '---';
 		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
 		
 		// Get salary information
@@ -1553,6 +1581,10 @@ class WC_Team_Payroll_MyAccount_New {
 			$initials .= strtoupper( substr( $part, 0, 1 ) );
 		}
 		$initials = substr( $initials, 0, 2 );
+
+		// Get current page URL to check if on salary-details page
+		$current_url = home_url( add_query_arg( array() ) );
+		$is_salary_details_page = strpos( $current_url, 'salary-details' ) !== false;
 
 		ob_start();
 		?>
@@ -1584,23 +1616,34 @@ class WC_Team_Payroll_MyAccount_New {
 					<div class="header-row-2">
 						<!-- Left Column: ID, Phone, Email -->
 						<div class="info-column-left">
+							<!-- ID (Clickable to copy) -->
 							<div class="info-item">
-								<i class="ph ph-identification-badge"></i>
+								<i class="ph ph-identification-badge" style="cursor: pointer;" data-copy="<?php echo esc_attr( $vb_user_id ); ?>" title="Click to copy"></i>
 								<span class="info-value" data-copy="<?php echo esc_attr( $vb_user_id ); ?>" title="Click to copy"><?php echo esc_html( $vb_user_id ); ?></span>
 							</div>
+							<!-- Phone (Clickable to call) -->
 							<div class="info-item">
 								<i class="ph ph-phone"></i>
-								<span class="info-value" data-copy="<?php echo esc_attr( $phone ); ?>" title="Click to copy"><?php echo esc_html( $phone ); ?></span>
+								<?php if ( $phone !== '---' ) : ?>
+									<a href="tel:<?php echo esc_attr( $phone ); ?>" class="info-value" style="text-decoration: none; color: inherit;"><?php echo esc_html( $phone ); ?></a>
+								<?php else : ?>
+									<span class="info-value"><?php echo esc_html( $phone ); ?></span>
+								<?php endif; ?>
 							</div>
+							<!-- Email (Clickable to email) -->
 							<div class="info-item">
 								<i class="ph ph-envelope"></i>
-								<span class="info-value" data-copy="<?php echo esc_attr( $email ); ?>" title="Click to copy"><?php echo esc_html( $email ); ?></span>
+								<?php if ( $email !== '---' ) : ?>
+									<a href="mailto:<?php echo esc_attr( $email ); ?>" class="info-value" style="text-decoration: none; color: inherit;"><?php echo esc_html( $email ); ?></a>
+								<?php else : ?>
+									<span class="info-value"><?php echo esc_html( $email ); ?></span>
+								<?php endif; ?>
 							</div>
 						</div>
 						
 						<!-- Right Column: Salary Type, Status, Social Icons -->
 						<div class="info-column-right">
-							<!-- Salary Type -->
+							<!-- Salary Type (Clickable to salary-details page) -->
 							<div class="info-item">
 								<i class="ph ph-briefcase"></i>
 								<?php
@@ -1610,13 +1653,18 @@ class WC_Team_Payroll_MyAccount_New {
 									'combined' => __( 'Combined', 'wc-team-payroll' ),
 								);
 								$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
+								$salary_details_url = wc_get_account_endpoint_url( 'salary-details' );
 								?>
-								<span class="info-value"><?php echo esc_html( $salary_label ); ?></span>
+								<?php if ( ! $is_salary_details_page ) : ?>
+									<a href="<?php echo esc_url( $salary_details_url ); ?>" class="info-value" style="text-decoration: none; color: inherit;"><?php echo esc_html( $salary_label ); ?></a>
+								<?php else : ?>
+									<span class="info-value"><?php echo esc_html( $salary_label ); ?></span>
+								<?php endif; ?>
 							</div>
 							
 							<!-- Status -->
 							<div class="info-item">
-								<i class="ph ph-circle-fill"></i>
+								<i class="ph ph-check-square-offset"></i>
 								<span class="info-value status-<?php echo esc_attr( $employee_status ); ?>"><?php echo esc_html( ucfirst( $employee_status ) ); ?></span>
 							</div>
 							
@@ -1639,11 +1687,9 @@ class WC_Team_Payroll_MyAccount_New {
 					</div>
 					
 					<!-- Row 3: Bio -->
-					<?php if ( $bio ) : ?>
-						<div class="header-row-3">
-							<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
-						</div>
-					<?php endif; ?>
+					<div class="header-row-3">
+						<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
+					</div>
 				</div>
 			</div>
 		</div>
