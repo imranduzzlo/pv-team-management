@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.12] - 2026-04-12
+
+### 🔧 **Fixes**
+- Added automatic rewrite rules flushing for custom endpoints
+- Endpoints now properly recognized by WordPress
+- All My Account tabs (Salary Details, My Earnings, My Orders, Reports) now load correctly
+- Fixed loading issue on custom pages
+
+---
+
 ## [1.0.11] - 2026-04-12
 
 ### 🔧 **Fixes**
