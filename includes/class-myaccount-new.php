@@ -125,79 +125,39 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary Information -->
 			<div class="salary-info-section">
 				<h3><?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
-				<div class="salary-info-card">
-					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
-						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
-							<?php
-							if ( $is_fixed ) {
-								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-							} elseif ( $is_combined ) {
-								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
-							} else {
-								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
-							}
-							?>
-						</div>
-						
-						<!-- Salary Display in Top Right -->
-						<div style="text-align: right;">
-							<?php if ( $is_fixed || $is_combined ) : ?>
-								<div style="font-size: 24px; font-weight: 700; color: #28a745; margin-bottom: 5px;">
-									<?php echo wp_kses_post( wc_price( $salary_amount ) ); ?>
-								</div>
-								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
-									<?php
-									$frequency_labels = array(
-										'daily'   => __( 'Per Day', 'wc-team-payroll' ),
-										'weekly'  => __( 'Per Week', 'wc-team-payroll' ),
-										'monthly' => __( 'Per Month', 'wc-team-payroll' ),
-										'yearly'  => __( 'Per Year', 'wc-team-payroll' ),
-									);
-									echo esc_html( $frequency_labels[ $salary_frequency ] ?? ucfirst( $salary_frequency ) );
-									?>
-								</div>
-							<?php elseif ( $is_commission ) : ?>
-								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
-									<?php esc_html_e( 'Percentage/Order', 'wc-team-payroll' ); ?>
-								</div>
-							<?php endif; ?>
-						</div>
-					</div>
-					
-					<?php if ( $is_fixed || $is_combined ) : ?>
-						<div class="salary-details-grid">
-							<div class="salary-detail">
-								<label><?php esc_html_e( 'Base Salary Amount', 'wc-team-payroll' ); ?></label>
-								<span class="amount"><?php echo wp_kses_post( wc_price( $salary_amount ) ); ?></span>
-							</div>
-							<div class="salary-detail">
-								<label><?php esc_html_e( 'Payment Frequency', 'wc-team-payroll' ); ?></label>
-								<span class="frequency">
-									<?php
-									$frequency_labels = array(
-										'daily'   => __( 'Daily', 'wc-team-payroll' ),
-										'weekly'  => __( 'Weekly', 'wc-team-payroll' ),
-										'monthly' => __( 'Monthly', 'wc-team-payroll' ),
-										'yearly'  => __( 'Yearly', 'wc-team-payroll' ),
-									);
-									echo esc_html( $frequency_labels[ $salary_frequency ] ?? ucfirst( $salary_frequency ) );
-									?>
-								</span>
-							</div>
-						</div>
-					<?php endif; ?>
-					
-					<?php if ( $is_combined ) : ?>
-						<div class="commission-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'You also earn commission from orders in addition to your base salary.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php elseif ( $is_commission ) : ?>
-						<div class="commission-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php endif; ?>
+				<div class="salary-type-note">
+					<i class="ph ph-info"></i>
+					<span>
+						<?php
+						if ( $is_fixed ) {
+							esc_html_e( 'You receive a fixed salary of ', 'wc-team-payroll' );
+							echo wp_kses_post( wc_price( $salary_amount ) );
+							esc_html_e( ' ', 'wc-team-payroll' );
+							$frequency_labels = array(
+								'daily'   => __( 'daily', 'wc-team-payroll' ),
+								'weekly'  => __( 'weekly', 'wc-team-payroll' ),
+								'monthly' => __( 'monthly', 'wc-team-payroll' ),
+								'yearly'  => __( 'yearly', 'wc-team-payroll' ),
+							);
+							echo esc_html( $frequency_labels[ $salary_frequency ] ?? strtolower( $salary_frequency ) );
+							esc_html_e( '.', 'wc-team-payroll' );
+						} elseif ( $is_combined ) {
+							esc_html_e( 'You receive a base salary of ', 'wc-team-payroll' );
+							echo wp_kses_post( wc_price( $salary_amount ) );
+							esc_html_e( ' ', 'wc-team-payroll' );
+							$frequency_labels = array(
+								'daily'   => __( 'daily', 'wc-team-payroll' ),
+								'weekly'  => __( 'weekly', 'wc-team-payroll' ),
+								'monthly' => __( 'monthly', 'wc-team-payroll' ),
+								'yearly'  => __( 'yearly', 'wc-team-payroll' ),
+							);
+							echo esc_html( $frequency_labels[ $salary_frequency ] ?? strtolower( $salary_frequency ) );
+							esc_html_e( ' plus commission from orders you process.', 'wc-team-payroll' );
+						} else {
+							esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' );
+						}
+						?>
+					</span>
 				</div>
 			</div>
 
@@ -225,85 +185,87 @@ class WC_Team_Payroll_MyAccount_New {
 			<?php if ( ! empty( $salary_history ) ) : ?>
 				<div class="salary-history-section">
 					<h3><?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
-					<div class="section-header">
-						<div class="table-controls">
-							<div class="search-control">
-								<input type="text" id="salary-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
-								<i class="ph ph-magnifying-glass"></i>
-							</div>
-							<div class="per-page-control">
-								<label for="salary-history-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
-								<select id="salary-history-per-page">
-									<option value="5">5</option>
-									<option value="10" selected>10</option>
-									<option value="25">25</option>
-									<option value="50">50</option>
-								</select>
-								<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+					<div class="table-wrapper">
+						<div class="section-header">
+							<div class="table-controls">
+								<div class="search-control">
+									<input type="text" id="salary-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
+									<i class="ph ph-magnifying-glass"></i>
+								</div>
+								<div class="per-page-control">
+									<label for="salary-history-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+									<select id="salary-history-per-page">
+										<option value="5">5</option>
+										<option value="10" selected>10</option>
+										<option value="25">25</option>
+										<option value="50">50</option>
+									</select>
+									<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+								</div>
 							</div>
 						</div>
-					</div>
-					
-					<div class="table-container">
-						<table class="woocommerce-table woocommerce-table--salary-history" id="salary-history-table">
-							<thead>
-								<tr>
-									<th class="sortable" data-sort="date">
-										<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
-										<i class="ph ph-caret-up-down sort-icon"></i>
-									</th>
-									<th class="sortable" data-sort="old_type">
-										<?php esc_html_e( 'Previous', 'wc-team-payroll' ); ?>
-										<i class="ph ph-caret-up-down sort-icon"></i>
-									</th>
-									<th class="sortable" data-sort="new_type">
-										<?php esc_html_e( 'New', 'wc-team-payroll' ); ?>
-										<i class="ph ph-caret-up-down sort-icon"></i>
-									</th>
-									<th class="sortable" data-sort="changed_by">
-										<?php esc_html_e( 'Changed By', 'wc-team-payroll' ); ?>
-										<i class="ph ph-caret-up-down sort-icon"></i>
-									</th>
-								</tr>
-							</thead>
-							<tbody id="salary-history-tbody">
-								<?php foreach ( array_reverse( $salary_history ) as $index => $history ) : 
-									$changed_by_id = isset( $history['changed_by'] ) ? $history['changed_by'] : 0;
-									$changed_by_user = $changed_by_id ? get_user_by( 'id', $changed_by_id ) : null;
-								?>
-									<tr data-index="<?php echo esc_attr( $index ); ?>">
-										<td data-sort-value="<?php echo esc_attr( strtotime( $history['date'] ) ); ?>">
-											<span class="date"><?php echo esc_html( date( 'M j, Y', strtotime( $history['date'] ) ) ); ?></span>
-											<small><?php echo esc_html( date( 'g:i A', strtotime( $history['date'] ) ) ); ?></small>
-										</td>
-										<td data-sort-value="<?php echo esc_attr( $history['old_type'] ); ?>">
-											<div class="salary-change">
-												<span class="type"><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></span>
-												<?php if ( isset( $history['old_amount'] ) && $history['old_amount'] > 0 ) : ?>
-													<span class="amount"><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?></span>
-												<?php endif; ?>
-											</div>
-										</td>
-										<td data-sort-value="<?php echo esc_attr( $history['new_type'] ); ?>">
-											<div class="salary-change">
-												<span class="type"><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></span>
-												<?php if ( isset( $history['new_amount'] ) && $history['new_amount'] > 0 ) : ?>
-													<span class="amount"><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?></span>
-												<?php endif; ?>
-											</div>
-										</td>
-										<td data-sort-value="<?php echo esc_attr( $changed_by_user ? $changed_by_user->display_name : 'System' ); ?>">
-											<?php if ( $changed_by_user ) : ?>
-												<span class="changed-by"><?php echo esc_html( $changed_by_user->display_name ); ?></span>
-												<small><?php echo esc_html( $changed_by_user->user_email ); ?></small>
-											<?php else : ?>
-												<span class="changed-by"><?php esc_html_e( 'System', 'wc-team-payroll' ); ?></span>
-											<?php endif; ?>
-										</td>
+						
+						<div class="table-container">
+							<table class="woocommerce-table woocommerce-table--salary-history" id="salary-history-table">
+								<thead>
+									<tr>
+										<th class="sortable" data-sort="date">
+											<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="old_type">
+											<?php esc_html_e( 'Previous', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="new_type">
+											<?php esc_html_e( 'New', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="changed_by">
+											<?php esc_html_e( 'Changed By', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
 									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
+								</thead>
+								<tbody id="salary-history-tbody">
+									<?php foreach ( array_reverse( $salary_history ) as $index => $history ) : 
+										$changed_by_id = isset( $history['changed_by'] ) ? $history['changed_by'] : 0;
+										$changed_by_user = $changed_by_id ? get_user_by( 'id', $changed_by_id ) : null;
+									?>
+										<tr data-index="<?php echo esc_attr( $index ); ?>">
+											<td data-sort-value="<?php echo esc_attr( strtotime( $history['date'] ) ); ?>">
+												<span class="date"><?php echo esc_html( date( 'M j, Y', strtotime( $history['date'] ) ) ); ?></span>
+												<small><?php echo esc_html( date( 'g:i A', strtotime( $history['date'] ) ) ); ?></small>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $history['old_type'] ); ?>">
+												<div class="salary-change">
+													<span class="type"><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></span>
+													<?php if ( isset( $history['old_amount'] ) && $history['old_amount'] > 0 ) : ?>
+														<span class="amount"><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?></span>
+													<?php endif; ?>
+												</div>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $history['new_type'] ); ?>">
+												<div class="salary-change">
+													<span class="type"><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></span>
+													<?php if ( isset( $history['new_amount'] ) && $history['new_amount'] > 0 ) : ?>
+														<span class="amount"><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?></span>
+													<?php endif; ?>
+												</div>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $changed_by_user ? $changed_by_user->display_name : 'System' ); ?>">
+												<?php if ( $changed_by_user ) : ?>
+													<span class="changed-by"><?php echo esc_html( $changed_by_user->display_name ); ?></span>
+													<small><?php echo esc_html( $changed_by_user->user_email ); ?></small>
+												<?php else : ?>
+													<span class="changed-by"><?php esc_html_e( 'System', 'wc-team-payroll' ); ?></span>
+												<?php endif; ?>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
 					</div>
 					
 					<!-- Pagination -->
@@ -1371,9 +1333,9 @@ class WC_Team_Payroll_MyAccount_New {
 				.wc-team-payroll-salary-details .table-container,
 				.wc-team-payroll-earnings .table-container {
 					overflow-x: auto !important;
-					border-radius: {$card_border_radius}px !important;
-					border: 1px solid {$table_border_color} !important;
-					background: {$background_color} !important;
+					border: none !important;
+					border-radius: 0 !important;
+					background: transparent !important;
 				}
 				
 				.wc-team-payroll-salary-details .woocommerce-table,
@@ -1386,12 +1348,19 @@ class WC_Team_Payroll_MyAccount_New {
 				.wc-team-payroll-earnings .woocommerce-table th {
 					background: {$table_header_background} !important;
 					color: {$heading_color} !important;
-					border-bottom: 2px solid {$table_border_color} !important;
+					border: none !important;
+					border-bottom: 1px solid {$table_border_color} !important;
+					padding: 14px 5px !important;
+					font-family: {$font_family} !important;
 				}
 				
 				.wc-team-payroll-salary-details .woocommerce-table td,
 				.wc-team-payroll-earnings .woocommerce-table td {
+					border: none !important;
 					border-bottom: 1px solid {$table_border_color} !important;
+					padding: 12px 5px !important;
+					background: transparent !important;
+					font-family: {$font_family} !important;
 				}
 				
 				.wc-team-payroll-salary-details .woocommerce-table tbody tr:hover,
@@ -1505,6 +1474,36 @@ class WC_Team_Payroll_MyAccount_New {
 					border: 1px solid {$border_color} !important;
 					border-radius: {$card_border_radius}px !important;
 					color: {$primary_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Salary type note */
+				.wc-team-payroll-salary-details .salary-type-note {
+					background: {$card_background} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: {$card_border_radius}px !important;
+					color: {$primary_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Section Headings - Salary Info and Salary History */
+				.salary-info-section h3,
+				.salary-history-section h3 {
+					border-bottom-color: {$border_color} !important;
+				}
+				
+				.salary-info-section h3::after,
+				.salary-history-section h3::after {
+					background: {$primary_color} !important;
+				}
+				
+				/* Table Wrapper Card */
+				.wc-team-payroll-salary-details .table-wrapper {
+					background: {$background_color} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: 0 !important;
+					box-shadow: {$shadow_css} !important;
+					padding: 20px !important;
 					font-family: {$font_family} !important;
 				}
 			";

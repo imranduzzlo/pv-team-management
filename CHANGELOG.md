@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.35] - 2026-04-13
+### Universal Table Styling & Dynamic Card Design
+- **Salary History Section**: Applied same heading style as salary information section
+- **Section Heading**: Border-bottom with dynamic border color from settings
+- **Heading Underline**: ::after pseudo-element with dynamic primary color
+- **Table Wrapper**: New card design with border, shadow, and padding
+- **Table Wrapper**: Wrapped section-header and table-container together
+- **Section Spacing**: 20px gap between children in salary-history-section
+- **Wrapper Spacing**: 10px gap between section-header and table-container
+- **Table Container**: No border, no border-radius, transparent background
+- **Table Header**: Padding 14px 5px, no borders except bottom (1px solid)
+- **Table Rows**: Padding 12px 5px, transparent background, bottom border only
+- **Row Hover**: Dynamic background color from settings (table_row_hover)
+- **Dynamic Styling**: All colors applied from theme settings
+- **Border Radius**: Removed from table-wrapper (set to 0)
+- **Universal Design**: Consistent card styling across all sections
+
 ## [1.0.34] - 2026-04-13
 ### Refined Spacing and Table Styling
 - **Salary Info Section**: Added padding-bottom 10px to h3 heading
