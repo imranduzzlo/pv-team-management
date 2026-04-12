@@ -39,6 +39,11 @@ register_activation_hook( __FILE__, function() {
 	flush_rewrite_rules();
 } );
 
+// Also flush on deactivation to clean up
+register_deactivation_hook( __FILE__, function() {
+	flush_rewrite_rules();
+} );
+
 // ============================================================================
 // LOAD ON PLUGINS_LOADED - AFTER WOOCOMMERCE IS LOADED
 // ============================================================================
