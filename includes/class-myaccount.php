@@ -84,7 +84,7 @@ class WC_Team_Payroll_MyAccount {
 			.woocommerce-MyAccount-navigation ul li a i {
 				margin-right: 8px;
 				display: inline-block;
-				font-size: 16px;
+				font-size: 20px;
 			}
 		</style>
 		<?php
