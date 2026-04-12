@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.34] - 2026-04-13
+### Refined Spacing and Table Styling
+- **Salary Info Section**: Added padding-bottom 10px to h3 heading
+- **Section Gaps**: Added 20px gap between children using parent container gap
+- **Section Margin**: Added margin-bottom 50px to section container
+- **Card Styling**: Removed margins from card
+- **Salary History Section**: Applied same spacing as salary information section
+- **Table Header**: Updated padding to 14px 5px
+- **Table Rows**: Updated padding to 16px 5px
+- **Table Container**: Removed all borders and border-radius
+- **Table Borders**: Bottom border only on rows (1px solid #e9ecef)
+- **Search Icon**: Changed from ph-times to ph-x for clear functionality
+- **Search Box**: Stretches to fill available space
+- **Pagination**: Per-page control (5, 10, 25, 50 items)
+- **Row Hover**: Subtle background effect
+- **Professional Design**: Clean, minimal appearance throughout
+
 ## [1.0.33] - 2026-04-13
 ### Complete Salary History & Table Styling Overhaul
 - **Section Headings**: Removed all margins from h2, h3 headings
