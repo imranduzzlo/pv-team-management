@@ -233,6 +233,8 @@ add_action( 'plugins_loaded', function() {
 
 	// Payment Methods AJAX Handlers
 	add_action( 'wp_ajax_wc_tp_get_payment_methods', function() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
