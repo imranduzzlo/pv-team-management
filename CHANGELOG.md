@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.14] - 2026-04-12
+
+### 🔧 **Fixes**
+- Added template fallback for endpoint rendering
+- Endpoints now properly render with WooCommerce template structure
+- All custom My Account pages now display correctly without loading issues
+- Fixed infinite loading spinner on Salary Details, My Earnings, and Reports pages
+
+---
+
 ## [1.0.13] - 2026-04-12
 
 ### 🔧 **Fixes**
