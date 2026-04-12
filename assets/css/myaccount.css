@@ -17,114 +17,121 @@
 }
 
 /* Employee Header Styling */
-.wc-tp-employee-header {
-	margin-bottom: 30px;
-	padding: 25px;
+.wc-tp-employee-header-new {
+	margin-bottom: 40px;
+	padding: 40px 30px;
 	background: #f8f9fa;
 	border-radius: 12px;
-	border-left: 4px solid #0073aa;
 	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.employee-profile-section {
-	display: flex;
-	gap: 25px;
+/* Top Section: Three Column Layout */
+.header-top-section {
+	display: grid;
+	grid-template-columns: 1fr 200px 1fr;
+	gap: 30px;
 	align-items: flex-start;
+	margin-bottom: 30px;
 }
 
-.profile-picture-container {
-	flex-shrink: 0;
-}
-
-.profile-picture {
-	width: 80px;
-	height: 80px;
-	border-radius: 50%;
-	object-fit: cover;
-	border: 3px solid #fff;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.profile-picture-placeholder {
-	width: 80px;
-	height: 80px;
-	border-radius: 50%;
-	background: #e9ecef;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border: 3px solid #fff;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.profile-picture-placeholder i {
-	font-size: 32px;
-	color: #6c757d;
-}
-
-.employee-info-grid {
-	flex: 1;
+.header-column {
 	display: flex;
 	flex-direction: column;
-	gap: 15px;
-}
-
-.info-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
 	gap: 20px;
 }
 
-.info-row.full-width {
-	grid-template-columns: 1fr;
+.header-left {
+	text-align: left;
 }
 
+.header-right {
+	text-align: right;
+}
+
+.header-center {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+}
+
+/* Profile Picture */
+.profile-picture-container {
+	width: 180px;
+	height: 180px;
+	border-radius: 50%;
+	overflow: hidden;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	background: #fff;
+	border: 4px solid #0073aa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.profile-picture {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.profile-picture-placeholder {
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.profile-picture-placeholder i {
+	font-size: 80px;
+	color: #fff;
+}
+
+/* Info Items */
 .info-item {
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
 }
 
-.info-item label {
+.info-item .label {
 	font-size: 12px;
 	font-weight: 600;
 	color: #6c757d;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	display: flex;
-	align-items: center;
-	gap: 5px;
 	margin: 0;
-}
-
-.info-item label i {
-	color: #0073aa;
-	font-size: 14px;
 }
 
 .info-item .value {
 	font-size: 16px;
 	font-weight: 500;
 	color: #212529;
+	line-height: 1.4;
 }
 
 .info-item .value.role-badge {
 	background: #e7f3ff;
 	color: #0056b3;
-	padding: 4px 12px;
-	border-radius: 15px;
+	padding: 6px 12px;
+	border-radius: 20px;
 	font-size: 14px;
 	font-weight: 600;
 	display: inline-block;
 	width: fit-content;
 }
 
+.header-right .value.role-badge {
+	justify-self: end;
+}
+
 .info-item .value.status-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	padding: 4px 12px;
-	border-radius: 15px;
+	padding: 6px 12px;
+	border-radius: 20px;
 	font-size: 14px;
 	font-weight: 600;
 	width: fit-content;
@@ -140,10 +147,236 @@
 	color: #721c24;
 }
 
-.info-item .value.bio-text {
-	font-style: italic;
+/* Bio Section */
+.header-bio-section {
+	padding: 20px;
+	background: #fff;
+	border-radius: 8px;
+	border-left: 4px solid #0073aa;
+	margin-bottom: 20px;
+}
+
+.bio-label {
+	font-size: 12px;
+	font-weight: 600;
 	color: #6c757d;
-	line-height: 1.5;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	display: block;
+	margin-bottom: 8px;
+}
+
+.bio-text {
+	font-size: 15px;
+	color: #495057;
+	line-height: 1.6;
+	margin: 0;
+}
+
+/* Bottom Section: Social Icons and Salary Type */
+.header-bottom-section {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 20px;
+	border-top: 2px solid #e9ecef;
+}
+
+/* Social Icons */
+.social-icons {
+	display: flex;
+	gap: 15px;
+	align-items: center;
+}
+
+.social-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #fff;
+	border: 2px solid #e9ecef;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #6c757d;
+	text-decoration: none;
+	transition: all 0.3s ease;
+	font-size: 18px;
+}
+
+.social-icon:hover {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0,115,170,0.2);
+}
+
+.social-icon.facebook:hover {
+	background: #1877f2;
+	border-color: #1877f2;
+}
+
+.social-icon.whatsapp:hover {
+	background: #25d366;
+	border-color: #25d366;
+}
+
+.social-icon.instagram:hover {
+	background: #e4405f;
+	border-color: #e4405f;
+}
+
+.social-icon.linkedin:hover {
+	background: #0a66c2;
+	border-color: #0a66c2;
+}
+
+/* Salary Type Section */
+.salary-type-section {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.salary-type-label {
+	font-size: 15px;
+	font-weight: 600;
+	color: #212529;
+	padding: 8px 16px;
+	background: #fff;
+	border-radius: 6px;
+	border: 1px solid #e9ecef;
+}
+
+.salary-type-link {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	background: #0073aa;
+	color: #fff;
+	text-decoration: none;
+	border-radius: 6px;
+	font-weight: 600;
+	font-size: 15px;
+	transition: all 0.3s ease;
+}
+
+.salary-type-link:hover {
+	background: #005a87;
+	transform: translateX(2px);
+}
+
+.salary-type-link i {
+	font-size: 16px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+	.wc-tp-employee-header-new {
+		padding: 25px 20px;
+		margin-bottom: 30px;
+	}
+	
+	.header-top-section {
+		grid-template-columns: 1fr;
+		gap: 20px;
+		align-items: center;
+	}
+	
+	.header-column {
+		gap: 15px;
+	}
+	
+	.header-left,
+	.header-right {
+		text-align: center;
+	}
+	
+	.header-center {
+		justify-content: center;
+	}
+	
+	.profile-picture-container {
+		width: 150px;
+		height: 150px;
+		margin: 0 auto;
+	}
+	
+	.profile-picture-placeholder i {
+		font-size: 60px;
+	}
+	
+	.info-item .value.role-badge,
+	.info-item .value.status-badge {
+		justify-self: center;
+		margin: 0 auto;
+	}
+	
+	.header-bio-section {
+		margin-bottom: 20px;
+	}
+	
+	.header-bottom-section {
+		flex-direction: column;
+		gap: 20px;
+		align-items: center;
+		border-top: 2px solid #e9ecef;
+		padding-top: 20px;
+	}
+	
+	.social-icons {
+		width: 100%;
+		justify-content: center;
+	}
+	
+	.salary-type-section {
+		width: 100%;
+		justify-content: center;
+	}
+	
+	.salary-type-link,
+	.salary-type-label {
+		width: 100%;
+		text-align: center;
+		justify-content: center;
+	}
+}
+
+@media (max-width: 480px) {
+	.wc-tp-employee-header-new {
+		padding: 20px 15px;
+	}
+	
+	.profile-picture-container {
+		width: 120px;
+		height: 120px;
+	}
+	
+	.profile-picture-placeholder i {
+		font-size: 50px;
+	}
+	
+	.info-item .label {
+		font-size: 11px;
+	}
+	
+	.info-item .value {
+		font-size: 14px;
+	}
+	
+	.social-icon {
+		width: 36px;
+		height: 36px;
+		font-size: 16px;
+	}
+	
+	.salary-type-label,
+	.salary-type-link {
+		font-size: 14px;
+		padding: 6px 12px;
+	}
 }
 
 /* Section Headers with Controls */

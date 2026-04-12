@@ -1156,23 +1156,86 @@ class WC_Team_Payroll_MyAccount_New {
 				}
 				
 				/* Employee Header */
-				.wc-tp-employee-header {
+				.wc-tp-employee-header-new {
 					background: {$header_background} !important;
-					border-left: 4px solid {$primary_color} !important;
 					border-radius: {$card_border_radius}px !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 					box-shadow: {$shadow_css} !important;
 				}
 				
-				.wc-tp-employee-header .info-item label i {
-					color: {$primary_color} !important;
+				.wc-tp-employee-header-new .profile-picture-container {
+					border-color: {$primary_color} !important;
+					background: {$background_color} !important;
 				}
 				
-				.wc-tp-employee-header .value.role-badge {
+				.wc-tp-employee-header-new .profile-picture-placeholder {
+					background: linear-gradient(135deg, {$primary_color} 0%, {$link_hover_color} 100%) !important;
+				}
+				
+				.wc-tp-employee-header-new .info-item .label {
+					color: {$text_color} !important;
+					opacity: 0.7 !important;
+				}
+				
+				.wc-tp-employee-header-new .info-item .value {
+					color: {$heading_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .value.role-badge {
 					background: {$card_background} !important;
 					color: {$primary_color} !important;
 					border: 1px solid {$border_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .header-bio-section {
+					background: {$background_color} !important;
+					border-left: 4px solid {$primary_color} !important;
+					border-radius: {$card_border_radius}px !important;
+				}
+				
+				.wc-tp-employee-header-new .bio-label {
+					color: {$text_color} !important;
+					opacity: 0.7 !important;
+				}
+				
+				.wc-tp-employee-header-new .bio-text {
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .header-bottom-section {
+					border-top: 2px solid {$border_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .social-icon {
+					background: {$background_color} !important;
+					border: 2px solid {$border_color} !important;
+					color: {$text_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .social-icon:hover {
+					background: {$primary_color} !important;
+					border-color: {$primary_color} !important;
+					color: {$button_text_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-label {
+					background: {$background_color} !important;
+					border: 1px solid {$border_color} !important;
+					color: {$heading_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-link {
+					background: {$primary_color} !important;
+					color: {$button_text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-link:hover {
+					background: {$link_hover_color} !important;
 				}
 				
 				/* Headings */
@@ -1471,6 +1534,10 @@ class WC_Team_Payroll_MyAccount_New {
 		$bio = get_user_meta( $user_id, 'description', true );
 		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
 		
+		// Get salary information
+		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
+		
 		// Get user role with proper labeling
 		$user_roles = $user->roles;
 		$role_label = 'Employee';
@@ -1481,65 +1548,122 @@ class WC_Team_Payroll_MyAccount_New {
 		} elseif ( in_array( 'shop_employee', $user_roles ) ) {
 			$role_label = 'Employee';
 		}
+		
+		// Get current page to determine if we should link to salary details
+		$current_endpoint = '';
+		foreach ( self::$endpoints as $endpoint ) {
+			if ( get_query_var( $endpoint ) ) {
+				$current_endpoint = $endpoint;
+				break;
+			}
+		}
 
 		ob_start();
 		?>
-		<div class="wc-tp-employee-header">
-			<div class="employee-profile-section">
-				<div class="profile-picture-container">
-					<?php if ( $profile_picture_url ) : ?>
-						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
-					<?php else : ?>
-						<div class="profile-picture-placeholder">
-							<i class="ph ph-user"></i>
-						</div>
-					<?php endif; ?>
+		<div class="wc-tp-employee-header-new">
+			<!-- Top Section: Left Info, Center Profile, Right Info -->
+			<div class="header-top-section">
+				<!-- Left Column -->
+				<div class="header-column header-left">
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
+						<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
+					</div>
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></span>
+						<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
+					</div>
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
+						<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
+					</div>
 				</div>
 				
-				<div class="employee-info-grid">
-					<div class="info-row">
-						<div class="info-item">
-							<label><i class="ph ph-identification-badge"></i> <?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></label>
-							<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
-						</div>
-						<div class="info-item">
-							<label><i class="ph ph-briefcase"></i> <?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></label>
-							<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
-						</div>
-					</div>
-					
-					<div class="info-row">
-						<div class="info-item">
-							<label><i class="ph ph-user"></i> <?php esc_html_e( 'Display Name', 'wc-team-payroll' ); ?></label>
-							<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
-						</div>
-						<div class="info-item">
-							<label><i class="ph ph-circle"></i> <?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></label>
-							<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
-								<?php echo esc_html( ucfirst( $employee_status ) ); ?>
-							</span>
-						</div>
-					</div>
-					
-					<div class="info-row">
-						<div class="info-item">
-							<label><i class="ph ph-phone"></i> <?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></label>
-							<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
-						</div>
-						<div class="info-item">
-							<label><i class="ph ph-envelope"></i> <?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></label>
-							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
-						</div>
-					</div>
-					
-					<?php if ( $bio ) : ?>
-						<div class="info-row full-width">
-							<div class="info-item">
-								<label><i class="ph ph-note"></i> <?php esc_html_e( 'Bio', 'wc-team-payroll' ); ?></label>
-								<span class="value bio-text"><?php echo esc_html( $bio ); ?></span>
+				<!-- Center Profile Picture -->
+				<div class="header-center">
+					<div class="profile-picture-container">
+						<?php if ( $profile_picture_url ) : ?>
+							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
+						<?php else : ?>
+							<div class="profile-picture-placeholder">
+								<i class="ph ph-user"></i>
 							</div>
-						</div>
-					<?php endif; ?>
+						<?php endif; ?>
+					</div>
+				</div>
+				
+				<!-- Right Column -->
+				<div class="header-column header-right">
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
+						<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+					</div>
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></span>
+						<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
+					</div>
+					<div class="info-item">
+						<span class="label"><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></span>
+						<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
+							<?php echo esc_html( ucfirst( $employee_status ) ); ?>
+						</span>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Bio Section -->
+			<?php if ( $bio ) : ?>
+				<div class="header-bio-section">
+					<span class="bio-label"><?php esc_html_e( 'About', 'wc-team-payroll' ); ?></span>
+					<p class="bio-text"><?php echo esc_html( $bio ); ?></p>
+				</div>
+			<?php endif; ?>
+			
+			<!-- Bottom Section: Social Icons Left, Salary Type Right -->
+			<div class="header-bottom-section">
+				<!-- Left: Social Icons -->
+				<div class="social-icons">
+					<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
+						<i class="ph ph-facebook-logo"></i>
+					</a>
+					<a href="#" class="social-icon whatsapp" title="<?php esc_attr_e( 'WhatsApp', 'wc-team-payroll' ); ?>">
+						<i class="ph ph-whatsapp-logo"></i>
+					</a>
+					<a href="#" class="social-icon instagram" title="<?php esc_attr_e( 'Instagram', 'wc-team-payroll' ); ?>">
+						<i class="ph ph-instagram-logo"></i>
+					</a>
+					<a href="#" class="social-icon linkedin" title="<?php esc_attr_e( 'LinkedIn', 'wc-team-payroll' ); ?>">
+						<i class="ph ph-linkedin-logo"></i>
+					</a>
+				</div>
+				
+				<!-- Right: Salary Type -->
+				<div class="salary-type-section">
+					<?php
+					$salary_type_labels = array(
+						'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
+						'commission' => __( 'Commission Based', 'wc-team-payroll' ),
+						'combined' => __( 'Combined', 'wc-team-payroll' ),
+					);
+					$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
+					
+					// Only show link if not on salary details page
+					if ( $current_endpoint !== 'salary-details' ) {
+						$salary_details_url = wc_get_account_endpoint_url( 'salary-details' );
+						?>
+						<a href="<?php echo esc_url( $salary_details_url ); ?>" class="salary-type-link">
+							<span class="salary-type-label"><?php echo esc_html( $salary_label ); ?></span>
+							<i class="ph ph-arrow-right"></i>
+						</a>
+						<?php
+					} else {
+						?>
+						<span class="salary-type-label">
+							<?php echo esc_html( $salary_label ); ?>
+						</span>
+						<?php
+					}
+					?>
 				</div>
 			</div>
 		</div>
