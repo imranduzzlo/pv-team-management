@@ -253,6 +253,14 @@ class WC_Team_Payroll_MyAccount_New {
 									<?php foreach ( array_reverse( $salary_history ) as $index => $history ) : 
 										$changed_by_id = isset( $history['changed_by'] ) ? $history['changed_by'] : 0;
 										$changed_by_user = $changed_by_id ? get_user_by( 'id', $changed_by_id ) : null;
+										
+										// Get frequency abbreviations
+										$frequency_abbr = array(
+											'daily'   => 'dy',
+											'weekly'  => 'wk',
+											'monthly' => 'mn',
+											'yearly'  => 'yr',
+										);
 									?>
 										<tr data-index="<?php echo esc_attr( $index ); ?>">
 											<td data-sort-value="<?php echo esc_attr( strtotime( $history['date'] ) ); ?>">
@@ -262,16 +270,28 @@ class WC_Team_Payroll_MyAccount_New {
 											<td data-sort-value="<?php echo esc_attr( $history['old_type'] ); ?>">
 												<div class="salary-change">
 													<span class="type"><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></span>
-													<?php if ( isset( $history['old_amount'] ) && $history['old_amount'] > 0 ) : ?>
-														<span class="amount"><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?></span>
+													<?php if ( $history['old_type'] === 'commission' ) : ?>
+														<span class="amount"><?php esc_html_e( '%/order', 'wc-team-payroll' ); ?></span>
+													<?php elseif ( isset( $history['old_amount'] ) && $history['old_amount'] > 0 ) : ?>
+														<?php 
+															$old_freq = isset( $history['old_frequency'] ) ? $history['old_frequency'] : 'monthly';
+															$abbr = $frequency_abbr[ $old_freq ] ?? 'mn';
+														?>
+														<span class="amount"><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?>/<span style="font-size: 12px;"><?php echo esc_html( $abbr ); ?></span></span>
 													<?php endif; ?>
 												</div>
 											</td>
 											<td data-sort-value="<?php echo esc_attr( $history['new_type'] ); ?>">
 												<div class="salary-change">
 													<span class="type"><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></span>
-													<?php if ( isset( $history['new_amount'] ) && $history['new_amount'] > 0 ) : ?>
-														<span class="amount"><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?></span>
+													<?php if ( $history['new_type'] === 'commission' ) : ?>
+														<span class="amount"><?php esc_html_e( '%/order', 'wc-team-payroll' ); ?></span>
+													<?php elseif ( isset( $history['new_amount'] ) && $history['new_amount'] > 0 ) : ?>
+														<?php 
+															$new_freq = isset( $history['new_frequency'] ) ? $history['new_frequency'] : 'monthly';
+															$abbr = $frequency_abbr[ $new_freq ] ?? 'mn';
+														?>
+														<span class="amount"><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?>/<span style="font-size: 12px;"><?php echo esc_html( $abbr ); ?></span></span>
 													<?php endif; ?>
 												</div>
 											</td>
