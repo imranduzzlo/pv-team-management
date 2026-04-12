@@ -54,6 +54,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
 	// Initialize custom fields (creates meta fields)
@@ -64,6 +65,9 @@ add_action( 'plugins_loaded', function() {
 
 	// Initialize checkout integration (handles agent dropdown)
 	new WC_Team_Payroll_Checkout_Integration();
+
+	// Initialize My Account integration
+	WC_Team_Payroll_MyAccount::init();
 
 	// Block inactive employees from logging in
 	add_filter( 'wp_authenticate_user', function( $user, $password ) {
