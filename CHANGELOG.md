@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.26] - 2026-04-12
+### Header CSS Redesign - Clean Modern Layout
+- **Redesigned header CSS from scratch** for clean, modern appearance
+- **Icons**: No background, only primary color (dynamic)
+- **Labels**: Secondary color (dynamic)
+- **Values**: Text color (dynamic)
+- **Layout**: Proper horizontal layout with left stats, center profile, right stats
+- **Clean Design**: Removed unnecessary backgrounds and shadows
+- **Better Spacing**: Improved visual hierarchy and alignment
+- **Mobile Responsive**: Optimized for all screen sizes
+- **Dynamic Styling**: All colors controlled via admin settings
+
 ## [1.0.25] - 2026-04-12
 ### Modern Profile Card Header - Production Release
 - Redesigned employee header with modern profile card layout
