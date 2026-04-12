@@ -266,8 +266,9 @@
 
 /* Row 3: Bio */
 .header-row-3 {
-	padding-top: 10px;
-	border-top: 1px solid #f0f0f0;
+	margin: 0;
+	padding: 0;
+	border: none;
 }
 
 .profile-bio {
@@ -765,6 +766,42 @@
 	border-radius: 12px;
 	padding: 30px;
 	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.salary-info-card h3 {
+	margin: 0;
+	padding: 0;
+	font-size: 18px;
+	color: #495057;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	position: relative;
+	padding-bottom: 15px;
+}
+
+.salary-info-card h3::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 34px;
+	height: 3px;
+	background: #0073aa;
+}
+
+.salary-info-card h3::before {
+	content: '';
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: #e9ecef;
+}
+
+.salary-info-card > div:first-of-type {
+	margin-top: 20px;
 }
 
 .salary-type-badge {

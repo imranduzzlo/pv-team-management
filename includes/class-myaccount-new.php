@@ -114,18 +114,44 @@ class WC_Team_Payroll_MyAccount_New {
 
 			<!-- Salary Information -->
 			<div class="salary-info-section">
-				<h3><i class="ph ph-money"></i> <?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
+				<h3><?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
 				<div class="salary-info-card">
-					<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
-						<?php
-						if ( $is_fixed ) {
-							echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-						} elseif ( $is_combined ) {
-							echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
-						} else {
-							echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
-						}
-						?>
+					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
+							<?php
+							if ( $is_fixed ) {
+								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+							} elseif ( $is_combined ) {
+								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
+							} else {
+								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
+							}
+							?>
+						</div>
+						
+						<!-- Salary Display in Top Right -->
+						<div style="text-align: right;">
+							<?php if ( $is_fixed || $is_combined ) : ?>
+								<div style="font-size: 24px; font-weight: 700; color: #28a745; margin-bottom: 5px;">
+									<?php echo wp_kses_post( wc_price( $salary_amount ) ); ?>
+								</div>
+								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
+									<?php
+									$frequency_labels = array(
+										'daily'   => __( 'Per Day', 'wc-team-payroll' ),
+										'weekly'  => __( 'Per Week', 'wc-team-payroll' ),
+										'monthly' => __( 'Per Month', 'wc-team-payroll' ),
+										'yearly'  => __( 'Per Year', 'wc-team-payroll' ),
+									);
+									echo esc_html( $frequency_labels[ $salary_frequency ] ?? ucfirst( $salary_frequency ) );
+									?>
+								</div>
+							<?php elseif ( $is_commission ) : ?>
+								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
+									<?php esc_html_e( 'Percentage/Order', 'wc-team-payroll' ); ?>
+								</div>
+							<?php endif; ?>
+						</div>
 					</div>
 					
 					<?php if ( $is_fixed || $is_combined ) : ?>
@@ -1231,10 +1257,6 @@ class WC_Team_Payroll_MyAccount_New {
 					border-bottom-color: {$border_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .header-row-3 {
-					border-top-color: {$border_color} !important;
-				}
-				
 				/* Headings */
 				.wc-team-payroll-salary-details h2,
 				.wc-team-payroll-earnings h2,
@@ -1560,8 +1582,17 @@ class WC_Team_Payroll_MyAccount_New {
 		$bio = get_user_meta( $user_id, 'description', true ) ?: '---';
 		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
 		
-		// Get salary information
-		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		// Get salary information - check for fixed/combined flags first
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined_salary ) {
+			$salary_type = 'combined';
+		} else {
+			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		}
 		
 		// Get user role with proper labeling
 		$user_roles = $user->roles;

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.31] - 2026-04-13
+### Removed Header Bio Padding and Border
+- Removed padding-top and border from header-row-3 (bio section)
+- Fixed salary type detection to show actual current salary type (fixed/combined/commission)
+- Improved spacing consistency
+
 ## [1.0.30] - 2026-04-13
 ### Enhanced Header with Interactive Features
 - **ID Icon & Value**: Clickable to copy ID with floating "Copied!" notification (auto-hides after 3s)
