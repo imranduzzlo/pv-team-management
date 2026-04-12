@@ -26,11 +26,9 @@ class WC_Team_Payroll_MyAccount {
 		// Enqueue Phosphor icons
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_icons' ), 10 );
 		
-		// Add icons via CSS
+		// Add icons via CSS and JavaScript
 		add_action( 'wp_head', array( __CLASS__, 'add_menu_icons_css' ), 10 );
-		
-		// Allow HTML in menu items
-		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'allow_html_in_menu_items' ), 20 );
+		add_action( 'wp_footer', array( __CLASS__, 'add_menu_icons_js' ), 10 );
 	}
 
 	/**
@@ -45,13 +43,34 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
-	 * Allow HTML in menu items
+	 * Add menu icons via JavaScript
 	 */
-	public static function allow_html_in_menu_items( $items ) {
-		foreach ( $items as $key => $item ) {
-			$items[ $key ] = wp_kses_post( $item );
-		}
-		return $items;
+	public static function add_menu_icons_js() {
+		?>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// Add icons to menu items
+				const menuItems = {
+					'my-salary-details': '<i class="ph ph-briefcase"></i> ',
+					'my-earnings': '<i class="ph ph-wallet"></i> ',
+					'my-orders-commission': '<i class="ph ph-shopping-bag"></i> ',
+					'my-reports': '<i class="ph ph-chart-bar"></i> '
+				};
+
+				Object.keys(menuItems).forEach(function(key) {
+					const links = document.querySelectorAll('a[href*="' + key + '"]');
+					links.forEach(function(link) {
+						// Only add icon if it doesn't already have one
+						if (!link.querySelector('i')) {
+							const icon = document.createElement('span');
+							icon.innerHTML = menuItems[key];
+							link.insertBefore(icon.firstChild, link.firstChild);
+						}
+					});
+				});
+			});
+		</script>
+		<?php
 	}
 
 	/**
@@ -105,10 +124,10 @@ class WC_Team_Payroll_MyAccount {
 		foreach ( $items as $key => $item ) {
 			$new_items[ $key ] = $item;
 			if ( 'orders' === $key ) {
-				$new_items['my-salary-details'] = '<i class="ph ph-briefcase"></i> ' . __( 'Salary Details', 'wc-team-payroll' );
-				$new_items['my-earnings'] = '<i class="ph ph-wallet"></i> ' . __( 'My Earnings', 'wc-team-payroll' );
-				$new_items['my-orders-commission'] = '<i class="ph ph-shopping-bag"></i> ' . __( 'My Orders (Commission)', 'wc-team-payroll' );
-				$new_items['my-reports'] = '<i class="ph ph-chart-bar"></i> ' . __( 'Reports', 'wc-team-payroll' );
+				$new_items['my-salary-details'] = __( 'Salary Details', 'wc-team-payroll' );
+				$new_items['my-earnings'] = __( 'My Earnings', 'wc-team-payroll' );
+				$new_items['my-orders-commission'] = __( 'My Orders (Commission)', 'wc-team-payroll' );
+				$new_items['my-reports'] = __( 'Reports', 'wc-team-payroll' );
 			}
 		}
 
