@@ -9,20 +9,8 @@ class WC_Team_Payroll_MyAccount {
 	 * Initialize My Account
 	 */
 	public static function init() {
-		// Register endpoints
-		add_action( 'init', array( __CLASS__, 'register_endpoints' ), 5 );
-		
-		// Register query variables
-		add_filter( 'query_vars', array( __CLASS__, 'add_query_vars' ), 10 );
-		
 		// Add menu items
 		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ), 10 );
-		
-		// Render endpoints - use the correct WooCommerce pattern
-		add_action( 'woocommerce_account_my_salary_details_endpoint', array( __CLASS__, 'render_salary_details_tab' ), 10 );
-		add_action( 'woocommerce_account_my_earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ), 10 );
-		add_action( 'woocommerce_account_my_orders_commission_endpoint', array( __CLASS__, 'render_orders_tab' ), 10 );
-		add_action( 'woocommerce_account_my_reports_endpoint', array( __CLASS__, 'render_reports_tab' ), 10 );
 		
 		// AJAX handlers
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ), 10 );
@@ -34,9 +22,6 @@ class WC_Team_Payroll_MyAccount {
 		// Add icons via CSS and JavaScript
 		add_action( 'wp_head', array( __CLASS__, 'add_menu_icons_css' ), 10 );
 		add_action( 'wp_footer', array( __CLASS__, 'add_menu_icons_js' ), 10 );
-		
-		// Fallback: Handle endpoints via template_include
-		add_filter( 'template_include', array( __CLASS__, 'handle_endpoint_template' ), 99 );
 	}
 
 	/**
@@ -79,69 +64,6 @@ class WC_Team_Payroll_MyAccount {
 			});
 		</script>
 		<?php
-	}
-
-	/**
-	 * Handle endpoint template fallback
-	 */
-	public static function handle_endpoint_template( $template ) {
-		if ( ! is_user_logged_in() ) {
-			return $template;
-		}
-
-		$user_id = get_current_user_id();
-		if ( ! self::user_has_agent_role( $user_id ) ) {
-			return $template;
-		}
-
-		// Check for custom endpoints
-		$endpoints = array(
-			'my-salary-details' => 'render_salary_details_tab',
-			'my-earnings' => 'render_earnings_tab',
-			'my-orders-commission' => 'render_orders_tab',
-			'my-reports' => 'render_reports_tab',
-		);
-
-		foreach ( $endpoints as $endpoint => $method ) {
-			if ( get_query_var( $endpoint ) !== false ) {
-				// We're on a custom endpoint page
-				// Call the render method
-				ob_start();
-				call_user_func( array( __CLASS__, $method ) );
-				$content = ob_get_clean();
-				
-				// Create a temporary template
-				$template_file = WC_TEAM_PAYROLL_PATH . 'includes/myaccount-template.php';
-				if ( ! file_exists( $template_file ) ) {
-					// Create a simple template file
-					$template_content = '<?php
-// My Account Endpoint Template
-if ( ! defined( "ABSPATH" ) ) {
-	exit;
-}
-get_header( "shop" );
-?>
-<div class="woocommerce">
-	<?php do_action( "woocommerce_account_' . str_replace( '-', '_', $endpoint ) . '_endpoint" ); ?>
-</div>
-<?php
-get_footer( "shop" );
-?>';
-					file_put_contents( $template_file, $template_content );
-				}
-				return $template_file;
-			}
-		}
-
-		return $template;
-	}
-
-	/**
-	 * Register WooCommerce endpoints
-	 */
-	public static function register_endpoints() {
-		// Endpoints are now registered in the main plugin file with higher priority
-		// This method is kept for backward compatibility
 	}
 
 	/**

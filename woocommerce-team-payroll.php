@@ -55,6 +55,32 @@ add_action( 'init', function() {
 	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
 }, 1 );
 
+// Register query variables
+add_filter( 'query_vars', function( $vars ) {
+	$vars[] = 'my-salary-details';
+	$vars[] = 'my-earnings';
+	$vars[] = 'my-orders-commission';
+	$vars[] = 'my-reports';
+	return $vars;
+}, 10 );
+
+// Hook into WooCommerce account endpoints
+add_action( 'woocommerce_account_my_salary_details_endpoint', function() {
+	WC_Team_Payroll_MyAccount::render_salary_details_tab();
+}, 10 );
+
+add_action( 'woocommerce_account_my_earnings_endpoint', function() {
+	WC_Team_Payroll_MyAccount::render_earnings_tab();
+}, 10 );
+
+add_action( 'woocommerce_account_my_orders_commission_endpoint', function() {
+	WC_Team_Payroll_MyAccount::render_orders_tab();
+}, 10 );
+
+add_action( 'woocommerce_account_my_reports_endpoint', function() {
+	WC_Team_Payroll_MyAccount::render_reports_tab();
+}, 10 );
+
 // Force flush rewrite rules if endpoints are not in the database
 add_action( 'admin_init', function() {
 	$rewrite_rules = get_option( 'rewrite_rules' );
