@@ -1174,20 +1174,27 @@ class WC_Team_Payroll_MyAccount_New {
 					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
 				}
 				
+				.wc-tp-employee-header-new .stat-icon {
+					color: {$primary_color} !important;
+					background: none !important;
+					box-shadow: none !important;
+				}
+				
 				.wc-tp-employee-header-new .stat-label {
-					color: {$text_color} !important;
-					opacity: 0.7 !important;
+					color: {$secondary_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .stat-value {
-					color: {$heading_color} !important;
-					font-family: {$font_family} !important;
+					color: {$text_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .stat-icon {
+				.wc-tp-employee-header-new .profile-picture-container {
+					border-color: {$header_border_color} !important;
 					background: {$background_color} !important;
-					color: {$header_border_color} !important;
-					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+				}
+				
+				.wc-tp-employee-header-new .profile-picture-placeholder {
+					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-name {
@@ -1211,15 +1218,10 @@ class WC_Team_Payroll_MyAccount_New {
 					font-family: {$font_family} !important;
 				}
 				
-				.wc-tp-employee-header-new .header-bottom-section {
-					border-top: none !important;
-				}
-				
 				.wc-tp-employee-header-new .social-icon {
-					background: {$background_color} !important;
+					background: transparent !important;
 					border: 2px solid {$border_color} !important;
 					color: {$text_color} !important;
-					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
 				}
 				
 				.wc-tp-employee-header-new .social-icon:hover {
