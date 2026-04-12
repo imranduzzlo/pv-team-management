@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.8.7] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Employee Payroll Details Button**: Fixed "View All" button link from incorrect page slug `wc-team-payroll-payroll` to correct `wc-team-payroll-details`
+- Button now correctly navigates to the Payroll page
+
+---
+
 ## [5.8.6] - 2024-12-19
 
 ### 🐛 **Bug Fixes**
