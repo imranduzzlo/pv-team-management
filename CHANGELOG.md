@@ -28,6 +28,16 @@ Added new Payments page with payment entry form, history table with advanced fil
 ---
 # Changelog
 
+## [5.8.23] - 2026-04-12
+
+### 🔧 **Fix - Dynamic Employee Roles in Payments Page**
+- **Hardcoded Roles Removed**: Replaced hardcoded employee roles with dynamic roles from settings
+- **Settings Integration**: Payments page now respects the employee roles configured in Settings > Employee Roles
+- **Consistent Role Usage**: All AJAX handlers (`get_all_employees`, `get_payments_table`, `get_all_payment_methods`) now use settings-based roles
+- **Fallback**: Defaults to `shop_employee` role if no roles are configured
+- **Files Updated**:
+  - `includes/class-ajax-handlers.php`: Updated all three AJAX handlers to use `get_option('wc_tp_employee_roles')`
+
 ## [5.8.22] - 2026-04-12
 
 ### ✨ **Enhancement - Select2 Employee Dropdown with vb_user_id Display**
