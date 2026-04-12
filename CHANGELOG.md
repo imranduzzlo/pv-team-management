@@ -2,6 +2,13 @@
 
 ## [5.8.19] - 2026-04-12
 
+Added new Payments page with payment entry form, history table with advanced filtering, sorting, and pagination. Includes employee dropdown, payment method selection based on employee, date/time picker, and comprehensive payment history with search and filter capabilities.
+
+---
+# Changelog
+
+## [5.8.19] - 2026-04-12
+
 ### ✨ **New Feature - Comprehensive Payments Management Page**
 - **Payment Entry Form**: New form to add payments with fields for:
   - Employee name (dropdown with all employees)
@@ -654,4 +661,5 @@
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
