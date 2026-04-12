@@ -9,6 +9,9 @@ class WC_Team_Payroll_MyAccount {
 	 * Initialize My Account
 	 */
 	public static function init() {
+		// Register endpoints
+		add_action( 'init', array( __CLASS__, 'register_endpoints' ) );
+		
 		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ) );
 		add_action( 'woocommerce_account_my-salary-details_endpoint', array( __CLASS__, 'render_salary_details_tab' ) );
 		add_action( 'woocommerce_account_my-earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ) );
@@ -16,6 +19,33 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'woocommerce_account_my-reports_endpoint', array( __CLASS__, 'render_reports_tab' ) );
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ) );
+		
+		// Enqueue simple-line-icons
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_icons' ) );
+	}
+
+	/**
+	 * Register WooCommerce endpoints
+	 */
+	public static function register_endpoints() {
+		add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
+		add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
+		add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
+		add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+		
+		// Flush rewrite rules if endpoints were just registered
+		if ( ! get_transient( 'wc_tp_endpoints_registered' ) ) {
+			flush_rewrite_rules();
+			set_transient( 'wc_tp_endpoints_registered', 1, HOUR_IN_SECONDS );
+		}
+	}
+
+	/**
+	 * Enqueue simple-line-icons
+	 */
+	public static function enqueue_icons() {
+		wp_enqueue_style( 'simple-line-icons', 'https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.5.5/simple-line-icons.min.css', array(), '2.5.5' );
+		wp_enqueue_style( 'wc-team-payroll-myaccount', WC_TEAM_PAYROLL_URL . 'assets/css/myaccount.css', array(), WC_TEAM_PAYROLL_VERSION );
 	}
 
 	/**
@@ -37,10 +67,10 @@ class WC_Team_Payroll_MyAccount {
 		foreach ( $items as $key => $item ) {
 			$new_items[ $key ] = $item;
 			if ( 'orders' === $key ) {
-				$new_items['my-salary-details'] = __( 'Salary Details', 'wc-team-payroll' );
-				$new_items['my-earnings'] = __( 'My Earnings', 'wc-team-payroll' );
-				$new_items['my-orders-commission'] = __( 'My Orders (Commission)', 'wc-team-payroll' );
-				$new_items['my-reports'] = __( 'Reports', 'wc-team-payroll' );
+				$new_items['my-salary-details'] = '<i class="icon-briefcase"></i> ' . __( 'Salary Details', 'wc-team-payroll' );
+				$new_items['my-earnings'] = '<i class="icon-wallet"></i> ' . __( 'My Earnings', 'wc-team-payroll' );
+				$new_items['my-orders-commission'] = '<i class="icon-shopping-bag"></i> ' . __( 'My Orders (Commission)', 'wc-team-payroll' );
+				$new_items['my-reports'] = '<i class="icon-bar-chart"></i> ' . __( 'Reports', 'wc-team-payroll' );
 			}
 		}
 

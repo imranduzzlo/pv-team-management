@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.6] - 2026-04-12
+
+### ✨ **Features**
+- **My Account Tabs**: Fixed 404 errors on My Account tabs (Salary Details, My Earnings, My Orders, Reports)
+- **Simple Line Icons**: Added simple-line-icons library for tab icons
+- **Endpoint Registration**: Properly register and flush rewrite rules on plugin activation
+- **Tab Icons**: Added icons to My Account menu items for better UX
+
+### 🔧 **Improvements**
+- Automatic rewrite rule flushing on plugin activation
+- Transient-based endpoint registration to prevent unnecessary flushes
+- Responsive CSS styling for My Account pages
+
+---
+
 ## [1.0.1] - 2026-04-12
 
 ## Improvements

@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.0.1
+ * Version: 1.0.6
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,9 +20,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.0.1' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.0.6' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
+
+// ============================================================================
+// PLUGIN ACTIVATION - FLUSH REWRITE RULES
+// ============================================================================
+
+register_activation_hook( __FILE__, function() {
+	// Ensure endpoints are registered before flushing
+	add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+	
+	// Flush rewrite rules
+	flush_rewrite_rules();
+} );
 
 // ============================================================================
 // LOAD ON PLUGINS_LOADED - AFTER WOOCOMMERCE IS LOADED
