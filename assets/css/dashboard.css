@@ -497,3 +497,9 @@
 		margin-top: 4px;
 	}
 }
+
+
+/* Hide WooCommerce Incompatibility Notice */
+.notice.notice-error {
+	display: none !important;
+}

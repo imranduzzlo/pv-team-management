@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.10] - 2024-12-20
+
+### 🗑️ **Removed**
+- **Payments Page**: Removed the entire payments page and menu item
+- **Recent Payments Button**: Removed "View All" button from Recent Payments section in dashboard
+- **Payments Page Class**: Deleted `class-payments-page.php` file
+
+---
+
 ## [5.8.8] - 2024-12-19
 
 ### ✨ **Features**
