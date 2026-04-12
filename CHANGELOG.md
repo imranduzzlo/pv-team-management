@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.17] - 2026-04-12
+
+### 🔧 **Fixes**
+- Fixed version comparison logic in GitHub updater
+- Improved version normalization to handle edge cases
+- Fixed issue where plugin always showed as needing update
+- Added better debugging for version reading
+- WordPress now correctly detects when plugin is up to date
+
+---
+
 ## [1.0.16] - 2026-04-12
 
 ### 🔧 **Fixes**
