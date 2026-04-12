@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.27] - 2026-04-12
+
+### 🐛 **Bug Fixes**
+- **Employee Status Update Failed**: Fixed "Security check failed" error when updating employee status
+- **Nonce Field Name Mismatch**: Changed AJAX nonce field from `wc_team_payroll_nonce` to `nonce` to match PHP handler verification
+- **Status Toggle Now Works**: Employee status can now be toggled between active/inactive without security errors
+
+---
+
 ## [5.8.26] - 2026-04-12
 
 ### ✨ **Features**

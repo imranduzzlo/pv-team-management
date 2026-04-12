@@ -1344,7 +1344,7 @@ class WC_Team_Payroll_Employee_Detail {
 							action: 'wc_tp_update_employee_status',
 							user_id: userId,
 							status: newStatus,
-							wc_team_payroll_nonce: nonce
+							nonce: nonce
 						},
 						success: function(response) {
 							if (response.success) {
