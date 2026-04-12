@@ -557,7 +557,7 @@ add_action( 'plugins_loaded', function() {
 		$processed_payroll = array();
 		foreach ( $payroll as $user_id => $data ) {
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
-			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
 			$profile_picture_id = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_profile_picture', true ) : '';
 			$profile_picture_url = '';
 			$phone = $data['user'] ? get_user_meta( $data['user']->ID, 'billing_phone', true ) : '';
@@ -673,7 +673,7 @@ add_action( 'plugins_loaded', function() {
 				$salary_info = __( 'Commission Based', 'wc-team-payroll' );
 			}
 
-			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+			$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
 
 			$latest_employees_data[] = array(
 				'user_id'           => $employee->ID,
