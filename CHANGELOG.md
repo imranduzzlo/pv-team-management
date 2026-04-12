@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.13] - 2026-04-12
+
+### 🔧 **Fixes**
+- Fixed endpoint hook names - WooCommerce converts hyphens to underscores
+- Changed hooks from `woocommerce_account_my-salary-details_endpoint` to `woocommerce_account_my_salary_details_endpoint`
+- All custom My Account pages now properly render content
+- Salary Details, My Earnings, and Reports tabs now display correctly
+
+---
+
 ## [1.0.12] - 2026-04-12
 
 ### 🔧 **Fixes**
