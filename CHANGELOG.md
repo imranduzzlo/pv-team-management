@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.8.6] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Top Earners**: Fixed employee name format from `(PVVB-EMID1) Name` to `PVVB-EMID1 Name`
+- **Recent Payments**: Fixed employee name format from `(PVVB-EMID1) Name` to `PVVB-EMID1 Name`
+- **Latest Employees**: Fixed duplicate vb_user_id display (was showing `PVVB-EMID1 PVVB-EMID1 Name`)
+- **Consistent Formatting**: Applied uniform employee name format across all dashboard tables
+
+---
+
 ## [5.8.5] - 2024-12-19
 
 ### 🐛 **Bug Fixes**
