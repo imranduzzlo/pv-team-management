@@ -16,10 +16,13 @@ class WC_Team_Payroll_MyAccount {
 		add_filter( 'query_vars', array( __CLASS__, 'add_query_vars' ), 10 );
 		
 		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ), 10 );
-		add_action( 'woocommerce_account_my-salary-details_endpoint', array( __CLASS__, 'render_salary_details_tab' ), 10 );
-		add_action( 'woocommerce_account_my-earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ), 10 );
-		add_action( 'woocommerce_account_my-orders-commission_endpoint', array( __CLASS__, 'render_orders_tab' ), 10 );
-		add_action( 'woocommerce_account_my-reports_endpoint', array( __CLASS__, 'render_reports_tab' ), 10 );
+		
+		// WooCommerce converts hyphens to underscores in endpoint hooks
+		add_action( 'woocommerce_account_my_salary_details_endpoint', array( __CLASS__, 'render_salary_details_tab' ), 10 );
+		add_action( 'woocommerce_account_my_earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ), 10 );
+		add_action( 'woocommerce_account_my_orders_commission_endpoint', array( __CLASS__, 'render_orders_tab' ), 10 );
+		add_action( 'woocommerce_account_my_reports_endpoint', array( __CLASS__, 'render_reports_tab' ), 10 );
+		
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ), 10 );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ), 10 );
 		
