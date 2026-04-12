@@ -7,7 +7,7 @@
 	font-size: 20px;
 }
 
-/* Force CSS to load - Basic styling */
+/* Clean styling without debug borders */
 .wc-team-payroll-salary-details,
 .wc-team-payroll-earnings,
 .wc-team-payroll-orders,

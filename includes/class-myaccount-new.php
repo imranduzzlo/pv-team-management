@@ -112,11 +112,11 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-salary-details">
-			<h2><i class="far fa-briefcase"></i> <?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="ph ph-briefcase"></i> <?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Information -->
 			<div class="employee-info-section">
-				<h3><i class="far fa-user"></i> <?php esc_html_e( 'Employee Information', 'wc-team-payroll' ); ?></h3>
+				<h3><i class="ph ph-user"></i> <?php esc_html_e( 'Employee Information', 'wc-team-payroll' ); ?></h3>
 				<div class="info-grid">
 					<div class="info-card">
 						<label><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></label>
@@ -141,16 +141,16 @@ class WC_Team_Payroll_MyAccount_New {
 
 			<!-- Salary Information -->
 			<div class="salary-info-section">
-				<h3><i class="far fa-money-bill-alt"></i> <?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
+				<h3><i class="ph ph-money"></i> <?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
 				<div class="salary-info-card">
 					<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
 						<?php
 						if ( $is_fixed ) {
-							echo '<i class="far fa-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+							echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
 						} elseif ( $is_combined ) {
-							echo '<i class="far fa-chart-line"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
+							echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
 						} else {
-							echo '<i class="far fa-percentage"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
+							echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
 						}
 						?>
 					</div>
@@ -180,12 +180,12 @@ class WC_Team_Payroll_MyAccount_New {
 					
 					<?php if ( $is_combined ) : ?>
 						<div class="commission-note">
-							<i class="far fa-info-circle"></i>
+							<i class="ph ph-info"></i>
 							<span><?php esc_html_e( 'You also earn commission from orders in addition to your base salary.', 'wc-team-payroll' ); ?></span>
 						</div>
 					<?php elseif ( $is_commission ) : ?>
 						<div class="commission-note">
-							<i class="far fa-info-circle"></i>
+							<i class="ph ph-info"></i>
 							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
 						</div>
 					<?php endif; ?>
@@ -195,12 +195,12 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Payment Methods -->
 			<?php if ( ! empty( $payment_methods ) ) : ?>
 				<div class="payment-methods-section">
-					<h3><i class="far fa-credit-card"></i> <?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
+					<h3><i class="ph ph-credit-card"></i> <?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
 					<div class="payment-methods-grid">
 						<?php foreach ( $payment_methods as $method ) : ?>
 							<div class="payment-method-card">
 								<div class="method-header">
-									<i class="far fa-university"></i>
+									<i class="ph ph-bank"></i>
 									<span class="method-name"><?php echo esc_html( $method['method_name'] ); ?></span>
 								</div>
 								<div class="method-details">
@@ -215,7 +215,7 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary History -->
 			<?php if ( ! empty( $salary_history ) ) : ?>
 				<div class="salary-history-section">
-					<h3><i class="far fa-history"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
+					<h3><i class="ph ph-clock-clockwise"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
 					<div class="table-container">
 						<table class="woocommerce-table woocommerce-table--salary-history">
 							<thead>
@@ -268,7 +268,7 @@ class WC_Team_Payroll_MyAccount_New {
 				</div>
 			<?php else : ?>
 				<div class="no-history-message">
-					<i class="far fa-info-circle"></i>
+					<i class="ph ph-info"></i>
 					<p><?php esc_html_e( 'No salary change history available.', 'wc-team-payroll' ); ?></p>
 				</div>
 			<?php endif; ?>
@@ -298,12 +298,12 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-earnings">
-			<h2><i class="far fa-wallet"></i> <?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="ph ph-wallet"></i> <?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
 				<div class="employee-id">
-					<i class="fas fa-id-badge"></i>
+					<i class="ph ph-identification-badge"></i>
 					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
 				</div>
 			</div>
@@ -312,7 +312,7 @@ class WC_Team_Payroll_MyAccount_New {
 			<div class="earnings-summary">
 				<div class="earning-card current-month">
 					<div class="card-header">
-						<i class="far fa-calendar-alt"></i>
+						<i class="ph ph-calendar"></i>
 						<h4><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount"><?php echo wp_kses_post( wc_price( $current_month_earnings ) ); ?></p>
@@ -321,7 +321,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-earnings">
 					<div class="card-header">
-						<i class="far fa-chart-line"></i>
+						<i class="ph ph-chart-line-up"></i>
 						<h4><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
@@ -330,7 +330,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-paid">
 					<div class="card-header">
-						<i class="far fa-check-circle"></i>
+						<i class="ph ph-check-circle"></i>
 						<h4><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount paid"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></p>
@@ -339,7 +339,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-due">
 					<div class="card-header">
-						<i class="far fa-clock"></i>
+						<i class="ph ph-clock"></i>
 						<h4><?php esc_html_e( 'Amount Due', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount due"><?php echo wp_kses_post( wc_price( $total_due ) ); ?></p>
@@ -387,9 +387,9 @@ class WC_Team_Payroll_MyAccount_New {
 										<td>
 											<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
 												<?php if ( $status === 'paid' ) : ?>
-													<i class="far fa-check-circle"></i> <?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
+													<i class="ph ph-check-circle"></i> <?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
 												<?php else : ?>
-													<i class="far fa-clock"></i> <?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>
+													<i class="ph ph-clock"></i> <?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>
 												<?php endif; ?>
 											</span>
 										</td>
@@ -401,7 +401,7 @@ class WC_Team_Payroll_MyAccount_New {
 				</div>
 			<?php else : ?>
 				<div class="no-earnings-message">
-					<i class="far fa-chart-line"></i>
+					<i class="ph ph-chart-line-up"></i>
 					<h4><?php esc_html_e( 'No Earnings Yet', 'wc-team-payroll' ); ?></h4>
 					<p><?php esc_html_e( 'Start processing orders to see your earnings here.', 'wc-team-payroll' ); ?></p>
 				</div>
@@ -419,12 +419,12 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-orders">
-			<h2><i class="far fa-shopping-bag"></i> <?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="ph ph-shopping-bag"></i> <?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
 				<div class="employee-id">
-					<i class="far fa-id-badge"></i>
+					<i class="ph ph-identification-badge"></i>
 					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
 				</div>
 			</div>
@@ -862,12 +862,12 @@ class WC_Team_Payroll_MyAccount_New {
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		?>
 		<div class="wc-team-payroll-reports">
-			<h2><i class="far fa-chart-bar"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="ph ph-chart-bar"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
 				<div class="employee-id">
-					<i class="far fa-id-badge"></i>
+					<i class="ph ph-identification-badge"></i>
 					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
 				</div>
 			</div>
@@ -951,7 +951,16 @@ class WC_Team_Payroll_MyAccount_New {
 					$shadow_css = '0 2px 8px rgba(0,0,0,0.1)';
 			}
 			
-			// Enqueue Font Awesome
+			// Enqueue Phosphor Icons
+			wp_enqueue_script(
+				'phosphor-icons',
+				'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2',
+				array(),
+				'2.1.2',
+				true
+			);
+			
+			// Enqueue Font Awesome (keeping as fallback)
 			wp_enqueue_style( 
 				'font-awesome', 
 				'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', 
@@ -979,7 +988,8 @@ class WC_Team_Payroll_MyAccount_New {
 					background: {$background_color} !important;
 					color: {$text_color} !important;
 					font-size: {$base_font_size}px !important;
-					" . ( $remove_debug_border ? '' : 'border: 2px solid ' . $primary_color . ' !important; margin: 10px 0 !important;' ) . "
+					border: none !important;
+					margin: 0 !important;
 				}
 				
 				/* Headings */
@@ -1024,6 +1034,14 @@ class WC_Team_Payroll_MyAccount_New {
 					width: 20px !important;
 					text-align: center !important;
 					font-size: 20px !important;
+					color: {$primary_color} !important;
+				}
+				
+				/* Phosphor icons in content */
+				.wc-team-payroll-salary-details .ph,
+				.wc-team-payroll-earnings .ph,
+				.wc-team-payroll-orders .ph,
+				.wc-team-payroll-reports .ph {
 					color: {$primary_color} !important;
 				}
 				
@@ -1175,36 +1193,36 @@ class WC_Team_Payroll_MyAccount_New {
 			// Enqueue jQuery for AJAX and icon injection
 			wp_enqueue_script( 'jquery' );
 			
-			// Add inline script to inject icons
-			wp_add_inline_script( 'jquery', '
+			// Add inline script to inject Phosphor icons
+			wp_add_inline_script( 'phosphor-icons', '
 				jQuery(document).ready(function($) {
-					// Function to add icons to menu items
+					// Function to add Phosphor icons to menu items
 					function addMyAccountIcons() {
 						// Remove any existing icons first
 						$(".woocommerce-MyAccount-navigation a i").remove();
 						
-						// Add outline icons to menu items
+						// Add Phosphor icons to menu items
 						$(".woocommerce-MyAccount-navigation a[href*=\'salary-details\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'far fa-briefcase\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
+								$(this).prepend("<i class=\'ph ph-briefcase\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'my-earnings\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'far fa-wallet\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
+								$(this).prepend("<i class=\'ph ph-wallet\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'orders-commission\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'far fa-shopping-bag\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
+								$(this).prepend("<i class=\'ph ph-shopping-bag\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'reports\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'far fa-chart-bar\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
+								$(this).prepend("<i class=\'ph ph-chart-bar\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 					}

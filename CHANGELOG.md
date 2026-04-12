@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.21] - 2026-04-12
+### Changed
+- **Phosphor Icons**: Switched from Font Awesome to Phosphor Icons for better visual appearance
+  - Added Phosphor Icons CDN: `https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2`
+  - Updated all icons in My Account tabs and content areas
+  - Icons: `ph-briefcase`, `ph-wallet`, `ph-shopping-bag`, `ph-chart-bar`, etc.
+
+### Removed
+- **Debug Borders**: Completely removed debug borders from all My Account containers
+  - No more 2px blue borders around `.wc-team-payroll-salary-details` and similar containers
+  - Removed "Remove Debug Border" setting option (now clean by default)
+  - Cleaner, more professional appearance
+
+### Improved
+- **Icon Consistency**: All icons now use Phosphor icon system for uniform appearance
+- **Visual Polish**: Cleaner layout without debug elements
+- **Performance**: Reduced CSS complexity by removing conditional border styling
+
+### Technical
+- Added Phosphor Icons script dependency
+- Updated JavaScript icon injection to use `ph ph-*` classes
+- Simplified CSS by removing debug border conditions
+- Updated all icon references throughout the codebase
+
 ## [1.0.20] - 2026-04-12
 ### Added
 - **Frontend Styling Settings**: New "Frontend Styling" tab in settings with comprehensive customization options

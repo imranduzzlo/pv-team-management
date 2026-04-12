@@ -310,13 +310,6 @@ class WC_Team_Payroll_Settings {
 								<p class="description">Shadow depth for cards and elements</p>
 							</td>
 						</tr>
-						<tr>
-							<th><label for="remove_debug_border">Remove Debug Border</label></th>
-							<td>
-								<input type="checkbox" id="remove_debug_border" name="wc_team_payroll_styling[remove_debug_border]" value="1" <?php checked( isset( $styling_settings['remove_debug_border'] ) ? $styling_settings['remove_debug_border'] : 0, 1 ); ?> />
-								<p class="description">Remove the blue debug border around My Account sections</p>
-							</td>
-						</tr>
 					</table>
 
 					<h3>Preview</h3>
