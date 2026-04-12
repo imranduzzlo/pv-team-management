@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.27] - 2026-04-12
+### Professional Header - Minimal & Fresh Design
+- **Complete redesign** of employee header from scratch
+- **Modern minimal layout** like big platforms (LinkedIn, GitHub, etc.)
+- **Left section**: Profile picture (120px circular with border)
+- **Middle section**: Name, role, bio, contact info (ID, email, phone with icons)
+- **Right section**: Salary type box and social media icons
+- **Clean design**: White background with subtle border and minimal shadow
+- **Professional spacing**: Proper typography and visual hierarchy
+- **Contact info**: ID, email, phone displayed inline with icons
+- **Fully responsive**: Optimized for desktop, tablet, and mobile
+- **Dynamic styling**: All colors controlled via admin settings
+
 ## [1.0.26] - 2026-04-12
 ### Header CSS Redesign - Clean Modern Layout
 - **Redesigned header CSS from scratch** for clean, modern appearance
