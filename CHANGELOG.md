@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.9] - 2024-12-19
+
+### ✨ **Features**
+- **Team Members Status Column**: Added employee status (Active/Inactive) as a new sortable column in the team members table
+- **Status Badge**: Displays color-coded status badges (green for Active, red for Inactive)
+- **Sortable Status**: Users can sort the table by employee status
+
+---
+
 ## [5.8.8] - 2024-12-19
 
 ### ✨ **Features**
