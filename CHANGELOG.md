@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.20] - 2026-04-12
+
+Fixed critical error on payments page by including missing AJAX handlers class. All payment-related AJAX functionality now works properly.
+
+---
+# Changelog
+
 ## [5.8.19] - 2026-04-12
 
 Added new Payments page with payment entry form, history table with advanced filtering, sorting, and pagination. Includes employee dropdown, payment method selection based on employee, date/time picker, and comprehensive payment history with search and filter capabilities.
@@ -675,5 +682,6 @@ Added new Payments page with payment entry form, history table with advanced fil
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
 
