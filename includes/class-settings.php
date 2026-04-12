@@ -26,6 +26,8 @@ class WC_Team_Payroll_Settings {
 	}
 
 	private function render_tabs( $current_tab, $settings, $checkout_fields, $acf_fields, $employee_roles, $user_id_prefix ) {
+		// Get styling settings
+		$styling_settings = get_option( 'wc_team_payroll_styling', array() );
 		?>
 		<div class="wrap wc-tp-settings-wrap">
 			<h1><?php esc_html_e( 'WooCommerce Team Payroll Settings', 'wc-team-payroll' ); ?></h1>
@@ -33,6 +35,7 @@ class WC_Team_Payroll_Settings {
 			<nav class="nav-tab-wrapper">
 				<a href="?page=wc-team-payroll-settings&tab=general" class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">General</a>
 				<a href="?page=wc-team-payroll-settings&tab=commission" class="nav-tab <?php echo $current_tab === 'commission' ? 'nav-tab-active' : ''; ?>">Commission</a>
+				<a href="?page=wc-team-payroll-settings&tab=styling" class="nav-tab <?php echo $current_tab === 'styling' ? 'nav-tab-active' : ''; ?>">Frontend Styling</a>
 				<a href="?page=wc-team-payroll-settings&tab=roles" class="nav-tab <?php echo $current_tab === 'roles' ? 'nav-tab-active' : ''; ?>">Employee Roles</a>
 				<a href="?page=wc-team-payroll-settings&tab=checkout" class="nav-tab <?php echo $current_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">Checkout</a>
 				<a href="?page=wc-team-payroll-settings&tab=advanced" class="nav-tab <?php echo $current_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
@@ -121,6 +124,212 @@ class WC_Team_Payroll_Settings {
 						</tr>
 
 					</table>
+				<?php endif; ?>
+
+				<?php if ( $current_tab === 'styling' ) : ?>
+					<h2>Frontend Styling Settings</h2>
+					<p>Customize the appearance of My Account pages and frontend elements. These settings will override the default styling.</p>
+					
+					<h3>Color Scheme</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="primary_color">Primary Color</label></th>
+							<td>
+								<input type="color" id="primary_color" name="wc_team_payroll_styling[primary_color]" value="<?php echo esc_attr( isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa' ); ?>" />
+								<p class="description">Main brand color used for buttons, links, and accents</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="secondary_color">Secondary Color</label></th>
+							<td>
+								<input type="color" id="secondary_color" name="wc_team_payroll_styling[secondary_color]" value="<?php echo esc_attr( isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745' ); ?>" />
+								<p class="description">Secondary color for success states and positive amounts</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="heading_color">Heading Color</label></th>
+							<td>
+								<input type="color" id="heading_color" name="wc_team_payroll_styling[heading_color]" value="<?php echo esc_attr( isset( $styling_settings['heading_color'] ) ? $styling_settings['heading_color'] : '#333333' ); ?>" />
+								<p class="description">Color for headings (h1, h2, h3, etc.)</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="text_color">Text Color</label></th>
+							<td>
+								<input type="color" id="text_color" name="wc_team_payroll_styling[text_color]" value="<?php echo esc_attr( isset( $styling_settings['text_color'] ) ? $styling_settings['text_color'] : '#495057' ); ?>" />
+								<p class="description">Main text color for paragraphs and content</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="link_color">Link Color</label></th>
+							<td>
+								<input type="color" id="link_color" name="wc_team_payroll_styling[link_color]" value="<?php echo esc_attr( isset( $styling_settings['link_color'] ) ? $styling_settings['link_color'] : '#0073aa' ); ?>" />
+								<p class="description">Color for links in normal state</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="link_hover_color">Link Hover Color</label></th>
+							<td>
+								<input type="color" id="link_hover_color" name="wc_team_payroll_styling[link_hover_color]" value="<?php echo esc_attr( isset( $styling_settings['link_hover_color'] ) ? $styling_settings['link_hover_color'] : '#005a87' ); ?>" />
+								<p class="description">Color for links when hovered</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Background Colors</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="background_color">Main Background</label></th>
+							<td>
+								<input type="color" id="background_color" name="wc_team_payroll_styling[background_color]" value="<?php echo esc_attr( isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff' ); ?>" />
+								<p class="description">Background color for main content areas</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="card_background">Card Background</label></th>
+							<td>
+								<input type="color" id="card_background" name="wc_team_payroll_styling[card_background]" value="<?php echo esc_attr( isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa' ); ?>" />
+								<p class="description">Background color for cards and info boxes</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="border_color">Border Color</label></th>
+							<td>
+								<input type="color" id="border_color" name="wc_team_payroll_styling[border_color]" value="<?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>" />
+								<p class="description">Color for borders and dividers</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Typography</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="font_family">Font Family</label></th>
+							<td>
+								<select id="font_family" name="wc_team_payroll_styling[font_family]">
+									<?php
+									$font_family = isset( $styling_settings['font_family'] ) ? $styling_settings['font_family'] : 'inherit';
+									$font_options = array(
+										'inherit' => 'Inherit from theme',
+										'Arial, sans-serif' => 'Arial',
+										'Helvetica, Arial, sans-serif' => 'Helvetica',
+										'"Segoe UI", Tahoma, Geneva, Verdana, sans-serif' => 'Segoe UI',
+										'"Roboto", sans-serif' => 'Roboto',
+										'"Open Sans", sans-serif' => 'Open Sans',
+										'"Lato", sans-serif' => 'Lato',
+										'"Poppins", sans-serif' => 'Poppins',
+										'Georgia, serif' => 'Georgia',
+										'"Times New Roman", serif' => 'Times New Roman',
+									);
+									foreach ( $font_options as $value => $label ) {
+										echo '<option value="' . esc_attr( $value ) . '"' . selected( $font_family, $value, false ) . '>' . esc_html( $label ) . '</option>';
+									}
+									?>
+								</select>
+								<p class="description">Font family for all text elements</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="base_font_size">Base Font Size</label></th>
+							<td>
+								<input type="number" id="base_font_size" name="wc_team_payroll_styling[base_font_size]" value="<?php echo esc_attr( isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14 ); ?>" min="10" max="24" step="1" />
+								<span>px</span>
+								<p class="description">Base font size for body text (10-24px)</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="heading_font_size">Heading Font Size</label></th>
+							<td>
+								<input type="number" id="heading_font_size" name="wc_team_payroll_styling[heading_font_size]" value="<?php echo esc_attr( isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24 ); ?>" min="16" max="48" step="1" />
+								<span>px</span>
+								<p class="description">Font size for main headings (16-48px)</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Button Styling</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="button_background">Button Background</label></th>
+							<td>
+								<input type="color" id="button_background" name="wc_team_payroll_styling[button_background]" value="<?php echo esc_attr( isset( $styling_settings['button_background'] ) ? $styling_settings['button_background'] : '#0073aa' ); ?>" />
+								<p class="description">Background color for primary buttons</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="button_text_color">Button Text Color</label></th>
+							<td>
+								<input type="color" id="button_text_color" name="wc_team_payroll_styling[button_text_color]" value="<?php echo esc_attr( isset( $styling_settings['button_text_color'] ) ? $styling_settings['button_text_color'] : '#ffffff' ); ?>" />
+								<p class="description">Text color for buttons</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="button_hover_background">Button Hover Background</label></th>
+							<td>
+								<input type="color" id="button_hover_background" name="wc_team_payroll_styling[button_hover_background]" value="<?php echo esc_attr( isset( $styling_settings['button_hover_background'] ) ? $styling_settings['button_hover_background'] : '#005a87' ); ?>" />
+								<p class="description">Background color for buttons when hovered</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="button_border_radius">Button Border Radius</label></th>
+							<td>
+								<input type="number" id="button_border_radius" name="wc_team_payroll_styling[button_border_radius]" value="<?php echo esc_attr( isset( $styling_settings['button_border_radius'] ) ? $styling_settings['button_border_radius'] : 4 ); ?>" min="0" max="20" step="1" />
+								<span>px</span>
+								<p class="description">Border radius for buttons (0-20px)</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Layout Settings</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="card_border_radius">Card Border Radius</label></th>
+							<td>
+								<input type="number" id="card_border_radius" name="wc_team_payroll_styling[card_border_radius]" value="<?php echo esc_attr( isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8 ); ?>" min="0" max="20" step="1" />
+								<span>px</span>
+								<p class="description">Border radius for cards and info boxes (0-20px)</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="card_shadow">Card Shadow</label></th>
+							<td>
+								<select id="card_shadow" name="wc_team_payroll_styling[card_shadow]">
+									<?php
+									$card_shadow = isset( $styling_settings['card_shadow'] ) ? $styling_settings['card_shadow'] : 'medium';
+									$shadow_options = array(
+										'none' => 'No Shadow',
+										'light' => 'Light Shadow',
+										'medium' => 'Medium Shadow',
+										'heavy' => 'Heavy Shadow',
+									);
+									foreach ( $shadow_options as $value => $label ) {
+										echo '<option value="' . esc_attr( $value ) . '"' . selected( $card_shadow, $value, false ) . '>' . esc_html( $label ) . '</option>';
+									}
+									?>
+								</select>
+								<p class="description">Shadow depth for cards and elements</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="remove_debug_border">Remove Debug Border</label></th>
+							<td>
+								<input type="checkbox" id="remove_debug_border" name="wc_team_payroll_styling[remove_debug_border]" value="1" <?php checked( isset( $styling_settings['remove_debug_border'] ) ? $styling_settings['remove_debug_border'] : 0, 1 ); ?> />
+								<p class="description">Remove the blue debug border around My Account sections</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Preview</h3>
+					<div style="background: <?php echo esc_attr( isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff' ); ?>; padding: 20px; border: 1px solid <?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>; border-radius: <?php echo esc_attr( isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8 ); ?>px; margin: 15px 0;">
+						<h3 style="color: <?php echo esc_attr( isset( $styling_settings['heading_color'] ) ? $styling_settings['heading_color'] : '#333333' ); ?>; font-size: <?php echo esc_attr( isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24 ); ?>px; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">Sample Heading</h3>
+						<p style="color: <?php echo esc_attr( isset( $styling_settings['text_color'] ) ? $styling_settings['text_color'] : '#495057' ); ?>; font-size: <?php echo esc_attr( isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14 ); ?>px; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">This is sample text content. <a href="#" style="color: <?php echo esc_attr( isset( $styling_settings['link_color'] ) ? $styling_settings['link_color'] : '#0073aa' ); ?>;">This is a sample link</a> within the text.</p>
+						<div style="background: <?php echo esc_attr( isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa' ); ?>; padding: 15px; border: 1px solid <?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>; border-radius: <?php echo esc_attr( isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8 ); ?>px; margin: 10px 0;">
+							<strong>Sample Card Content</strong><br>
+							<span style="color: <?php echo esc_attr( isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745' ); ?>; font-weight: 600;">$1,250.00</span>
+						</div>
+						<button type="button" style="background: <?php echo esc_attr( isset( $styling_settings['button_background'] ) ? $styling_settings['button_background'] : '#0073aa' ); ?>; color: <?php echo esc_attr( isset( $styling_settings['button_text_color'] ) ? $styling_settings['button_text_color'] : '#ffffff' ); ?>; border: none; padding: 8px 16px; border-radius: <?php echo esc_attr( isset( $styling_settings['button_border_radius'] ) ? $styling_settings['button_border_radius'] : 4 ); ?>px; cursor: pointer; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">Sample Button</button>
+					</div>
+
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'roles' ) : ?>
@@ -487,10 +696,14 @@ class WC_Team_Payroll_Settings {
 		$settings = isset( $_POST['wc_team_payroll_settings'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_settings'] ) : array();
 		$checkout_fields = isset( $_POST['wc_team_payroll_checkout_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_checkout_fields'] ) : array();
 		$acf_fields = isset( $_POST['wc_team_payroll_acf_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_acf_fields'] ) : array();
+		
+		// Save styling settings
+		$styling_settings = isset( $_POST['wc_team_payroll_styling'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_styling'] ) : array();
 
 		update_option( 'wc_team_payroll_settings', $settings );
 		update_option( 'wc_team_payroll_checkout_fields', $checkout_fields );
 		update_option( 'wc_team_payroll_acf_fields', $acf_fields );
+		update_option( 'wc_team_payroll_styling', $styling_settings );
 
 		if ( isset( $_POST['wc_tp_user_id_prefix'] ) ) {
 			$prefix = sanitize_text_field( $_POST['wc_tp_user_id_prefix'] );

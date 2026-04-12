@@ -112,11 +112,11 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-salary-details">
-			<h2><i class="fas fa-briefcase"></i> <?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="far fa-briefcase"></i> <?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Information -->
 			<div class="employee-info-section">
-				<h3><i class="fas fa-user"></i> <?php esc_html_e( 'Employee Information', 'wc-team-payroll' ); ?></h3>
+				<h3><i class="far fa-user"></i> <?php esc_html_e( 'Employee Information', 'wc-team-payroll' ); ?></h3>
 				<div class="info-grid">
 					<div class="info-card">
 						<label><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></label>
@@ -141,16 +141,16 @@ class WC_Team_Payroll_MyAccount_New {
 
 			<!-- Salary Information -->
 			<div class="salary-info-section">
-				<h3><i class="fas fa-money-bill-wave"></i> <?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
+				<h3><i class="far fa-money-bill-alt"></i> <?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
 				<div class="salary-info-card">
 					<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
 						<?php
 						if ( $is_fixed ) {
-							echo '<i class="fas fa-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+							echo '<i class="far fa-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
 						} elseif ( $is_combined ) {
-							echo '<i class="fas fa-chart-line"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
+							echo '<i class="far fa-chart-line"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
 						} else {
-							echo '<i class="fas fa-percentage"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
+							echo '<i class="far fa-percentage"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
 						}
 						?>
 					</div>
@@ -180,12 +180,12 @@ class WC_Team_Payroll_MyAccount_New {
 					
 					<?php if ( $is_combined ) : ?>
 						<div class="commission-note">
-							<i class="fas fa-info-circle"></i>
+							<i class="far fa-info-circle"></i>
 							<span><?php esc_html_e( 'You also earn commission from orders in addition to your base salary.', 'wc-team-payroll' ); ?></span>
 						</div>
 					<?php elseif ( $is_commission ) : ?>
 						<div class="commission-note">
-							<i class="fas fa-info-circle"></i>
+							<i class="far fa-info-circle"></i>
 							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
 						</div>
 					<?php endif; ?>
@@ -195,12 +195,12 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Payment Methods -->
 			<?php if ( ! empty( $payment_methods ) ) : ?>
 				<div class="payment-methods-section">
-					<h3><i class="fas fa-credit-card"></i> <?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
+					<h3><i class="far fa-credit-card"></i> <?php esc_html_e( 'Payment Methods', 'wc-team-payroll' ); ?></h3>
 					<div class="payment-methods-grid">
 						<?php foreach ( $payment_methods as $method ) : ?>
 							<div class="payment-method-card">
 								<div class="method-header">
-									<i class="fas fa-university"></i>
+									<i class="far fa-university"></i>
 									<span class="method-name"><?php echo esc_html( $method['method_name'] ); ?></span>
 								</div>
 								<div class="method-details">
@@ -215,7 +215,7 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary History -->
 			<?php if ( ! empty( $salary_history ) ) : ?>
 				<div class="salary-history-section">
-					<h3><i class="fas fa-history"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
+					<h3><i class="far fa-history"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
 					<div class="table-container">
 						<table class="woocommerce-table woocommerce-table--salary-history">
 							<thead>
@@ -268,7 +268,7 @@ class WC_Team_Payroll_MyAccount_New {
 				</div>
 			<?php else : ?>
 				<div class="no-history-message">
-					<i class="fas fa-info-circle"></i>
+					<i class="far fa-info-circle"></i>
 					<p><?php esc_html_e( 'No salary change history available.', 'wc-team-payroll' ); ?></p>
 				</div>
 			<?php endif; ?>
@@ -298,7 +298,7 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-earnings">
-			<h2><i class="fas fa-wallet"></i> <?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="far fa-wallet"></i> <?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
@@ -312,7 +312,7 @@ class WC_Team_Payroll_MyAccount_New {
 			<div class="earnings-summary">
 				<div class="earning-card current-month">
 					<div class="card-header">
-						<i class="fas fa-calendar-alt"></i>
+						<i class="far fa-calendar-alt"></i>
 						<h4><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount"><?php echo wp_kses_post( wc_price( $current_month_earnings ) ); ?></p>
@@ -321,7 +321,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-earnings">
 					<div class="card-header">
-						<i class="fas fa-chart-line"></i>
+						<i class="far fa-chart-line"></i>
 						<h4><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
@@ -330,7 +330,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-paid">
 					<div class="card-header">
-						<i class="fas fa-check-circle"></i>
+						<i class="far fa-check-circle"></i>
 						<h4><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount paid"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></p>
@@ -339,7 +339,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				<div class="earning-card total-due">
 					<div class="card-header">
-						<i class="fas fa-clock"></i>
+						<i class="far fa-clock"></i>
 						<h4><?php esc_html_e( 'Amount Due', 'wc-team-payroll' ); ?></h4>
 					</div>
 					<p class="amount due"><?php echo wp_kses_post( wc_price( $total_due ) ); ?></p>
@@ -387,9 +387,9 @@ class WC_Team_Payroll_MyAccount_New {
 										<td>
 											<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
 												<?php if ( $status === 'paid' ) : ?>
-													<i class="fas fa-check-circle"></i> <?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
+													<i class="far fa-check-circle"></i> <?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
 												<?php else : ?>
-													<i class="fas fa-clock"></i> <?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>
+													<i class="far fa-clock"></i> <?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>
 												<?php endif; ?>
 											</span>
 										</td>
@@ -401,7 +401,7 @@ class WC_Team_Payroll_MyAccount_New {
 				</div>
 			<?php else : ?>
 				<div class="no-earnings-message">
-					<i class="fas fa-chart-line"></i>
+					<i class="far fa-chart-line"></i>
 					<h4><?php esc_html_e( 'No Earnings Yet', 'wc-team-payroll' ); ?></h4>
 					<p><?php esc_html_e( 'Start processing orders to see your earnings here.', 'wc-team-payroll' ); ?></p>
 				</div>
@@ -419,12 +419,12 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-orders">
-			<h2><i class="fas fa-shopping-bag"></i> <?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="far fa-shopping-bag"></i> <?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
 				<div class="employee-id">
-					<i class="fas fa-id-badge"></i>
+					<i class="far fa-id-badge"></i>
 					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
 				</div>
 			</div>
@@ -862,12 +862,12 @@ class WC_Team_Payroll_MyAccount_New {
 		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		?>
 		<div class="wc-team-payroll-reports">
-			<h2><i class="fas fa-chart-bar"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
+			<h2><i class="far fa-chart-bar"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
 			
 			<!-- Employee Info -->
 			<div class="employee-header">
 				<div class="employee-id">
-					<i class="fas fa-id-badge"></i>
+					<i class="far fa-id-badge"></i>
 					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
 				</div>
 			</div>
@@ -908,6 +908,49 @@ class WC_Team_Payroll_MyAccount_New {
 	 */
 	public static function enqueue_assets() {
 		if ( is_account_page() ) {
+			// Get styling settings
+			$styling_settings = get_option( 'wc_team_payroll_styling', array() );
+			
+			// Set default values
+			$primary_color = isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa';
+			$secondary_color = isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745';
+			$heading_color = isset( $styling_settings['heading_color'] ) ? $styling_settings['heading_color'] : '#333333';
+			$text_color = isset( $styling_settings['text_color'] ) ? $styling_settings['text_color'] : '#495057';
+			$link_color = isset( $styling_settings['link_color'] ) ? $styling_settings['link_color'] : '#0073aa';
+			$link_hover_color = isset( $styling_settings['link_hover_color'] ) ? $styling_settings['link_hover_color'] : '#005a87';
+			$background_color = isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff';
+			$card_background = isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa';
+			$border_color = isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef';
+			$font_family = isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit';
+			$base_font_size = isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14;
+			$heading_font_size = isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24;
+			$button_background = isset( $styling_settings['button_background'] ) ? $styling_settings['button_background'] : '#0073aa';
+			$button_text_color = isset( $styling_settings['button_text_color'] ) ? $styling_settings['button_text_color'] : '#ffffff';
+			$button_hover_background = isset( $styling_settings['button_hover_background'] ) ? $styling_settings['button_hover_background'] : '#005a87';
+			$button_border_radius = isset( $styling_settings['button_border_radius'] ) ? $styling_settings['button_border_radius'] : 4;
+			$card_border_radius = isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8;
+			$card_shadow = isset( $styling_settings['card_shadow'] ) ? $styling_settings['card_shadow'] : 'medium';
+			$remove_debug_border = isset( $styling_settings['remove_debug_border'] ) ? $styling_settings['remove_debug_border'] : 0;
+			
+			// Generate shadow CSS
+			$shadow_css = '';
+			switch ( $card_shadow ) {
+				case 'none':
+					$shadow_css = 'none';
+					break;
+				case 'light':
+					$shadow_css = '0 1px 3px rgba(0,0,0,0.1)';
+					break;
+				case 'medium':
+					$shadow_css = '0 2px 8px rgba(0,0,0,0.1)';
+					break;
+				case 'heavy':
+					$shadow_css = '0 4px 16px rgba(0,0,0,0.15)';
+					break;
+				default:
+					$shadow_css = '0 2px 8px rgba(0,0,0,0.1)';
+			}
+			
 			// Enqueue Font Awesome
 			wp_enqueue_style( 
 				'font-awesome', 
@@ -924,17 +967,54 @@ class WC_Team_Payroll_MyAccount_New {
 				WC_TEAM_PAYROLL_VERSION . '-' . filemtime( WC_TEAM_PAYROLL_PATH . 'assets/css/myaccount.css' )
 			);
 
-			// Add inline CSS to ensure styles are applied
-			wp_add_inline_style( 'wc-team-payroll-myaccount', '
-				/* Force CSS to load and apply */
+			// Generate dynamic CSS based on settings
+			$dynamic_css = "
+				/* Dynamic Styling from Settings */
 				.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-salary-details,
 				.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-earnings,
 				.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-orders,
 				.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-reports {
 					padding: 20px 0 !important;
-					font-family: inherit !important;
-					background: #fff !important;
-					color: #333 !important;
+					font-family: {$font_family} !important;
+					background: {$background_color} !important;
+					color: {$text_color} !important;
+					font-size: {$base_font_size}px !important;
+					" . ( $remove_debug_border ? '' : 'border: 2px solid ' . $primary_color . ' !important; margin: 10px 0 !important;' ) . "
+				}
+				
+				/* Headings */
+				.wc-team-payroll-salary-details h2,
+				.wc-team-payroll-earnings h2,
+				.wc-team-payroll-orders h2,
+				.wc-team-payroll-reports h2,
+				.wc-team-payroll-salary-details h3,
+				.wc-team-payroll-earnings h3,
+				.wc-team-payroll-orders h3,
+				.wc-team-payroll-reports h3 {
+					color: {$heading_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-team-payroll-salary-details h2,
+				.wc-team-payroll-earnings h2,
+				.wc-team-payroll-orders h2,
+				.wc-team-payroll-reports h2 {
+					font-size: {$heading_font_size}px !important;
+				}
+				
+				/* Links */
+				.wc-team-payroll-salary-details a,
+				.wc-team-payroll-earnings a,
+				.wc-team-payroll-orders a,
+				.wc-team-payroll-reports a {
+					color: {$link_color} !important;
+				}
+				
+				.wc-team-payroll-salary-details a:hover,
+				.wc-team-payroll-earnings a:hover,
+				.wc-team-payroll-orders a:hover,
+				.wc-team-payroll-reports a:hover {
+					color: {$link_hover_color} !important;
 				}
 				
 				/* Menu icons styling */
@@ -944,6 +1024,7 @@ class WC_Team_Payroll_MyAccount_New {
 					width: 20px !important;
 					text-align: center !important;
 					font-size: 20px !important;
+					color: {$primary_color} !important;
 				}
 				
 				/* Grid layouts */
@@ -958,46 +1039,138 @@ class WC_Team_Payroll_MyAccount_New {
 				/* Cards styling */
 				.wc-team-payroll-salary-details .info-card,
 				.wc-team-payroll-earnings .earning-card {
-					background: #f8f9fa !important;
-					border: 1px solid #e9ecef !important;
-					border-radius: 8px !important;
+					background: {$card_background} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: {$card_border_radius}px !important;
 					padding: 20px !important;
+					box-shadow: {$shadow_css} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
 				}
 				
 				/* Salary info card */
 				.wc-team-payroll-salary-details .salary-info-card {
-					background: #fff !important;
-					border: 1px solid #e9ecef !important;
-					border-radius: 12px !important;
+					background: {$background_color} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: {$card_border_radius}px !important;
 					padding: 30px !important;
-					box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+					box-shadow: {$shadow_css} !important;
 					margin-bottom: 20px !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
 				}
 				
 				/* Tables */
 				.wc-team-payroll-salary-details .table-container,
 				.wc-team-payroll-earnings .table-container {
 					overflow-x: auto !important;
-					border-radius: 8px !important;
-					border: 1px solid #e9ecef !important;
+					border-radius: {$card_border_radius}px !important;
+					border: 1px solid {$border_color} !important;
 				}
 				
-				/* Ensure wc_price output is styled */
+				.wc-team-payroll-salary-details .woocommerce-table,
+				.wc-team-payroll-earnings .woocommerce-table {
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-team-payroll-salary-details .woocommerce-table th,
+				.wc-team-payroll-earnings .woocommerce-table th {
+					background: {$card_background} !important;
+					color: {$heading_color} !important;
+					border-bottom: 2px solid {$border_color} !important;
+				}
+				
+				.wc-team-payroll-salary-details .woocommerce-table td,
+				.wc-team-payroll-earnings .woocommerce-table td {
+					border-bottom: 1px solid {$border_color} !important;
+				}
+				
+				/* Amount styling */
 				.wc-team-payroll-salary-details .amount,
-				.wc-team-payroll-earnings .amount {
-					color: #28a745 !important;
+				.wc-team-payroll-earnings .amount,
+				.wc-team-payroll-salary-details .amount-earned,
+				.wc-team-payroll-earnings .amount-earned {
+					color: {$secondary_color} !important;
 					font-weight: 600 !important;
 				}
 				
-				/* Debug: Add border to main containers */
-				.wc-team-payroll-salary-details,
-				.wc-team-payroll-earnings,
-				.wc-team-payroll-orders,
-				.wc-team-payroll-reports {
-					border: 2px solid #007cba !important;
-					margin: 10px 0 !important;
+				/* Buttons */
+				.wc-team-payroll-salary-details button,
+				.wc-team-payroll-earnings button,
+				.wc-team-payroll-orders button,
+				.wc-team-payroll-reports button,
+				.wc-team-payroll-salary-details .btn,
+				.wc-team-payroll-earnings .btn,
+				.wc-team-payroll-orders .btn,
+				.wc-team-payroll-reports .btn {
+					background: {$button_background} !important;
+					color: {$button_text_color} !important;
+					border: none !important;
+					border-radius: {$button_border_radius}px !important;
+					font-family: {$font_family} !important;
+					cursor: pointer !important;
+					transition: background-color 0.2s ease !important;
 				}
-			' );
+				
+				.wc-team-payroll-salary-details button:hover,
+				.wc-team-payroll-earnings button:hover,
+				.wc-team-payroll-orders button:hover,
+				.wc-team-payroll-reports button:hover,
+				.wc-team-payroll-salary-details .btn:hover,
+				.wc-team-payroll-earnings .btn:hover,
+				.wc-team-payroll-orders .btn:hover,
+				.wc-team-payroll-reports .btn:hover {
+					background: {$button_hover_background} !important;
+				}
+				
+				/* Status badges */
+				.wc-team-payroll-salary-details .status-badge,
+				.wc-team-payroll-earnings .status-badge {
+					border-radius: {$button_border_radius}px !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Employee header */
+				.wc-team-payroll-salary-details .employee-header,
+				.wc-team-payroll-earnings .employee-header,
+				.wc-team-payroll-orders .employee-header,
+				.wc-team-payroll-reports .employee-header {
+					background: {$card_background} !important;
+					border-left: 4px solid {$primary_color} !important;
+					border-radius: {$card_border_radius}px !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Payment method cards */
+				.wc-team-payroll-salary-details .payment-method-card {
+					background: {$background_color} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: {$card_border_radius}px !important;
+					box-shadow: {$shadow_css} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Salary type badges */
+				.wc-team-payroll-salary-details .salary-type-badge {
+					border-radius: {$button_border_radius}px !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Commission note */
+				.wc-team-payroll-salary-details .commission-note {
+					background: {$card_background} !important;
+					border: 1px solid {$border_color} !important;
+					border-radius: {$card_border_radius}px !important;
+					color: {$primary_color} !important;
+					font-family: {$font_family} !important;
+				}
+			";
+
+			// Add the dynamic CSS
+			wp_add_inline_style( 'wc-team-payroll-myaccount', $dynamic_css );
 
 			// Enqueue jQuery for AJAX and icon injection
 			wp_enqueue_script( 'jquery' );
@@ -1010,28 +1183,28 @@ class WC_Team_Payroll_MyAccount_New {
 						// Remove any existing icons first
 						$(".woocommerce-MyAccount-navigation a i").remove();
 						
-						// Add icons to menu items
+						// Add outline icons to menu items
 						$(".woocommerce-MyAccount-navigation a[href*=\'salary-details\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'fas fa-briefcase\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block;\'></i>");
+								$(this).prepend("<i class=\'far fa-briefcase\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'my-earnings\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'fas fa-wallet\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block;\'></i>");
+								$(this).prepend("<i class=\'far fa-wallet\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'orders-commission\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'fas fa-shopping-bag\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block;\'></i>");
+								$(this).prepend("<i class=\'far fa-shopping-bag\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 						
 						$(".woocommerce-MyAccount-navigation a[href*=\'reports\']").each(function() {
 							if (!$(this).find("i").length) {
-								$(this).prepend("<i class=\'fas fa-chart-bar\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block;\'></i>");
+								$(this).prepend("<i class=\'far fa-chart-bar\' style=\'margin-right: 8px; font-size: 20px; width: 20px; text-align: center; display: inline-block; color: ' . esc_js( $primary_color ) . ';\'></i>");
 							}
 						});
 					}

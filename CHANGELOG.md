@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.0.20] - 2026-04-12
+### Added
+- **Frontend Styling Settings**: New "Frontend Styling" tab in settings with comprehensive customization options
+  - Color scheme settings (primary, secondary, heading, text, link colors)
+  - Background and border color controls
+  - Typography settings (font family, font sizes)
+  - Button styling (colors, hover states, border radius)
+  - Layout settings (card border radius, shadow depth)
+  - Live preview of styling changes
+  - Option to remove debug borders
+
+### Changed
+- **Outline Icons**: Switched from filled (fas) to outline (far) Font Awesome icons for better visual appearance
+- **Dynamic Styling**: My Account pages now use styling settings from admin panel
+- **Improved Salary Details Page**: Better layout and styling following admin page design system
+- **Removed Debug Border**: Option to remove the blue debug border around My Account sections
+
+### Improved
+- **Settings Integration**: Styling settings are saved and applied dynamically to frontend
+- **Icon Colors**: Icons now use primary color from settings for consistency
+- **Typography**: Font family and sizes are now customizable and applied consistently
+- **Card Styling**: Cards, buttons, and layout elements follow the admin design system
+- **Color Consistency**: All colors (headings, text, links, buttons) use settings values
+
+### Technical
+- Added `wc_team_payroll_styling` option to store frontend styling settings
+- Dynamic CSS generation based on user settings
+- Improved cache busting for CSS files
+- Better CSS specificity for reliable styling application
+
 ## [1.0.19] - 2026-04-12
 ### Fixed
 - Fixed HTML escaping issues in My Account tabs (icons now display properly)
