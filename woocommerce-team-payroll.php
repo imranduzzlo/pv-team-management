@@ -1778,3 +1778,4 @@ add_action( 'wp_ajax_wc_tp_global_search', function() {
 } );
 
 
+

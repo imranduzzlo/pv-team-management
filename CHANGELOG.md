@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.21] - 2026-04-12
+
+Fixed fatal error on payments page caused by incorrect method name. Changed render_payments() to render_payments_page() in the admin menu callback.
+
+---
+# Changelog
+
 ## [5.8.20] - 2026-04-12
 
 Fixed critical error on payments page by including missing AJAX handlers class. All payment-related AJAX functionality now works properly.
@@ -690,6 +697,7 @@ Added new Payments page with payment entry form, history table with advanced fil
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
 
 
