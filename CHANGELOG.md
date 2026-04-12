@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.11] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Payment Methods Dropdown**: Fixed payment methods dropdown to correctly display employee's payment methods
+- **Data Structure**: Updated JavaScript to use correct payment method field names (`method_name` instead of `name`)
+- **Error Handling**: Added error messages for failed payment method loading
+
+---
+
 ## [5.8.10] - 2024-12-19
 
 ### ✨ **Features**
