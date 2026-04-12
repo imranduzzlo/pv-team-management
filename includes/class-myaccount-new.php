@@ -1176,8 +1176,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				.wc-tp-employee-header-new {
 					background: {$background_color} !important;
-					border: 1px solid {$border_color} !important;
-					box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+					border-color: {$border_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-picture-container {
@@ -1194,52 +1193,49 @@ class WC_Team_Payroll_MyAccount_New {
 					font-family: {$font_family} !important;
 				}
 				
+				.wc-tp-employee-header-new .role-section {
+					background: rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.1) !important;
+				}
+				
 				.wc-tp-employee-header-new .profile-role {
+					color: {$primary_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .info-item {
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .info-item i {
+					color: {$primary_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .info-value:hover {
+					color: {$primary_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .social-icon {
+					color: {$primary_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .social-icon:hover {
+					color: {$secondary_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-bio {
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
+					border-top-color: {$header_border_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .contact-item {
-					color: {$text_color} !important;
-					font-family: {$font_family} !important;
+				.wc-tp-employee-header-new .header-container-3 {
+					border-top-color: {$border_color} !important;
+					border-bottom-color: {$border_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .contact-item i {
-					color: {$primary_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-link {
-					background: {$primary_color} !important;
-					color: {$button_text_color} !important;
-					font-family: {$font_family} !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-link:hover {
-					background: {$link_hover_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-text {
-					background: {$card_background} !important;
-					color: {$heading_color} !important;
-					border-color: {$border_color} !important;
-					font-family: {$font_family} !important;
-				}
-				
-				.wc-tp-employee-header-new .social-icon {
-					background: transparent !important;
-					border-color: {$border_color} !important;
-					color: {$text_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .social-icon:hover {
-					background: {$primary_color} !important;
-					border-color: {$primary_color} !important;
-					color: {$button_text_color} !important;
+				.wc-tp-employee-header-new .header-container-4 {
+					border-top-color: {$border_color} !important;
 				}
 				
 				/* Headings */
@@ -1573,53 +1569,52 @@ class WC_Team_Payroll_MyAccount_New {
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
-			<!-- Header Container -->
-			<div class="header-container">
-				<!-- Left Section: Profile Picture -->
-				<div class="header-profile-section">
-					<div class="profile-picture-container">
-						<?php if ( $profile_picture_url ) : ?>
-							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
-						<?php else : ?>
-							<div class="profile-picture-placeholder">
-								<span class="initials"><?php echo esc_html( $initials ); ?></span>
-							</div>
-						<?php endif; ?>
-					</div>
-				</div>
-				
-				<!-- Middle Section: Name, Role, Bio -->
-				<div class="header-info-section">
-					<div class="profile-header">
-						<h2 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h2>
-						<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
-					</div>
-					
-					<?php if ( $bio ) : ?>
-						<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
+			<!-- Container 1: Profile Picture -->
+			<div class="header-container-1">
+				<div class="profile-picture-container">
+					<?php if ( $profile_picture_url ) : ?>
+						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
+					<?php else : ?>
+						<div class="profile-picture-placeholder">
+							<span class="initials"><?php echo esc_html( $initials ); ?></span>
+						</div>
 					<?php endif; ?>
-					
-					<!-- Contact Info -->
-					<div class="contact-info">
-						<div class="contact-item">
-							<i class="ph ph-identification-badge"></i>
-							<span><?php echo esc_html( $vb_user_id ); ?></span>
-						</div>
-						<div class="contact-item">
-							<i class="ph ph-envelope"></i>
-							<span><?php echo esc_html( $email ); ?></span>
-						</div>
-						<div class="contact-item">
-							<i class="ph ph-phone"></i>
-							<span><?php echo esc_html( $phone ); ?></span>
-						</div>
+				</div>
+			</div>
+			
+			<!-- Container 2: Name & Role -->
+			<div class="header-container-2">
+				<div class="name-section">
+					<h2 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h2>
+				</div>
+				<div class="role-section">
+					<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
+				</div>
+			</div>
+			
+			<!-- Container 3: Info & Actions -->
+			<div class="header-container-3">
+				<!-- Left Column: ID, Phone, Email -->
+				<div class="info-column-left">
+					<div class="info-item">
+						<i class="ph ph-identification-badge"></i>
+						<span class="info-value" data-copy="<?php echo esc_attr( $vb_user_id ); ?>" title="Click to copy"><?php echo esc_html( $vb_user_id ); ?></span>
+					</div>
+					<div class="info-item">
+						<i class="ph ph-phone"></i>
+						<span class="info-value" data-copy="<?php echo esc_attr( $phone ); ?>" title="Click to copy"><?php echo esc_html( $phone ); ?></span>
+					</div>
+					<div class="info-item">
+						<i class="ph ph-envelope"></i>
+						<span class="info-value" data-copy="<?php echo esc_attr( $email ); ?>" title="Click to copy"><?php echo esc_html( $email ); ?></span>
 					</div>
 				</div>
 				
-				<!-- Right Section: Salary Type & Social -->
-				<div class="header-action-section">
+				<!-- Right Column: Salary Type, Status, Social Icons -->
+				<div class="info-column-right">
 					<!-- Salary Type -->
-					<div class="salary-type-box">
+					<div class="info-item">
+						<i class="ph ph-briefcase"></i>
 						<?php
 						$salary_type_labels = array(
 							'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
@@ -1627,25 +1622,18 @@ class WC_Team_Payroll_MyAccount_New {
 							'combined' => __( 'Combined', 'wc-team-payroll' ),
 						);
 						$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
-						
-						if ( $current_endpoint !== 'salary-details' ) {
-							$salary_details_url = wc_get_account_endpoint_url( 'salary-details' );
-							?>
-							<a href="<?php echo esc_url( $salary_details_url ); ?>" class="salary-type-link">
-								<?php echo esc_html( $salary_label ); ?>
-								<i class="ph ph-arrow-right"></i>
-							</a>
-							<?php
-						} else {
-							?>
-							<span class="salary-type-text"><?php echo esc_html( $salary_label ); ?></span>
-							<?php
-						}
 						?>
+						<span class="info-value"><?php echo esc_html( $salary_label ); ?></span>
+					</div>
+					
+					<!-- Status -->
+					<div class="info-item">
+						<i class="ph ph-circle-fill"></i>
+						<span class="info-value status-<?php echo esc_attr( $employee_status ); ?>"><?php echo esc_html( ucfirst( $employee_status ) ); ?></span>
 					</div>
 					
 					<!-- Social Icons -->
-					<div class="social-icons">
+					<div class="social-icons-row">
 						<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
 							<i class="ph ph-facebook-logo"></i>
 						</a>
@@ -1661,6 +1649,13 @@ class WC_Team_Payroll_MyAccount_New {
 					</div>
 				</div>
 			</div>
+			
+			<!-- Container 4: Bio -->
+			<?php if ( $bio ) : ?>
+				<div class="header-container-4">
+					<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();

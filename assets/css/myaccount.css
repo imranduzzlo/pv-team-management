@@ -16,25 +16,22 @@
 	background: #fff !important;
 }
 
-/* Professional Employee Header - Minimal & Fresh Design */
+/* Professional Employee Header */
 .wc-tp-employee-header-new {
 	margin-bottom: 40px;
-	padding: 30px;
+	padding: 0;
 	background: #fff;
 	border-radius: 8px;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 	border: 1px solid #f0f0f0;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
 }
 
-.header-container {
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	gap: 40px;
-	align-items: center;
-}
-
-/* Left Section: Profile Picture */
-.header-profile-section {
+/* Container 1: Profile Picture */
+.header-container-1 {
+	padding: 30px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -77,195 +74,193 @@
 	font-weight: 700;
 }
 
-/* Middle Section: Name, Role, Bio, Contact Info */
-.header-info-section {
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
+/* Container 2: Name & Role */
+.header-container-2 {
+	padding: 0 30px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	align-items: center;
+	margin-bottom: 20px;
 }
 
-.profile-header {
-	margin: 0;
-	padding: 0;
+.name-section {
+	display: flex;
+	align-items: center;
 }
 
 .profile-name {
-	margin: 0 0 5px 0;
+	margin: 0;
 	font-size: 24px;
 	font-weight: 700;
 	color: #212529;
 	line-height: 1.2;
 }
 
+.role-section {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 12px 16px;
+	background: rgba(0, 115, 170, 0.1);
+	border-radius: 6px;
+	min-height: 48px;
+}
+
 .profile-role {
 	margin: 0;
 	font-size: 14px;
-	color: #6c757d;
-	font-weight: 500;
+	color: #0073aa;
+	font-weight: 600;
+}
+
+/* Container 3: Info & Actions */
+.header-container-3 {
+	padding: 20px 30px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 40px;
+	border-top: 1px solid #f0f0f0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+/* Left Column: ID, Phone, Email */
+.info-column-left {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Right Column: Salary Type, Status, Social Icons */
+.info-column-right {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Info Item */
+.info-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	color: #495057;
+}
+
+.info-item i {
+	font-size: 18px;
+	color: #0073aa;
+	width: 18px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.info-value {
+	cursor: pointer;
+	transition: color 0.2s ease;
+}
+
+.info-value:hover {
+	color: #0073aa;
+}
+
+.info-value.status-active {
+	color: #28a745;
+	font-weight: 600;
+}
+
+.info-value.status-inactive {
+	color: #dc3545;
+	font-weight: 600;
+}
+
+/* Social Icons Row */
+.social-icons-row {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin-top: 4px;
+}
+
+.social-icon {
+	width: auto;
+	height: auto;
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #0073aa;
+	text-decoration: none;
+	transition: color 0.3s ease;
+	font-size: 18px;
+	padding: 0;
+}
+
+.social-icon i {
+	font-size: 18px;
+}
+
+.social-icon:hover {
+	color: #28a745;
+}
+
+.social-icon.facebook:hover {
+	color: #1877f2;
+}
+
+.social-icon.whatsapp:hover {
+	color: #25d366;
+}
+
+.social-icon.instagram:hover {
+	color: #e4405f;
+}
+
+.social-icon.linkedin:hover {
+	color: #0a66c2;
+}
+
+/* Container 4: Bio */
+.header-container-4 {
+	padding: 10px 30px 30px 30px;
+	border-top: 1px solid #f0f0f0;
 }
 
 .profile-bio {
 	margin: 0;
 	font-size: 14px;
 	color: #495057;
-	line-height: 1.5;
-}
-
-/* Contact Info */
-.contact-info {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 5px;
-}
-
-.contact-item {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	font-size: 13px;
-	color: #495057;
-}
-
-.contact-item i {
-	font-size: 16px;
-	color: #0073aa;
-	width: 16px;
-	text-align: center;
-	flex-shrink: 0;
-}
-
-/* Right Section: Salary Type & Social Icons */
-.header-action-section {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	align-items: flex-end;
-}
-
-/* Salary Type Box */
-.salary-type-box {
-	display: flex;
-	align-items: center;
-}
-
-.salary-type-link {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 10px 16px;
-	background: #0073aa;
-	color: #fff;
-	text-decoration: none;
-	border-radius: 6px;
-	font-weight: 600;
-	font-size: 14px;
-	transition: all 0.3s ease;
-	white-space: nowrap;
-}
-
-.salary-type-link:hover {
-	background: #005a87;
-	transform: translateX(2px);
-}
-
-.salary-type-link i {
-	font-size: 14px;
-}
-
-.salary-type-text {
-	display: inline-block;
-	padding: 10px 16px;
-	background: #f8f9fa;
-	color: #212529;
-	border-radius: 6px;
-	font-weight: 600;
-	font-size: 14px;
-	border: 1px solid #e9ecef;
-}
-
-/* Social Icons */
-.social-icons {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-}
-
-.social-icon {
-	width: 36px;
-	height: 36px;
-	border-radius: 50%;
-	background: transparent;
-	border: 2px solid #e9ecef;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: #6c757d;
-	text-decoration: none;
-	transition: all 0.3s ease;
-	font-size: 16px;
-}
-
-.social-icon:hover {
-	background: #0073aa;
-	color: #fff;
-	border-color: #0073aa;
-	transform: translateY(-2px);
-}
-
-.social-icon.facebook:hover {
-	background: #1877f2;
-	border-color: #1877f2;
-}
-
-.social-icon.whatsapp:hover {
-	background: #25d366;
-	border-color: #25d366;
-}
-
-.social-icon.instagram:hover {
-	background: #e4405f;
-	border-color: #e4405f;
-}
-
-.social-icon.linkedin:hover {
-	background: #0a66c2;
-	border-color: #0a66c2;
+	line-height: 1.6;
 }
 
 /* Tablet Responsive */
 @media (max-width: 1024px) {
-	.header-container {
+	.header-container-2 {
 		grid-template-columns: 1fr;
-		gap: 25px;
+		gap: 15px;
+		margin-bottom: 15px;
 	}
 	
-	.header-profile-section {
+	.role-section {
 		justify-content: flex-start;
 	}
 	
-	.header-action-section {
-		align-items: flex-start;
-		flex-direction: row;
-		justify-content: space-between;
-		width: 100%;
+	.header-container-3 {
+		grid-template-columns: 1fr;
+		gap: 20px;
 	}
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
 	.wc-tp-employee-header-new {
-		padding: 20px;
 		margin-bottom: 30px;
 	}
 	
-	.header-container {
-		grid-template-columns: 1fr;
-		gap: 20px;
-	}
-	
-	.header-profile-section {
-		justify-content: center;
+	.header-container-1 {
+		padding: 20px;
 	}
 	
 	.profile-picture-container {
@@ -278,43 +273,61 @@
 		font-size: 40px;
 	}
 	
+	.header-container-2 {
+		padding: 0 20px;
+		grid-template-columns: 1fr;
+		gap: 12px;
+		margin-bottom: 12px;
+	}
+	
 	.profile-name {
 		font-size: 20px;
 	}
 	
-	.header-info-section {
-		gap: 12px;
+	.role-section {
+		justify-content: flex-start;
+		min-height: 40px;
+		padding: 10px 12px;
 	}
 	
-	.contact-info {
-		gap: 6px;
+	.profile-role {
+		font-size: 13px;
 	}
 	
-	.header-action-section {
-		width: 100%;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
+	.header-container-3 {
+		padding: 15px 20px;
+		grid-template-columns: 1fr;
+		gap: 15px;
 	}
 	
-	.salary-type-box {
-		flex: 1;
+	.info-item {
+		font-size: 13px;
 	}
 	
-	.salary-type-link,
-	.salary-type-text {
-		width: 100%;
-		text-align: center;
-		justify-content: center;
+	.info-item i {
+		font-size: 16px;
+		width: 16px;
 	}
 	
-	.social-icons {
-		gap: 8px;
+	.social-icons-row {
+		gap: 10px;
+	}
+	
+	.social-icon i {
+		font-size: 16px;
+	}
+	
+	.header-container-4 {
+		padding: 10px 20px 20px 20px;
+	}
+	
+	.profile-bio {
+		font-size: 13px;
 	}
 }
 
 @media (max-width: 480px) {
-	.wc-tp-employee-header-new {
+	.header-container-1 {
 		padding: 15px;
 	}
 	
@@ -328,42 +341,52 @@
 		font-size: 32px;
 	}
 	
+	.header-container-2 {
+		padding: 0 15px;
+		margin-bottom: 10px;
+	}
+	
 	.profile-name {
 		font-size: 18px;
 	}
 	
+	.role-section {
+		min-height: 36px;
+		padding: 8px 10px;
+	}
+	
 	.profile-role {
-		font-size: 13px;
-	}
-	
-	.profile-bio {
-		font-size: 13px;
-	}
-	
-	.contact-item {
 		font-size: 12px;
 	}
 	
-	.header-action-section {
-		flex-direction: column;
-		align-items: flex-start;
-		width: 100%;
+	.header-container-3 {
+		padding: 12px 15px;
+		gap: 12px;
 	}
 	
-	.salary-type-link,
-	.salary-type-text {
-		width: 100%;
+	.info-item {
+		font-size: 12px;
 	}
 	
-	.social-icons {
-		width: 100%;
-		justify-content: flex-start;
-	}
-	
-	.social-icon {
-		width: 32px;
-		height: 32px;
+	.info-item i {
 		font-size: 14px;
+		width: 14px;
+	}
+	
+	.social-icons-row {
+		gap: 8px;
+	}
+	
+	.social-icon i {
+		font-size: 16px;
+	}
+	
+	.header-container-4 {
+		padding: 8px 15px 15px 15px;
+	}
+	
+	.profile-bio {
+		font-size: 12px;
 	}
 }
 
