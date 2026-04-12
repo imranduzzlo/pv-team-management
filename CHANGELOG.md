@@ -1,23 +1,32 @@
 # Changelog
 
-## [1.0.31] - 2026-04-13
-### Removed Header Bio Padding and Border
-- Removed padding-top and border from header-row-3 (bio section)
-- Fixed salary type detection to show actual current salary type (fixed/combined/commission)
-- Improved spacing consistency
+## [1.0.32] - 2026-04-13
+### Improved Salary History Section Styling
+- **Section Heading**: Applied same left border marking style (34px x 3px) to all section headings
+- **Heading Styling**: Removed icons from headings, no margins, full-width bottom border
+- **Gap**: 20px gap between heading and table section
+- **Search Box**: Stretched to fill available space (flex: 1)
+- **Search Icon Toggle**: Shows magnifying glass when empty, changes to times (×) icon when text entered
+- **Clear Functionality**: Click times icon to clear search input
+- **Per-Page Control**: Removed margins from label for better alignment
+- **Table Styling**: 
+  - Removed all borders except bottom border on rows
+  - No container border
+  - Subtle background with proper padding
+  - Hover effect shows background for clean look
+  - Sorting system remains unchanged
 
-## [1.0.30] - 2026-04-13
-### Enhanced Header with Interactive Features
-- **ID Icon & Value**: Clickable to copy ID with floating "Copied!" notification (auto-hides after 3s)
-- **Phone**: Clickable to call (tel: link)
-- **Email**: Clickable to email (mailto: link)
-- **Salary Type**: Clickable link to salary-details page (no link if already on that page)
-- **Status Icon**: Changed to `ph-check-square-offset` icon
-- **Placeholders**: All empty fields show "---" hyphens (including bio)
-- **Bio Section**: Always visible (even if empty, shows "---")
-- **Responsive Breakpoint**: Changed from 1024px to 620px for 2-column to single-column layout
-- **Mobile Alignment**: Profile picture left-aligned on mobile (not centered)
-- **Name Styling**: Removed all margins and padding for clean spacing
+## [1.0.31] - 2026-04-13
+### Improved Salary Information Section Styling
+- Removed padding and border from header bio section
+- Fixed salary type detection to show actual current type
+- Added left border marking (34px x 3px) to salary info heading
+- Full-width bottom border below heading with 20px gap to content
+- Removed heading icon and margins
+- Added salary display in top right corner of card
+- Shows amount/frequency for fixed and combined salaries
+- Shows 'Percentage/Order' for commission-based salaries
+- Combined salary shows combined icon marking
 
 ## [1.0.29] - 2026-04-13
 ### Fixed Dynamic CSS Class Names

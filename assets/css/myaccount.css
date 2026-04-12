@@ -440,15 +440,36 @@
 
 .section-header h3 {
 	margin: 0;
+	padding: 0;
 	font-size: 18px;
 	color: #495057;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	border-bottom: 2px solid #e9ecef;
-	padding-bottom: 10px;
+	position: relative;
+	padding-bottom: 15px;
 	flex: 1;
 	min-width: 200px;
+}
+
+.section-header h3::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 34px;
+	height: 3px;
+	background: #0073aa;
+}
+
+.section-header h3::before {
+	content: '';
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: #e9ecef;
 }
 
 .table-controls {
@@ -456,10 +477,13 @@
 	gap: 15px;
 	align-items: center;
 	flex-wrap: wrap;
+	margin-top: 20px;
 }
 
 .search-control {
 	position: relative;
+	flex: 1;
+	min-width: 200px;
 }
 
 .search-control input {
@@ -467,7 +491,7 @@
 	border: 1px solid #dee2e6;
 	border-radius: 6px;
 	font-size: 14px;
-	width: 200px;
+	width: 100%;
 }
 
 .search-control i {
@@ -477,6 +501,11 @@
 	transform: translateY(-50%);
 	color: #6c757d;
 	font-size: 16px;
+	cursor: pointer;
+}
+
+.search-control i.ph-times {
+	cursor: pointer;
 }
 
 .per-page-control {
@@ -485,6 +514,12 @@
 	gap: 8px;
 	font-size: 14px;
 	color: #6c757d;
+	margin: 0;
+}
+
+.per-page-control label {
+	margin: 0;
+	padding: 0;
 }
 
 .per-page-control select {
@@ -498,24 +533,28 @@
 .table-container {
 	overflow-x: auto;
 	border-radius: 8px;
-	border: 1px solid #e9ecef;
+	border: none;
 	background: #fff;
+	margin-top: 20px;
 }
 
 .woocommerce-table--salary-history {
 	width: 100%;
 	border-collapse: collapse;
 	margin: 0;
+	border: none;
 }
 
 .woocommerce-table--salary-history thead tr {
 	background: #f8f9fa;
+	border: none;
 }
 
 .woocommerce-table--salary-history th {
 	padding: 15px;
 	text-align: left;
-	border-bottom: 2px solid #dee2e6;
+	border: none;
+	border-bottom: 1px solid #e9ecef;
 	font-weight: 600;
 	color: #495057;
 	font-size: 14px;
@@ -546,8 +585,10 @@
 .woocommerce-table--salary-history td {
 	padding: 15px;
 	text-align: left;
+	border: none;
 	border-bottom: 1px solid #e9ecef;
 	vertical-align: top;
+	background: #fff;
 }
 
 .woocommerce-table--salary-history tbody tr:hover {

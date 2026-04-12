@@ -214,8 +214,8 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary History -->
 			<?php if ( ! empty( $salary_history ) ) : ?>
 				<div class="salary-history-section">
+					<h3><?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
 					<div class="section-header">
-						<h3><i class="ph ph-clock-clockwise"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
 						<div class="table-controls">
 							<div class="search-control">
 								<input type="text" id="salary-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
@@ -457,7 +457,21 @@ class WC_Team_Payroll_MyAccount_New {
 						$('#salary-history-search').on('input', function() {
 							searchTerm = $(this).val();
 							currentPage = 1;
+							
+							// Toggle search icon
+							var $icon = $(this).siblings('i');
+							if (searchTerm.length > 0) {
+								$icon.removeClass('ph-magnifying-glass').addClass('ph-times');
+							} else {
+								$icon.removeClass('ph-times').addClass('ph-magnifying-glass');
+							}
+							
 							updateTable();
+						});
+						
+						// Clear search on icon click
+						$(document).on('click', '.search-control i.ph-times', function() {
+							$('#salary-history-search').val('').trigger('input');
 						});
 						
 						$('#salary-history-per-page').on('change', function() {
