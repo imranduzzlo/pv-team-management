@@ -2,6 +2,18 @@
 
 ## [1.0.1] - 2026-04-12
 
+## Improvements
+
+- Enhanced GitHub update checker with better error handling
+- Added Debug tab in Settings to troubleshoot update issues
+- Users can manually check for updates and clear cache
+- Improved error logging for debugging
+
+---
+# Changelog
+
+## [1.0.1] - 2026-04-12
+
 ### 🔧 **Improvements**
 - **GitHub Update Detection**: Enhanced update checker with better error handling
 - **Debug Tab**: Added Debug tab in Settings to troubleshoot update issues
@@ -535,4 +547,5 @@
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
