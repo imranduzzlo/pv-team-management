@@ -54,6 +54,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payments-page.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-ajax-handlers.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
