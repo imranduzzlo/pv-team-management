@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.25] - 2026-04-12
+### Modern Profile Card Header - Production Release
+- Redesigned employee header with modern profile card layout
+- Left column: Employee ID, Email, Phone (vertical with icons)
+- Center: Large profile picture with negative margin (30-40% out)
+- Below picture: Employee name and role
+- Bio section: Clean text with top/bottom borders
+- Bottom: Social icons (left) and salary type box (right)
+- Clean design without box styling
+- Smart placeholders: "---" for missing text, initials for missing images
+- Mobile responsive for all screen sizes
+- Dynamic styling via admin settings
+- Professional appearance matching modern design patterns
+
 ## [1.0.24] - 2026-04-12
 ### Redesigned Employee Header - Modern Profile Card Layout
 - **New Header Layout**: Completely redesigned to match modern profile card design
