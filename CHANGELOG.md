@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.37] - 2026-04-13
+### Pagination Button Styling Fix
+- **Pagination Buttons**: Added !important flags to override generic button styling
+- **Inactive Buttons**: Transparent background with border and text color preserved
+- **Active Button**: Full background with white text color
+- **Button Hover**: Subtle background effect maintained
+- **Icons**: Proper colors matching button state
+- **CSS Specificity**: Ensures pagination styles take precedence over generic button rules
+
 ## [1.0.36] - 2026-04-13
 ### Salary Card Redesign & Pagination Styling
 - **Salary Details Grid**: Removed redundant salary-details-grid container
