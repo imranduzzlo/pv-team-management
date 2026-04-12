@@ -17,6 +17,9 @@ class WC_Team_Payroll_AJAX_Handlers {
 		add_action( 'wp_ajax_wc_tp_get_payment_methods', array( __CLASS__, 'get_payment_methods' ) );
 		add_action( 'wp_ajax_wc_tp_add_payment_method', array( __CLASS__, 'add_payment_method' ) );
 		add_action( 'wp_ajax_wc_tp_delete_payment_method', array( __CLASS__, 'delete_payment_method' ) );
+		add_action( 'wp_ajax_wc_tp_get_all_employees', array( __CLASS__, 'get_all_employees' ) );
+		add_action( 'wp_ajax_wc_tp_get_payments_table', array( __CLASS__, 'get_payments_table' ) );
+		add_action( 'wp_ajax_wc_tp_get_all_payment_methods', array( __CLASS__, 'get_all_payment_methods' ) );
 	}
 
 	public static function mark_payroll_paid() {
@@ -339,6 +342,193 @@ class WC_Team_Payroll_AJAX_Handlers {
 
 		wp_send_json_success( array(
 			'message' => __( 'Payment method deleted', 'wc-team-payroll' ),
+		) );
+	}
+
+	/**
+	 * Get all employees for dropdown
+	 */
+	public static function get_all_employees() {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$args = array(
+			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'orderby' => 'display_name',
+			'order' => 'ASC',
+		);
+
+		$users = get_users( $args );
+		$employees = array();
+
+		foreach ( $users as $user ) {
+			$employees[] = array(
+				'id' => $user->ID,
+				'name' => $user->display_name,
+				'email' => $user->user_email,
+			);
+		}
+
+		wp_send_json_success( array(
+			'employees' => $employees,
+		) );
+	}
+
+	/**
+	 * Get payments table with filtering and pagination
+	 */
+	public static function get_payments_table() {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$page = intval( $_POST['page'] ?? 1 );
+		$per_page = intval( $_POST['per_page'] ?? 20 );
+		$search = sanitize_text_field( $_POST['search'] ?? '' );
+		$start_date = sanitize_text_field( $_POST['start_date'] ?? '' );
+		$end_date = sanitize_text_field( $_POST['end_date'] ?? '' );
+		$payment_method = sanitize_text_field( $_POST['payment_method'] ?? '' );
+		$sort_by = sanitize_text_field( $_POST['sort_by'] ?? 'date' );
+		$sort_order = sanitize_text_field( $_POST['sort_order'] ?? 'desc' );
+
+		// Get all users
+		$args = array(
+			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'orderby' => 'display_name',
+			'order' => 'ASC',
+			'number' => -1,
+		);
+
+		$users = get_users( $args );
+		$all_payments = array();
+
+		// Collect all payments from all users
+		foreach ( $users as $user ) {
+			$payments = get_user_meta( $user->ID, '_wc_tp_payments', true );
+			if ( ! is_array( $payments ) ) {
+				continue;
+			}
+
+			foreach ( $payments as $payment ) {
+				$payment['user_id'] = $user->ID;
+				$payment['user_name'] = $user->display_name;
+				$payment['user_email'] = $user->user_email;
+				$all_payments[] = $payment;
+			}
+		}
+
+		// Filter by search
+		if ( $search ) {
+			$search_lower = strtolower( $search );
+			$all_payments = array_filter( $all_payments, function( $payment ) use ( $search_lower ) {
+				return strpos( strtolower( $payment['user_name'] ?? '' ), $search_lower ) !== false ||
+					   strpos( strtolower( $payment['user_email'] ?? '' ), $search_lower ) !== false;
+			} );
+		}
+
+		// Filter by date range
+		if ( $start_date && $end_date ) {
+			$start_timestamp = strtotime( $start_date );
+			$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+			$all_payments = array_filter( $all_payments, function( $payment ) use ( $start_timestamp, $end_timestamp ) {
+				$payment_time = strtotime( $payment['date'] ?? '' );
+				return $payment_time >= $start_timestamp && $payment_time <= $end_timestamp;
+			} );
+		}
+
+		// Filter by payment method
+		if ( $payment_method ) {
+			$all_payments = array_filter( $all_payments, function( $payment ) use ( $payment_method ) {
+				return strpos( $payment['payment_method'] ?? '', $payment_method ) !== false;
+			} );
+		}
+
+		// Sort
+		usort( $all_payments, function( $a, $b ) use ( $sort_by, $sort_order ) {
+			$a_val = $a[ $sort_by ] ?? '';
+			$b_val = $b[ $sort_by ] ?? '';
+
+			if ( $sort_by === 'date' || $sort_by === 'amount' ) {
+				$a_val = $sort_by === 'date' ? strtotime( $a_val ) : floatval( $a_val );
+				$b_val = $sort_by === 'date' ? strtotime( $b_val ) : floatval( $b_val );
+				$cmp = $a_val <=> $b_val;
+			} else {
+				$cmp = strcasecmp( $a_val, $b_val );
+			}
+
+			return $sort_order === 'asc' ? $cmp : -$cmp;
+		} );
+
+		// Pagination
+		$total = count( $all_payments );
+		$offset = ( $page - 1 ) * $per_page;
+		$payments_page = array_slice( $all_payments, $offset, $per_page );
+
+		// Format for display
+		$currency_symbol = get_woocommerce_currency_symbol();
+		$formatted_payments = array();
+
+		foreach ( $payments_page as $payment ) {
+			$formatted_payments[] = array(
+				'id' => $payment['id'] ?? '',
+				'user_id' => $payment['user_id'] ?? '',
+				'user_name' => $payment['user_name'] ?? '',
+				'user_email' => $payment['user_email'] ?? '',
+				'date' => $payment['date'] ?? '',
+				'date_formatted' => wp_date( 'M d, Y H:i', strtotime( $payment['date'] ?? '' ) ),
+				'amount' => $payment['amount'] ?? 0,
+				'amount_formatted' => $currency_symbol . number_format( floatval( $payment['amount'] ?? 0 ), 2 ),
+				'payment_method' => $payment['payment_method'] ?? '',
+				'added_by' => $payment['added_by'] ?? '',
+			);
+		}
+
+		wp_send_json_success( array(
+			'payments' => $formatted_payments,
+			'total' => $total,
+			'page' => $page,
+			'per_page' => $per_page,
+			'total_pages' => ceil( $total / $per_page ),
+		) );
+	}
+
+	/**
+	 * Get all unique payment methods across all employees
+	 */
+	public static function get_all_payment_methods() {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		$args = array(
+			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'number' => -1,
+		);
+
+		$users = get_users( $args );
+		$all_methods = array();
+		$method_names = array();
+
+		foreach ( $users as $user ) {
+			$methods = get_user_meta( $user->ID, '_wc_tp_payment_methods', true );
+			if ( ! is_array( $methods ) ) {
+				continue;
+			}
+
+			foreach ( $methods as $method ) {
+				$method_name = $method['method_name'] ?? '';
+				if ( $method_name && ! in_array( $method_name, $method_names, true ) ) {
+					$method_names[] = $method_name;
+					$all_methods[] = array(
+						'name' => $method_name,
+					);
+				}
+			}
+		}
+
+		wp_send_json_success( array(
+			'methods' => $all_methods,
 		) );
 	}
 }

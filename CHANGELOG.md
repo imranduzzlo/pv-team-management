@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.8.19] - 2026-04-12
+
+### ✨ **New Feature - Comprehensive Payments Management Page**
+- **Payment Entry Form**: New form to add payments with fields for:
+  - Employee name (dropdown with all employees)
+  - Amount (numeric input)
+  - Date & Time (auto-filled with current datetime)
+  - Payment method (dynamically loaded based on selected employee)
+  - Optional notes field
+- **Payment History Table**: Full-featured table with:
+  - Employee name and email display
+  - Payment date and amount
+  - Payment method used
+  - Added by information
+  - Delete action button
+- **Advanced Filtering & Search**:
+  - Search by employee name
+  - Date range presets (Today, This Week, This Month, This Year, Last 6 Months, Custom)
+  - Payment method filter
+  - Reset filters button
+- **Sorting & Pagination**:
+  - Sortable columns (Employee, Date, Amount)
+  - Configurable items per page (10, 20, 30, 50, 100)
+  - Full pagination controls
+- **AJAX Handlers**:
+  - `wc_tp_get_all_employees`: Fetch all employees for dropdown
+  - `wc_tp_get_payments_table`: Get filtered and paginated payments
+  - `wc_tp_get_all_payment_methods`: Get unique payment methods for filter
+- **Files Added**:
+  - `includes/class-payments-page.php`: Main payments page class
+  - `assets/js/payments.js`: Frontend JavaScript for interactions
+  - `assets/css/payments.css`: Styling for payments page
+- **Files Updated**:
+  - `includes/class-ajax-handlers.php`: Added new AJAX handlers for payments page
+  - `woocommerce-team-payroll.php`: Included new payments page class
+
 ## [5.8.18] - 2024-12-19
 
 ### 🔧 **Critical Bug Fix - Nonce Field Names**
