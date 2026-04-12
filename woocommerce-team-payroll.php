@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.23
+ * Version: 5.8.24
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.8.23' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.8.24' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -53,7 +53,6 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payments-page.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-ajax-handlers.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
@@ -1447,25 +1446,6 @@ add_action( 'admin_menu', function() {
 				$employees->render_employees_page();
 			} else {
 				echo '<div class="wrap"><h1>Team Members</h1>';
-				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
-				echo '</div>';
-			}
-		}
-	);
-
-	// Payments submenu
-	add_submenu_page(
-		'wc-team-payroll',
-		__( 'Payments', 'wc-team-payroll' ),
-		__( 'Payments', 'wc-team-payroll' ),
-		'manage_options',
-		'wc-team-payroll-payments',
-		function() {
-			if ( class_exists( 'WC_Team_Payroll_Payments_Page' ) ) {
-				$payments = new WC_Team_Payroll_Payments_Page();
-				$payments->render_payments_page();
-			} else {
-				echo '<div class="wrap"><h1>Payments</h1>';
 				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
 				echo '</div>';
 			}

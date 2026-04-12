@@ -42,6 +42,20 @@ Added new Payments page with payment entry form, history table with advanced fil
 ---
 # Changelog
 
+## [5.8.24] - 2026-04-12
+
+### 🗑️ **Removed - Payments Page (Temporary)**
+- **Payments Page Removed**: Removed the standalone payments page temporarily
+- **Kept Payment Functionality**: All payment-related AJAX handlers remain intact for employee details page
+- **Files Removed**:
+  - `includes/class-payments-page.php`: Payments page class
+  - `assets/js/payments.js`: Payments page JavaScript
+  - `assets/css/payments.css`: Payments page styles
+- **Files Updated**:
+  - `woocommerce-team-payroll.php`: Removed payments page include and submenu
+  - `includes/class-ajax-handlers.php`: Removed payments page specific AJAX handlers (get_all_employees, get_payments_table, get_all_payment_methods)
+- **Note**: Payment management in employee details page remains fully functional
+
 ## [5.8.23] - 2026-04-12
 
 ### 🔧 **Fix - Dynamic Employee Roles in Payments Page**
