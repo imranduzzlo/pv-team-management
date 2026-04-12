@@ -49,17 +49,9 @@ class WC_Team_Payroll_GitHub_Updater {
 	 * Force update check on admin init
 	 */
 	public function force_check() {
-		// Only run once per hour
-		$last_check = get_transient( 'wc_tp_last_update_check' );
-		if ( $last_check ) {
-			return;
-		}
-
 		// Clear cache to force fresh check
 		delete_transient( 'wc_tp_github_release' );
-		
-		// Mark that we checked
-		set_transient( 'wc_tp_last_update_check', 1, HOUR_IN_SECONDS );
+		delete_transient( 'wc_tp_last_update_check' );
 		
 		// Trigger WordPress update check
 		wp_update_plugins();
@@ -95,23 +87,24 @@ class WC_Team_Payroll_GitHub_Updater {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( "WC Team Payroll Update Check: Current={$current_version_normalized}, Latest={$latest_version}" );
+			error_log( "WC Team Payroll Update Check: Current={$current_version_normalized}, Latest={$latest_version}, Compare=" . version_compare( $latest_version, $current_version_normalized, '>' ) );
 		}
 
 		// Only add to response if there's a newer version
 		if ( version_compare( $latest_version, $current_version_normalized, '>' ) ) {
 			$transient->response[ $this->plugin_file ] = (object) array(
-				'id'          => $this->github_repo,
-				'slug'        => $this->plugin_slug,
-				'plugin'      => $this->plugin_file,
-				'new_version' => $latest_version,
-				'url'         => $latest_release['url'],
-				'package'     => $latest_release['download_url'],
-				'tested'      => '6.4',
-				'requires'    => '5.0',
-				'requires_php' => '7.2',
-				'icons'       => array(),
-				'banners'     => array(),
+				'id'            => $this->github_repo,
+				'slug'          => $this->plugin_slug,
+				'plugin'        => $this->plugin_file,
+				'new_version'   => $latest_version,
+				'url'           => $latest_release['url'],
+				'package'       => $latest_release['download_url'],
+				'tested'        => '6.4',
+				'requires'      => '5.0',
+				'requires_php'  => '7.2',
+				'icons'         => array(),
+				'banners'       => array(),
+				'upgrade_notice' => 'New version available from GitHub',
 			);
 		} else {
 			// Explicitly remove from response if versions are equal or current is newer
