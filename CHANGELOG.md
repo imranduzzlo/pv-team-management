@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.9] - 2026-04-12
+
+### ✨ **Features**
+- Switched to Phosphor icons library for better icon rendering
+- Icons now display with proper styling and alignment
+
+### 🔧 **Fixes**
+- Fixed endpoint registration priority to ensure all custom tabs load properly
+- Moved endpoint registration to main plugin file with priority 1
+- Fixed HTML rendering in menu items with proper escaping
+- All custom My Account pages (Salary Details, My Earnings, My Orders, Reports) now load correctly
+
+---
+
 ## [1.0.8] - 2026-04-12
 
 ### ✨ **Features**
