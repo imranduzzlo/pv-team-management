@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] - 2026-04-12
+
+### 🔧 **Improvements**
+- **GitHub Update Detection**: Enhanced update checker with better error handling
+- **Debug Tab**: Added Debug tab in Settings to troubleshoot update issues
+- **Manual Update Check**: Users can now manually check for updates and clear cache
+- **Better Error Messages**: Improved error logging for debugging
+
+---
+
 ## [1.0.0] - 2026-04-12
 
 ### 🎉 **MAJOR RELEASE - Production Ready**
