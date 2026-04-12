@@ -125,39 +125,61 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary Information -->
 			<div class="salary-info-section">
 				<h3><?php esc_html_e( 'Salary Information', 'wc-team-payroll' ); ?></h3>
-				<div class="salary-type-note">
-					<i class="ph ph-info"></i>
-					<span>
-						<?php
-						if ( $is_fixed ) {
-							esc_html_e( 'You receive a fixed salary of ', 'wc-team-payroll' );
-							echo wp_kses_post( wc_price( $salary_amount ) );
-							esc_html_e( ' ', 'wc-team-payroll' );
-							$frequency_labels = array(
-								'daily'   => __( 'daily', 'wc-team-payroll' ),
-								'weekly'  => __( 'weekly', 'wc-team-payroll' ),
-								'monthly' => __( 'monthly', 'wc-team-payroll' ),
-								'yearly'  => __( 'yearly', 'wc-team-payroll' ),
-							);
-							echo esc_html( $frequency_labels[ $salary_frequency ] ?? strtolower( $salary_frequency ) );
-							esc_html_e( '.', 'wc-team-payroll' );
-						} elseif ( $is_combined ) {
-							esc_html_e( 'You receive a base salary of ', 'wc-team-payroll' );
-							echo wp_kses_post( wc_price( $salary_amount ) );
-							esc_html_e( ' ', 'wc-team-payroll' );
-							$frequency_labels = array(
-								'daily'   => __( 'daily', 'wc-team-payroll' ),
-								'weekly'  => __( 'weekly', 'wc-team-payroll' ),
-								'monthly' => __( 'monthly', 'wc-team-payroll' ),
-								'yearly'  => __( 'yearly', 'wc-team-payroll' ),
-							);
-							echo esc_html( $frequency_labels[ $salary_frequency ] ?? strtolower( $salary_frequency ) );
-							esc_html_e( ' plus commission from orders you process.', 'wc-team-payroll' );
-						} else {
-							esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' );
-						}
-						?>
-					</span>
+				<div class="salary-info-card">
+					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
+							<?php
+							if ( $is_fixed ) {
+								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+							} elseif ( $is_combined ) {
+								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
+							} else {
+								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
+							}
+							?>
+						</div>
+						
+						<!-- Salary Display in Top Right -->
+						<div style="text-align: right;">
+							<?php if ( $is_fixed || $is_combined ) : ?>
+								<div style="font-size: 24px; font-weight: 700; color: #28a745; margin-bottom: 5px;">
+									<?php echo wp_kses_post( wc_price( $salary_amount ) ); ?>
+								</div>
+								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
+									<?php
+									$frequency_labels = array(
+										'daily'   => __( 'Per Day', 'wc-team-payroll' ),
+										'weekly'  => __( 'Per Week', 'wc-team-payroll' ),
+										'monthly' => __( 'Per Month', 'wc-team-payroll' ),
+										'yearly'  => __( 'Per Year', 'wc-team-payroll' ),
+									);
+									echo esc_html( $frequency_labels[ $salary_frequency ] ?? ucfirst( $salary_frequency ) );
+									?>
+								</div>
+							<?php elseif ( $is_commission ) : ?>
+								<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
+									<?php esc_html_e( 'Percentage/Order', 'wc-team-payroll' ); ?>
+								</div>
+							<?php endif; ?>
+						</div>
+					</div>
+					
+					<?php if ( $is_combined ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'You also earn commission from orders in addition to your base salary.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php elseif ( $is_commission ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php elseif ( $is_fixed ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'You receive a fixed salary as shown above.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php endif; ?>
 				</div>
 			</div>
 
@@ -1389,22 +1411,30 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				/* Pagination */
 				.page-btn {
-					border: 1px solid {$border_color} !important;
-					background: {$background_color} !important;
-					color: {$text_color} !important;
+					border: 1px solid {$button_background} !important;
+					background: transparent !important;
+					color: {$button_background} !important;
 					font-family: {$font_family} !important;
 					border-radius: {$button_border_radius}px !important;
 				}
 				
+				.page-btn i {
+					color: {$button_background} !important;
+				}
+				
 				.page-btn:hover {
-					background: {$table_row_hover} !important;
-					border-color: {$primary_color} !important;
+					background: rgba(" . implode(',', sscanf($button_background, "#%02x%02x%02x")) . ", 0.1) !important;
+					border-color: {$button_background} !important;
 				}
 				
 				.page-btn.current-page {
-					background: {$primary_color} !important;
+					background: {$button_background} !important;
 					color: {$button_text_color} !important;
-					border-color: {$primary_color} !important;
+					border-color: {$button_background} !important;
+				}
+				
+				.page-btn.current-page i {
+					color: {$button_text_color} !important;
 				}
 				
 				/* Amount styling */

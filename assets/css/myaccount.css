@@ -649,9 +649,9 @@
 
 .page-btn {
 	padding: 8px 12px;
-	border: 1px solid #dee2e6;
-	background: #fff;
-	color: #495057;
+	border: 1px solid #0073aa;
+	background: transparent;
+	color: #0073aa;
 	cursor: pointer;
 	border-radius: 4px;
 	font-size: 14px;
@@ -660,15 +660,23 @@
 	text-align: center;
 }
 
+.page-btn i {
+	color: #0073aa;
+}
+
 .page-btn:hover {
-	background: #e9ecef;
-	border-color: #adb5bd;
+	background: rgba(0, 115, 170, 0.1);
+	border-color: #0073aa;
 }
 
 .page-btn.current-page {
 	background: #0073aa;
 	color: #fff;
 	border-color: #0073aa;
+}
+
+.page-btn.current-page i {
+	color: #fff;
 }
 
 .page-btn.prev-btn,

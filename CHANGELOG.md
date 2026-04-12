@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.36] - 2026-04-13
+### Salary Card Redesign & Pagination Styling
+- **Salary Details Grid**: Removed redundant salary-details-grid container
+- **Salary Type Badge**: Restored with icon and salary type label
+- **Salary Display**: Shows amount and frequency in top right (fixed/combined only)
+- **Salary Type Note**: Added for all three salary types (fixed, combined, commission)
+- **Fixed Salary Note**: "You receive a fixed salary as shown above."
+- **Combined Salary Note**: "You also earn commission from orders in addition to your base salary."
+- **Commission Note**: "Your earnings are based entirely on commission from orders you process."
+- **Pagination Buttons**: Inactive buttons now have transparent background with button color border
+- **Pagination Inactive**: Text and icons use button background color
+- **Pagination Hover**: Subtle background (10% opacity) of button color on inactive buttons
+- **Pagination Active**: Full button background with button text color
+- **Pagination Icons**: Dynamic color matching button styling
+- **Dynamic Colors**: All pagination colors applied from theme button settings
+
 ## [1.0.35] - 2026-04-13
 ### Universal Table Styling & Dynamic Card Design
 - **Salary History Section**: Applied same heading style as salary information section
