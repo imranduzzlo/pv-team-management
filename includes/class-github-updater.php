@@ -108,7 +108,9 @@ class WC_Team_Payroll_GitHub_Updater {
 			);
 		} else {
 			// Explicitly remove from response if versions are equal or current is newer
-			unset( $transient->response[ $this->plugin_file ] );
+			if ( isset( $transient->response[ $this->plugin_file ] ) ) {
+				unset( $transient->response[ $this->plugin_file ] );
+			}
 		}
 
 		return $transient;
@@ -122,8 +124,23 @@ class WC_Team_Payroll_GitHub_Updater {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_file );
-		return isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0';
+		// Get the plugin file path
+		$plugin_file_path = WP_PLUGIN_DIR . '/' . $this->plugin_file;
+		
+		// Make sure the file exists
+		if ( ! file_exists( $plugin_file_path ) ) {
+			return '0';
+		}
+
+		$plugin_data = get_plugin_data( $plugin_file_path );
+		$version = isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0';
+		
+		// Debug log
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( "WC Team Payroll: Reading version from {$plugin_file_path}: {$version}" );
+		}
+		
+		return $version;
 	}
 
 	/**
@@ -132,9 +149,16 @@ class WC_Team_Payroll_GitHub_Updater {
 	private function normalize_version( $version ) {
 		// Remove 'v' prefix if present
 		$version = ltrim( $version, 'v' );
-		// Ensure it's a valid version format
+		// Remove any whitespace
+		$version = trim( $version );
+		// Ensure it's a valid version format (add .0 if needed)
 		if ( ! preg_match( '/^\d+\.\d+\.\d+/', $version ) ) {
-			$version = '0.0.0';
+			// If it's just X.Y, add .0
+			if ( preg_match( '/^\d+\.\d+$/', $version ) ) {
+				$version = $version . '.0';
+			} else {
+				$version = '0.0.0';
+			}
 		}
 		return $version;
 	}
