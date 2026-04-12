@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.10] - 2026-04-12
+
+### 🔧 **Fixes**
+- Fixed GitHub updater to use correct repository (pv-team-payroll-demo1)
+- WordPress now properly detects and displays available updates
+- Update notifications will now appear in WordPress admin
+
+---
+
 ## [1.0.9] - 2026-04-12
 
 ### ✨ **Features**
