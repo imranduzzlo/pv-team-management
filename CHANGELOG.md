@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.11] - 2026-04-12
+
+### 🔧 **Fixes**
+- Fixed menu icons not displaying properly by using JavaScript injection
+- Icons now render correctly without being escaped by WooCommerce
+- Phosphor icons now display properly on all My Account menu items
+
+---
+
 ## [1.0.10] - 2026-04-12
 
 ### 🔧 **Fixes**
