@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.18] - 2026-04-12
+
+### 🔧 **Fixes**
+- Updated GitHub updater to use pv-team-management repository
+- All future updates will now come from the correct repository
+- Fixed update detection to use the proper GitHub repository
+
+---
+
 ## [1.0.17] - 2026-04-12
 
 ### 🔧 **Fixes**
