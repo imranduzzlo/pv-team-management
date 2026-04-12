@@ -478,6 +478,11 @@ class WC_Team_Payroll_MyAccount_New {
 							e.preventDefault();
 							currentPage = parseInt($(this).data('page'));
 							updateTable();
+							
+							// Scroll to table header smoothly
+							$('html, body').animate({
+								scrollTop: $('#salary-history-table').offset().top - 100
+							}, 300);
 						});
 						
 						// Initialize
