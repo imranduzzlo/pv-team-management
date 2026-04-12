@@ -21,6 +21,20 @@ Added new Payments page with payment entry form, history table with advanced fil
 ---
 # Changelog
 
+## [5.8.22] - 2026-04-12
+
+### ✨ **Enhancement - Select2 Employee Dropdown with vb_user_id Display**
+- **Select2 Integration**: Added Select2 library for better searchable dropdowns
+- **Employee Display Format**: Employee dropdown now shows format: `vb_user_id Display Name` for better identification
+- **Improved Search**: Select2 provides real-time search filtering for easier employee selection
+- **Payment Method Dropdown**: Also enhanced with Select2 for consistency
+- **Better UX**: Cleaner dropdown interface with search capability
+- **Files Updated**:
+  - `includes/class-payments-page.php`: Added Select2 script and style enqueue
+  - `includes/class-ajax-handlers.php`: Updated `get_all_employees()` to return vb_user_id
+  - `assets/js/payments.js`: Integrated Select2 initialization and handling
+  - `assets/css/payments.css`: Added Select2 customization styles
+
 ## [5.8.21] - 2026-04-12
 
 ### 🔧 **Critical Bug Fix - Payments Page Method Name**
