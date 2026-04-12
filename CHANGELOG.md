@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.7] - 2026-04-12
+
+### 🔧 **Fixes**
+- Fixed HTML escaping issue in My Account menu items
+- Icons now render properly using CSS pseudo-elements instead of HTML tags
+- Fixed endpoint rendering for all custom My Account tabs
+- Removed transient-based endpoint registration to ensure consistent behavior
+- Added deactivation hook to properly clean up rewrite rules
+
+---
+
 ## [1.0.6] - 2026-04-12
 
 ### ✨ **Features**
