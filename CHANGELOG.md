@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.8.4] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Table Header Padding**: Fixed padding being overridden by media query rules - added `!important` flag
+- **Employee Name Display**: Simplified format to match payroll table styling with proper `<strong>` tag
+
+---
+
 ## [5.8.3] - 2024-12-19
 
 ### 🐛 **Bug Fixes**
