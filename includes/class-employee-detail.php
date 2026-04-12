@@ -2270,7 +2270,7 @@ class WC_Team_Payroll_Employee_Detail {
 											</div>
 											<div class="wc-tp-form-group">
 												<label>Method</label>
-												<select class="wc-tp-edit-method"></select>
+												<select class="wc-tp-edit-payment-method"></select>
 											</div>
 											<div class="wc-tp-form-group">
 												<label>Note</label>
@@ -2287,8 +2287,8 @@ class WC_Team_Payroll_Employee_Detail {
 						`);
 
 						// Populate method dropdown
-						editForm.find('.wc-tp-edit-method').html(methodOptions);
-						editForm.find('.wc-tp-edit-method').val(method);
+						editForm.find('.wc-tp-edit-payment-method').html(methodOptions);
+						editForm.find('.wc-tp-edit-payment-method').val(method);
 
 						row.hide();
 						row.after(editForm);
@@ -2299,7 +2299,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const paymentId = $(this).data('payment-id');
 						const amount = $('.wc-tp-edit-amount').val();
 						const date = $('.wc-tp-edit-date').val();
-						const method = $('.wc-tp-edit-method').val();
+						const method = $('.wc-tp-edit-payment-method').val();
 						const note = $('.wc-tp-edit-note').val();
 
 						if (!amount || !date) {
