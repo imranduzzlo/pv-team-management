@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.15] - 2024-12-19
+
+### 🔧 **Verification Logging**
+- **Initial Load Check**: Added console log to verify JavaScript is running on page load
+- **Element Detection**: Added console log to check if employee dropdown element exists
+- **Handler Attachment**: Added console log to verify change event handler is being attached
+
+---
+
 ## [5.8.14] - 2024-12-19
 
 ### 🔧 **Debugging & Troubleshooting**
