@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.8.14] - 2024-12-19
+
+### 🔧 **Debugging & Troubleshooting**
+- **Enhanced Console Logging**: Added detailed console logs to track payment methods loading
+- **Backend Logging**: Added error_log to AJAX handler to log payment methods retrieval
+- **Response Validation**: Improved JavaScript condition checking for payment methods array
+- **Error Details**: Now logs full AJAX response and error details for easier debugging
+
+---
+
 ## [5.8.13] - 2024-12-19
 
 ### 🐛 **Critical Bug Fix**
