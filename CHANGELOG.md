@@ -2,6 +2,13 @@
 
 ## [5.8.23] - 2026-04-12
 
+Payments page now uses employee roles from settings instead of hardcoded roles.
+
+---
+# Changelog
+
+## [5.8.23] - 2026-04-12
+
 Fixed payments page to use employee roles configured in Settings instead of hardcoded roles. Now respects the Employee Roles setting for all employee queries.
 
 ---
@@ -735,6 +742,7 @@ Added new Payments page with payment entry form, history table with advanced fil
 - All features use AJAX for smooth user experience
 - Responsive design matching current version styling
 - Currency formatting with WooCommerce settings
+
 
 
 
