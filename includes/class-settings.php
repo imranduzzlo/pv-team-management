@@ -186,6 +186,13 @@ class WC_Team_Payroll_Settings {
 							</td>
 						</tr>
 						<tr>
+							<th><label for="header_background">Header Background</label></th>
+							<td>
+								<input type="color" id="header_background" name="wc_team_payroll_styling[header_background]" value="<?php echo esc_attr( isset( $styling_settings['header_background'] ) ? $styling_settings['header_background'] : '#f8f9fa' ); ?>" />
+								<p class="description">Background color for employee header sections</p>
+							</td>
+						</tr>
+						<tr>
 							<th><label for="card_background">Card Background</label></th>
 							<td>
 								<input type="color" id="card_background" name="wc_team_payroll_styling[card_background]" value="<?php echo esc_attr( isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa' ); ?>" />
@@ -197,6 +204,31 @@ class WC_Team_Payroll_Settings {
 							<td>
 								<input type="color" id="border_color" name="wc_team_payroll_styling[border_color]" value="<?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>" />
 								<p class="description">Color for borders and dividers</p>
+							</td>
+						</tr>
+					</table>
+
+					<h3>Table Styling</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="table_header_background">Table Header Background</label></th>
+							<td>
+								<input type="color" id="table_header_background" name="wc_team_payroll_styling[table_header_background]" value="<?php echo esc_attr( isset( $styling_settings['table_header_background'] ) ? $styling_settings['table_header_background'] : '#f8f9fa' ); ?>" />
+								<p class="description">Background color for table headers</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="table_row_hover">Table Row Hover</label></th>
+							<td>
+								<input type="color" id="table_row_hover" name="wc_team_payroll_styling[table_row_hover]" value="<?php echo esc_attr( isset( $styling_settings['table_row_hover'] ) ? $styling_settings['table_row_hover'] : '#f5f5f5' ); ?>" />
+								<p class="description">Background color for table rows on hover</p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="table_border_color">Table Border Color</label></th>
+							<td>
+								<input type="color" id="table_border_color" name="wc_team_payroll_styling[table_border_color]" value="<?php echo esc_attr( isset( $styling_settings['table_border_color'] ) ? $styling_settings['table_border_color'] : '#dee2e6' ); ?>" />
+								<p class="description">Color for table borders and dividers</p>
 							</td>
 						</tr>
 					</table>

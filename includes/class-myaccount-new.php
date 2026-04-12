@@ -84,14 +84,11 @@ class WC_Team_Payroll_MyAccount_New {
 	 */
 	public static function salary_details_content() {
 		$user_id = get_current_user_id();
-		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
-		$user = get_user_by( 'ID', $user_id );
 		
 		// Get salary information
 		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
 		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
 		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
-		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
 		
 		// Get salary history
 		$salary_history = get_user_meta( $user_id, '_wc_tp_salary_history', true );
@@ -112,32 +109,8 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-salary-details">
-			<h2><i class="ph ph-briefcase"></i> <?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
-			
-			<!-- Employee Information -->
-			<div class="employee-info-section">
-				<h3><i class="ph ph-user"></i> <?php esc_html_e( 'Employee Information', 'wc-team-payroll' ); ?></h3>
-				<div class="info-grid">
-					<div class="info-card">
-						<label><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></label>
-						<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
-					</div>
-					<div class="info-card">
-						<label><?php esc_html_e( 'Full Name', 'wc-team-payroll' ); ?></label>
-						<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
-					</div>
-					<div class="info-card">
-						<label><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></label>
-						<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
-					</div>
-					<div class="info-card">
-						<label><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></label>
-						<span class="value status-<?php echo esc_attr( $employee_status ); ?>">
-							<i class="fas fa-circle"></i> <?php echo esc_html( ucfirst( $employee_status ) ); ?>
-						</span>
-					</div>
-				</div>
-			</div>
+			<!-- Employee Header -->
+			<?php echo self::get_employee_header( $user_id ); ?>
 
 			<!-- Salary Information -->
 			<div class="salary-info-section">
@@ -215,28 +188,59 @@ class WC_Team_Payroll_MyAccount_New {
 			<!-- Salary History -->
 			<?php if ( ! empty( $salary_history ) ) : ?>
 				<div class="salary-history-section">
-					<h3><i class="ph ph-clock-clockwise"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
+					<div class="section-header">
+						<h3><i class="ph ph-clock-clockwise"></i> <?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
+						<div class="table-controls">
+							<div class="search-control">
+								<input type="text" id="salary-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
+								<i class="ph ph-magnifying-glass"></i>
+							</div>
+							<div class="per-page-control">
+								<label for="salary-history-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+								<select id="salary-history-per-page">
+									<option value="5">5</option>
+									<option value="10" selected>10</option>
+									<option value="25">25</option>
+									<option value="50">50</option>
+								</select>
+								<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+							</div>
+						</div>
+					</div>
+					
 					<div class="table-container">
-						<table class="woocommerce-table woocommerce-table--salary-history">
+						<table class="woocommerce-table woocommerce-table--salary-history" id="salary-history-table">
 							<thead>
 								<tr>
-									<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Previous', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'New', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Changed By', 'wc-team-payroll' ); ?></th>
+									<th class="sortable" data-sort="date">
+										<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="old_type">
+										<?php esc_html_e( 'Previous', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="new_type">
+										<?php esc_html_e( 'New', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="changed_by">
+										<?php esc_html_e( 'Changed By', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
 								</tr>
 							</thead>
-							<tbody>
-								<?php foreach ( array_reverse( $salary_history ) as $history ) : 
+							<tbody id="salary-history-tbody">
+								<?php foreach ( array_reverse( $salary_history ) as $index => $history ) : 
 									$changed_by_id = isset( $history['changed_by'] ) ? $history['changed_by'] : 0;
 									$changed_by_user = $changed_by_id ? get_user_by( 'id', $changed_by_id ) : null;
 								?>
-									<tr>
-										<td>
+									<tr data-index="<?php echo esc_attr( $index ); ?>">
+										<td data-sort-value="<?php echo esc_attr( strtotime( $history['date'] ) ); ?>">
 											<span class="date"><?php echo esc_html( date( 'M j, Y', strtotime( $history['date'] ) ) ); ?></span>
 											<small><?php echo esc_html( date( 'g:i A', strtotime( $history['date'] ) ) ); ?></small>
 										</td>
-										<td>
+										<td data-sort-value="<?php echo esc_attr( $history['old_type'] ); ?>">
 											<div class="salary-change">
 												<span class="type"><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></span>
 												<?php if ( isset( $history['old_amount'] ) && $history['old_amount'] > 0 ) : ?>
@@ -244,7 +248,7 @@ class WC_Team_Payroll_MyAccount_New {
 												<?php endif; ?>
 											</div>
 										</td>
-										<td>
+										<td data-sort-value="<?php echo esc_attr( $history['new_type'] ); ?>">
 											<div class="salary-change">
 												<span class="type"><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></span>
 												<?php if ( isset( $history['new_amount'] ) && $history['new_amount'] > 0 ) : ?>
@@ -252,7 +256,7 @@ class WC_Team_Payroll_MyAccount_New {
 												<?php endif; ?>
 											</div>
 										</td>
-										<td>
+										<td data-sort-value="<?php echo esc_attr( $changed_by_user ? $changed_by_user->display_name : 'System' ); ?>">
 											<?php if ( $changed_by_user ) : ?>
 												<span class="changed-by"><?php echo esc_html( $changed_by_user->display_name ); ?></span>
 												<small><?php echo esc_html( $changed_by_user->user_email ); ?></small>
@@ -265,7 +269,186 @@ class WC_Team_Payroll_MyAccount_New {
 							</tbody>
 						</table>
 					</div>
+					
+					<!-- Pagination -->
+					<div class="pagination-container" id="salary-history-pagination">
+						<!-- Pagination will be inserted here by JavaScript -->
+					</div>
 				</div>
+				
+				<script>
+					jQuery(document).ready(function($) {
+						// Salary History Table Management
+						let currentPage = 1;
+						let perPage = 10;
+						let currentSort = { column: 'date', direction: 'desc' };
+						let searchTerm = '';
+						let allRows = [];
+						
+						// Initialize table
+						function initSalaryHistoryTable() {
+							// Store all rows
+							$('#salary-history-tbody tr').each(function() {
+								allRows.push({
+									element: $(this).clone(),
+									data: {
+										date: $(this).find('td').eq(0).data('sort-value'),
+										old_type: $(this).find('td').eq(1).data('sort-value'),
+										new_type: $(this).find('td').eq(2).data('sort-value'),
+										changed_by: $(this).find('td').eq(3).data('sort-value'),
+										text: $(this).text().toLowerCase()
+									}
+								});
+							});
+							
+							updateTable();
+						}
+						
+						// Update table display
+						function updateTable() {
+							let filteredRows = allRows.slice();
+							
+							// Apply search filter
+							if (searchTerm) {
+								filteredRows = filteredRows.filter(row => 
+									row.data.text.includes(searchTerm.toLowerCase())
+								);
+							}
+							
+							// Apply sorting
+							filteredRows.sort((a, b) => {
+								let aVal = a.data[currentSort.column];
+								let bVal = b.data[currentSort.column];
+								
+								if (typeof aVal === 'string') {
+									aVal = aVal.toLowerCase();
+									bVal = bVal.toLowerCase();
+								}
+								
+								if (currentSort.direction === 'asc') {
+									return aVal > bVal ? 1 : -1;
+								} else {
+									return aVal < bVal ? 1 : -1;
+								}
+							});
+							
+							// Calculate pagination
+							const totalRows = filteredRows.length;
+							const totalPages = Math.ceil(totalRows / perPage);
+							const startIndex = (currentPage - 1) * perPage;
+							const endIndex = startIndex + perPage;
+							const pageRows = filteredRows.slice(startIndex, endIndex);
+							
+							// Update table body
+							const tbody = $('#salary-history-tbody');
+							tbody.empty();
+							
+							if (pageRows.length === 0) {
+								tbody.append(`
+									<tr>
+										<td colspan="4" class="no-results">
+											<div class="no-results-message">
+												<i class="ph ph-magnifying-glass"></i>
+												<p><?php esc_html_e( 'No salary history found matching your search.', 'wc-team-payroll' ); ?></p>
+											</div>
+										</td>
+									</tr>
+								`);
+							} else {
+								pageRows.forEach(row => {
+									tbody.append(row.element);
+								});
+							}
+							
+							// Update pagination
+							updatePagination(totalPages, totalRows, startIndex + 1, Math.min(endIndex, totalRows));
+							
+							// Update sort icons
+							updateSortIcons();
+						}
+						
+						// Update pagination
+						function updatePagination(totalPages, totalRows, start, end) {
+							const container = $('#salary-history-pagination');
+							
+							if (totalPages <= 1) {
+								container.html('');
+								return;
+							}
+							
+							let paginationHTML = '<div class="pagination-wrapper">';
+							paginationHTML += '<div class="pagination-info">';
+							paginationHTML += `<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> ${start} <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> ${end} <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> ${totalRows} <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>`;
+							paginationHTML += '</div>';
+							paginationHTML += '<div class="pagination-controls">';
+							
+							// Previous button
+							if (currentPage > 1) {
+								paginationHTML += `<button class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></button>`;
+							}
+							
+							// Page numbers
+							for (let i = 1; i <= totalPages; i++) {
+								if (i === currentPage) {
+									paginationHTML += `<button class="page-btn current-page">${i}</button>`;
+								} else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+									paginationHTML += `<button class="page-btn" data-page="${i}">${i}</button>`;
+								} else if (i === currentPage - 3 || i === currentPage + 3) {
+									paginationHTML += '<span class="page-ellipsis">...</span>';
+								}
+							}
+							
+							// Next button
+							if (currentPage < totalPages) {
+								paginationHTML += `<button class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></button>`;
+							}
+							
+							paginationHTML += '</div></div>';
+							container.html(paginationHTML);
+						}
+						
+						// Update sort icons
+						function updateSortIcons() {
+							$('.sortable .sort-icon').removeClass('ph-caret-up ph-caret-down').addClass('ph-caret-up-down');
+							$(`.sortable[data-sort="${currentSort.column}"] .sort-icon`)
+								.removeClass('ph-caret-up-down')
+								.addClass(currentSort.direction === 'asc' ? 'ph-caret-up' : 'ph-caret-down');
+						}
+						
+						// Event handlers
+						$('.sortable').on('click', function() {
+							const column = $(this).data('sort');
+							if (currentSort.column === column) {
+								currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+							} else {
+								currentSort.column = column;
+								currentSort.direction = 'desc';
+							}
+							currentPage = 1;
+							updateTable();
+						});
+						
+						$('#salary-history-search').on('input', function() {
+							searchTerm = $(this).val();
+							currentPage = 1;
+							updateTable();
+						});
+						
+						$('#salary-history-per-page').on('change', function() {
+							perPage = parseInt($(this).val());
+							currentPage = 1;
+							updateTable();
+						});
+						
+						$(document).on('click', '.page-btn[data-page]', function() {
+							currentPage = parseInt($(this).data('page'));
+							updateTable();
+						});
+						
+						// Initialize
+						initSalaryHistoryTable();
+					});
+				</script>
 			<?php else : ?>
 				<div class="no-history-message">
 					<i class="ph ph-info"></i>
@@ -281,7 +464,6 @@ class WC_Team_Payroll_MyAccount_New {
 	 */
 	public static function my_earnings_content() {
 		$user_id = get_current_user_id();
-		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		
 		// Get current month earnings
 		$current_month_start = date( 'Y-m-01' );
@@ -298,15 +480,8 @@ class WC_Team_Payroll_MyAccount_New {
 		
 		?>
 		<div class="wc-team-payroll-earnings">
-			<h2><i class="ph ph-wallet"></i> <?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
-			
-			<!-- Employee Info -->
-			<div class="employee-header">
-				<div class="employee-id">
-					<i class="ph ph-identification-badge"></i>
-					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
-				</div>
-			</div>
+			<!-- Employee Header -->
+			<?php echo self::get_employee_header( $user_id ); ?>
 
 			<!-- Earnings Summary Cards -->
 			<div class="earnings-summary">
@@ -415,19 +590,11 @@ class WC_Team_Payroll_MyAccount_New {
 	 */
 	public static function orders_commission_content() {
 		$user_id = get_current_user_id();
-		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		
 		?>
 		<div class="wc-team-payroll-orders">
-			<h2><i class="ph ph-shopping-bag"></i> <?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
-			
-			<!-- Employee Info -->
-			<div class="employee-header">
-				<div class="employee-id">
-					<i class="ph ph-identification-badge"></i>
-					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
-				</div>
-			</div>
+			<!-- Employee Header -->
+			<?php echo self::get_employee_header( $user_id ); ?>
 
 			<!-- Filters and Controls -->
 			<div class="orders-controls">
@@ -859,18 +1026,10 @@ class WC_Team_Payroll_MyAccount_New {
 	 */
 	public static function reports_content() {
 		$user_id = get_current_user_id();
-		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
 		?>
 		<div class="wc-team-payroll-reports">
-			<h2><i class="ph ph-chart-bar"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
-			
-			<!-- Employee Info -->
-			<div class="employee-header">
-				<div class="employee-id">
-					<i class="ph ph-identification-badge"></i>
-					<span><?php esc_html_e( 'Employee ID:', 'wc-team-payroll' ); ?> <strong><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></strong></span>
-				</div>
-			</div>
+			<!-- Employee Header -->
+			<?php echo self::get_employee_header( $user_id ); ?>
 			
 			<div class="reports-grid">
 				<div class="report-card">
@@ -919,8 +1078,12 @@ class WC_Team_Payroll_MyAccount_New {
 			$link_color = isset( $styling_settings['link_color'] ) ? $styling_settings['link_color'] : '#0073aa';
 			$link_hover_color = isset( $styling_settings['link_hover_color'] ) ? $styling_settings['link_hover_color'] : '#005a87';
 			$background_color = isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff';
+			$header_background = isset( $styling_settings['header_background'] ) ? $styling_settings['header_background'] : '#f8f9fa';
 			$card_background = isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa';
 			$border_color = isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef';
+			$table_header_background = isset( $styling_settings['table_header_background'] ) ? $styling_settings['table_header_background'] : '#f8f9fa';
+			$table_row_hover = isset( $styling_settings['table_row_hover'] ) ? $styling_settings['table_row_hover'] : '#f5f5f5';
+			$table_border_color = isset( $styling_settings['table_border_color'] ) ? $styling_settings['table_border_color'] : '#dee2e6';
 			$font_family = isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit';
 			$base_font_size = isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14;
 			$heading_font_size = isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24;
@@ -990,6 +1153,26 @@ class WC_Team_Payroll_MyAccount_New {
 					font-size: {$base_font_size}px !important;
 					border: none !important;
 					margin: 0 !important;
+				}
+				
+				/* Employee Header */
+				.wc-tp-employee-header {
+					background: {$header_background} !important;
+					border-left: 4px solid {$primary_color} !important;
+					border-radius: {$card_border_radius}px !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+					box-shadow: {$shadow_css} !important;
+				}
+				
+				.wc-tp-employee-header .info-item label i {
+					color: {$primary_color} !important;
+				}
+				
+				.wc-tp-employee-header .value.role-badge {
+					background: {$card_background} !important;
+					color: {$primary_color} !important;
+					border: 1px solid {$border_color} !important;
 				}
 				
 				/* Headings */
@@ -1083,7 +1266,8 @@ class WC_Team_Payroll_MyAccount_New {
 				.wc-team-payroll-earnings .table-container {
 					overflow-x: auto !important;
 					border-radius: {$card_border_radius}px !important;
-					border: 1px solid {$border_color} !important;
+					border: 1px solid {$table_border_color} !important;
+					background: {$background_color} !important;
 				}
 				
 				.wc-team-payroll-salary-details .woocommerce-table,
@@ -1094,14 +1278,58 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				.wc-team-payroll-salary-details .woocommerce-table th,
 				.wc-team-payroll-earnings .woocommerce-table th {
-					background: {$card_background} !important;
+					background: {$table_header_background} !important;
 					color: {$heading_color} !important;
-					border-bottom: 2px solid {$border_color} !important;
+					border-bottom: 2px solid {$table_border_color} !important;
 				}
 				
 				.wc-team-payroll-salary-details .woocommerce-table td,
 				.wc-team-payroll-earnings .woocommerce-table td {
-					border-bottom: 1px solid {$border_color} !important;
+					border-bottom: 1px solid {$table_border_color} !important;
+				}
+				
+				.wc-team-payroll-salary-details .woocommerce-table tbody tr:hover,
+				.wc-team-payroll-earnings .woocommerce-table tbody tr:hover {
+					background: {$table_row_hover} !important;
+				}
+				
+				/* Search and Controls */
+				.search-control input {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.search-control input:focus {
+					border-color: {$primary_color} !important;
+					outline: none !important;
+					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
+				}
+				
+				.per-page-control select {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				/* Pagination */
+				.page-btn {
+					border: 1px solid {$border_color} !important;
+					background: {$background_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+					border-radius: {$button_border_radius}px !important;
+				}
+				
+				.page-btn:hover {
+					background: {$table_row_hover} !important;
+					border-color: {$primary_color} !important;
+				}
+				
+				.page-btn.current-page {
+					background: {$primary_color} !important;
+					color: {$button_text_color} !important;
+					border-color: {$primary_color} !important;
 				}
 				
 				/* Amount styling */
@@ -1146,18 +1374,6 @@ class WC_Team_Payroll_MyAccount_New {
 				.wc-team-payroll-salary-details .status-badge,
 				.wc-team-payroll-earnings .status-badge {
 					border-radius: {$button_border_radius}px !important;
-					font-family: {$font_family} !important;
-				}
-				
-				/* Employee header */
-				.wc-team-payroll-salary-details .employee-header,
-				.wc-team-payroll-earnings .employee-header,
-				.wc-team-payroll-orders .employee-header,
-				.wc-team-payroll-reports .employee-header {
-					background: {$card_background} !important;
-					border-left: 4px solid {$primary_color} !important;
-					border-radius: {$card_border_radius}px !important;
-					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
@@ -1240,16 +1456,104 @@ class WC_Team_Payroll_MyAccount_New {
 	}
 
 	/**
+	 * Generate employee header HTML
+	 */
+	private static function get_employee_header( $user_id ) {
+		$user = get_user_by( 'ID', $user_id );
+		if ( ! $user ) {
+			return '';
+		}
+
+		$vb_user_id = get_user_meta( $user_id, 'vb_user_id', true );
+		$profile_picture_id = get_user_meta( $user_id, '_wc_tp_profile_picture', true );
+		$profile_picture_url = $profile_picture_id ? wp_get_attachment_url( $profile_picture_id ) : '';
+		$phone = get_user_meta( $user_id, 'billing_phone', true );
+		$bio = get_user_meta( $user_id, 'description', true );
+		$employee_status = get_user_meta( $user_id, '_wc_tp_employee_status', true ) ?: 'active';
+		
+		// Get user role with proper labeling
+		$user_roles = $user->roles;
+		$role_label = 'Employee';
+		if ( in_array( 'administrator', $user_roles ) ) {
+			$role_label = 'Administrator';
+		} elseif ( in_array( 'shop_manager', $user_roles ) ) {
+			$role_label = 'Manager';
+		} elseif ( in_array( 'shop_employee', $user_roles ) ) {
+			$role_label = 'Employee';
+		}
+
+		ob_start();
+		?>
+		<div class="wc-tp-employee-header">
+			<div class="employee-profile-section">
+				<div class="profile-picture-container">
+					<?php if ( $profile_picture_url ) : ?>
+						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
+					<?php else : ?>
+						<div class="profile-picture-placeholder">
+							<i class="ph ph-user"></i>
+						</div>
+					<?php endif; ?>
+				</div>
+				
+				<div class="employee-info-grid">
+					<div class="info-row">
+						<div class="info-item">
+							<label><i class="ph ph-identification-badge"></i> <?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></label>
+							<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
+						</div>
+						<div class="info-item">
+							<label><i class="ph ph-briefcase"></i> <?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></label>
+							<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
+						</div>
+					</div>
+					
+					<div class="info-row">
+						<div class="info-item">
+							<label><i class="ph ph-user"></i> <?php esc_html_e( 'Display Name', 'wc-team-payroll' ); ?></label>
+							<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
+						</div>
+						<div class="info-item">
+							<label><i class="ph ph-circle"></i> <?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></label>
+							<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
+								<?php echo esc_html( ucfirst( $employee_status ) ); ?>
+							</span>
+						</div>
+					</div>
+					
+					<div class="info-row">
+						<div class="info-item">
+							<label><i class="ph ph-phone"></i> <?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></label>
+							<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
+						</div>
+						<div class="info-item">
+							<label><i class="ph ph-envelope"></i> <?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></label>
+							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+						</div>
+					</div>
+					
+					<?php if ( $bio ) : ?>
+						<div class="info-row full-width">
+							<div class="info-item">
+								<label><i class="ph ph-note"></i> <?php esc_html_e( 'Bio', 'wc-team-payroll' ); ?></label>
+								<span class="value bio-text"><?php echo esc_html( $bio ); ?></span>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * Flush rewrite rules (call this on activation)
 	 */
 	public static function flush_rewrite_rules() {
 		self::add_endpoints();
 		flush_rewrite_rules();
 	}
-
-	/**
-	 * Helper: Get user earnings for a specific period
-	 */
 	private static function get_user_earnings_for_period( $user_id, $start_date, $end_date ) {
 		// This would integrate with your payroll engine
 		// For now, return sample data

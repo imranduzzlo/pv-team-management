@@ -16,6 +16,377 @@
 	background: #fff !important;
 }
 
+/* Employee Header Styling */
+.wc-tp-employee-header {
+	margin-bottom: 30px;
+	padding: 25px;
+	background: #f8f9fa;
+	border-radius: 12px;
+	border-left: 4px solid #0073aa;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.employee-profile-section {
+	display: flex;
+	gap: 25px;
+	align-items: flex-start;
+}
+
+.profile-picture-container {
+	flex-shrink: 0;
+}
+
+.profile-picture {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.profile-picture-placeholder {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	background: #e9ecef;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.profile-picture-placeholder i {
+	font-size: 32px;
+	color: #6c757d;
+}
+
+.employee-info-grid {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.info-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+}
+
+.info-row.full-width {
+	grid-template-columns: 1fr;
+}
+
+.info-item {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.info-item label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin: 0;
+}
+
+.info-item label i {
+	color: #0073aa;
+	font-size: 14px;
+}
+
+.info-item .value {
+	font-size: 16px;
+	font-weight: 500;
+	color: #212529;
+}
+
+.info-item .value.role-badge {
+	background: #e7f3ff;
+	color: #0056b3;
+	padding: 4px 12px;
+	border-radius: 15px;
+	font-size: 14px;
+	font-weight: 600;
+	display: inline-block;
+	width: fit-content;
+}
+
+.info-item .value.status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 12px;
+	border-radius: 15px;
+	font-size: 14px;
+	font-weight: 600;
+	width: fit-content;
+}
+
+.info-item .value.status-badge.status-active {
+	background: #d4edda;
+	color: #155724;
+}
+
+.info-item .value.status-badge.status-inactive {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.info-item .value.bio-text {
+	font-style: italic;
+	color: #6c757d;
+	line-height: 1.5;
+}
+
+/* Section Headers with Controls */
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.section-header h3 {
+	margin: 0;
+	font-size: 18px;
+	color: #495057;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border-bottom: 2px solid #e9ecef;
+	padding-bottom: 10px;
+	flex: 1;
+	min-width: 200px;
+}
+
+.table-controls {
+	display: flex;
+	gap: 15px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.search-control {
+	position: relative;
+}
+
+.search-control input {
+	padding: 8px 35px 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	font-size: 14px;
+	width: 200px;
+}
+
+.search-control i {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #6c757d;
+	font-size: 16px;
+}
+
+.per-page-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #6c757d;
+}
+
+.per-page-control select {
+	padding: 6px 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+/* Advanced Table Styling */
+.table-container {
+	overflow-x: auto;
+	border-radius: 8px;
+	border: 1px solid #e9ecef;
+	background: #fff;
+}
+
+.woocommerce-table--salary-history {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+}
+
+.woocommerce-table--salary-history thead tr {
+	background: #f8f9fa;
+}
+
+.woocommerce-table--salary-history th {
+	padding: 15px;
+	text-align: left;
+	border-bottom: 2px solid #dee2e6;
+	font-weight: 600;
+	color: #495057;
+	font-size: 14px;
+	position: relative;
+}
+
+.woocommerce-table--salary-history th.sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: background-color 0.2s ease;
+}
+
+.woocommerce-table--salary-history th.sortable:hover {
+	background: #e9ecef;
+}
+
+.sort-icon {
+	margin-left: 5px;
+	font-size: 12px;
+	color: #6c757d;
+	transition: color 0.2s ease;
+}
+
+.woocommerce-table--salary-history th.sortable:hover .sort-icon {
+	color: #495057;
+}
+
+.woocommerce-table--salary-history td {
+	padding: 15px;
+	text-align: left;
+	border-bottom: 1px solid #e9ecef;
+	vertical-align: top;
+}
+
+.woocommerce-table--salary-history tbody tr:hover {
+	background: #f8f9fa;
+}
+
+.woocommerce-table--salary-history .date {
+	font-weight: 500;
+	color: #333;
+	display: block;
+}
+
+.woocommerce-table--salary-history small {
+	color: #6c757d;
+	font-size: 12px;
+}
+
+.salary-change {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.salary-change .type {
+	font-weight: 500;
+	color: #495057;
+	font-size: 14px;
+}
+
+.salary-change .amount {
+	color: #28a745;
+	font-weight: 600;
+}
+
+.changed-by {
+	font-weight: 500;
+	color: #333;
+	display: block;
+}
+
+/* Pagination Styling */
+.pagination-container {
+	margin-top: 20px;
+}
+
+.pagination-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.pagination-info {
+	color: #6c757d;
+	font-size: 14px;
+}
+
+.pagination-controls {
+	display: flex;
+	gap: 5px;
+	align-items: center;
+}
+
+.page-btn {
+	padding: 8px 12px;
+	border: 1px solid #dee2e6;
+	background: #fff;
+	color: #495057;
+	cursor: pointer;
+	border-radius: 4px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	min-width: 40px;
+	text-align: center;
+}
+
+.page-btn:hover {
+	background: #e9ecef;
+	border-color: #adb5bd;
+}
+
+.page-btn.current-page {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+}
+
+.page-btn.prev-btn,
+.page-btn.next-btn {
+	padding: 8px 10px;
+}
+
+.page-ellipsis {
+	padding: 8px 4px;
+	color: #6c757d;
+	font-size: 14px;
+}
+
+/* No Results Styling */
+.no-results {
+	text-align: center;
+	padding: 40px 20px;
+}
+
+.no-results-message {
+	color: #6c757d;
+}
+
+.no-results-message i {
+	font-size: 48px;
+	color: #dee2e6;
+	margin-bottom: 15px;
+	display: block;
+}
+
+.no-results-message p {
+	margin: 0;
+	font-size: 16px;
+}
+
 /* My Account Content Styling */
 .wc-team-payroll-salary-details,
 .wc-team-payroll-earnings,

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.22] - 2026-04-12
+### Enhanced My Account Implementation
+- **Enhanced Employee Header**: Added comprehensive employee header with profile picture, employee ID, role, display name, phone, email, bio, and status across all My Account pages
+- **Advanced Table Features**: Implemented sorting, pagination, search, and per-page options for salary history table following admin panel design patterns
+- **Dynamic Styling Integration**: Added header background and table styling settings to admin panel with full integration in frontend
+- **Improved User Experience**: Consistent header pattern across all 4 My Account pages (Salary Details, My Earnings, Orders Commission, Reports)
+- **Professional Design**: Enhanced CSS with proper role labeling (Administrator, Manager, Employee) and responsive layout
+
 ## [1.0.21] - 2026-04-12
 ### Changed
 - **Phosphor Icons**: Switched from Font Awesome to Phosphor Icons for better visual appearance
