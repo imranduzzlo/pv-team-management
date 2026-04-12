@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.15] - 2026-04-12
+
+### 🔧 **Fixes**
+- Moved endpoint registration to main plugin file for proper WooCommerce integration
+- All custom My Account pages now render correctly with proper content
+- Updated tab icon size to 20px for better visibility
+
+---
+
 ## [1.0.14] - 2026-04-12
 
 ### 🔧 **Fixes**
