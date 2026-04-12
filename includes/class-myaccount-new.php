@@ -1193,11 +1193,8 @@ class WC_Team_Payroll_MyAccount_New {
 					font-family: {$font_family} !important;
 				}
 				
-				.wc-tp-employee-header-new .role-section {
-					background: rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.1) !important;
-				}
-				
 				.wc-tp-employee-header-new .profile-role {
+					background: rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.1) !important;
 					color: {$primary_color} !important;
 					font-family: {$font_family} !important;
 				}
@@ -1229,12 +1226,12 @@ class WC_Team_Payroll_MyAccount_New {
 					border-top-color: {$header_border_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .header-container-3 {
+				.wc-tp-employee-header-new .header-row-2 {
 					border-top-color: {$border_color} !important;
 					border-bottom-color: {$border_color} !important;
 				}
 				
-				.wc-tp-employee-header-new .header-container-4 {
+				.wc-tp-employee-header-new .header-row-3 {
 					border-top-color: {$border_color} !important;
 				}
 				
@@ -1549,15 +1546,6 @@ class WC_Team_Payroll_MyAccount_New {
 			$role_label = 'Employee';
 		}
 		
-		// Get current page to determine if we should link to salary details
-		$current_endpoint = '';
-		foreach ( self::$endpoints as $endpoint ) {
-			if ( get_query_var( $endpoint ) ) {
-				$current_endpoint = $endpoint;
-				break;
-			}
-		}
-		
 		// Generate initials for placeholder
 		$name_parts = explode( ' ', $user->display_name );
 		$initials = '';
@@ -1569,93 +1557,95 @@ class WC_Team_Payroll_MyAccount_New {
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
-			<!-- Container 1: Profile Picture -->
-			<div class="header-container-1">
-				<div class="profile-picture-container">
-					<?php if ( $profile_picture_url ) : ?>
-						<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
-					<?php else : ?>
-						<div class="profile-picture-placeholder">
-							<span class="initials"><?php echo esc_html( $initials ); ?></span>
+			<!-- Main Container: 2 Columns (Image + Right Content) -->
+			<div class="header-main-grid">
+				<!-- Left Column: Profile Picture -->
+				<div class="header-left-column">
+					<div class="profile-picture-container">
+						<?php if ( $profile_picture_url ) : ?>
+							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
+						<?php else : ?>
+							<div class="profile-picture-placeholder">
+								<span class="initials"><?php echo esc_html( $initials ); ?></span>
+							</div>
+						<?php endif; ?>
+					</div>
+				</div>
+				
+				<!-- Right Column: 3 Row Containers -->
+				<div class="header-right-column">
+					<!-- Row 1: Name & Role -->
+					<div class="header-row-1">
+						<h2 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h2>
+						<span class="profile-role"><?php echo esc_html( $role_label ); ?></span>
+					</div>
+					
+					<!-- Row 2: Info Items (2 Columns) -->
+					<div class="header-row-2">
+						<!-- Left Column: ID, Phone, Email -->
+						<div class="info-column-left">
+							<div class="info-item">
+								<i class="ph ph-identification-badge"></i>
+								<span class="info-value" data-copy="<?php echo esc_attr( $vb_user_id ); ?>" title="Click to copy"><?php echo esc_html( $vb_user_id ); ?></span>
+							</div>
+							<div class="info-item">
+								<i class="ph ph-phone"></i>
+								<span class="info-value" data-copy="<?php echo esc_attr( $phone ); ?>" title="Click to copy"><?php echo esc_html( $phone ); ?></span>
+							</div>
+							<div class="info-item">
+								<i class="ph ph-envelope"></i>
+								<span class="info-value" data-copy="<?php echo esc_attr( $email ); ?>" title="Click to copy"><?php echo esc_html( $email ); ?></span>
+							</div>
+						</div>
+						
+						<!-- Right Column: Salary Type, Status, Social Icons -->
+						<div class="info-column-right">
+							<!-- Salary Type -->
+							<div class="info-item">
+								<i class="ph ph-briefcase"></i>
+								<?php
+								$salary_type_labels = array(
+									'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
+									'commission' => __( 'Commission Based', 'wc-team-payroll' ),
+									'combined' => __( 'Combined', 'wc-team-payroll' ),
+								);
+								$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
+								?>
+								<span class="info-value"><?php echo esc_html( $salary_label ); ?></span>
+							</div>
+							
+							<!-- Status -->
+							<div class="info-item">
+								<i class="ph ph-circle-fill"></i>
+								<span class="info-value status-<?php echo esc_attr( $employee_status ); ?>"><?php echo esc_html( ucfirst( $employee_status ) ); ?></span>
+							</div>
+							
+							<!-- Social Icons -->
+							<div class="social-icons-row">
+								<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
+									<i class="ph ph-facebook-logo"></i>
+								</a>
+								<a href="#" class="social-icon whatsapp" title="<?php esc_attr_e( 'WhatsApp', 'wc-team-payroll' ); ?>">
+									<i class="ph ph-whatsapp-logo"></i>
+								</a>
+								<a href="#" class="social-icon instagram" title="<?php esc_attr_e( 'Instagram', 'wc-team-payroll' ); ?>">
+									<i class="ph ph-instagram-logo"></i>
+								</a>
+								<a href="#" class="social-icon linkedin" title="<?php esc_attr_e( 'LinkedIn', 'wc-team-payroll' ); ?>">
+									<i class="ph ph-linkedin-logo"></i>
+								</a>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Row 3: Bio -->
+					<?php if ( $bio ) : ?>
+						<div class="header-row-3">
+							<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
 						</div>
 					<?php endif; ?>
 				</div>
 			</div>
-			
-			<!-- Container 2: Name & Role -->
-			<div class="header-container-2">
-				<div class="name-section">
-					<h2 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h2>
-				</div>
-				<div class="role-section">
-					<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
-				</div>
-			</div>
-			
-			<!-- Container 3: Info & Actions -->
-			<div class="header-container-3">
-				<!-- Left Column: ID, Phone, Email -->
-				<div class="info-column-left">
-					<div class="info-item">
-						<i class="ph ph-identification-badge"></i>
-						<span class="info-value" data-copy="<?php echo esc_attr( $vb_user_id ); ?>" title="Click to copy"><?php echo esc_html( $vb_user_id ); ?></span>
-					</div>
-					<div class="info-item">
-						<i class="ph ph-phone"></i>
-						<span class="info-value" data-copy="<?php echo esc_attr( $phone ); ?>" title="Click to copy"><?php echo esc_html( $phone ); ?></span>
-					</div>
-					<div class="info-item">
-						<i class="ph ph-envelope"></i>
-						<span class="info-value" data-copy="<?php echo esc_attr( $email ); ?>" title="Click to copy"><?php echo esc_html( $email ); ?></span>
-					</div>
-				</div>
-				
-				<!-- Right Column: Salary Type, Status, Social Icons -->
-				<div class="info-column-right">
-					<!-- Salary Type -->
-					<div class="info-item">
-						<i class="ph ph-briefcase"></i>
-						<?php
-						$salary_type_labels = array(
-							'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
-							'commission' => __( 'Commission Based', 'wc-team-payroll' ),
-							'combined' => __( 'Combined', 'wc-team-payroll' ),
-						);
-						$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
-						?>
-						<span class="info-value"><?php echo esc_html( $salary_label ); ?></span>
-					</div>
-					
-					<!-- Status -->
-					<div class="info-item">
-						<i class="ph ph-circle-fill"></i>
-						<span class="info-value status-<?php echo esc_attr( $employee_status ); ?>"><?php echo esc_html( ucfirst( $employee_status ) ); ?></span>
-					</div>
-					
-					<!-- Social Icons -->
-					<div class="social-icons-row">
-						<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
-							<i class="ph ph-facebook-logo"></i>
-						</a>
-						<a href="#" class="social-icon whatsapp" title="<?php esc_attr_e( 'WhatsApp', 'wc-team-payroll' ); ?>">
-							<i class="ph ph-whatsapp-logo"></i>
-						</a>
-						<a href="#" class="social-icon instagram" title="<?php esc_attr_e( 'Instagram', 'wc-team-payroll' ); ?>">
-							<i class="ph ph-instagram-logo"></i>
-						</a>
-						<a href="#" class="social-icon linkedin" title="<?php esc_attr_e( 'LinkedIn', 'wc-team-payroll' ); ?>">
-							<i class="ph ph-linkedin-logo"></i>
-						</a>
-					</div>
-				</div>
-			</div>
-			
-			<!-- Container 4: Bio -->
-			<?php if ( $bio ) : ?>
-				<div class="header-container-4">
-					<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
-				</div>
-			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();

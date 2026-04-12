@@ -16,25 +16,32 @@
 	background: #fff !important;
 }
 
-/* Professional Employee Header */
+/* ============================================================================
+   PROFESSIONAL EMPLOYEE HEADER - 2 COLUMN LAYOUT
+   ============================================================================ */
+
 .wc-tp-employee-header-new {
 	margin-bottom: 40px;
-	padding: 0;
+	padding: 30px;
 	background: #fff;
 	border-radius: 8px;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 	border: 1px solid #f0f0f0;
-	display: flex;
-	flex-direction: column;
-	gap: 0;
 }
 
-/* Container 1: Profile Picture */
-.header-container-1 {
-	padding: 30px;
+/* Main Grid: 2 Columns (Image Left + Right Content) */
+.header-main-grid {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 30px;
+	align-items: flex-start;
+}
+
+/* Left Column: Profile Picture */
+.header-left-column {
 	display: flex;
 	justify-content: center;
-	align-items: center;
+	align-items: flex-start;
 }
 
 .profile-picture-container {
@@ -74,19 +81,19 @@
 	font-weight: 700;
 }
 
-/* Container 2: Name & Role */
-.header-container-2 {
-	padding: 0 30px;
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 20px;
-	align-items: center;
-	margin-bottom: 20px;
+/* Right Column: 3 Row Containers */
+.header-right-column {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
 }
 
-.name-section {
+/* Row 1: Name & Role */
+.header-row-1 {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	gap: 15px;
 }
 
 .profile-name {
@@ -95,31 +102,27 @@
 	font-weight: 700;
 	color: #212529;
 	line-height: 1.2;
-}
-
-.role-section {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	padding: 12px 16px;
-	background: rgba(0, 115, 170, 0.1);
-	border-radius: 6px;
-	min-height: 48px;
+	flex: 1;
 }
 
 .profile-role {
-	margin: 0;
-	font-size: 14px;
+	display: inline-block;
+	padding: 6px 12px;
+	background: rgba(0, 115, 170, 0.1);
 	color: #0073aa;
 	font-weight: 600;
+	font-size: 13px;
+	border-radius: 4px;
+	margin: 0;
+	white-space: nowrap;
 }
 
-/* Container 3: Info & Actions */
-.header-container-3 {
-	padding: 20px 30px;
+/* Row 2: Info Items (2 Columns) */
+.header-row-2 {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 40px;
+	gap: 30px;
+	padding: 15px 0;
 	border-top: 1px solid #f0f0f0;
 	border-bottom: 1px solid #f0f0f0;
 }
@@ -128,14 +131,14 @@
 .info-column-left {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 10px;
 }
 
 /* Right Column: Salary Type, Status, Social Icons */
 .info-column-right {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 10px;
 }
 
 /* Info Item */
@@ -179,7 +182,7 @@
 	display: flex;
 	gap: 12px;
 	align-items: center;
-	margin-top: 4px;
+	margin-top: 2px;
 }
 
 .social-icon {
@@ -222,9 +225,9 @@
 	color: #0a66c2;
 }
 
-/* Container 4: Bio */
-.header-container-4 {
-	padding: 10px 30px 30px 30px;
+/* Row 3: Bio */
+.header-row-3 {
+	padding-top: 10px;
 	border-top: 1px solid #f0f0f0;
 }
 
@@ -235,32 +238,45 @@
 	line-height: 1.6;
 }
 
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
 /* Tablet Responsive */
 @media (max-width: 1024px) {
-	.header-container-2 {
+	.header-main-grid {
 		grid-template-columns: 1fr;
-		gap: 15px;
-		margin-bottom: 15px;
+		gap: 20px;
 	}
 	
-	.role-section {
+	.header-left-column {
 		justify-content: flex-start;
 	}
 	
-	.header-container-3 {
-		grid-template-columns: 1fr;
-		gap: 20px;
+	.header-row-1 {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	
+	.profile-role {
+		align-self: flex-start;
 	}
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
 	.wc-tp-employee-header-new {
+		padding: 20px;
 		margin-bottom: 30px;
 	}
 	
-	.header-container-1 {
-		padding: 20px;
+	.header-main-grid {
+		grid-template-columns: 1fr;
+		gap: 15px;
+	}
+	
+	.header-left-column {
+		justify-content: center;
 	}
 	
 	.profile-picture-container {
@@ -273,31 +289,19 @@
 		font-size: 40px;
 	}
 	
-	.header-container-2 {
-		padding: 0 20px;
-		grid-template-columns: 1fr;
-		gap: 12px;
-		margin-bottom: 12px;
-	}
-	
 	.profile-name {
 		font-size: 20px;
 	}
 	
-	.role-section {
-		justify-content: flex-start;
-		min-height: 40px;
-		padding: 10px 12px;
-	}
-	
 	.profile-role {
-		font-size: 13px;
+		padding: 5px 10px;
+		font-size: 12px;
 	}
 	
-	.header-container-3 {
-		padding: 15px 20px;
+	.header-row-2 {
 		grid-template-columns: 1fr;
 		gap: 15px;
+		padding: 12px 0;
 	}
 	
 	.info-item {
@@ -317,8 +321,8 @@
 		font-size: 16px;
 	}
 	
-	.header-container-4 {
-		padding: 10px 20px 20px 20px;
+	.header-row-3 {
+		padding-top: 8px;
 	}
 	
 	.profile-bio {
@@ -327,7 +331,7 @@
 }
 
 @media (max-width: 480px) {
-	.header-container-1 {
+	.wc-tp-employee-header-new {
 		padding: 15px;
 	}
 	
@@ -341,27 +345,18 @@
 		font-size: 32px;
 	}
 	
-	.header-container-2 {
-		padding: 0 15px;
-		margin-bottom: 10px;
-	}
-	
 	.profile-name {
 		font-size: 18px;
 	}
 	
-	.role-section {
-		min-height: 36px;
-		padding: 8px 10px;
-	}
-	
 	.profile-role {
-		font-size: 12px;
+		padding: 4px 8px;
+		font-size: 11px;
 	}
 	
-	.header-container-3 {
-		padding: 12px 15px;
+	.header-row-2 {
 		gap: 12px;
+		padding: 10px 0;
 	}
 	
 	.info-item {
@@ -381,8 +376,8 @@
 		font-size: 16px;
 	}
 	
-	.header-container-4 {
-		padding: 8px 15px 15px 15px;
+	.header-row-3 {
+		padding-top: 6px;
 	}
 	
 	.profile-bio {
@@ -390,121 +385,10 @@
 	}
 }
 
-@media (max-width: 768px) {
-	.wc-tp-employee-header-new {
-		padding: 25px 20px 20px 20px;
-		margin-bottom: 30px;
-	}
-	
-	.header-top-section {
-		grid-template-columns: 1fr;
-		gap: 20px;
-	}
-	
-	.header-left-stats {
-		gap: 20px;
-	}
-	
-	.profile-picture-container {
-		margin-top: -50px;
-		width: 140px;
-		height: 140px;
-		border-width: 3px;
-	}
-	
-	.profile-picture-placeholder .initials {
-		font-size: 50px;
-	}
-	
-	.profile-name {
-		font-size: 18px;
-	}
-	
-	.header-bottom-section {
-		flex-direction: column;
-		gap: 20px;
-		align-items: center;
-		padding-top: 20px;
-	}
-	
-	.social-icons {
-		width: 100%;
-		justify-content: center;
-	}
-	
-	.salary-type-section {
-		width: 100%;
-		justify-content: center;
-	}
-	
-	.salary-type-link,
-	.salary-type-label {
-		width: 100%;
-		text-align: center;
-		justify-content: center;
-	}
-}
+/* ============================================================================
+   SECTION HEADERS WITH CONTROLS
+   ============================================================================ */
 
-@media (max-width: 480px) {
-	.wc-tp-employee-header-new {
-		padding: 20px 15px;
-	}
-	
-	.header-left-stats {
-		gap: 15px;
-	}
-	
-	.stat-item {
-		gap: 12px;
-	}
-	
-	.stat-icon {
-		width: 36px;
-		height: 36px;
-		font-size: 18px;
-	}
-	
-	.stat-label {
-		font-size: 10px;
-	}
-	
-	.stat-value {
-		font-size: 14px;
-	}
-	
-	.profile-picture-container {
-		margin-top: -40px;
-		width: 120px;
-		height: 120px;
-		border-width: 3px;
-	}
-	
-	.profile-picture-placeholder .initials {
-		font-size: 40px;
-	}
-	
-	.profile-name {
-		font-size: 16px;
-	}
-	
-	.profile-role {
-		font-size: 13px;
-	}
-	
-	.social-icon {
-		width: 36px;
-		height: 36px;
-		font-size: 16px;
-	}
-	
-	.salary-type-label,
-	.salary-type-link {
-		font-size: 14px;
-		padding: 6px 12px;
-	}
-}
-
-/* Section Headers with Controls */
 .section-header {
 	display: flex;
 	justify-content: space-between;
@@ -746,13 +630,6 @@
 }
 
 /* My Account Content Styling */
-.wc-team-payroll-salary-details,
-.wc-team-payroll-earnings,
-.wc-team-payroll-orders,
-.wc-team-payroll-reports {
-	padding: 20px 0;
-}
-
 .wc-team-payroll-salary-details h2,
 .wc-team-payroll-earnings h2,
 .wc-team-payroll-orders h2,
@@ -968,118 +845,6 @@
 	padding-left: 26px;
 }
 
-/* Table Styling */
-.table-container {
-	overflow-x: auto;
-	border-radius: 8px;
-	border: 1px solid #e9ecef;
-}
-
-.woocommerce-table--salary-history {
-	width: 100%;
-	border-collapse: collapse;
-	margin: 0;
-}
-
-.woocommerce-table--salary-history thead tr {
-	background: #f8f9fa;
-}
-
-.woocommerce-table--salary-history th,
-.woocommerce-table--salary-history td {
-	padding: 15px;
-	text-align: left;
-	border-bottom: 1px solid #e9ecef;
-	vertical-align: top;
-}
-
-.woocommerce-table--salary-history th {
-	font-weight: 600;
-	color: #495057;
-	font-size: 14px;
-	border-bottom: 2px solid #dee2e6;
-}
-
-.woocommerce-table--salary-history tbody tr:hover {
-	background: #f8f9fa;
-}
-
-.woocommerce-table--salary-history .date {
-	font-weight: 500;
-	color: #333;
-	display: block;
-}
-
-.woocommerce-table--salary-history small {
-	color: #6c757d;
-	font-size: 12px;
-}
-
-.salary-change {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-.salary-change .type {
-	font-weight: 500;
-	color: #495057;
-	font-size: 14px;
-}
-
-.salary-change .amount {
-	color: #28a745;
-	font-weight: 600;
-}
-
-.changed-by {
-	font-weight: 500;
-	color: #333;
-	display: block;
-}
-
-/* No History Message */
-.no-history-message {
-	text-align: center;
-	padding: 40px 20px;
-	background: #f8f9fa;
-	border-radius: 8px;
-	color: #6c757d;
-}
-
-.no-history-message i {
-	font-size: 48px;
-	color: #dee2e6;
-	margin-bottom: 15px;
-	display: block;
-}
-
-.no-history-message p {
-	margin: 0;
-	font-size: 16px;
-}
-
-/* Employee Header */
-.employee-header {
-	margin-bottom: 30px;
-	padding: 15px 20px;
-	background: #f8f9fa;
-	border-radius: 8px;
-	border-left: 4px solid #0073aa;
-}
-
-.employee-id {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	color: #495057;
-	font-size: 16px;
-}
-
-.employee-id i {
-	color: #0073aa;
-}
-
 /* Earnings Summary */
 .earnings-summary {
 	display: grid;
@@ -1264,63 +1029,46 @@
 	border: 1px solid #ffeaa7;
 }
 
-/* No Earnings Message */
-.no-earnings-message {
+/* No History Message */
+.no-history-message {
 	text-align: center;
-	padding: 60px 20px;
+	padding: 40px 20px;
 	background: #f8f9fa;
-	border-radius: 12px;
+	border-radius: 8px;
 	color: #6c757d;
 }
 
-.no-earnings-message i {
-	font-size: 64px;
+.no-history-message i {
+	font-size: 48px;
 	color: #dee2e6;
-	margin-bottom: 20px;
+	margin-bottom: 15px;
 	display: block;
 }
 
-.no-earnings-message h4 {
-	margin: 0 0 10px 0;
-	font-size: 20px;
-	color: #495057;
-}
-
-.no-earnings-message p {
+.no-history-message p {
 	margin: 0;
 	font-size: 16px;
 }
 
-/* Earnings Summary */
-.earnings-summary {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 20px;
+/* Employee Header */
+.employee-header {
 	margin-bottom: 30px;
-}
-
-.earning-card {
-	background: #fff;
-	border: 1px solid #e9ecef;
+	padding: 15px 20px;
+	background: #f8f9fa;
 	border-radius: 8px;
-	padding: 20px;
-	text-align: center;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	border-left: 4px solid #0073aa;
 }
 
-.earning-card h4 {
-	margin: 0 0 10px 0;
-	font-size: 14px;
-	color: #6c757d;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+.employee-id {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #495057;
+	font-size: 16px;
 }
 
-.earning-card .amount {
-	margin: 0;
-	font-size: 28px;
-	font-weight: 700;
-	color: #28a745;
+.employee-id i {
+	color: #0073aa;
 }
 
 /* Orders Table */

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.29] - 2026-04-13
+### Fixed Dynamic CSS Class Names
+- Updated dynamic CSS selectors to match new header layout class names
+- Changed `.role-section` to `.profile-role`
+- Changed `.header-container-3` to `.header-row-2`
+- Changed `.header-container-4` to `.header-row-3`
+- All color variables now properly applied to correct elements
+- Verified responsive design on all screen sizes
+
 ## [1.0.28] - 2026-04-12
 ### Professional Header with Organized Containers
 - **Container 1**: Profile picture (120px circular with primary color border)
