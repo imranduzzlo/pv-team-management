@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.8
+ * Version: 5.8.9
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -1064,7 +1064,18 @@ add_action( 'plugins_loaded', function() {
 				}
 			}
 
-			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+			$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+			$profile_picture_id = get_user_meta( $employee->ID, '_wc_tp_profile_picture', true );
+			$profile_picture_url = '';
+			
+			if ( $profile_picture_id ) {
+				$profile_picture_url = wp_get_attachment_url( $profile_picture_id );
+			}
+			
+			$employee_status = get_user_meta( $employee->ID, '_wc_tp_employee_status', true );
+			if ( ! $employee_status ) {
+				$employee_status = 'active'; // Default to active
+			}
 
 			$employees_data[] = array(
 				'user_id'      => $employee->ID,
@@ -1074,6 +1085,8 @@ add_action( 'plugins_loaded', function() {
 				'type'         => $type,
 				'salary_info'  => $salary_info,
 				'manage_url'   => add_query_arg( array( 'page' => 'wc-team-payroll-employee-detail', 'user_id' => $employee->ID ), admin_url( 'admin.php' ) ),
+				'profile_picture' => $profile_picture_url,
+				'status'       => $employee_status,
 			);
 		}
 

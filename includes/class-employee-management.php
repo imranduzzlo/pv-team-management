@@ -700,15 +700,25 @@ class WC_Team_Payroll_Employee_Management {
 					html += '<th class="wc-tp-sortable-header" data-sort="user_email">Email</th>';
 					html += '<th class="wc-tp-sortable-header" data-sort="type">Type</th>';
 					html += '<th>Salary/Commission</th>';
+					html += '<th class="wc-tp-sortable-header" data-sort="status">Status</th>';
 					html += '<th>Action</th>';
 					html += '</tr></thead><tbody>';
 
 					$.each(pageData, function(i, emp) {
+						const profileImg = emp.profile_picture ? '<img src="' + emp.profile_picture + '" alt="' + emp.display_name + '" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />' : '<span style="display: inline-block; width: 32px; height: 32px; border-radius: 50%; background: #E5EAF0; margin-right: 8px; vertical-align: middle;"></span>';
+						const userEditUrl = 'user-edit.php?user_id=' + emp.user_id;
+						const nameHtml = '<a href="' + userEditUrl + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + emp.display_name + '</span></a>';
+						
+						const statusClass = emp.status === 'active' ? 'wc-tp-status-active' : 'wc-tp-status-inactive';
+						const statusText = emp.status === 'active' ? 'Active' : 'Inactive';
+						const statusBadge = '<span class="wc-tp-status ' + statusClass + '">' + statusText + '</span>';
+						
 						html += '<tr>';
-						html += '<td><strong>' + emp.display_name + '</strong></td>';
+						html += '<td><strong>' + nameHtml + '</strong></td>';
 						html += '<td>' + emp.user_email + '</td>';
 						html += '<td>' + emp.type + '</td>';
 						html += '<td>' + emp.salary_info + '</td>';
+						html += '<td>' + statusBadge + '</td>';
 						html += '<td><a href="' + emp.manage_url + '" class="button button-small button-primary">Manage</a></td>';
 						html += '</tr>';
 					});
