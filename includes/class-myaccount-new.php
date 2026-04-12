@@ -404,15 +404,15 @@ class WC_Team_Payroll_MyAccount_New {
 							
 							// Previous button
 							if (currentPage > 1) {
-								paginationHTML += `<button class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></button>`;
+								paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></a>`;
 							}
 							
 							// Page numbers
 							for (let i = 1; i <= totalPages; i++) {
 								if (i === currentPage) {
-									paginationHTML += `<button class="page-btn current-page">${i}</button>`;
+									paginationHTML += `<a href="#" class="page-btn current-page">${i}</a>`;
 								} else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-									paginationHTML += `<button class="page-btn" data-page="${i}">${i}</button>`;
+									paginationHTML += `<a href="#" class="page-btn" data-page="${i}">${i}</a>`;
 								} else if (i === currentPage - 3 || i === currentPage + 3) {
 									paginationHTML += '<span class="page-ellipsis">...</span>';
 								}
@@ -420,7 +420,7 @@ class WC_Team_Payroll_MyAccount_New {
 							
 							// Next button
 							if (currentPage < totalPages) {
-								paginationHTML += `<button class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></button>`;
+								paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></a>`;
 							}
 							
 							paginationHTML += '</div></div>';
@@ -474,7 +474,8 @@ class WC_Team_Payroll_MyAccount_New {
 							updateTable();
 						});
 						
-						$(document).on('click', '.page-btn[data-page]', function() {
+						$(document).on('click', '.page-btn[data-page]', function(e) {
+							e.preventDefault();
 							currentPage = parseInt($(this).data('page'));
 							updateTable();
 						});
