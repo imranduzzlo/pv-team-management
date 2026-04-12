@@ -1174,27 +1174,19 @@ class WC_Team_Payroll_MyAccount_New {
 					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
 				}
 				
-				.wc-tp-employee-header-new .stat-icon {
-					color: {$primary_color} !important;
-					background: none !important;
-					box-shadow: none !important;
-				}
-				
-				.wc-tp-employee-header-new .stat-label {
-					color: {$secondary_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .stat-value {
-					color: {$text_color} !important;
+				.wc-tp-employee-header-new {
+					background: {$background_color} !important;
+					border: 1px solid {$border_color} !important;
+					box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-picture-container {
-					border-color: {$header_border_color} !important;
+					border-color: {$primary_color} !important;
 					background: {$background_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-picture-placeholder {
-					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
+					background: linear-gradient(135deg, {$primary_color} 0%, {$link_hover_color} 100%) !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-name {
@@ -1207,20 +1199,40 @@ class WC_Team_Payroll_MyAccount_New {
 					font-family: {$font_family} !important;
 				}
 				
-				.wc-tp-employee-header-new .header-bio-section {
-					background: transparent !important;
-					border-top: 1px solid {$border_color} !important;
-					border-bottom: 1px solid {$border_color} !important;
+				.wc-tp-employee-header-new .profile-bio {
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
 				}
 				
-				.wc-tp-employee-header-new .bio-text {
+				.wc-tp-employee-header-new .contact-item {
 					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .contact-item i {
+					color: {$primary_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-link {
+					background: {$primary_color} !important;
+					color: {$button_text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-link:hover {
+					background: {$link_hover_color} !important;
+				}
+				
+				.wc-tp-employee-header-new .salary-type-text {
+					background: {$card_background} !important;
+					color: {$heading_color} !important;
+					border-color: {$border_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
 				.wc-tp-employee-header-new .social-icon {
 					background: transparent !important;
-					border: 2px solid {$border_color} !important;
+					border-color: {$border_color} !important;
 					color: {$text_color} !important;
 				}
 				
@@ -1228,26 +1240,6 @@ class WC_Team_Payroll_MyAccount_New {
 					background: {$primary_color} !important;
 					border-color: {$primary_color} !important;
 					color: {$button_text_color} !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-label {
-					background: {$background_color} !important;
-					border: 1px solid {$border_color} !important;
-					color: {$heading_color} !important;
-					font-family: {$font_family} !important;
-					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-link {
-					background: {$primary_color} !important;
-					color: {$button_text_color} !important;
-					font-family: {$font_family} !important;
-					box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-				}
-				
-				.wc-tp-employee-header-new .salary-type-link:hover {
-					background: {$link_hover_color} !important;
-					box-shadow: 0 4px 12px rgba(0,115,170,0.2) !important;
 				}
 				
 				/* Headings */
@@ -1581,46 +1573,10 @@ class WC_Team_Payroll_MyAccount_New {
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
-			<!-- Top Section: Left Stats and Center Profile -->
-			<div class="header-top-section">
-				<!-- Left Column: ID, Email, Phone -->
-				<div class="header-left-stats">
-					<!-- Employee ID -->
-					<div class="stat-item">
-						<div class="stat-icon">
-							<i class="ph ph-identification-badge"></i>
-						</div>
-						<div class="stat-content">
-							<span class="stat-label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
-							<span class="stat-value"><?php echo esc_html( $vb_user_id ); ?></span>
-						</div>
-					</div>
-					
-					<!-- Email -->
-					<div class="stat-item">
-						<div class="stat-icon">
-							<i class="ph ph-envelope"></i>
-						</div>
-						<div class="stat-content">
-							<span class="stat-label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
-							<span class="stat-value"><?php echo esc_html( $email ); ?></span>
-						</div>
-					</div>
-					
-					<!-- Phone -->
-					<div class="stat-item">
-						<div class="stat-icon">
-							<i class="ph ph-phone"></i>
-						</div>
-						<div class="stat-content">
-							<span class="stat-label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
-							<span class="stat-value"><?php echo esc_html( $phone ); ?></span>
-						</div>
-					</div>
-				</div>
-				
-				<!-- Center: Profile Picture with Name and Role Below -->
-				<div class="header-center-profile">
+			<!-- Header Container -->
+			<div class="header-container">
+				<!-- Left Section: Profile Picture -->
+				<div class="header-profile-section">
 					<div class="profile-picture-container">
 						<?php if ( $profile_picture_url ) : ?>
 							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
@@ -1630,66 +1586,79 @@ class WC_Team_Payroll_MyAccount_New {
 							</div>
 						<?php endif; ?>
 					</div>
-					
-					<div class="profile-info">
-						<h3 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h3>
-						<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
-					</div>
-				</div>
-			</div>
-			
-			<!-- Bio Section -->
-			<?php if ( $bio ) : ?>
-				<div class="header-bio-section">
-					<p class="bio-text"><?php echo esc_html( $bio ); ?></p>
-				</div>
-			<?php endif; ?>
-			
-			<!-- Bottom Section: Social Icons Left, Salary Type Right -->
-			<div class="header-bottom-section">
-				<!-- Left: Social Icons -->
-				<div class="social-icons">
-					<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
-						<i class="ph ph-facebook-logo"></i>
-					</a>
-					<a href="#" class="social-icon whatsapp" title="<?php esc_attr_e( 'WhatsApp', 'wc-team-payroll' ); ?>">
-						<i class="ph ph-whatsapp-logo"></i>
-					</a>
-					<a href="#" class="social-icon instagram" title="<?php esc_attr_e( 'Instagram', 'wc-team-payroll' ); ?>">
-						<i class="ph ph-instagram-logo"></i>
-					</a>
-					<a href="#" class="social-icon linkedin" title="<?php esc_attr_e( 'LinkedIn', 'wc-team-payroll' ); ?>">
-						<i class="ph ph-linkedin-logo"></i>
-					</a>
 				</div>
 				
-				<!-- Right: Salary Type -->
-				<div class="salary-type-section">
-					<?php
-					$salary_type_labels = array(
-						'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
-						'commission' => __( 'Commission Based', 'wc-team-payroll' ),
-						'combined' => __( 'Combined', 'wc-team-payroll' ),
-					);
-					$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
+				<!-- Middle Section: Name, Role, Bio -->
+				<div class="header-info-section">
+					<div class="profile-header">
+						<h2 class="profile-name"><?php echo esc_html( $user->display_name ); ?></h2>
+						<p class="profile-role"><?php echo esc_html( $role_label ); ?></p>
+					</div>
 					
-					// Only show link if not on salary details page
-					if ( $current_endpoint !== 'salary-details' ) {
-						$salary_details_url = wc_get_account_endpoint_url( 'salary-details' );
+					<?php if ( $bio ) : ?>
+						<p class="profile-bio"><?php echo esc_html( $bio ); ?></p>
+					<?php endif; ?>
+					
+					<!-- Contact Info -->
+					<div class="contact-info">
+						<div class="contact-item">
+							<i class="ph ph-identification-badge"></i>
+							<span><?php echo esc_html( $vb_user_id ); ?></span>
+						</div>
+						<div class="contact-item">
+							<i class="ph ph-envelope"></i>
+							<span><?php echo esc_html( $email ); ?></span>
+						</div>
+						<div class="contact-item">
+							<i class="ph ph-phone"></i>
+							<span><?php echo esc_html( $phone ); ?></span>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Right Section: Salary Type & Social -->
+				<div class="header-action-section">
+					<!-- Salary Type -->
+					<div class="salary-type-box">
+						<?php
+						$salary_type_labels = array(
+							'fixed' => __( 'Fixed Salary', 'wc-team-payroll' ),
+							'commission' => __( 'Commission Based', 'wc-team-payroll' ),
+							'combined' => __( 'Combined', 'wc-team-payroll' ),
+						);
+						$salary_label = $salary_type_labels[ $salary_type ] ?? ucfirst( $salary_type );
+						
+						if ( $current_endpoint !== 'salary-details' ) {
+							$salary_details_url = wc_get_account_endpoint_url( 'salary-details' );
+							?>
+							<a href="<?php echo esc_url( $salary_details_url ); ?>" class="salary-type-link">
+								<?php echo esc_html( $salary_label ); ?>
+								<i class="ph ph-arrow-right"></i>
+							</a>
+							<?php
+						} else {
+							?>
+							<span class="salary-type-text"><?php echo esc_html( $salary_label ); ?></span>
+							<?php
+						}
 						?>
-						<a href="<?php echo esc_url( $salary_details_url ); ?>" class="salary-type-link">
-							<span class="salary-type-label"><?php echo esc_html( $salary_label ); ?></span>
-							<i class="ph ph-arrow-right"></i>
+					</div>
+					
+					<!-- Social Icons -->
+					<div class="social-icons">
+						<a href="#" class="social-icon facebook" title="<?php esc_attr_e( 'Facebook', 'wc-team-payroll' ); ?>">
+							<i class="ph ph-facebook-logo"></i>
 						</a>
-						<?php
-					} else {
-						?>
-						<span class="salary-type-label">
-							<?php echo esc_html( $salary_label ); ?>
-						</span>
-						<?php
-					}
-					?>
+						<a href="#" class="social-icon whatsapp" title="<?php esc_attr_e( 'WhatsApp', 'wc-team-payroll' ); ?>">
+							<i class="ph ph-whatsapp-logo"></i>
+						</a>
+						<a href="#" class="social-icon instagram" title="<?php esc_attr_e( 'Instagram', 'wc-team-payroll' ); ?>">
+							<i class="ph ph-instagram-logo"></i>
+						</a>
+						<a href="#" class="social-icon linkedin" title="<?php esc_attr_e( 'LinkedIn', 'wc-team-payroll' ); ?>">
+							<i class="ph ph-linkedin-logo"></i>
+						</a>
+					</div>
 				</div>
 			</div>
 		</div>
