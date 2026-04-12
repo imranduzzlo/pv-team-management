@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.28] - 2026-04-12
+### Professional Header with Organized Containers
+- **Container 1**: Profile picture (120px circular with primary color border)
+- **Container 2**: Name (left) and Role (right, 100% width with 10% primary background)
+- **Container 3**: Two-column layout
+  - Left column: ID (clickable to copy), Phone, Email with icons
+  - Right column: Salary type, Status, Social icons
+- **Container 4**: Bio section with 10px padding-top and header border color
+- **Icons**: 18px size, primary color, secondary color on hover
+- **Social Icons**: Raw icons without background or border, proper spacing
+- **Layout**: Uses parent container gaps, no individual margins/padding
+- **Dynamic Styling**: All colors controlled via admin settings
+- **Fully Responsive**: Optimized for all screen sizes
+
 ## [1.0.27] - 2026-04-12
 ### Professional Header - Minimal & Fresh Design
 - **Complete redesign** of employee header from scratch
