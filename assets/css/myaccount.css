@@ -522,8 +522,8 @@
 /* Advanced Table Styling */
 .table-container {
 	overflow-x: auto;
-	border-radius: 8px;
 	border: none;
+	border-radius: 0;
 	background: #fff;
 	margin-top: 20px;
 }
@@ -541,7 +541,7 @@
 }
 
 .woocommerce-table--salary-history th {
-	padding: 15px;
+	padding: 15px 3px;
 	text-align: left;
 	border: none;
 	border-bottom: 1px solid #e9ecef;
