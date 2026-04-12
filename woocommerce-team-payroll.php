@@ -245,6 +245,8 @@ add_action( 'plugins_loaded', function() {
 		}
 
 		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
+		error_log( 'Payment methods for user ' . $user_id . ': ' . print_r( $methods, true ) );
+		
 		if ( ! is_array( $methods ) ) {
 			$methods = array();
 		}

@@ -575,6 +575,7 @@ class WC_Team_Payroll_Payments_Page {
 					const employeeId = $(this).val();
 					const nonce = $('#wc_team_payroll_nonce').val();
 					console.log('Employee selected:', employeeId);
+					console.log('Nonce:', nonce);
 					if (!employeeId) {
 						$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>');
 						return;
@@ -590,20 +591,29 @@ class WC_Team_Payroll_Payments_Page {
 						},
 						success: function(response) {
 							console.log('Payment methods response:', response);
-							if (response.success && response.data.methods && response.data.methods.length > 0) {
-								let html = '<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>';
-								$.each(response.data.methods, function(i, method) {
-									console.log('Adding method:', method);
-									html += '<option value="' + method.method_name + '">' + method.method_name + '</option>';
-								});
-								$('#wc-tp-payment-method').html(html);
+							console.log('Methods array:', response.data.methods);
+							console.log('Methods length:', response.data.methods ? response.data.methods.length : 'undefined');
+							
+							if (response.success) {
+								if (response.data.methods && Array.isArray(response.data.methods) && response.data.methods.length > 0) {
+									let html = '<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>';
+									$.each(response.data.methods, function(i, method) {
+										console.log('Adding method:', method);
+										html += '<option value="' + method.method_name + '">' + method.method_name + '</option>';
+									});
+									$('#wc-tp-payment-method').html(html);
+								} else {
+									console.log('No methods found or empty response');
+									$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'No payment methods', 'wc-team-payroll' ); ?></option>');
+								}
 							} else {
-								console.log('No methods found or empty response');
-								$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'No payment methods', 'wc-team-payroll' ); ?></option>');
+								console.log('Response not successful:', response);
+								$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Error loading methods', 'wc-team-payroll' ); ?></option>');
 							}
 						},
 						error: function(xhr, status, error) {
 							console.log('AJAX error:', error, xhr);
+							console.log('Response text:', xhr.responseText);
 							$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Error loading methods', 'wc-team-payroll' ); ?></option>');
 						}
 					});
