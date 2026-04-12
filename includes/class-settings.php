@@ -209,8 +209,11 @@ class WC_Team_Payroll_Settings {
 						</tr>
 					</table>
 
+					<?php $nonce = wp_create_nonce( 'wc_team_payroll_nonce' ); ?>
 					<script>
 						jQuery(document).ready(function($) {
+							const nonce = '<?php echo esc_js( $nonce ); ?>';
+							
 							function checkGitHubUpdate() {
 								const statusDiv = $('#wc-tp-update-status');
 								statusDiv.html('<p><strong>Checking GitHub for updates...</strong></p><p style="color: #666; font-size: 12px;">This may take a few seconds.</p>');
@@ -220,7 +223,7 @@ class WC_Team_Payroll_Settings {
 									type: 'POST',
 									data: {
 										action: 'wc_tp_check_github_update',
-										nonce: '<?php echo wp_create_nonce( 'wc_team_payroll_nonce' ); ?>'
+										nonce: nonce
 									},
 									success: function(response) {
 										if (response.success) {
@@ -274,7 +277,7 @@ class WC_Team_Payroll_Settings {
 									type: 'POST',
 									data: {
 										action: 'wc_tp_check_github_update',
-										nonce: '<?php echo wp_create_nonce( 'wc_team_payroll_nonce' ); ?>'
+										nonce: nonce
 									},
 									complete: function() {
 										btn.prop('disabled', false).text('Clear Update Cache');
