@@ -13,7 +13,7 @@ param(
     
     [string]$GitHubToken,
     
-    [string]$Repository = "imranduzzlo/pv-team-payroll"
+    [string]$Repository = "imranduzzlo/pv-team-management/"
 )
 
 # Get GitHub token from environment variable if not provided

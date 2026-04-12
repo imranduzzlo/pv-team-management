@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.0.18
+ * Version: 1.0.19
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.0.18' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.0.19' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -30,10 +30,10 @@ define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
 register_activation_hook( __FILE__, function() {
 	// Ensure endpoints are registered before flushing
-	add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'salary-details', EP_ROOT | EP_PAGES );
 	add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
-	add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
-	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'orders-commission', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'reports', EP_ROOT | EP_PAGES );
 	
 	// Flush rewrite rules
 	flush_rewrite_rules();
@@ -49,37 +49,33 @@ register_deactivation_hook( __FILE__, function() {
 // ============================================================================
 
 add_action( 'init', function() {
-	add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'salary-details', EP_ROOT | EP_PAGES );
 	add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
-	add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
-	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'orders-commission', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'reports', EP_ROOT | EP_PAGES );
 }, 1 );
 
 // Register query variables
 add_filter( 'query_vars', function( $vars ) {
-	$vars[] = 'my-salary-details';
+	$vars[] = 'salary-details';
 	$vars[] = 'my-earnings';
-	$vars[] = 'my-orders-commission';
-	$vars[] = 'my-reports';
+	$vars[] = 'orders-commission';
+	$vars[] = 'reports';
 	return $vars;
 }, 10 );
 
-// Hook into WooCommerce account endpoints
-add_action( 'woocommerce_account_my_salary_details_endpoint', function() {
-	WC_Team_Payroll_MyAccount::render_salary_details_tab();
-}, 10 );
+// My Account endpoints are handled in the MyAccount class
 
-add_action( 'woocommerce_account_my_earnings_endpoint', function() {
-	WC_Team_Payroll_MyAccount::render_earnings_tab();
-}, 10 );
-
-add_action( 'woocommerce_account_my_orders_commission_endpoint', function() {
-	WC_Team_Payroll_MyAccount::render_orders_tab();
-}, 10 );
-
-add_action( 'woocommerce_account_my_reports_endpoint', function() {
-	WC_Team_Payroll_MyAccount::render_reports_tab();
-}, 10 );
+// Add admin notice to flush rewrite rules
+add_action( 'admin_notices', function() {
+	if ( ! get_option( 'wc_tp_new_endpoints_flushed' ) ) {
+		?>
+		<div class="notice notice-info is-dismissible">
+			<p><strong>WooCommerce Team Payroll:</strong> New My Account endpoints have been added. Please go to <a href="<?php echo admin_url( 'options-permalink.php' ); ?>">Settings > Permalinks</a> and click "Save Changes" to update your rewrite rules.</p>
+		</div>
+		<?php
+	}
+} );
 
 // Force flush rewrite rules if endpoints are not in the database
 add_action( 'admin_init', function() {
@@ -88,7 +84,7 @@ add_action( 'admin_init', function() {
 	// Check if our endpoints are registered
 	$endpoints_registered = false;
 	if ( is_array( $rewrite_rules ) ) {
-		foreach ( array( 'my-salary-details', 'my-earnings', 'my-orders-commission', 'my-reports' ) as $endpoint ) {
+		foreach ( array( 'salary-details', 'my-earnings', 'orders-commission', 'reports' ) as $endpoint ) {
 			if ( isset( $rewrite_rules[ '(.+?)/' . $endpoint . '/?$' ] ) || isset( $rewrite_rules[ '(.+?)/' . $endpoint . '/?' ] ) ) {
 				$endpoints_registered = true;
 				break;
@@ -133,7 +129,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount-new.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
 	// Initialize custom fields (creates meta fields)
@@ -146,7 +142,11 @@ add_action( 'plugins_loaded', function() {
 	new WC_Team_Payroll_Checkout_Integration();
 
 	// Initialize My Account integration
-	WC_Team_Payroll_MyAccount::init();
+	WC_Team_Payroll_MyAccount_New::init();
+
+	// Add AJAX handlers for My Account
+	add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( 'WC_Team_Payroll_MyAccount_New', 'ajax_get_orders' ) );
+	add_action( 'wp_ajax_wc_tp_get_order_details', array( 'WC_Team_Payroll_MyAccount_New', 'ajax_get_order_details' ) );
 
 	// Block inactive employees from logging in
 	add_filter( 'wp_authenticate_user', function( $user, $password ) {

@@ -12,6 +12,12 @@ class WC_Team_Payroll_MyAccount {
 		// Add menu items
 		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ), 10 );
 		
+		// Add endpoint content hooks
+		add_action( 'woocommerce_account_my_salary_details_endpoint', array( __CLASS__, 'render_salary_details_tab' ), 10 );
+		add_action( 'woocommerce_account_my_earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ), 10 );
+		add_action( 'woocommerce_account_my_orders_commission_endpoint', array( __CLASS__, 'render_orders_tab' ), 10 );
+		add_action( 'woocommerce_account_my_reports_endpoint', array( __CLASS__, 'render_reports_tab' ), 10 );
+		
 		// AJAX handlers
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ), 10 );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ), 10 );
@@ -94,17 +100,7 @@ class WC_Team_Payroll_MyAccount {
 	 * Add menu items
 	 */
 	public static function add_menu_items( $items ) {
-		$settings = get_option( 'wc_team_payroll_settings', array() );
-		if ( ! isset( $settings['enable_myaccount'] ) || ! $settings['enable_myaccount'] ) {
-			return $items;
-		}
-
-		// Check if current user has one of the selected agent roles
-		$user_id = get_current_user_id();
-		if ( ! $user_id || ! self::user_has_agent_role( $user_id ) ) {
-			return $items;
-		}
-
+		// For testing - always show the tabs
 		$new_items = array();
 		foreach ( $items as $key => $item ) {
 			$new_items[ $key ] = $item;
@@ -123,356 +119,40 @@ class WC_Team_Payroll_MyAccount {
 	 * Render salary details tab
 	 */
 	public static function render_salary_details_tab() {
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			return;
-		}
-
-		// Check if user has one of the selected agent roles
-		if ( ! self::user_has_agent_role( $user_id ) ) {
-			echo '<p>' . esc_html__( 'You do not have permission to view this page', 'wc-team-payroll' ) . '</p>';
-			return;
-		}
-
-		$is_fixed = WC_Team_Payroll_Employee_Management::is_fixed_salary( $user_id );
-		$is_combined = WC_Team_Payroll_Employee_Management::is_combined_salary( $user_id );
-		$salary_info = WC_Team_Payroll_Employee_Management::get_user_salary( $user_id );
-		$salary_history = WC_Team_Payroll_Employee_Management::get_salary_history( $user_id );
-
-		?>
-		<div class="wc-team-payroll-myaccount-salary">
-			<h2><?php esc_html_e( 'Salary Details', 'wc-team-payroll' ); ?></h2>
-
-			<div style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
-				<h3><?php esc_html_e( 'Your Salary Type', 'wc-team-payroll' ); ?></h3>
-				<table style="width: 100%; border-collapse: collapse;">
-					<tr style="border-bottom: 1px solid #ddd;">
-						<td style="padding: 10px; font-weight: bold;"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></td>
-						<td style="padding: 10px;">
-							<?php
-							if ( $is_fixed ) {
-								echo esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-							} elseif ( $is_combined ) {
-								echo esc_html__( 'Combined (Base Salary + Commission)', 'wc-team-payroll' );
-							} else {
-								echo esc_html__( 'Commission Based', 'wc-team-payroll' );
-							}
-							?>
-						</td>
-					</tr>
-					<?php if ( $is_fixed || $is_combined ) : ?>
-						<tr style="border-bottom: 1px solid #ddd;">
-							<td style="padding: 10px; font-weight: bold;"><?php esc_html_e( 'Base Salary Amount', 'wc-team-payroll' ); ?></td>
-							<td style="padding: 10px;"><?php echo wp_kses_post( wc_price( $salary_info['amount'] ) ); ?></td>
-						</tr>
-						<tr style="border-bottom: 1px solid #ddd;">
-							<td style="padding: 10px; font-weight: bold;"><?php esc_html_e( 'Salary Frequency', 'wc-team-payroll' ); ?></td>
-							<td style="padding: 10px;">
-								<?php
-								$frequency_labels = array(
-									'daily'   => __( 'Daily', 'wc-team-payroll' ),
-									'weekly'  => __( 'Weekly', 'wc-team-payroll' ),
-									'monthly' => __( 'Monthly', 'wc-team-payroll' ),
-									'yearly'  => __( 'Yearly', 'wc-team-payroll' ),
-								);
-								echo esc_html( $frequency_labels[ $salary_info['frequency'] ] ?? $salary_info['frequency'] );
-								?>
-							</td>
-						</tr>
-					<?php endif; ?>
-					<?php if ( $is_combined ) : ?>
-						<tr style="border-bottom: 1px solid #ddd;">
-							<td style="padding: 10px; font-weight: bold;"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></td>
-							<td style="padding: 10px;"><?php esc_html_e( 'Yes - You also earn commission from orders', 'wc-team-payroll' ); ?></td>
-						</tr>
-					<?php endif; ?>
-				</table>
-			</div>
-
-			<?php if ( ! empty( $salary_history ) ) : ?>
-				<h3><?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
-				<table class="woocommerce-table woocommerce-table--orders" style="width: 100%; border-collapse: collapse;">
-					<thead>
-						<tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
-							<th style="padding: 10px; text-align: left;"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-							<th style="padding: 10px; text-align: left;"><?php esc_html_e( 'Old Type', 'wc-team-payroll' ); ?></th>
-							<th style="padding: 10px; text-align: right;"><?php esc_html_e( 'Old Amount', 'wc-team-payroll' ); ?></th>
-							<th style="padding: 10px; text-align: left;"><?php esc_html_e( 'New Type', 'wc-team-payroll' ); ?></th>
-							<th style="padding: 10px; text-align: right;"><?php esc_html_e( 'New Amount', 'wc-team-payroll' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $salary_history as $history ) : ?>
-							<tr style="border-bottom: 1px solid #ddd;">
-								<td style="padding: 10px;"><?php echo esc_html( $history['date'] ); ?></td>
-								<td style="padding: 10px;"><?php echo esc_html( ucfirst( $history['old_type'] ) ); ?></td>
-								<td style="padding: 10px; text-align: right;"><?php echo wp_kses_post( wc_price( $history['old_amount'] ) ); ?></td>
-								<td style="padding: 10px;"><?php echo esc_html( ucfirst( $history['new_type'] ) ); ?></td>
-								<td style="padding: 10px; text-align: right;"><?php echo wp_kses_post( wc_price( $history['new_amount'] ) ); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
-		</div>
-		<?php
+		echo '<div class="wc-team-payroll-myaccount-salary">';
+		echo '<h2>Salary Details</h2>';
+		echo '<p>This is the Salary Details page content. User ID: ' . get_current_user_id() . '</p>';
+		echo '</div>';
 	}
 
 	/**
 	 * Render earnings tab
 	 */
 	public static function render_earnings_tab() {
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			return;
-		}
-
-		// Check if user has one of the selected agent roles
-		if ( ! self::user_has_agent_role( $user_id ) ) {
-			echo '<p>' . esc_html__( 'You do not have permission to view this page', 'wc-team-payroll' ) . '</p>';
-			return;
-		}
-
-		$history = WC_Team_Payroll_Payroll_Engine::get_user_payroll_history( $user_id, 12 );
-
-		?>
-		<div class="wc-team-payroll-myaccount-earnings">
-			<h2><?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h2>
-
-			<table class="woocommerce-table woocommerce-table--orders">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Month', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Total', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-						<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $history as $month_data ) : ?>
-						<tr>
-							<td><?php echo esc_html( date( 'F Y', strtotime( $month_data['date'] ) ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $month_data['total'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $month_data['paid'] ) ); ?></td>
-							<td><?php echo wp_kses_post( wc_price( $month_data['due'] ) ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-		<?php
+		echo '<div class="wc-team-payroll-myaccount-earnings">';
+		echo '<h2>My Earnings</h2>';
+		echo '<p>This is the My Earnings page content. User ID: ' . get_current_user_id() . '</p>';
+		echo '</div>';
 	}
 
 	/**
 	 * Render orders tab
 	 */
 	public static function render_orders_tab() {
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			return;
-		}
-
-		// Check if user has one of the selected agent roles
-		if ( ! self::user_has_agent_role( $user_id ) ) {
-			echo '<p>' . esc_html__( 'You do not have permission to view this page', 'wc-team-payroll' ) . '</p>';
-			return;
-		}
-
-		?>
-		<div class="wc-team-payroll-myaccount-orders">
-			<h2><?php esc_html_e( 'My Orders (Commission)', 'wc-team-payroll' ); ?></h2>
-
-			<!-- Filters -->
-			<div class="wc-team-payroll-filters" style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
-				<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-					<div>
-						<label><?php esc_html_e( 'Role Filter', 'wc-team-payroll' ); ?></label>
-						<select id="role-filter" onchange="loadOrdersData()">
-							<option value="all"><?php esc_html_e( 'All Orders', 'wc-team-payroll' ); ?></option>
-							<option value="agent"><?php esc_html_e( 'Assigned to Me (Agent)', 'wc-team-payroll' ); ?></option>
-							<option value="processor"><?php esc_html_e( 'Processed by Me', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<div>
-						<label><?php esc_html_e( 'Date From', 'wc-team-payroll' ); ?></label>
-						<input type="date" id="date-from" onchange="loadOrdersData()" />
-					</div>
-
-					<div>
-						<label><?php esc_html_e( 'Date To', 'wc-team-payroll' ); ?></label>
-						<input type="date" id="date-to" onchange="loadOrdersData()" />
-					</div>
-
-					<div>
-						<label><?php esc_html_e( 'Order Status', 'wc-team-payroll' ); ?></label>
-						<select id="status-filter" onchange="loadOrdersData()">
-							<option value="all"><?php esc_html_e( 'All Status', 'wc-team-payroll' ); ?></option>
-							<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
-							<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<div>
-						<label><?php esc_html_e( 'Sort By', 'wc-team-payroll' ); ?></label>
-						<select id="sort-by" onchange="loadOrdersData()">
-							<option value="date-desc"><?php esc_html_e( 'Date (Newest)', 'wc-team-payroll' ); ?></option>
-							<option value="date-asc"><?php esc_html_e( 'Date (Oldest)', 'wc-team-payroll' ); ?></option>
-							<option value="total-desc"><?php esc_html_e( 'Total (High to Low)', 'wc-team-payroll' ); ?></option>
-							<option value="total-asc"><?php esc_html_e( 'Total (Low to High)', 'wc-team-payroll' ); ?></option>
-							<option value="earning-desc"><?php esc_html_e( 'My Earning (High to Low)', 'wc-team-payroll' ); ?></option>
-							<option value="earning-asc"><?php esc_html_e( 'My Earning (Low to High)', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-				</div>
-			</div>
-
-			<!-- Orders Table -->
-			<table class="woocommerce-table woocommerce-table--orders" id="orders-table" style="width: 100%; border-collapse: collapse;">
-				<thead>
-					<tr>
-						<th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Made By', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Total', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
-						<th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;"><?php esc_html_e( 'Action', 'wc-team-payroll' ); ?></th>
-					</tr>
-				</thead>
-				<tbody id="orders-tbody">
-					<tr><td colspan="8" style="text-align: center; padding: 20px;"><?php esc_html_e( 'Loading...', 'wc-team-payroll' ); ?></td></tr>
-				</tbody>
-			</table>
-
-			<!-- Order Details Modal -->
-			<div id="order-details-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto;">
-				<div style="background: white; margin: 50px auto; padding: 30px; max-width: 800px; border-radius: 8px;">
-					<button onclick="closeOrderDetails()" style="float: right; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
-					<div id="order-details-content"></div>
-				</div>
-			</div>
-		</div>
-
-		<script>
-			function loadOrdersData() {
-				const roleFilter = document.getElementById('role-filter').value;
-				const dateFrom = document.getElementById('date-from').value;
-				const dateTo = document.getElementById('date-to').value;
-				const statusFilter = document.getElementById('status-filter').value;
-				const sortBy = document.getElementById('sort-by').value;
-
-				jQuery.ajax({
-					url: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
-					type: 'POST',
-					data: {
-						action: 'wc_tp_get_orders_data',
-						role_filter: roleFilter,
-						date_from: dateFrom,
-						date_to: dateTo,
-						status_filter: statusFilter,
-						sort_by: sortBy,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							const tbody = document.getElementById('orders-tbody');
-							tbody.innerHTML = '';
-
-							if (response.data.orders.length === 0) {
-								tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><?php esc_html_e( 'No orders found', 'wc-team-payroll' ); ?></td></tr>';
-								return;
-							}
-
-							response.data.orders.forEach(order => {
-								const row = document.createElement('tr');
-								row.style.borderBottom = '1px solid #eee';
-								row.innerHTML = `
-									<td style="padding: 10px;"><a href="#" onclick="showOrderDetails(${order.order_id}); return false;">#${order.order_id}</a></td>
-									<td style="padding: 10px;">${order.date}</td>
-									<td style="padding: 10px;">${order.made_by}</td>
-									<td style="padding: 10px; text-align: right;">${order.total}</td>
-									<td style="padding: 10px; text-align: right;">${order.commission}</td>
-									<td style="padding: 10px; text-align: right; font-weight: bold; color: #0073aa;">${order.earning}</td>
-									<td style="padding: 10px;">${order.role}</td>
-									<td style="padding: 10px; text-align: center;">
-										<button onclick="showOrderDetails(${order.order_id})" style="background: #0073aa; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;"><?php esc_html_e( 'Details', 'wc-team-payroll' ); ?></button>
-									</td>
-								`;
-								tbody.appendChild(row);
-							});
-						}
-					}
-				});
-			}
-
-			function showOrderDetails(orderId) {
-				jQuery.ajax({
-					url: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
-					type: 'POST',
-					data: {
-						action: 'wc_tp_get_order_details',
-						order_id: orderId,
-						nonce: '<?php echo esc_js( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
-					},
-					success: function(response) {
-						if (response.success) {
-							document.getElementById('order-details-content').innerHTML = response.data.html;
-							document.getElementById('order-details-modal').style.display = 'block';
-						}
-					}
-				});
-			}
-
-			function closeOrderDetails() {
-				document.getElementById('order-details-modal').style.display = 'none';
-			}
-
-			// Load on page load
-			jQuery(document).ready(function() {
-				loadOrdersData();
-			});
-		</script>
-		<?php
+		echo '<div class="wc-team-payroll-myaccount-orders">';
+		echo '<h2>My Orders (Commission)</h2>';
+		echo '<p>This is the My Orders (Commission) page content. User ID: ' . get_current_user_id() . '</p>';
+		echo '</div>';
 	}
 
 	/**
 	 * Render reports tab
 	 */
 	public static function render_reports_tab() {
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			return;
-		}
-
-		// Check if user has one of the selected agent roles
-		if ( ! self::user_has_agent_role( $user_id ) ) {
-			echo '<p>' . esc_html__( 'You do not have permission to view this page', 'wc-team-payroll' ) . '</p>';
-			return;
-		}
-
-		$current_month = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id );
-
-		?>
-		<div class="wc-team-payroll-myaccount-reports">
-			<h2><?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h2>
-
-			<div class="wc-team-payroll-report-cards">
-				<div class="report-card">
-					<h3><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></h3>
-					<p class="amount"><?php echo wp_kses_post( wc_price( $current_month['total_earnings'] ) ); ?></p>
-					<p class="label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
-				</div>
-
-				<div class="report-card">
-					<h3><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></h3>
-					<p class="amount"><?php echo esc_html( count( $current_month['orders'] ) ); ?></p>
-					<p class="label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></p>
-				</div>
-			</div>
-		</div>
-		<?php
+		echo '<div class="wc-team-payroll-myaccount-reports">';
+		echo '<h2>Reports</h2>';
+		echo '<p>This is the Reports page content. User ID: ' . get_current_user_id() . '</p>';
+		echo '</div>';
 	}
 
 	/**

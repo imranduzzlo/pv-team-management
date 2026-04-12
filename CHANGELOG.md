@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.19] - 2026-04-12
+### Fixed
+- Fixed HTML escaping issues in My Account tabs (icons now display properly)
+- Fixed wc_price() output escaping (currency formatting now displays correctly)
+- Improved CSS loading with better cache busting using file modification time
+- Enhanced JavaScript icon injection to be more robust and prevent duplicates
+- Added debug information to Reports page for troubleshooting
+- Fixed all price displays throughout My Account pages to show formatted currency
+
+### Improved
+- Better CSS specificity to ensure styles are applied properly
+- More reliable icon injection that works after AJAX updates
+- Enhanced error handling for CSS and JavaScript loading
+
 ## [1.0.18] - 2026-04-12
 
 ### 🔧 **Fixes**
