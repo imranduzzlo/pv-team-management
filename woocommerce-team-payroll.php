@@ -55,6 +55,28 @@ add_action( 'init', function() {
 	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
 }, 1 );
 
+// Force flush rewrite rules if endpoints are not in the database
+add_action( 'admin_init', function() {
+	$rewrite_rules = get_option( 'rewrite_rules' );
+	
+	// Check if our endpoints are registered
+	$endpoints_registered = false;
+	if ( is_array( $rewrite_rules ) ) {
+		foreach ( array( 'my-salary-details', 'my-earnings', 'my-orders-commission', 'my-reports' ) as $endpoint ) {
+			if ( isset( $rewrite_rules[ '(.+?)/' . $endpoint . '/?$' ] ) || isset( $rewrite_rules[ '(.+?)/' . $endpoint . '/?' ] ) ) {
+				$endpoints_registered = true;
+				break;
+			}
+		}
+	}
+	
+	// If endpoints not found, flush rules
+	if ( ! $endpoints_registered && ! get_transient( 'wc_tp_endpoints_flushed' ) ) {
+		flush_rewrite_rules( false );
+		set_transient( 'wc_tp_endpoints_flushed', 1, DAY_IN_SECONDS );
+	}
+} );
+
 // ============================================================================
 // LOAD ON PLUGINS_LOADED - AFTER WOOCOMMERCE IS LOADED
 // ============================================================================
