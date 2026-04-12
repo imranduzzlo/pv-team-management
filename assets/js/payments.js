@@ -8,6 +8,7 @@ jQuery(document).ready(function($) {
 
 	// Default strings if not provided
 	const strings = {
+		selectEmployee: 'Select an employee...',
 		selectPaymentMethod: 'Select payment method...',
 		noPaymentMethods: 'No payment methods available',
 		loading: 'Loading...',
@@ -37,6 +38,35 @@ jQuery(document).ready(function($) {
 		loadPaymentMethods();
 		loadPaymentsTable();
 		bindEvents();
+		initSelect2();
+	}
+
+	/**
+	 * Initialize Select2
+	 */
+	function initSelect2() {
+		$('#wc-tp-employee-select').select2({
+			placeholder: strings.selectEmployee,
+			allowClear: true,
+			width: '100%',
+		});
+
+		$('#wc-tp-payment-method').select2({
+			placeholder: strings.selectPaymentMethod,
+			allowClear: true,
+			width: '100%',
+		});
+
+		$('#wc-tp-payments-date-preset').select2({
+			minimumResultsForSearch: Infinity,
+			width: '100%',
+		});
+
+		$('#wc-tp-payments-method-filter').select2({
+			placeholder: strings.selectPaymentMethod,
+			allowClear: true,
+			width: '100%',
+		});
 	}
 
 	/**
@@ -59,8 +89,15 @@ jQuery(document).ready(function($) {
 						$select.append(
 							$('<option></option>')
 								.val(employee.id)
-								.text(employee.name + ' (' + employee.email + ')')
+								.text(employee.name)
 						);
+					});
+
+					// Reinitialize Select2 after adding options
+					$select.select2({
+						placeholder: strings.selectEmployee,
+						allowClear: true,
+						width: '100%',
 					});
 				}
 			},
@@ -72,7 +109,11 @@ jQuery(document).ready(function($) {
 	 */
 	function loadEmployeePaymentMethods(employeeId) {
 		if (!employeeId) {
-			$('#wc-tp-payment-method').html('<option value="">' + strings.selectPaymentMethod + '</option>');
+			$('#wc-tp-payment-method').html('<option value="">' + strings.selectPaymentMethod + '</option>').select2({
+				placeholder: strings.selectPaymentMethod,
+				allowClear: true,
+				width: '100%',
+			});
 			$('#wc-tp-method-details').hide();
 			return;
 		}
@@ -94,6 +135,11 @@ jQuery(document).ready(function($) {
 
 					if (methods.length === 0) {
 						$select.html('<option value="" disabled>' + strings.noPaymentMethods + '</option>');
+						$select.select2({
+							placeholder: strings.selectPaymentMethod,
+							allowClear: true,
+							width: '100%',
+						});
 						$('#wc-tp-method-details').hide();
 						return;
 					}
@@ -106,6 +152,12 @@ jQuery(document).ready(function($) {
 								.data('details', method.method_details)
 								.data('note', method.note || '')
 						);
+					});
+
+					$select.select2({
+						placeholder: strings.selectPaymentMethod,
+						allowClear: true,
+						width: '100%',
 					});
 
 					$select.on('change', function() {
@@ -545,7 +597,12 @@ jQuery(document).ready(function($) {
 					if (response.success) {
 						showMessage(strings.paymentAdded, 'success');
 						$('#wc-tp-payment-form')[0].reset();
-						$('#wc-tp-payment-method').html('<option value="">' + strings.selectPaymentMethod + '</option>');
+						$('#wc-tp-employee-select').val(null).trigger('change');
+						$('#wc-tp-payment-method').html('<option value="">' + strings.selectPaymentMethod + '</option>').select2({
+							placeholder: strings.selectPaymentMethod,
+							allowClear: true,
+							width: '100%',
+						});
 						$('#wc-tp-method-details').hide();
 						currentPage = 1;
 						loadPaymentsTable();

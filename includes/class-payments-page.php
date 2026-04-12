@@ -32,10 +32,14 @@ class WC_Team_Payroll_Payments_Page {
 			return;
 		}
 
+		// Enqueue Select2
+		wp_enqueue_script( 'select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array( 'jquery' ), '4.1.0', true );
+		wp_enqueue_style( 'select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', array(), '4.1.0' );
+
 		wp_enqueue_script(
 			'wc-tp-payments',
 			WC_TEAM_PAYROLL_URL . 'assets/js/payments.js',
-			array( 'jquery', 'wp-util' ),
+			array( 'jquery', 'wp-util', 'select2' ),
 			WC_TEAM_PAYROLL_VERSION,
 			true
 		);
