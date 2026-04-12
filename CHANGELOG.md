@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.17] - 2024-12-19
+
+### 🔧 **Critical Bug Fix**
+- **Payments Page Syntax Error**: Fixed critical PHP syntax error that caused plugin activation failure
+- **File Corruption**: Removed duplicate/corrupted code from payments page file
+- **Clean Implementation**: Recreated payments page with clean, valid PHP code
+
+---
+
 ## [5.8.16] - 2024-12-19
 
 ### 🔄 **Complete Rewrite - Payments Page Form**
