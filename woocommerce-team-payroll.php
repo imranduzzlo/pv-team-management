@@ -45,6 +45,17 @@ register_deactivation_hook( __FILE__, function() {
 } );
 
 // ============================================================================
+// REGISTER ENDPOINTS EARLY
+// ============================================================================
+
+add_action( 'init', function() {
+	add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
+	add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+}, 1 );
+
+// ============================================================================
 // LOAD ON PLUGINS_LOADED - AFTER WOOCOMMERCE IS LOADED
 // ============================================================================
 

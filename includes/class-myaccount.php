@@ -23,11 +23,14 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ), 10 );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ), 10 );
 		
-		// Enqueue simple-line-icons
+		// Enqueue Phosphor icons
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_icons' ), 10 );
 		
 		// Add icons via CSS
 		add_action( 'wp_head', array( __CLASS__, 'add_menu_icons_css' ), 10 );
+		
+		// Allow HTML in menu items
+		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'allow_html_in_menu_items' ), 20 );
 	}
 
 	/**
@@ -42,21 +45,29 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
-	 * Register WooCommerce endpoints
+	 * Allow HTML in menu items
 	 */
-	public static function register_endpoints() {
-		add_rewrite_endpoint( 'my-salary-details', EP_ROOT | EP_PAGES );
-		add_rewrite_endpoint( 'my-earnings', EP_ROOT | EP_PAGES );
-		add_rewrite_endpoint( 'my-orders-commission', EP_ROOT | EP_PAGES );
-		add_rewrite_endpoint( 'my-reports', EP_ROOT | EP_PAGES );
+	public static function allow_html_in_menu_items( $items ) {
+		foreach ( $items as $key => $item ) {
+			$items[ $key ] = wp_kses_post( $item );
+		}
+		return $items;
 	}
 
 	/**
-	 * Enqueue simple-line-icons
+	 * Register WooCommerce endpoints
+	 */
+	public static function register_endpoints() {
+		// Endpoints are now registered in the main plugin file with higher priority
+		// This method is kept for backward compatibility
+	}
+
+	/**
+	 * Enqueue Phosphor icons
 	 */
 	public static function enqueue_icons() {
-		// Enqueue Font Awesome
-		wp_enqueue_style( 'font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', array(), '6.4.0' );
+		// Enqueue Phosphor icons
+		wp_enqueue_script( 'phosphor-icons', 'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2', array(), '2.1.2', false );
 		wp_enqueue_style( 'wc-team-payroll-myaccount', WC_TEAM_PAYROLL_URL . 'assets/css/myaccount.css', array(), WC_TEAM_PAYROLL_VERSION );
 	}
 
@@ -66,33 +77,10 @@ class WC_Team_Payroll_MyAccount {
 	public static function add_menu_icons_css() {
 		?>
 		<style>
-			.woocommerce-MyAccount-navigation ul li a[href*="my-salary-details"]::before {
-				content: "\f02d";
-				font-family: "Font Awesome 6 Free";
-				font-weight: 400;
+			.woocommerce-MyAccount-navigation ul li a i {
 				margin-right: 8px;
 				display: inline-block;
-			}
-			.woocommerce-MyAccount-navigation ul li a[href*="my-earnings"]::before {
-				content: "\f51e";
-				font-family: "Font Awesome 6 Free";
-				font-weight: 400;
-				margin-right: 8px;
-				display: inline-block;
-			}
-			.woocommerce-MyAccount-navigation ul li a[href*="my-orders-commission"]::before {
-				content: "\f07a";
-				font-family: "Font Awesome 6 Free";
-				font-weight: 400;
-				margin-right: 8px;
-				display: inline-block;
-			}
-			.woocommerce-MyAccount-navigation ul li a[href*="my-reports"]::before {
-				content: "\f080";
-				font-family: "Font Awesome 6 Free";
-				font-weight: 400;
-				margin-right: 8px;
-				display: inline-block;
+				font-size: 16px;
 			}
 		</style>
 		<?php
@@ -117,10 +105,10 @@ class WC_Team_Payroll_MyAccount {
 		foreach ( $items as $key => $item ) {
 			$new_items[ $key ] = $item;
 			if ( 'orders' === $key ) {
-				$new_items['my-salary-details'] = __( 'Salary Details', 'wc-team-payroll' );
-				$new_items['my-earnings'] = __( 'My Earnings', 'wc-team-payroll' );
-				$new_items['my-orders-commission'] = __( 'My Orders (Commission)', 'wc-team-payroll' );
-				$new_items['my-reports'] = __( 'Reports', 'wc-team-payroll' );
+				$new_items['my-salary-details'] = '<i class="ph ph-briefcase"></i> ' . __( 'Salary Details', 'wc-team-payroll' );
+				$new_items['my-earnings'] = '<i class="ph ph-wallet"></i> ' . __( 'My Earnings', 'wc-team-payroll' );
+				$new_items['my-orders-commission'] = '<i class="ph ph-shopping-bag"></i> ' . __( 'My Orders (Commission)', 'wc-team-payroll' );
+				$new_items['my-reports'] = '<i class="ph ph-chart-bar"></i> ' . __( 'Reports', 'wc-team-payroll' );
 			}
 		}
 
