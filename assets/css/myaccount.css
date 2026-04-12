@@ -541,7 +541,7 @@
 }
 
 .woocommerce-table--salary-history th {
-	padding: 15px 3px;
+	padding: 14px 5px;
 	text-align: left;
 	border: none;
 	border-bottom: 1px solid #e9ecef;
@@ -573,7 +573,7 @@
 }
 
 .woocommerce-table--salary-history td {
-	padding: 15px;
+	padding: 16px 5px;
 	text-align: left;
 	border: none;
 	border-bottom: 1px solid #e9ecef;
@@ -731,12 +731,13 @@
 	margin-bottom: 40px;
 }
 
-.employee-info-section h3,
-.salary-info-section h3,
-.payment-methods-section h3,
+.salary-history-section {
+	margin-bottom: 50px;
+}
+
 .salary-history-section h3 {
 	margin: 0 !important;
-	padding: 0;
+	padding: 0 0 10px 0;
 	font-size: 18px;
 	color: #495057;
 	display: flex;
@@ -744,12 +745,8 @@
 	gap: 8px;
 	border: none;
 	position: relative;
-	padding-bottom: 15px;
 }
 
-.employee-info-section h3::after,
-.salary-info-section h3::after,
-.payment-methods-section h3::after,
 .salary-history-section h3::after {
 	content: '';
 	position: absolute;
@@ -758,6 +755,12 @@
 	width: 34px;
 	height: 3px;
 	background: #0073aa;
+}
+
+.salary-history-section {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
 }
 
 /* Employee Info Grid */
@@ -807,27 +810,23 @@
 }
 
 /* Salary Info Card */
-.salary-info-card {
-	background: #fff;
-	border: 1px solid #e9ecef;
-	border-radius: 12px;
-	padding: 30px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.salary-info-section {
+	margin-bottom: 50px;
 }
 
-.salary-info-card h3 {
-	margin: 0;
-	padding: 0;
+.salary-info-section h3 {
+	margin: 0 !important;
+	padding: 0 0 10px 0;
 	font-size: 18px;
 	color: #495057;
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	border: none;
 	position: relative;
-	padding-bottom: 15px;
 }
 
-.salary-info-card h3::after {
+.salary-info-section h3::after {
 	content: '';
 	position: absolute;
 	bottom: 0;
@@ -837,18 +836,14 @@
 	background: #0073aa;
 }
 
-.salary-info-card h3::before {
-	content: '';
-	position: absolute;
-	bottom: -1px;
-	left: 0;
-	right: 0;
-	height: 1px;
-	background: #e9ecef;
+.salary-info-section > div {
+	margin: 0;
 }
 
-.salary-info-card > div:first-of-type {
-	margin-top: 20px;
+.salary-info-section {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
 }
 
 .salary-type-badge {

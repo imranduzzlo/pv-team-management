@@ -471,16 +471,16 @@ class WC_Team_Payroll_MyAccount_New {
 							// Toggle search icon
 							var $icon = $(this).siblings('i');
 							if (searchTerm.length > 0) {
-								$icon.removeClass('ph-magnifying-glass').addClass('ph-times');
+								$icon.removeClass('ph-magnifying-glass').addClass('ph-x');
 							} else {
-								$icon.removeClass('ph-times').addClass('ph-magnifying-glass');
+								$icon.removeClass('ph-x').addClass('ph-magnifying-glass');
 							}
 							
 							updateTable();
 						});
 						
 						// Clear search on icon click
-						$(document).on('click', '.search-control i.ph-times', function() {
+						$(document).on('click', '.search-control i.ph-x', function() {
 							$('#salary-history-search').val('').trigger('input');
 						});
 						
