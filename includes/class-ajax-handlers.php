@@ -354,9 +354,10 @@ class WC_Team_Payroll_AJAX_Handlers {
 		}
 
 		$args = array(
-			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
 			'orderby' => 'display_name',
 			'order' => 'ASC',
+			'number' => -1,
 		);
 
 		$users = get_users( $args );
