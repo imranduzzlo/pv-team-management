@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.16] - 2026-04-12
+
+### 🔧 **Fixes**
+- Improved GitHub updater reliability
+- Removed hourly check limit to force update checks on every admin page load
+- Added better debugging for update detection
+- WordPress now properly shows plugin updates in the updates page
+
+---
+
 ## [1.0.15] - 2026-04-12
 
 ### 🔧 **Fixes**
