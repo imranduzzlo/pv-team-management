@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.8.25] - 2026-04-12
+
+### 🗑️ **Payments Page Removal**
+- **Removed Payments Page**: Removed standalone payments page menu and functionality
+- **Preserved Employee Payments**: Employee details page payments tab remains fully functional with all payment management features
+- **Preserved AJAX Handlers**: All payment-related AJAX handlers retained for employee details page compatibility
+- **Files Removed**:
+  - `includes/class-payments-page.php`: Standalone payments page class
+  - `assets/js/payments.js`: Payments page JavaScript
+  - `assets/css/payments.css`: Payments page styles
+- **Files Modified**:
+  - `woocommerce-team-payroll.php`: Removed payments page menu and include statement
+
+### ✨ **Result**
+- Cleaner admin menu without standalone payments page
+- Employee details page payments tab continues to work seamlessly
+- All payment functionality preserved for future re-implementation
+
+---
+
 ## [5.8.18] - 2024-12-19
 
 ### 🔧 **Critical Bug Fix - Nonce Field Names**
