@@ -10,21 +10,35 @@ class WC_Team_Payroll_MyAccount {
 	 */
 	public static function init() {
 		// Register endpoints
-		add_action( 'init', array( __CLASS__, 'register_endpoints' ) );
+		add_action( 'init', array( __CLASS__, 'register_endpoints' ), 5 );
 		
-		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ) );
-		add_action( 'woocommerce_account_my-salary-details_endpoint', array( __CLASS__, 'render_salary_details_tab' ) );
-		add_action( 'woocommerce_account_my-earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ) );
-		add_action( 'woocommerce_account_my-orders-commission_endpoint', array( __CLASS__, 'render_orders_tab' ) );
-		add_action( 'woocommerce_account_my-reports_endpoint', array( __CLASS__, 'render_reports_tab' ) );
-		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ) );
-		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ) );
+		// Register query variables
+		add_filter( 'query_vars', array( __CLASS__, 'add_query_vars' ), 10 );
+		
+		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'add_menu_items' ), 10 );
+		add_action( 'woocommerce_account_my-salary-details_endpoint', array( __CLASS__, 'render_salary_details_tab' ), 10 );
+		add_action( 'woocommerce_account_my-earnings_endpoint', array( __CLASS__, 'render_earnings_tab' ), 10 );
+		add_action( 'woocommerce_account_my-orders-commission_endpoint', array( __CLASS__, 'render_orders_tab' ), 10 );
+		add_action( 'woocommerce_account_my-reports_endpoint', array( __CLASS__, 'render_reports_tab' ), 10 );
+		add_action( 'wp_ajax_wc_tp_get_orders_data', array( __CLASS__, 'ajax_get_orders_data' ), 10 );
+		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ), 10 );
 		
 		// Enqueue simple-line-icons
-		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_icons' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_icons' ), 10 );
 		
 		// Add icons via CSS
-		add_action( 'wp_head', array( __CLASS__, 'add_menu_icons_css' ) );
+		add_action( 'wp_head', array( __CLASS__, 'add_menu_icons_css' ), 10 );
+	}
+
+	/**
+	 * Add query variables
+	 */
+	public static function add_query_vars( $vars ) {
+		$vars[] = 'my-salary-details';
+		$vars[] = 'my-earnings';
+		$vars[] = 'my-orders-commission';
+		$vars[] = 'my-reports';
+		return $vars;
 	}
 
 	/**
@@ -41,7 +55,8 @@ class WC_Team_Payroll_MyAccount {
 	 * Enqueue simple-line-icons
 	 */
 	public static function enqueue_icons() {
-		wp_enqueue_style( 'simple-line-icons', 'https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.5.5/simple-line-icons.min.css', array(), '2.5.5' );
+		// Enqueue Font Awesome
+		wp_enqueue_style( 'font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', array(), '6.4.0' );
 		wp_enqueue_style( 'wc-team-payroll-myaccount', WC_TEAM_PAYROLL_URL . 'assets/css/myaccount.css', array(), WC_TEAM_PAYROLL_VERSION );
 	}
 
@@ -52,26 +67,30 @@ class WC_Team_Payroll_MyAccount {
 		?>
 		<style>
 			.woocommerce-MyAccount-navigation ul li a[href*="my-salary-details"]::before {
-				content: "\e649";
-				font-family: "simple-line-icons";
+				content: "\f02d";
+				font-family: "Font Awesome 6 Free";
+				font-weight: 400;
 				margin-right: 8px;
 				display: inline-block;
 			}
 			.woocommerce-MyAccount-navigation ul li a[href*="my-earnings"]::before {
-				content: "\e6d3";
-				font-family: "simple-line-icons";
+				content: "\f51e";
+				font-family: "Font Awesome 6 Free";
+				font-weight: 400;
 				margin-right: 8px;
 				display: inline-block;
 			}
 			.woocommerce-MyAccount-navigation ul li a[href*="my-orders-commission"]::before {
-				content: "\e6d5";
-				font-family: "simple-line-icons";
+				content: "\f07a";
+				font-family: "Font Awesome 6 Free";
+				font-weight: 400;
 				margin-right: 8px;
 				display: inline-block;
 			}
 			.woocommerce-MyAccount-navigation ul li a[href*="my-reports"]::before {
-				content: "\e6d8";
-				font-family: "simple-line-icons";
+				content: "\f080";
+				font-family: "Font Awesome 6 Free";
+				font-weight: 400;
 				margin-right: 8px;
 				display: inline-block;
 			}
