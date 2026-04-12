@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.12] - 2024-12-19
+
+### 🔧 **Technical Changes**
+- **Debugging**: Added console logging to payment methods loading for troubleshooting
+- **Nonce Support**: Added nonce field to payment methods AJAX request for consistency
+- **Error Handling**: Improved error logging in browser console
+
+---
+
 ## [5.8.11] - 2024-12-19
 
 ### 🐛 **Bug Fixes**
