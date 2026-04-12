@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.33] - 2026-04-13
+### Complete Salary History & Table Styling Overhaul
+- **Section Headings**: Removed all margins from h2, h3 headings
+- **Heading Underline**: Simplified to single ::after pseudo-element with 34px x 3px primary color underline
+- **Salary Information Card**: Fixed to show current/latest salary type dynamically
+- **Salary Type Detection**: Checks fixed/combined flags first (same logic as header)
+- **Salary Display**: Shows correct amount and frequency based on type
+- **Table Container**: Removed border and border-radius for clean appearance
+- **Table Header**: Updated padding to 15px top/bottom, 3px left/right
+- **Search Functionality**: Box stretches to fill available space
+- **Search Icon**: Toggles between magnifying glass and times (×) icon
+- **Clear Search**: Click times icon to clear search input
+- **Pagination**: Per-page control (5, 10, 25, 50 items)
+- **Page Navigation**: Full pagination functionality with page buttons
+- **Table Styling**: No borders except bottom border on rows
+- **Hover Effect**: Subtle background on row hover
+- **Professional Design**: Clean, minimal appearance throughout
+
 ## [1.0.32] - 2026-04-13
 ### Improved Salary History Section Styling
 - **Section Heading**: Applied same left border marking style (34px x 3px) to all section headings
