@@ -589,10 +589,15 @@ class WC_Team_Payroll_Payments_Page {
 							if (response.success && response.data.methods) {
 								let html = '<option value=""><?php esc_js_e( 'Select Method', 'wc-team-payroll' ); ?></option>';
 								$.each(response.data.methods, function(i, method) {
-									html += '<option value="' + method.id + '">' + method.name + '</option>';
+									html += '<option value="' + method.method_name + '">' + method.method_name + '</option>';
 								});
 								$('#wc-tp-payment-method').html(html);
+							} else {
+								$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'No payment methods', 'wc-team-payroll' ); ?></option>');
 							}
+						},
+						error: function() {
+							$('#wc-tp-payment-method').html('<option value=""><?php esc_js_e( 'Error loading methods', 'wc-team-payroll' ); ?></option>');
 						}
 					});
 				});
