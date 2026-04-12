@@ -2424,6 +2424,10 @@ class WC_Team_Payroll_Employee_Detail {
 
 						container.html(html);
 
+						// Reset select all checkbox and hide bulk delete button
+						$('.wc-tp-select-all-methods').prop('checked', false);
+						$('.wc-tp-bulk-delete-methods').hide();
+
 						// Attach click handlers to sortable headers
 						$('.wc-tp-sortable-header[data-table="payment-methods"]').on('click', function() {
 							const column = $(this).data('column');
@@ -2586,6 +2590,10 @@ class WC_Team_Payroll_Employee_Detail {
 						html += '</div>';
 
 						container.html(html);
+
+						// Reset select all checkbox and hide bulk delete button
+						$('.wc-tp-select-all-payments').prop('checked', false);
+						$('.wc-tp-bulk-delete-payments').hide();
 
 						// Attach click handlers to sortable headers
 						$('.wc-tp-sortable-header[data-table="payment-history"]').on('click', function() {

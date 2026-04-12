@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.3] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Bulk Delete Issue**: Fixed bulk delete not working on second attempt in employee detail tabs
+- **Checkbox State**: Reset "select all" checkbox state when table is re-rendered
+- **Employee Name Display**: Fixed duplicate vb_user_id display in latest employees table
+
+---
+
 ## [5.8.2] - 2024-12-19
 
 ### 🎨 **UI/UX Improvements**
