@@ -353,8 +353,16 @@ class WC_Team_Payroll_AJAX_Handlers {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
+		// Get employee roles from settings
+		$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+		
+		// Ensure it's an array
+		if ( ! is_array( $employee_roles ) ) {
+			$employee_roles = array( 'shop_employee' );
+		}
+
 		$args = array(
-			'role__in' => array( 'shop_employee', 'shop_manager', 'administrator' ),
+			'role__in' => $employee_roles,
 			'orderby' => 'display_name',
 			'order' => 'ASC',
 			'number' => -1,
@@ -398,9 +406,17 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$sort_by = sanitize_text_field( $_POST['sort_by'] ?? 'date' );
 		$sort_order = sanitize_text_field( $_POST['sort_order'] ?? 'desc' );
 
-		// Get all users
+		// Get employee roles from settings
+		$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+		
+		// Ensure it's an array
+		if ( ! is_array( $employee_roles ) ) {
+			$employee_roles = array( 'shop_employee' );
+		}
+
+		// Get all users with employee roles
 		$args = array(
-			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'role__in' => $employee_roles,
 			'orderby' => 'display_name',
 			'order' => 'ASC',
 			'number' => -1,
@@ -507,8 +523,16 @@ class WC_Team_Payroll_AJAX_Handlers {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
+		// Get employee roles from settings
+		$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+		
+		// Ensure it's an array
+		if ( ! is_array( $employee_roles ) ) {
+			$employee_roles = array( 'shop_employee' );
+		}
+
 		$args = array(
-			'role' => array( 'shop_manager', 'woocommerce_manager', 'administrator' ),
+			'role__in' => $employee_roles,
 			'number' => -1,
 		);
 
