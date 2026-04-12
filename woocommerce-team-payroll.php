@@ -1463,7 +1463,7 @@ add_action( 'admin_menu', function() {
 		function() {
 			if ( class_exists( 'WC_Team_Payroll_Payments_Page' ) ) {
 				$payments = new WC_Team_Payroll_Payments_Page();
-				$payments->render_payments();
+				$payments->render_payments_page();
 			} else {
 				echo '<div class="wrap"><h1>Payments</h1>';
 				echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
