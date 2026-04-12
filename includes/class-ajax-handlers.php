@@ -20,7 +20,7 @@ class WC_Team_Payroll_AJAX_Handlers {
 	}
 
 	public static function mark_payroll_paid() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );

@@ -90,10 +90,6 @@ class WC_Team_Payroll_Dashboard {
 				<div class="wc-tp-table-section" id="wc-tp-payments-section">
 					<div class="wc-tp-section-header">
 						<h2><?php esc_html_e( 'Recent Payments', 'wc-team-payroll' ); ?></h2>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payments' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
-							<?php esc_html_e( 'View All', 'wc-team-payroll' ); ?>
-							<span class="dashicons dashicons-arrow-right-alt2"></span>
-						</a>
 					</div>
 					<div id="wc-tp-recent-payments-container">
 						<!-- Content will be loaded via AJAX -->

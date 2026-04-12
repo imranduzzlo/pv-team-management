@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.27
+ * Version: 1.0.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.8.27' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.0.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -53,6 +53,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-checkout-integration.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-payments-page.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 
@@ -232,8 +233,6 @@ add_action( 'plugins_loaded', function() {
 
 	// Payment Methods AJAX Handlers
 	add_action( 'wp_ajax_wc_tp_get_payment_methods', function() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
-
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
@@ -244,7 +243,6 @@ add_action( 'plugins_loaded', function() {
 		}
 
 		$methods = get_user_meta( $user_id, '_wc_tp_payment_methods', true );
-		
 		if ( ! is_array( $methods ) ) {
 			$methods = array();
 		}
@@ -1098,7 +1096,7 @@ add_action( 'plugins_loaded', function() {
 	} );
 
 	add_action( 'wp_ajax_wc_tp_get_employee_stats', function() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -1122,7 +1120,7 @@ add_action( 'plugins_loaded', function() {
 	} );
 
 	add_action( 'wp_ajax_wc_tp_get_employee_orders', function() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );

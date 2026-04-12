@@ -842,7 +842,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_update_employee_salary() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -895,8 +895,8 @@ class WC_Team_Payroll_Employee_Management {
 			$history = array();
 		}
 
-		// Only add to history if the type actually changed
-		if ( $old_type !== $new_type ) {
+		// Add to history if type, amount, or frequency changed
+		if ( $old_type !== $new_type || $old_amount !== $new_amount || $old_frequency !== $new_frequency ) {
 			$history[] = array(
 				'date'           => current_time( 'mysql' ),
 				'old_type'       => $old_type,
@@ -910,8 +910,10 @@ class WC_Team_Payroll_Employee_Management {
 
 			update_user_meta( $user_id, '_wc_tp_salary_history', $history );
 
-			// Recalculate commissions for all orders involving this user
-			$this->recalculate_user_commissions( $user_id );
+			// Recalculate commissions for all orders involving this user if type changed
+			if ( $old_type !== $new_type ) {
+				$this->recalculate_user_commissions( $user_id );
+			}
 		}
 	}
 
@@ -944,7 +946,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_add_payment() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -981,7 +983,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_delete_payment() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -1007,7 +1009,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_get_payment_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
@@ -1031,7 +1033,7 @@ class WC_Team_Payroll_Employee_Management {
 	}
 
 	public function ajax_add_order_bonus() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
