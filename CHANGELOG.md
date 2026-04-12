@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.8.26] - 2026-04-12
+
+### ✨ **Features**
+- **My Account Integration**: Fixed missing My Account tabs initialization
+- **My Account Icons**: Added simple-line-icons library integration for tab icons
+- **Tab Icons**: Added professional icons to all My Account tabs:
+  - 💼 Salary Details (wallet icon)
+  - 📊 My Earnings (graph icon)
+  - 📦 My Orders (Commission) (bag icon)
+  - 📈 Reports (chart icon)
+
+### 🐛 **Bug Fixes**
+- **My Account Tabs Not Showing**: Fixed issue where My Account tabs were not appearing even when enabled in settings
+- **Missing Class Initialization**: Added missing `class-myaccount.php` file loading and `WC_Team_Payroll_MyAccount::init()` call
+
+---
+
 ## [5.8.25] - 2026-04-12
 
 ### 🗑️ **Payments Page Removal**
