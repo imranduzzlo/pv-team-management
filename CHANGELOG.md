@@ -1,13 +1,14 @@
 # Changelog
 
 ## [1.0.37] - 2026-04-13
-### Pagination Button Styling Fix
-- **Pagination Buttons**: Added !important flags to override generic button styling
-- **Inactive Buttons**: Transparent background with border and text color preserved
-- **Active Button**: Full background with white text color
-- **Button Hover**: Subtle background effect maintained
-- **Icons**: Proper colors matching button state
-- **CSS Specificity**: Ensures pagination styles take precedence over generic button rules
+### Pagination & Salary History Improvements
+- **Pagination Buttons**: Changed from button tags to anchor tags to avoid generic button styling conflicts
+- **Pagination Styling**: Removed !important flags, now uses clean anchor tag styling
+- **Pagination Scroll**: Added smooth scroll to table header when clicking pagination links
+- **Salary History Amounts**: Added frequency abbreviations to amounts (10000$/mn, 10000$/wk, 10000$/dy, 10000$/yr)
+- **Commission Display**: Shows %/order for commission-based salary types in history
+- **Frequency Abbreviations**: dy (daily), wk (weekly), mn (monthly), yr (yearly)
+- **Both Columns**: Applied to both "Previous" and "New" salary columns for clarity
 
 ## [1.0.36] - 2026-04-13
 ### Salary Card Redesign & Pagination Styling
