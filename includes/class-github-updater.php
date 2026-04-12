@@ -21,7 +21,7 @@ class WC_Team_Payroll_GitHub_Updater {
 		$this->plugin_slug = 'woocommerce-team-payroll';
 		$this->plugin_file = 'woocommerce-team-payroll/woocommerce-team-payroll.php';
 		$this->github_user = 'imranduzzlo';
-		$this->github_repo = 'pv-team-payroll';
+		$this->github_repo = 'pv-team-payroll-demo1';
 		$this->github_branch = 'main';
 		$this->github_api_url = "https://api.github.com/repos/{$this->github_user}/{$this->github_repo}";
 
