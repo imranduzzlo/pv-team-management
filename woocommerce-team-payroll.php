@@ -215,6 +215,15 @@ add_action( 'plugins_loaded', function() {
 	// AJAX HANDLERS
 	// ============================================================================
 
+	// Hide WooCommerce feature compatibility notices on plugin pages
+	add_action( 'admin_notices', function() {
+		$screen = get_current_screen();
+		if ( $screen && strpos( $screen->base, 'wc-team-payroll' ) !== false ) {
+			// Remove WooCommerce feature compatibility notices
+			remove_action( 'admin_notices', array( 'WC_Admin_Notices', 'feature_compatibility_notice' ) );
+		}
+	}, 1 );
+
 	add_action( 'wp_ajax_wc_tp_update_employee_salary', function() {
 		$employees = new WC_Team_Payroll_Employee_Management();
 		$employees->ajax_update_employee_salary();
