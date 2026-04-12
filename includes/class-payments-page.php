@@ -469,6 +469,8 @@ class WC_Team_Payroll_Payments_Page {
 		?>
 		<script>
 			jQuery(document).ready(function($) {
+				console.log('Payments page JavaScript loaded');
+				
 				let currentPage = 1;
 				let allPaymentsData = [];
 				let itemsPerPage = 20;
@@ -571,6 +573,9 @@ class WC_Team_Payroll_Payments_Page {
 				});
 
 				// Load payment methods when employee is selected
+				console.log('Attaching employee change handler');
+				console.log('Employee dropdown element:', $('#wc-tp-payment-employee'));
+				
 				$('#wc-tp-payment-employee').on('change', function() {
 					const employeeId = $(this).val();
 					const nonce = $('#wc_team_payroll_nonce').val();
