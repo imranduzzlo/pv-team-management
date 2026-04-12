@@ -14,6 +14,14 @@ Added new Payments page with payment entry form, history table with advanced fil
 ---
 # Changelog
 
+## [5.8.21] - 2026-04-12
+
+### 🔧 **Critical Bug Fix - Payments Page Method Name**
+- **Method Name Error**: Fixed incorrect method name `render_payments()` to `render_payments_page()` in payments page callback
+- **Payments Page Loading**: Resolved fatal error when accessing the payments page
+- **Files Updated**:
+  - `woocommerce-team-payroll.php`: Fixed method name in admin_menu callback
+
 ## [5.8.20] - 2026-04-12
 
 ### 🔧 **Critical Bug Fix - Payments Page AJAX Handlers**
