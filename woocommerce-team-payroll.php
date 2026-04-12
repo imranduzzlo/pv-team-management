@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 5.8.1
+ * Version: 5.8.2
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '5.8.1' );
+define( 'WC_TEAM_PAYROLL_VERSION', '5.8.2' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -1500,6 +1500,13 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 	wp_enqueue_style( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/css/dashboard.css', array(), WC_TEAM_PAYROLL_VERSION );
 	wp_enqueue_script( 'wc-team-payroll-dashboard', WC_TEAM_PAYROLL_URL . 'assets/js/dashboard.js', array( 'jquery', 'jquery-datatables' ), WC_TEAM_PAYROLL_VERSION, true );
+
+	// Hide WooCommerce compatibility warnings on plugin pages
+	wp_add_inline_style( 'wc-team-payroll-dashboard', '
+		.woocommerce-admin-notice-wrapper { display: none !important; }
+		.woocommerce-admin-notice { display: none !important; }
+		.notice.woocommerce-notice { display: none !important; }
+	' );
 } );
 
 // ============================================================================

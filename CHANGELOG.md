@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.2] - 2024-12-19
+
+### 🎨 **UI/UX Improvements**
+- **Header Padding**: Increased table header padding to match row items (14px 12px)
+- **Section Headings**: Removed all margins from section heading tags (h2, h3) for cleaner layout
+- **Warning Suppression**: Hidden WooCommerce compatibility warnings on plugin pages
+
+---
+
 ## [5.8.1] - 2024-12-19
 
 ### 🐛 **Bug Fixes**

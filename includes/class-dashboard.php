@@ -315,8 +315,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-table-section h2 {
-				margin-top: 0;
-				margin-bottom: 20px;
+				margin: 0;
 				color: var(--text-main);
 				border-left: 4px solid var(--color-primary);
 				padding-left: 12px;
@@ -453,7 +452,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-data-table th {
-				padding: 16px 14px;
+				padding: 14px 12px;
 				text-align: left;
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
