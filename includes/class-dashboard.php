@@ -452,7 +452,7 @@ class WC_Team_Payroll_Dashboard {
 			}
 
 			.wc-tp-data-table th {
-				padding: 14px 12px;
+				padding: 14px 12px !important;
 				text-align: left;
 				font-weight: var(--fw-semibold);
 				color: var(--text-main);
@@ -1007,7 +1007,7 @@ class WC_Team_Payroll_Dashboard {
 						const tooltip = 'Name: ' + emp.display_name + '\nEmail: ' + emp.user_email + '\nPhone: ' + (emp.phone || 'N/A') + '\nRole: ' + emp.user_role;
 						const userEditUrl = 'user-edit.php?user_id=' + emp.user_id;
 						const firstName = emp.display_name.split(' ')[0];
-						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa; display: flex; align-items: center;">' + profileImg + '<span>' + emp.vb_user_id + ' ' + firstName + '</span></a>';
+						const nameHtml = '<a href="' + userEditUrl + '" title="' + tooltip + '" style="text-decoration: none; color: #0073aa;"><strong>' + profileImg + emp.vb_user_id + ' ' + firstName + '</strong></a>';
 						
 						// Status badge - using actual employee status instead of hardcoded "Active"
 						const statusClass = emp.status === 'active' ? 'wc-tp-status-active' : 'wc-tp-status-inactive';
