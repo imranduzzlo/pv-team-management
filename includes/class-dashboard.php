@@ -64,7 +64,7 @@ class WC_Team_Payroll_Dashboard {
 			<div class="wc-tp-table-section" id="wc-tp-payroll-section">
 				<div class="wc-tp-section-header">
 					<h2><?php esc_html_e( 'Employee Payroll Details', 'wc-team-payroll' ); ?></h2>
-					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-payroll' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'wc-team-payroll-details' ), admin_url( 'admin.php' ) ) ); ?>" class="wc-tp-view-all-btn">
 						<?php esc_html_e( 'View All', 'wc-team-payroll' ); ?>
 						<span class="dashicons dashicons-arrow-right-alt2"></span>
 					</a>
