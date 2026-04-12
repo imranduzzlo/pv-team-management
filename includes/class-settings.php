@@ -193,6 +193,13 @@ class WC_Team_Payroll_Settings {
 							</td>
 						</tr>
 						<tr>
+							<th><label for="header_border_color">Header Border/Line Color</label></th>
+							<td>
+								<input type="color" id="header_border_color" name="wc_team_payroll_styling[header_border_color]" value="<?php echo esc_attr( isset( $styling_settings['header_border_color'] ) ? $styling_settings['header_border_color'] : '#0073aa' ); ?>" />
+								<p class="description">Color for connecting lines and borders in employee header</p>
+							</td>
+						</tr>
+						<tr>
 							<th><label for="card_background">Card Background</label></th>
 							<td>
 								<input type="color" id="card_background" name="wc_team_payroll_styling[card_background]" value="<?php echo esc_attr( isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa' ); ?>" />

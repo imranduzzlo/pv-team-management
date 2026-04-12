@@ -1079,6 +1079,7 @@ class WC_Team_Payroll_MyAccount_New {
 			$link_hover_color = isset( $styling_settings['link_hover_color'] ) ? $styling_settings['link_hover_color'] : '#005a87';
 			$background_color = isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff';
 			$header_background = isset( $styling_settings['header_background'] ) ? $styling_settings['header_background'] : '#f8f9fa';
+			$header_border_color = isset( $styling_settings['header_border_color'] ) ? $styling_settings['header_border_color'] : '#0073aa';
 			$card_background = isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa';
 			$border_color = isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef';
 			$table_header_background = isset( $styling_settings['table_header_background'] ) ? $styling_settings['table_header_background'] : '#f8f9fa';
@@ -1165,12 +1166,16 @@ class WC_Team_Payroll_MyAccount_New {
 				}
 				
 				.wc-tp-employee-header-new .profile-picture-container {
-					border-color: {$primary_color} !important;
+					border-color: {$header_border_color} !important;
 					background: {$background_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .profile-picture-placeholder {
-					background: linear-gradient(135deg, {$primary_color} 0%, {$link_hover_color} 100%) !important;
+					background: linear-gradient(135deg, {$header_border_color} 0%, {$link_hover_color} 100%) !important;
+				}
+				
+				.wc-tp-employee-header-new .connecting-lines .line {
+					stroke: {$header_border_color} !important;
 				}
 				
 				.wc-tp-employee-header-new .info-item .label {
@@ -1191,7 +1196,7 @@ class WC_Team_Payroll_MyAccount_New {
 				
 				.wc-tp-employee-header-new .header-bio-section {
 					background: {$background_color} !important;
-					border-left: 4px solid {$primary_color} !important;
+					border-left: 4px solid {$header_border_color} !important;
 					border-radius: {$card_border_radius}px !important;
 				}
 				
@@ -1561,26 +1566,51 @@ class WC_Team_Payroll_MyAccount_New {
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
-			<!-- Top Section: Left Info, Center Profile, Right Info -->
-			<div class="header-top-section">
-				<!-- Left Column -->
+			<!-- Main Header Section with Connecting Lines -->
+			<div class="header-main-section">
+				<!-- Left Column with Info Boxes -->
 				<div class="header-column header-left">
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
-						<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
+					<div class="info-box">
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Employee ID', 'wc-team-payroll' ); ?></span>
+							<span class="value"><?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?></span>
+						</div>
+						<div class="info-box-icon">
+							<i class="ph ph-identification-badge"></i>
+						</div>
 					</div>
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></span>
-						<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
+					
+					<div class="info-box">
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Name', 'wc-team-payroll' ); ?></span>
+							<span class="value"><?php echo esc_html( $user->display_name ); ?></span>
+						</div>
+						<div class="info-box-icon">
+							<i class="ph ph-user"></i>
+						</div>
 					</div>
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
-						<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
+					
+					<div class="info-box">
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Phone', 'wc-team-payroll' ); ?></span>
+							<span class="value"><?php echo esc_html( $phone ?: 'Not provided' ); ?></span>
+						</div>
+						<div class="info-box-icon">
+							<i class="ph ph-phone"></i>
+						</div>
 					</div>
 				</div>
 				
-				<!-- Center Profile Picture -->
+				<!-- Center Profile Picture with Connecting Lines -->
 				<div class="header-center">
+					<svg class="connecting-lines left-lines" viewBox="0 0 100 300" preserveAspectRatio="none">
+						<line x1="100" y1="50" x2="0" y2="50" class="line" />
+						<line x1="100" y1="150" x2="0" y2="150" class="line" />
+						<line x1="100" y1="250" x2="0" y2="250" class="line" />
+						<polyline points="100,50 90,50 90,150 100,150" class="line" />
+						<polyline points="100,150 90,150 90,250 100,250" class="line" />
+					</svg>
+					
 					<div class="profile-picture-container">
 						<?php if ( $profile_picture_url ) : ?>
 							<img src="<?php echo esc_url( $profile_picture_url ); ?>" alt="<?php echo esc_attr( $user->display_name ); ?>" class="profile-picture" />
@@ -1590,23 +1620,48 @@ class WC_Team_Payroll_MyAccount_New {
 							</div>
 						<?php endif; ?>
 					</div>
+					
+					<svg class="connecting-lines right-lines" viewBox="0 0 100 300" preserveAspectRatio="none">
+						<line x1="0" y1="50" x2="100" y2="50" class="line" />
+						<line x1="0" y1="150" x2="100" y2="150" class="line" />
+						<line x1="0" y1="250" x2="100" y2="250" class="line" />
+						<polyline points="0,50 10,50 10,150 0,150" class="line" />
+						<polyline points="0,150 10,150 10,250 0,250" class="line" />
+					</svg>
 				</div>
 				
-				<!-- Right Column -->
+				<!-- Right Column with Info Boxes -->
 				<div class="header-column header-right">
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
-						<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+					<div class="info-box">
+						<div class="info-box-icon">
+							<i class="ph ph-envelope"></i>
+						</div>
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Email', 'wc-team-payroll' ); ?></span>
+							<span class="value"><?php echo esc_html( $user->user_email ); ?></span>
+						</div>
 					</div>
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></span>
-						<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
+					
+					<div class="info-box">
+						<div class="info-box-icon">
+							<i class="ph ph-briefcase"></i>
+						</div>
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></span>
+							<span class="value role-badge"><?php echo esc_html( $role_label ); ?></span>
+						</div>
 					</div>
-					<div class="info-item">
-						<span class="label"><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></span>
-						<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
-							<?php echo esc_html( ucfirst( $employee_status ) ); ?>
-						</span>
+					
+					<div class="info-box">
+						<div class="info-box-icon">
+							<i class="ph ph-circle-fill"></i>
+						</div>
+						<div class="info-box-content">
+							<span class="label"><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></span>
+							<span class="value status-badge status-<?php echo esc_attr( $employee_status ); ?>">
+								<?php echo esc_html( ucfirst( $employee_status ) ); ?>
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>
