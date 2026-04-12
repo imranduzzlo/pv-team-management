@@ -7,6 +7,20 @@ Added new Payments page with payment entry form, history table with advanced fil
 ---
 # Changelog
 
+## [5.8.20] - 2026-04-12
+
+### 🔧 **Critical Bug Fix - Payments Page AJAX Handlers**
+- **Missing AJAX Handlers Include**: Fixed critical error where AJAX handlers class was not being included in the main plugin file
+- **Payments Page Error**: Resolved "critical error" when accessing the payments page
+- **AJAX Functionality**: All payment-related AJAX calls now work properly (get employees, get payment methods, add/delete payments, etc.)
+- **Files Updated**:
+  - `woocommerce-team-payroll.php`: Added missing `require_once` for `class-ajax-handlers.php`
+
+### ✨ **Result**
+- Payments page now loads without errors
+- All AJAX handlers for payments functionality are properly initialized
+- Payment entry form and history table work as expected
+
 ## [5.8.19] - 2026-04-12
 
 ### ✨ **New Feature - Comprehensive Payments Management Page**
