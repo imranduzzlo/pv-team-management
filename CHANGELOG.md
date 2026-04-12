@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.8] - 2026-04-12
+
+### ✨ **Features**
+- Switched to Font Awesome 6 icon library for better icon rendering
+- Added query variable registration for custom endpoints
+
+### 🔧 **Fixes**
+- Fixed endpoint rendering by properly registering query variables
+- Improved hook priorities to ensure proper execution order
+- Icons now display correctly with Font Awesome
+
+---
+
 ## [1.0.7] - 2026-04-12
 
 ### 🔧 **Fixes**
