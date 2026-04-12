@@ -85,8 +85,18 @@ class WC_Team_Payroll_MyAccount_New {
 	public static function salary_details_content() {
 		$user_id = get_current_user_id();
 		
-		// Get salary information
-		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		// Get salary information - check for fixed/combined flags first
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined_salary ) {
+			$salary_type = 'combined';
+		} else {
+			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		}
+		
 		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
 		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
 		
