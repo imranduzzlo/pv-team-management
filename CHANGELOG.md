@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.8.5] - 2024-12-19
+
+### 🐛 **Bug Fixes**
+- **Employee Name Format**: Fixed display format from `(PVVB-EMID1) Name` to `PVVB-EMID1 Name` (removed parentheses)
+- **Table Cell Padding**: Added `!important` flag to td padding to prevent media query overrides
+- **Consistent Formatting**: Applied fix to all employee name displays across dashboard tables
+
+---
+
 ## [5.8.4] - 2024-12-19
 
 ### 🐛 **Bug Fixes**
