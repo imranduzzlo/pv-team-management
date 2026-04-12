@@ -710,7 +710,7 @@ add_action( 'plugins_loaded', function() {
 				continue;
 			}
 			$vb_user_id = $data['user'] ? get_user_meta( $data['user']->ID, 'vb_user_id', true ) : '';
-			$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
+			$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $data['user']->display_name ) : ( $data['user'] ? esc_html( $data['user']->display_name ) : 'Unknown' );
 			$profile_picture_id = $data['user'] ? get_user_meta( $data['user']->ID, '_wc_tp_profile_picture', true ) : '';
 			$profile_picture_url = '';
 			$phone = $data['user'] ? get_user_meta( $data['user']->ID, 'billing_phone', true ) : '';
@@ -760,7 +760,7 @@ add_action( 'plugins_loaded', function() {
 					// Filter by payment date
 					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
 						$vb_user_id = get_user_meta( $employee->ID, 'vb_user_id', true );
-						$employee_name = $vb_user_id ? '(' . esc_html( $vb_user_id ) . ') ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
+						$employee_name = $vb_user_id ? esc_html( $vb_user_id ) . ' ' . esc_html( $employee->display_name ) : esc_html( $employee->display_name );
 						$profile_picture_id = get_user_meta( $employee->ID, '_wc_tp_profile_picture', true );
 						$profile_picture_url = '';
 						$phone = get_user_meta( $employee->ID, 'billing_phone', true );
