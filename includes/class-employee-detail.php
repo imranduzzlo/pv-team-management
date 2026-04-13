@@ -1918,6 +1918,11 @@ class WC_Team_Payroll_Employee_Detail {
 
 					// Initialize with default date range
 					updateEarningsDateRangeFromPreset('this-month');
+					
+					// Load earnings data on page load
+					setTimeout(function() {
+						loadEarningsData();
+					}, 100);
 
 					function updateEarningsDateRangeFromPreset(preset) {
 						const range = getDateRangeFromPreset(preset);
