@@ -182,7 +182,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-management.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-employee-detail.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
-	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount-new.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-automation.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-display-helper.php';
@@ -198,14 +198,14 @@ add_action( 'plugins_loaded', function() {
 	new WC_Team_Payroll_Checkout_Integration();
 
 	// Initialize My Account integration
-	WC_Team_Payroll_MyAccount_New::init();
+	WC_Team_Payroll_MyAccount::init();
 
 	// Initialize Salary Automation System
 	WC_Team_Payroll_Salary_Automation::init();
 
 	// Add AJAX handlers for My Account
-	add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( 'WC_Team_Payroll_MyAccount_New', 'ajax_get_orders' ) );
-	add_action( 'wp_ajax_wc_tp_get_order_details', array( 'WC_Team_Payroll_MyAccount_New', 'ajax_get_order_details' ) );
+	add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( 'WC_Team_Payroll_MyAccount', 'ajax_get_orders' ) );
+	add_action( 'wp_ajax_wc_tp_get_order_details', array( 'WC_Team_Payroll_MyAccount', 'ajax_get_order_details' ) );
 
 	// Block inactive employees from logging in
 	add_filter( 'wp_authenticate_user', function( $user, $password ) {
