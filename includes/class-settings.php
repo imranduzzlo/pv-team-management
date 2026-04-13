@@ -419,8 +419,8 @@ class WC_Team_Payroll_Settings {
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'debug' ) : ?>
-					<h2>Debug Information</h2>
-					<p>Use this section to troubleshoot plugin issues and manage debug tools.</p>
+					<h2>Debug Tools</h2>
+					<p>Configure debugging and testing tools for the plugin.</p>
 					
 					<h3>Salary Management Debug</h3>
 					<table class="form-table">
@@ -430,8 +430,7 @@ class WC_Team_Payroll_Settings {
 								<input type="checkbox" id="enable_salary_debug" name="wc_team_payroll_settings[enable_salary_debug]" value="1" <?php checked( isset( $settings['enable_salary_debug'] ) ? $settings['enable_salary_debug'] : 0, 1 ); ?> />
 								<p class="description">Enable advanced debugging tools for salary accumulation and testing</p>
 								
-								<?php if ( isset( $settings['enable_salary_debug'] ) && $settings['enable_salary_debug'] ) : ?>
-								<div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 4px; padding: 12px; margin-top: 10px;">
+								<div id="salary-debug-instructions" style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 4px; padding: 12px; margin-top: 10px; display: none;">
 									<strong>✅ Salary Debug Enabled</strong>
 									<p style="margin: 8px 0 0 0; font-size: 13px;">
 										<strong>Access Debug Tools:</strong> Go to <strong>Team Payroll → Salary Debug</strong> in the admin menu
@@ -455,119 +454,38 @@ class WC_Team_Payroll_Settings {
 										<li><strong>Partial Periods:</strong> Debug tool calculates remaining days from today</li>
 									</ul>
 								</div>
-								<?php else : ?>
-								<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 10px;">
+								
+								<div id="salary-debug-disabled" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 10px; display: none;">
 									<strong>⚠️ Salary Debug Disabled</strong>
 									<p style="margin: 8px 0 0 0; font-size: 13px;">Enable this option to access advanced salary debugging and testing tools.</p>
 								</div>
-								<?php endif; ?>
 							</td>
 						</tr>
 					</table>
-					
-					<h3>GitHub Update Status</h3>
-					<div id="wc-tp-update-status" style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 15px 0;">
-						<p><strong>Checking GitHub for updates...</strong></p>
-						<p style="color: #666; font-size: 12px;">This may take a few seconds.</p>
-					</div>
-					<button type="button" class="button button-primary" id="wc-tp-check-update-btn">Check for Updates Now</button>
-					<button type="button" class="button" id="wc-tp-clear-cache-btn">Clear Update Cache</button>
 
-					<h3>Plugin Information</h3>
-					<table class="form-table">
-						<tr>
-							<th>Current Version</th>
-							<td id="wc-tp-current-version">Loading...</td>
-						</tr>
-						<tr>
-							<th>GitHub Repository</th>
-							<td><a href="https://github.com/imranduzzlo/pv-team-payroll" target="_blank">imranduzzlo/pv-team-payroll</a></td>
-						</tr>
-						<tr>
-							<th>Latest Release</th>
-							<td id="wc-tp-latest-version">Loading...</td>
-						</tr>
-						<tr>
-							<th>Update Available</th>
-							<td id="wc-tp-update-available">Loading...</td>
-						</tr>
-					</table>
-
-					<?php $nonce = wp_create_nonce( 'wc_team_payroll_nonce' ); ?>
 					<script>
 						jQuery(document).ready(function($) {
-							const nonce = '<?php echo esc_js( $nonce ); ?>';
-							
-							function checkGitHubUpdate() {
-								const statusDiv = $('#wc-tp-update-status');
-								statusDiv.html('<p><strong>Checking GitHub for updates...</strong></p><p style="color: #666; font-size: 12px;">This may take a few seconds.</p>');
+							const checkbox = $('#enable_salary_debug');
+							const enabledDiv = $('#salary-debug-instructions');
+							const disabledDiv = $('#salary-debug-disabled');
 
-								$.ajax({
-									url: ajaxurl,
-									type: 'POST',
-									data: {
-										action: 'wc_tp_check_github_update',
-										nonce: nonce
-									},
-									success: function(response) {
-										if (response.success) {
-											const data = response.data;
-											let html = '<table style="width: 100%; border-collapse: collapse;">';
-											html += '<tr style="background: #f0f0f0;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Current Version:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + data.current_version + '</td></tr>';
-											html += '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Latest Version:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + data.latest_version + '</td></tr>';
-											html += '<tr style="background: #f0f0f0;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>GitHub Tag:</strong></td><td style="padding: 8px; border: 1px solid #ddd;"><a href="' + data.github_url + '" target="_blank">' + data.github_tag + '</a></td></tr>';
-											html += '<tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Published:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">' + new Date(data.published_at).toLocaleString() + '</td></tr>';
-											
-											if (data.update_available) {
-												html += '<tr style="background: #fff3cd;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd; color: #856404;"><strong>✅ Update Available!</strong></td></tr>';
-											} else {
-												html += '<tr style="background: #d4edda;"><td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd; color: #155724;"><strong>✅ You are up to date</strong></td></tr>';
-											}
-											
-											html += '</table>';
-											statusDiv.html(html);
-
-											// Update info table
-											$('#wc-tp-current-version').text(data.current_version);
-											$('#wc-tp-latest-version').text(data.latest_version);
-											$('#wc-tp-update-available').html(data.update_available ? '<span style="color: #d9534f;"><strong>Yes - Update Available</strong></span>' : '<span style="color: #5cb85c;"><strong>No - Up to Date</strong></span>');
-										} else {
-											statusDiv.html('<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; color: #721c24;"><strong>Error:</strong> ' + response.data.message + '</div>');
-										}
-									},
-									error: function() {
-										statusDiv.html('<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; color: #721c24;"><strong>Error:</strong> Failed to check GitHub API. Please try again.</div>');
-									}
-								});
+							// Show/hide instructions based on checkbox state
+							function updateInstructions() {
+								if (checkbox.is(':checked')) {
+									enabledDiv.show();
+									disabledDiv.hide();
+								} else {
+									enabledDiv.hide();
+									disabledDiv.show();
+								}
 							}
 
-							// Check on page load
-							checkGitHubUpdate();
+							// Initial state
+							updateInstructions();
 
-							// Check button click
-							$('#wc-tp-check-update-btn').on('click', function(e) {
-								e.preventDefault();
-								checkGitHubUpdate();
-							});
-
-							// Clear cache button
-							$('#wc-tp-clear-cache-btn').on('click', function(e) {
-								e.preventDefault();
-								const btn = $(this);
-								btn.prop('disabled', true).text('Clearing...');
-
-								$.ajax({
-									url: ajaxurl,
-									type: 'POST',
-									data: {
-										action: 'wc_tp_check_github_update',
-										nonce: nonce
-									},
-									complete: function() {
-										btn.prop('disabled', false).text('Clear Update Cache');
-										checkGitHubUpdate();
-									}
-								});
+							// Listen for checkbox changes
+							checkbox.on('change', function() {
+								updateInstructions();
 							});
 						});
 					</script>
