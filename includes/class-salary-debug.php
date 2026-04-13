@@ -21,11 +21,26 @@ class WC_Team_Payroll_Salary_Debug {
 		// Add debug page to admin menu
 		add_action( 'admin_menu', array( __CLASS__, 'add_debug_menu' ) );
 		
+		// Enqueue toast notification script
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+		
 		// Register AJAX handlers for testing
 		add_action( 'wp_ajax_wc_tp_test_salary_accumulation', array( __CLASS__, 'ajax_test_salary_accumulation' ) );
 		add_action( 'wp_ajax_wc_tp_get_employee_salary_status', array( __CLASS__, 'ajax_get_employee_salary_status' ) );
 		add_action( 'wp_ajax_wc_tp_manual_trigger_cron', array( __CLASS__, 'ajax_manual_trigger_cron' ) );
 		add_action( 'wp_ajax_wc_tp_reset_employee_salary', array( __CLASS__, 'ajax_reset_employee_salary' ) );
+	}
+
+	/**
+	 * Enqueue scripts for debug page
+	 */
+	public static function enqueue_scripts( $hook ) {
+		if ( $hook !== 'wc-team-payroll_page_wc-tp-salary-debug' ) {
+			return;
+		}
+
+		// Enqueue toast notification script
+		wp_enqueue_script( 'wc-tp-toast', WC_TEAM_PAYROLL_URL . 'assets/js/wc-tp-toast.js', array( 'jquery' ), '1.0', true );
 	}
 
 	/**
@@ -108,7 +123,7 @@ class WC_Team_Payroll_Salary_Debug {
 					<button class="button button-primary" id="btn-test-accumulation">Test Salary Accumulation</button>
 					<button class="button button-secondary" id="btn-get-status">Get Current Status</button>
 					<button class="button button-secondary" id="btn-manual-cron">Manually Trigger Cron</button>
-					<button class="button button-danger" id="btn-reset-salary" style="background: #dc3545; color: white;">Reset Employee Salary</button>
+					<button class="button button-danger" id="btn-reset-salary" style="background: #dc3545; color: white;">Reset Employee Demo Salary</button>
 				</div>
 
 				<div id="test-results" style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px; display: none;">
@@ -118,20 +133,26 @@ class WC_Team_Payroll_Salary_Debug {
 			</div>
 
 			<div style="background: #fff; padding: 20px; border-radius: 8px; margin-top: 20px;">
-				<h2>📋 How to Test</h2>
+				<h2>📋 How to Use This Tool</h2>
 				<ol>
-					<li><strong>Select an employee</strong> with fixed or combined salary</li>
-					<li><strong>Click "Test Salary Accumulation"</strong> to simulate daily accumulation</li>
-					<li><strong>Click "Get Current Status"</strong> to see:
-						<ul>
-							<li>Current salary configuration</li>
-							<li>Pending accumulation</li>
-							<li>Total earnings</li>
-							<li>Recent transactions</li>
+					<li><strong>Pick an employee</strong> from the dropdown list</li>
+					<li><strong>Click "Test Salary Accumulation"</strong> to simulate one day of work
+						<ul style="margin-top: 5px;">
+							<li>Each click = 1 day of salary building up</li>
+							<li>For daily pay: salary is added right away</li>
+							<li>For weekly/monthly pay: salary builds up until the end of the week/month</li>
 						</ul>
 					</li>
-					<li><strong>Click "Manually Trigger Cron"</strong> to run the cron job immediately</li>
-					<li><strong>Check results</strong> to verify accumulation is working</li>
+					<li><strong>Click "Get Current Status"</strong> to see:
+						<ul style="margin-top: 5px;">
+							<li>How much salary has built up so far</li>
+							<li>How many more days until it gets added to their earnings</li>
+							<li>Their total earnings</li>
+							<li>History of all salary changes</li>
+						</ul>
+					</li>
+					<li><strong>Click "Manually Trigger Cron"</strong> to force the system to process all employees right now (normally happens automatically at 11:59 PM)</li>
+					<li><strong>Click "Reset Employee Demo Salary"</strong> to clear all test data and start fresh</li>
 				</ol>
 			</div>
 
@@ -139,78 +160,77 @@ class WC_Team_Payroll_Salary_Debug {
 				<h2>🔍 What to Look For</h2>
 				<table style="width: 100%; border-collapse: collapse;">
 					<tr style="background: #f5f5f5;">
-						<th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Check</th>
-						<th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Expected Result</th>
+						<th style="padding: 10px; text-align: left; border: 1px solid #ddd;">What You'll See</th>
+						<th style="padding: 10px; text-align: left; border: 1px solid #ddd;">What It Means</th>
 					</tr>
 					<tr>
 						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Daily Rate</strong></td>
-						<td style="padding: 10px; border: 1px solid #ddd;">Salary ÷ frequency days (e.g., 700/7 = 100 for weekly)</td>
+						<td style="padding: 10px; border: 1px solid #ddd;">How much salary is earned per day (salary ÷ number of days)</td>
 					</tr>
 					<tr>
 						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Accumulated Total</strong></td>
-						<td style="padding: 10px; border: 1px solid #ddd;">Increases by daily rate each test</td>
+						<td style="padding: 10px; border: 1px solid #ddd;">How much salary has built up so far (waiting to be added)</td>
 					</tr>
 					<tr>
 						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Days Accumulated</strong></td>
-						<td style="padding: 10px; border: 1px solid #ddd;">Increases by 1 each test</td>
+						<td style="padding: 10px; border: 1px solid #ddd;">How many days of work have been counted</td>
+					</tr>
+					<tr>
+						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Days Remaining</strong></td>
+						<td style="padding: 10px; border: 1px solid #ddd;">How many more days until salary is added to their earnings</td>
 					</tr>
 					<tr>
 						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Total Earnings</strong></td>
-						<td style="padding: 10px; border: 1px solid #ddd;">Increases when period ends (week/month)</td>
-					</tr>
-					<tr>
-						<td style="padding: 10px; border: 1px solid #ddd;"><strong>Transactions</strong></td>
-						<td style="padding: 10px; border: 1px solid #ddd;">New entries for each accumulation/transfer</td>
+						<td style="padding: 10px; border: 1px solid #ddd;">All money the employee has earned (salary + commissions)</td>
 					</tr>
 				</table>
 			</div>
 
 			<div style="background: #fff; padding: 20px; border-radius: 8px; margin-top: 20px;">
-				<h2>⚙️ Testing Scenarios</h2>
+				<h2>⚙️ Testing Examples</h2>
 				
-				<h3>Daily Frequency Test</h3>
+				<h3>Daily Pay Test</h3>
 				<ol>
-					<li>Set employee salary: $100/day (Fixed)</li>
+					<li>Set employee to earn $100 per day</li>
 					<li>Click "Test Salary Accumulation" once</li>
-					<li>Check: Total Earnings should increase by $100</li>
-					<li>Result: ✅ Daily salary added directly to earnings</li>
+					<li>Check: Their earnings should go up by $100 right away</li>
+					<li>Result: ✅ Daily pay works correctly</li>
 				</ol>
 
-				<h3>Weekly Frequency Test</h3>
+				<h3>Weekly Pay Test</h3>
 				<ol>
-					<li>Set employee salary: $700/week (Fixed)</li>
+					<li>Set employee to earn $700 per week</li>
 					<li>Click "Test Salary Accumulation" multiple times (each click = 1 day)</li>
-					<li>Check: Accumulated Total increases by daily rate each click</li>
-					<li>When you reach the week end day (Saturday by default), salary transfers to Total Earnings</li>
-					<li>Result: ✅ Weekly salary accumulated and transferred on week end</li>
+					<li>Check: You'll see the salary building up day by day</li>
+					<li>When you reach the end of the week (Saturday by default), the salary automatically gets added to their earnings</li>
+					<li>Result: ✅ Weekly pay builds up and transfers correctly</li>
 				</ol>
 
-				<h3>Monthly Frequency Test</h3>
+				<h3>Monthly Pay Test</h3>
 				<ol>
-					<li>Set employee salary: $3,000/month (Fixed)</li>
+					<li>Set employee to earn $3,000 per month</li>
 					<li>Click "Test Salary Accumulation" multiple times (each click = 1 day)</li>
-					<li>Check: Accumulated Total increases by daily rate each click</li>
-					<li>When you reach the last day of the month, salary transfers to Total Earnings</li>
-					<li>Result: ✅ Monthly salary accumulated and transferred on month end</li>
+					<li>Check: You'll see the salary building up day by day</li>
+					<li>When you reach the last day of the month, the salary automatically gets added to their earnings</li>
+					<li>Result: ✅ Monthly pay builds up and transfers correctly</li>
 				</ol>
 
-				<h3>Salary Change Test</h3>
+				<h3>What Happens When You Reset Demo Salary</h3>
 				<ol>
-					<li>Set employee salary: $700/week (Fixed)</li>
-					<li>Click "Test Salary Accumulation" 3 times</li>
-					<li>Check: Accumulated Total should be $300</li>
-					<li>Change salary to: $1,000/week</li>
-					<li>Click "Get Current Status"</li>
-					<li>Check: Previous $300 transferred to Total Earnings, new accumulation started</li>
-					<li>Result: ✅ Salary change handled correctly</li>
+					<li>Click "Reset Employee Demo Salary"</li>
+					<li>All test data for that employee is deleted</li>
+					<li>Their earnings stay the same (only test data is cleared)</li>
+					<li>You can start fresh testing again</li>
+					<li>Result: ✅ Clean slate for new tests</li>
 				</ol>
 
 				<h3>Important Notes</h3>
 				<ul>
-					<li><strong>Weekly Transfer:</strong> Only happens on the week end day (Saturday by default, configurable in WordPress settings)</li>
-					<li><strong>Monthly Transfer:</strong> Only happens on the last day of the month</li>
-					<li><strong>Days Remaining:</strong> Shows how many more days until the period ends and salary transfers</li>
-					<li><strong>Real Calendar:</strong> The debug tool uses real calendar dates, not simulated dates</li>
+					<li><strong>Weekly Pay:</strong> Salary is added on the last day of the week (Saturday by default, based on your WordPress settings)</li>
+					<li><strong>Monthly Pay:</strong> Salary is added on the last day of the month</li>
+					<li><strong>Days Remaining:</strong> Shows how many more days until the salary gets added</li>
+					<li><strong>Real Calendar:</strong> This tool uses the actual calendar dates, not simulated dates</li>
+					<li><strong>Demo Data:</strong> All test data is separate from real employee earnings</li>
 				</ul>
 			</div>
 		</div>
@@ -248,7 +268,7 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-test-accumulation').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						alert('Please select an employee');
+						wcTPToast.error('Please select an employee');
 						return;
 					}
 
@@ -263,12 +283,13 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
+								wcTPToast.success(response.data.message);
 							} else {
-								alert('Error: ' + response.data.message);
+								wcTPToast.error('Error: ' + response.data.message);
 							}
 						},
 						error: function() {
-							alert('AJAX error');
+							wcTPToast.error('Connection error. Please try again.');
 						}
 					});
 				});
@@ -276,7 +297,7 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-get-status').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						alert('Please select an employee');
+						wcTPToast.error('Please select an employee');
 						return;
 					}
 
@@ -291,18 +312,19 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
+								wcTPToast.success('Status loaded successfully');
 							} else {
-								alert('Error: ' + response.data.message);
+								wcTPToast.error('Error: ' + response.data.message);
 							}
 						},
 						error: function() {
-							alert('AJAX error');
+							wcTPToast.error('Connection error. Please try again.');
 						}
 					});
 				});
 
 				$('#btn-manual-cron').on('click', function() {
-					if (!confirm('Manually trigger cron job? This will process all employees.')) {
+					if (!confirm('Process all employees now? This will transfer any pending salaries.')) {
 						return;
 					}
 
@@ -316,12 +338,13 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
+								wcTPToast.success('All employees processed successfully');
 							} else {
-								alert('Error: ' + response.data.message);
+								wcTPToast.error('Error: ' + response.data.message);
 							}
 						},
 						error: function() {
-							alert('AJAX error');
+							wcTPToast.error('Connection error. Please try again.');
 						}
 					});
 				});
@@ -329,11 +352,11 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-reset-salary').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						alert('Please select an employee');
+						wcTPToast.error('Please select an employee');
 						return;
 					}
 
-					if (!confirm('Reset all salary data for this employee? This cannot be undone.')) {
+					if (!confirm('Clear all test data for this employee? Their real earnings will not be affected.')) {
 						return;
 					}
 
@@ -348,13 +371,13 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
-								alert('Employee salary data reset successfully');
+								wcTPToast.success('Test data cleared. Ready for fresh testing.');
 							} else {
-								alert('Error: ' + response.data.message);
+								wcTPToast.error('Error: ' + response.data.message);
 							}
 						},
 						error: function() {
-							alert('AJAX error');
+							wcTPToast.error('Connection error. Please try again.');
 						}
 					});
 				});
