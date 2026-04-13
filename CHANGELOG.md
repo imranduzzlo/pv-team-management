@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.0.38] - 2026-04-13
+### Employee Earnings Tab & Aggregation System
+- **New Earnings Tab**: Added to employee details page in admin
+- **Aggregation by Period**: View earnings aggregated by Day, Week, Month, or Year
+- **Date Formatting**: 
+  - Day: "Apr 11, 2026"
+  - Week: "Week 15 (04/08 - 04/14, 2026)"
+  - Month: "April 2026"
+  - Year: "2026"
+- **Order Counting**: Counts each order entry including duplicates from different flags (same as Orders tab)
+- **Earnings Columns**: Earning Time, Orders, Total Earned, Paid, Due, Status
+- **Payment Status Filter**: All Statuses, Paid, Partial Paid, Pending
+- **Payment Distribution**: Distributes total paid equally across all periods
+- **Status Calculation**: 
+  - Paid: paid >= total earned
+  - Partial Paid: 0 < paid < total earned
+  - Pending: paid = 0
+- **View as Per Dropdown**: Day, Week, Month (default), Year
+- **Filtering**: Date range, payment status, and search all working together
+- **Frontend Payment Status Filtering**: Applied after AJAX data load for accurate calculations
+
 ## [1.0.37] - 2026-04-13
 ### Pagination & Salary History Improvements
 - **Pagination Buttons**: Changed from button tags to anchor tags to avoid generic button styling conflicts
