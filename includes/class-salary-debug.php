@@ -241,6 +241,11 @@ class WC_Team_Payroll_Salary_Debug {
 			jQuery(document).ready(function($) {
 				const nonce = '<?php echo wp_create_nonce( 'wc_team_payroll_nonce' ); ?>';
 
+				// Check if toast is available
+				if (typeof wcTPToast === 'undefined') {
+					console.error('wcTPToast is not defined. Toast notifications will not work.');
+				}
+
 				function showResults(data) {
 					$('#test-results').show();
 					$('#results-content').text(JSON.stringify(data, null, 2));
@@ -249,7 +254,11 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-test-accumulation').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						wcTPToast.error('Please select an employee');
+						if (typeof wcTPToast !== 'undefined') {
+							wcTPToast.error('Please select an employee');
+						} else {
+							alert('Please select an employee');
+						}
 						return;
 					}
 
@@ -264,13 +273,23 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
-								wcTPToast.success(response.data.message);
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.success(response.data.message);
+								}
 							} else {
-								wcTPToast.error('Error: ' + response.data.message);
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.error('Error: ' + response.data.message);
+								} else {
+									alert('Error: ' + response.data.message);
+								}
 							}
 						},
 						error: function() {
-							wcTPToast.error('Connection error. Please try again.');
+							if (typeof wcTPToast !== 'undefined') {
+								wcTPToast.error('Connection error. Please try again.');
+							} else {
+								alert('Connection error. Please try again.');
+							}
 						}
 					});
 				});
@@ -278,7 +297,11 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-get-status').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						wcTPToast.error('Please select an employee');
+						if (typeof wcTPToast !== 'undefined') {
+							wcTPToast.error('Please select an employee');
+						} else {
+							alert('Please select an employee');
+						}
 						return;
 					}
 
@@ -293,13 +316,23 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
-								wcTPToast.success('Status loaded successfully');
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.success('Status loaded successfully');
+								}
 							} else {
-								wcTPToast.error('Error: ' + response.data.message);
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.error('Error: ' + response.data.message);
+								} else {
+									alert('Error: ' + response.data.message);
+								}
 							}
 						},
 						error: function() {
-							wcTPToast.error('Connection error. Please try again.');
+							if (typeof wcTPToast !== 'undefined') {
+								wcTPToast.error('Connection error. Please try again.');
+							} else {
+								alert('Connection error. Please try again.');
+							}
 						}
 					});
 				});
@@ -319,13 +352,23 @@ class WC_Team_Payroll_Salary_Debug {
 						success: function(response) {
 							if (response.success) {
 								showResults(response.data);
-								wcTPToast.success('All employees processed successfully');
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.success('All employees processed successfully');
+								}
 							} else {
-								wcTPToast.error('Error: ' + response.data.message);
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.error('Error: ' + response.data.message);
+								} else {
+									alert('Error: ' + response.data.message);
+								}
 							}
 						},
 						error: function() {
-							wcTPToast.error('Connection error. Please try again.');
+							if (typeof wcTPToast !== 'undefined') {
+								wcTPToast.error('Connection error. Please try again.');
+							} else {
+								alert('Connection error. Please try again.');
+							}
 						}
 					});
 				});
@@ -333,7 +376,11 @@ class WC_Team_Payroll_Salary_Debug {
 				$('#btn-reset-salary').on('click', function() {
 					const employeeId = $('#test-employee-id').val();
 					if (!employeeId) {
-						wcTPToast.error('Please select an employee');
+						if (typeof wcTPToast !== 'undefined') {
+							wcTPToast.error('Please select an employee');
+						} else {
+							alert('Please select an employee');
+						}
 						return;
 					}
 
@@ -350,15 +397,29 @@ class WC_Team_Payroll_Salary_Debug {
 							user_id: employeeId
 						},
 						success: function(response) {
+							console.log('Reset response:', response);
 							if (response.success) {
 								showResults(response.data);
-								wcTPToast.success('Test data cleared. Ready for fresh testing.');
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.success('✅ Test data cleared. Ready for fresh testing.');
+								} else {
+									alert('Test data cleared. Ready for fresh testing.');
+								}
 							} else {
-								wcTPToast.error('Error: ' + response.data.message);
+								if (typeof wcTPToast !== 'undefined') {
+									wcTPToast.error('❌ Error: ' + response.data.message);
+								} else {
+									alert('Error: ' + response.data.message);
+								}
 							}
 						},
-						error: function() {
-							wcTPToast.error('Connection error. Please try again.');
+						error: function(xhr, status, error) {
+							console.error('Reset error:', error, xhr);
+							if (typeof wcTPToast !== 'undefined') {
+								wcTPToast.error('❌ Connection error. Please try again.');
+							} else {
+								alert('Connection error. Please try again.');
+							}
 						}
 					});
 				});
