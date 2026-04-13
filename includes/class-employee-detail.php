@@ -354,8 +354,19 @@ class WC_Team_Payroll_Employee_Detail {
 		</div>
 
 		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<script>
+			window.wc_tp_employee_total_paid = <?php echo floatval( $this->get_employee_total_paid( $user_id ) ); ?>;
+		</script>
 		<?php
 		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+	}
+
+	/**
+	 * Get employee total paid amount
+	 */
+	private function get_employee_total_paid( $user_id ) {
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+		return $core_engine->get_user_total_paid( $user_id );
 	}
 
 	/**
@@ -1963,57 +1974,196 @@ class WC_Team_Payroll_Employee_Detail {
 						});
 					}
 
+					// Aggregation helper functions
+					function aggregateEarningsByPeriod(orders, viewPer) {
+						const aggregated = {};
+						
+						orders.forEach(order => {
+							const orderDate = new Date(order.date);
+							let periodKey;
+							let displayLabel;
+							
+							switch(viewPer) {
+								case 'day':
+									periodKey = formatDateKey(orderDate, 'YYYY-MM-DD');
+									displayLabel = formatDateDisplay(orderDate, 'MMM DD, YYYY');
+									break;
+								case 'week':
+									const weekInfo = getWeekInfo(orderDate);
+									periodKey = weekInfo.key;
+									displayLabel = weekInfo.label;
+									break;
+								case 'month':
+									periodKey = formatDateKey(orderDate, 'YYYY-MM');
+									displayLabel = formatDateDisplay(orderDate, 'MMMM YYYY');
+									break;
+								case 'year':
+									periodKey = formatDateKey(orderDate, 'YYYY');
+									displayLabel = formatDateDisplay(orderDate, 'YYYY');
+									break;
+								default:
+									periodKey = formatDateKey(orderDate, 'YYYY-MM');
+									displayLabel = formatDateDisplay(orderDate, 'MMMM YYYY');
+							}
+							
+							if (!aggregated[periodKey]) {
+								aggregated[periodKey] = {
+									periodKey: periodKey,
+									displayLabel: displayLabel,
+									orders: 0,
+									totalEarned: 0,
+									orderIds: []
+								};
+							}
+							
+							// Count each order entry (including duplicates from different flags)
+							aggregated[periodKey].orders += 1;
+							aggregated[periodKey].totalEarned += parseFloat(order.user_earnings || 0);
+							aggregated[periodKey].orderIds.push(order.order_id);
+						});
+						
+						return Object.values(aggregated);
+					}
+
+					function formatDateKey(date, format) {
+						const year = date.getFullYear();
+						const month = String(date.getMonth() + 1).padStart(2, '0');
+						const day = String(date.getDate()).padStart(2, '0');
+						
+						if (format === 'YYYY-MM-DD') {
+							return `${year}-${month}-${day}`;
+						} else if (format === 'YYYY-MM') {
+							return `${year}-${month}`;
+						} else if (format === 'YYYY') {
+							return `${year}`;
+						}
+						return `${year}-${month}-${day}`;
+					}
+
+					function formatDateDisplay(date, format) {
+						const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+						const year = date.getFullYear();
+						const month = months[date.getMonth()];
+						const day = date.getDate();
+						
+						if (format === 'MMM DD, YYYY') {
+							const shortMonth = month.substring(0, 3);
+							return `${shortMonth} ${day}, ${year}`;
+						} else if (format === 'MMMM YYYY') {
+							return `${month} ${year}`;
+						} else if (format === 'YYYY') {
+							return `${year}`;
+						}
+						return `${month} ${day}, ${year}`;
+					}
+
+					function getWeekInfo(date) {
+						const year = date.getFullYear();
+						const firstDay = new Date(year, 0, 1);
+						const pastDaysOfYear = (date - firstDay) / 86400000;
+						const week = Math.ceil((pastDaysOfYear + firstDay.getDay() + 1) / 7);
+						
+						// Get week start and end dates
+						const weekStart = new Date(date);
+						weekStart.setDate(date.getDate() - date.getDay());
+						const weekEnd = new Date(weekStart);
+						weekEnd.setDate(weekStart.getDate() + 6);
+						
+						const startMonth = (weekStart.getMonth() + 1).toString().padStart(2, '0');
+						const startDay = weekStart.getDate().toString().padStart(2, '0');
+						const endMonth = (weekEnd.getMonth() + 1).toString().padStart(2, '0');
+						const endDay = weekEnd.getDate().toString().padStart(2, '0');
+						
+						return {
+							key: `${year}-W${week}`,
+							label: `Week ${week} (${startMonth}/${startDay} - ${endMonth}/${endDay}, ${year})`
+						};
+					}
+
+					function calculatePaymentStatus(totalEarned, paid) {
+						if (paid >= totalEarned) {
+							return 'paid';
+						} else if (paid > 0 && paid < totalEarned) {
+							return 'partial_paid';
+						} else {
+							return 'pending';
+						}
+					}
+
+					function formatStatusLabel(status) {
+						if (status === 'partial_paid') {
+							return 'Partial Paid';
+						} else if (status === 'paid') {
+							return 'Paid';
+						} else {
+							return 'Pending';
+						}
+					}
+
+					function getTotalPaidForEmployee(userId) {
+						// This will be fetched from the employee data
+						// For now, return 0 - we'll need to pass this from PHP
+						return window.wc_tp_employee_total_paid || 0;
+					}
+
 					function renderEarningsTable(orders) {
 						const container = $('#wc-tp-earnings-table-container');
+						const viewPer = $('#wc-tp-earnings-view-per').val() || 'month';
 						
 						if (!orders || orders.length === 0) {
 							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>No earnings found</p></div>');
 							return;
 						}
 
-						// Sort orders based on current sort settings
-						orders = sortOrders(orders, earningsCurrentSortColumn, earningsCurrentSortDirection);
+						// Aggregate earnings by period
+						let aggregatedData = aggregateEarningsByPeriod(orders, viewPer);
+						
+						// Sort by period key
+						aggregatedData.sort((a, b) => a.periodKey.localeCompare(b.periodKey));
 
 						// Calculate pagination
-						const totalPages = Math.ceil(orders.length / earningsItemsPerPage);
+						const totalPages = Math.ceil(aggregatedData.length / earningsItemsPerPage);
 						const startIndex = (earningsCurrentPage - 1) * earningsItemsPerPage;
 						const endIndex = startIndex + earningsItemsPerPage;
-						const paginatedOrders = orders.slice(startIndex, endIndex);
+						const paginatedData = aggregatedData.slice(startIndex, endIndex);
 
 						let html = '<table class="wc-tp-data-table"><thead><tr>';
-						html += '<th class="wc-tp-sortable-header" data-column="order_id">';
-						html += 'Order ID' + getEarningsSortIcon('order_id');
+						html += '<th class="wc-tp-sortable-header" data-column="earning_time">';
+						html += 'Earning Time' + getEarningsSortIcon('earning_time');
 						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="customer_name">';
-						html += 'Customer' + getEarningsSortIcon('customer_name');
+						html += '<th class="wc-tp-sortable-header" data-column="orders">';
+						html += 'Orders' + getEarningsSortIcon('orders');
 						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="total">';
-						html += 'Total' + getEarningsSortIcon('total');
+						html += '<th class="wc-tp-sortable-header" data-column="total_earned">';
+						html += 'Total Earned' + getEarningsSortIcon('total_earned');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="paid">';
+						html += 'Paid' + getEarningsSortIcon('paid');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="due">';
+						html += 'Due' + getEarningsSortIcon('due');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="status">';
 						html += 'Status' + getEarningsSortIcon('status');
 						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="commission">';
-						html += 'Commission' + getEarningsSortIcon('commission');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="user_earnings">';
-						html += 'Your Earnings' + getEarningsSortIcon('user_earnings');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="date">';
-						html += 'Date' + getEarningsSortIcon('date');
-						html += '</th>';
 						html += '</tr></thead><tbody>';
 
-						paginatedOrders.forEach(order => {
-							const statusClass = 'wc-tp-status-' + order.status;
+						paginatedData.forEach(period => {
+							// Calculate paid and due for this period
+							const totalPaid = getTotalPaidForEmployee(userId);
+							const periodCount = aggregatedData.length;
+							const paidPerPeriod = periodCount > 0 ? totalPaid / periodCount : 0;
+							const due = period.totalEarned - paidPerPeriod;
+							const status = calculatePaymentStatus(period.totalEarned, paidPerPeriod);
+							const statusClass = 'wc-tp-status-' + status;
+							
 							html += '<tr>';
-							html += '<td>' + order.order_id + '</td>';
-							html += '<td>' + order.customer_name + '</td>';
-							html += '<td>' + formatCurrency(order.total) + '</td>';
-							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + order.status + '</span></td>';
-							html += '<td>' + formatCurrency(order.commission) + '</td>';
-							html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
-							html += '<td>' + order.date + '</td>';
+							html += '<td>' + period.displayLabel + '</td>';
+							html += '<td><strong>' + period.orders + '</strong></td>';
+							html += '<td>' + formatCurrency(period.totalEarned) + '</td>';
+							html += '<td>' + formatCurrency(paidPerPeriod) + '</td>';
+							html += '<td>' + formatCurrency(due) + '</td>';
+							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + formatStatusLabel(status) + '</span></td>';
 							html += '</tr>';
 						});
 
