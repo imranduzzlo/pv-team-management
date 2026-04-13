@@ -166,21 +166,19 @@ class WC_Team_Payroll_Salary_Debug {
 				<h3>Weekly Frequency Test</h3>
 				<ol>
 					<li>Set employee salary: $700/week (Fixed)</li>
-					<li>Click "Test Salary Accumulation" 7 times</li>
-					<li>Check: Accumulated Total should be $700 after 7 tests</li>
-					<li>Click "Manually Trigger Cron" on day 7</li>
-					<li>Check: Total Earnings should increase by $700</li>
-					<li>Result: ✅ Weekly salary accumulated and transferred</li>
+					<li>Click "Test Salary Accumulation" multiple times (each click = 1 day)</li>
+					<li>Check: Accumulated Total increases by daily rate each click</li>
+					<li>When you reach the week end day (Saturday by default), salary transfers to Total Earnings</li>
+					<li>Result: ✅ Weekly salary accumulated and transferred on week end</li>
 				</ol>
 
 				<h3>Monthly Frequency Test</h3>
 				<ol>
 					<li>Set employee salary: $3,000/month (Fixed)</li>
-					<li>Click "Test Salary Accumulation" 28 times</li>
-					<li>Check: Accumulated Total should be ~$3,000 after 28 tests</li>
-					<li>Click "Manually Trigger Cron" on day 28</li>
-					<li>Check: Total Earnings should increase by ~$3,000</li>
-					<li>Result: ✅ Monthly salary accumulated and transferred</li>
+					<li>Click "Test Salary Accumulation" multiple times (each click = 1 day)</li>
+					<li>Check: Accumulated Total increases by daily rate each click</li>
+					<li>When you reach the last day of the month, salary transfers to Total Earnings</li>
+					<li>Result: ✅ Monthly salary accumulated and transferred on month end</li>
 				</ol>
 
 				<h3>Salary Change Test</h3>
@@ -193,6 +191,14 @@ class WC_Team_Payroll_Salary_Debug {
 					<li>Check: Previous $300 transferred to Total Earnings, new accumulation started</li>
 					<li>Result: ✅ Salary change handled correctly</li>
 				</ol>
+
+				<h3>Important Notes</h3>
+				<ul>
+					<li><strong>Weekly Transfer:</strong> Only happens on the week end day (Saturday by default, configurable in WordPress settings)</li>
+					<li><strong>Monthly Transfer:</strong> Only happens on the last day of the month</li>
+					<li><strong>Days Remaining:</strong> Shows how many more days until the period ends and salary transfers</li>
+					<li><strong>Real Calendar:</strong> The debug tool uses real calendar dates, not simulated dates</li>
+				</ul>
 			</div>
 		</div>
 
@@ -439,20 +445,101 @@ class WC_Team_Payroll_Salary_Debug {
 			$accumulation['days_accumulated']++;
 			$accumulation['last_updated'] = current_time( 'mysql' );
 
-			update_user_meta( $user_id, '_wc_tp_daily_accumulation', $accumulation );
+			// Check if period end (match actual cron job logic)
+			$period_end_reached = false;
+			$expected_days = 0;
+			$transferred_amount = 0;
+			$days_remaining = 0;
 
-			$result = array(
-				'message' => 'Salary accumulated (test)',
-				'salary_type' => $salary_type,
-				'salary_amount' => $salary_amount,
-				'salary_frequency' => $salary_frequency,
-				'daily_rate' => $daily_rate,
-				'accumulated_total' => $accumulation['accumulated_total'],
-				'days_accumulated' => $accumulation['days_accumulated'],
-				'period_start' => $accumulation['period_start'],
-				'period_end' => $accumulation['period_end'],
-				'action' => 'accumulation',
-			);
+			if ( 'weekly' === $salary_frequency ) {
+				$expected_days = 7;
+				$week_start_day = get_option( 'start_of_week', 0 );
+				$week_end_day = ( $week_start_day + 6 ) % 7;
+				$today_day = date( 'w' );
+				
+				// Calculate days remaining until week end
+				$days_until_end = ( $week_end_day - $today_day + 7 ) % 7;
+				if ( $days_until_end === 0 ) {
+					$days_until_end = 7; // If today is week end, next is in 7 days
+				}
+				$days_remaining = $days_until_end;
+				
+				// Only transfer if today is the week end day
+				if ( $today_day == $week_end_day ) {
+					$period_end_reached = true;
+				}
+			} elseif ( 'monthly' === $salary_frequency ) {
+				$expected_days = date( 't' ); // Days in current month
+				$today = date( 'Y-m-d' );
+				$month_end = date( 'Y-m-t' );
+				
+				// Calculate days remaining until month end
+				$days_remaining = (int) date( 't' ) - (int) date( 'd' );
+				
+				// Only transfer if today is the month end day
+				if ( $today === $month_end ) {
+					$period_end_reached = true;
+				}
+			}
+
+			// If period end reached, transfer to earnings
+			if ( $period_end_reached ) {
+				$current_earnings = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
+				if ( ! $current_earnings ) {
+					$current_earnings = 0;
+				}
+				$current_earnings += $accumulation['accumulated_total'];
+				update_user_meta( $user_id, '_wc_tp_total_earnings', $current_earnings );
+				$transferred_amount = $accumulation['accumulated_total'];
+
+				// Log transaction
+				$log = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+				if ( ! is_array( $log ) ) {
+					$log = array();
+				}
+				$log[] = array(
+					'date'   => current_time( 'mysql' ),
+					'amount' => $transferred_amount,
+					'type'   => $salary_frequency . '_transfer',
+					'note'   => 'Period end transfer (test)',
+				);
+				if ( count( $log ) > 100 ) {
+					$log = array_slice( $log, -100 );
+				}
+				update_user_meta( $user_id, '_wc_tp_salary_transactions', $log );
+
+				// Clear accumulation
+				delete_user_meta( $user_id, '_wc_tp_daily_accumulation' );
+
+				$result = array(
+					'message' => 'Period end reached! Salary transferred to earnings',
+					'salary_type' => $salary_type,
+					'salary_amount' => $salary_amount,
+					'salary_frequency' => $salary_frequency,
+					'daily_rate' => $daily_rate,
+					'accumulated_total' => $transferred_amount,
+					'days_accumulated' => $accumulation['days_accumulated'],
+					'transferred_to_earnings' => $transferred_amount,
+					'action' => 'period_end_transfer',
+				);
+			} else {
+				update_user_meta( $user_id, '_wc_tp_daily_accumulation', $accumulation );
+
+				$result = array(
+					'message' => 'Salary accumulated (test) - ' . $days_remaining . ' more days until period end',
+					'salary_type' => $salary_type,
+					'salary_amount' => $salary_amount,
+					'salary_frequency' => $salary_frequency,
+					'daily_rate' => $daily_rate,
+					'accumulated_total' => $accumulation['accumulated_total'],
+					'days_accumulated' => $accumulation['days_accumulated'],
+					'expected_days_for_period' => $expected_days,
+					'days_remaining' => $days_remaining,
+					'period_start' => $accumulation['period_start'],
+					'period_end' => $accumulation['period_end'],
+					'action' => 'accumulation',
+				);
+			}
 		}
 
 		wp_send_json_success( $result );
