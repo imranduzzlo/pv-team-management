@@ -65,8 +65,17 @@ class WC_Team_Payroll_Salary_Debug {
 						) );
 
 						foreach ( $employees as $employee ) {
-							$salary_type = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true ) ? 'fixed' : 
-										   get_user_meta( $employee->ID, '_wc_tp_combined_salary', true ) ? 'combined' : 'commission';
+							$is_fixed = get_user_meta( $employee->ID, '_wc_tp_fixed_salary', true );
+							$is_combined = get_user_meta( $employee->ID, '_wc_tp_combined_salary', true );
+							
+							if ( $is_fixed ) {
+								$salary_type = 'fixed';
+							} elseif ( $is_combined ) {
+								$salary_type = 'combined';
+							} else {
+								$salary_type = 'commission';
+							}
+							
 							$salary_amount = get_user_meta( $employee->ID, '_wc_tp_salary_amount', true );
 							$salary_frequency = get_user_meta( $employee->ID, '_wc_tp_salary_frequency', true );
 							
@@ -357,7 +366,13 @@ class WC_Team_Payroll_Salary_Debug {
 			wp_send_json_error( array( 'message' => 'Employee has no salary configured' ) );
 		}
 
-		$salary_type = $is_fixed ? 'fixed' : ( $is_combined ? 'combined' : 'commission' );
+		if ( $is_fixed ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined ) {
+			$salary_type = 'combined';
+		} else {
+			$salary_type = 'commission';
+		}
 
 		if ( 'commission' === $salary_type ) {
 			wp_send_json_error( array( 'message' => 'Employee is commission-based, no salary to accumulate' ) );
@@ -466,7 +481,13 @@ class WC_Team_Payroll_Salary_Debug {
 		$salary_amount = floatval( get_user_meta( $user_id, '_wc_tp_salary_amount', true ) );
 		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
 
-		$salary_type = $is_fixed ? 'fixed' : ( $is_combined ? 'combined' : 'commission' );
+		if ( $is_fixed ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined ) {
+			$salary_type = 'combined';
+		} else {
+			$salary_type = 'commission';
+		}
 
 		// Get accumulation
 		$accumulation = get_user_meta( $user_id, '_wc_tp_daily_accumulation', true );
