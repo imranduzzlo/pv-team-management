@@ -330,6 +330,17 @@ class WC_Team_Payroll_Employee_Detail {
 							<option value="100">100</option>
 						</select>
 					</div>
+
+					<!-- View As Per -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'View as Per:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-earnings-view-per">
+							<option value="day"><?php esc_html_e( 'Day', 'wc-team-payroll' ); ?></option>
+							<option value="week"><?php esc_html_e( 'Week', 'wc-team-payroll' ); ?></option>
+							<option value="month" selected><?php esc_html_e( 'Month', 'wc-team-payroll' ); ?></option>
+							<option value="year"><?php esc_html_e( 'Year', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
 				</div>
 			</div>
 
@@ -2058,6 +2069,15 @@ class WC_Team_Payroll_Employee_Detail {
 						$('#wc-tp-earnings-per-page').on('change', function() {
 							earningsItemsPerPage = parseInt($(this).val());
 							earningsCurrentPage = 1;
+							renderEarningsTable(allEarnings);
+						});
+
+						// View as per change
+						$('#wc-tp-earnings-view-per').on('change', function() {
+							const viewPer = $(this).val();
+							// Store the view preference
+							localStorage.setItem('wc_tp_earnings_view_per', viewPer);
+							// Re-render table with new grouping
 							renderEarningsTable(allEarnings);
 						});
 					}
