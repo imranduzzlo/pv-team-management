@@ -1575,6 +1575,28 @@ class WC_Team_Payroll_Employee_Detail {
 						}
 					});
 
+					// Earnings Tab Handlers
+					$('#wc-tp-earnings-date-preset').on('change', function() {
+						const preset = $(this).val();
+						
+						if (preset === 'custom') {
+							$('#wc-tp-earnings-custom-date-range').slideDown(200);
+						} else {
+							$('#wc-tp-earnings-custom-date-range').slideUp(200);
+							updateEarningsDateRangeFromPreset(preset);
+						}
+					});
+
+					$('#wc-tp-earnings-filter-btn').on('click', function() {
+						loadEarningsData();
+					});
+
+					$('#wc-tp-earnings-search').on('keypress', function(e) {
+						if (e.which === 13) {
+							loadEarningsData();
+						}
+					});
+
 					function getDateRangeFromPreset(preset) {
 						const today = new Date();
 						const year = today.getFullYear();
@@ -1859,6 +1881,196 @@ class WC_Team_Payroll_Employee_Detail {
 
 					function formatCurrency(value) {
 						return '<?php echo get_woocommerce_currency_symbol(); ?>' + parseFloat(value).toFixed(2);
+					}
+				}
+
+				// ============================================================================
+				// EARNINGS TAB
+				// ============================================================================
+				if ($('.wc-tp-earnings-tab').length) {
+					let earningsCurrentPage = 1;
+					let earningsItemsPerPage = 10;
+					let earningsCurrentSortColumn = 'date';
+					let earningsCurrentSortDirection = 'desc';
+					let earningsCurrentStartDate = '';
+					let earningsCurrentEndDate = '';
+					let allEarnings = [];
+
+					// Initialize with default date range
+					updateEarningsDateRangeFromPreset('this-month');
+
+					function updateEarningsDateRangeFromPreset(preset) {
+						const range = getDateRangeFromPreset(preset);
+						earningsCurrentStartDate = range.start;
+						earningsCurrentEndDate = range.end;
+						$('#wc-tp-earnings-start-date').val(range.start);
+						$('#wc-tp-earnings-end-date').val(range.end);
+					}
+
+					function loadEarningsData() {
+						const preset = $('#wc-tp-earnings-date-preset').val();
+						
+						if (preset === 'custom') {
+							earningsCurrentStartDate = $('#wc-tp-earnings-start-date').val();
+							earningsCurrentEndDate = $('#wc-tp-earnings-end-date').val();
+						}
+
+						const status = $('#wc-tp-earnings-status-filter').val();
+						const search = $('#wc-tp-earnings-search').val();
+
+						if (!earningsCurrentStartDate || !earningsCurrentEndDate) {
+							return;
+						}
+
+						earningsCurrentPage = 1;
+						$('#wc-tp-earnings-filter-btn').prop('disabled', true).text('Loading...');
+
+						$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: {
+								action: 'wc_tp_get_employee_orders',
+								user_id: userId,
+								start_date: earningsCurrentStartDate,
+								end_date: earningsCurrentEndDate,
+								status: status,
+								search: search,
+								nonce: nonce
+							},
+							success: function(response) {
+								if (response.success) {
+									allEarnings = response.data.orders;
+									renderEarningsTable(allEarnings);
+								} else {
+									$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>Failed to load earnings</p></div>');
+								}
+							},
+							error: function() {
+								$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">❌</div><p>Error loading earnings</p></div>');
+							},
+							complete: function() {
+								$('#wc-tp-earnings-filter-btn').prop('disabled', false).text('Filter');
+							}
+						});
+					}
+
+					function renderEarningsTable(orders) {
+						const container = $('#wc-tp-earnings-table-container');
+						
+						if (!orders || orders.length === 0) {
+							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>No earnings found</p></div>');
+							return;
+						}
+
+						// Sort orders based on current sort settings
+						orders = sortOrders(orders, earningsCurrentSortColumn, earningsCurrentSortDirection);
+
+						// Calculate pagination
+						const totalPages = Math.ceil(orders.length / earningsItemsPerPage);
+						const startIndex = (earningsCurrentPage - 1) * earningsItemsPerPage;
+						const endIndex = startIndex + earningsItemsPerPage;
+						const paginatedOrders = orders.slice(startIndex, endIndex);
+
+						let html = '<table class="wc-tp-data-table"><thead><tr>';
+						html += '<th class="wc-tp-sortable-header" data-column="order_id">';
+						html += 'Order ID' + getEarningsSortIcon('order_id');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="customer_name">';
+						html += 'Customer' + getEarningsSortIcon('customer_name');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="total">';
+						html += 'Total' + getEarningsSortIcon('total');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="status">';
+						html += 'Status' + getEarningsSortIcon('status');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="commission">';
+						html += 'Commission' + getEarningsSortIcon('commission');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="user_earnings">';
+						html += 'Your Earnings' + getEarningsSortIcon('user_earnings');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="date">';
+						html += 'Date' + getEarningsSortIcon('date');
+						html += '</th>';
+						html += '</tr></thead><tbody>';
+
+						paginatedOrders.forEach(order => {
+							const statusClass = 'wc-tp-status-' + order.status;
+							html += '<tr>';
+							html += '<td>' + order.order_id + '</td>';
+							html += '<td>' + order.customer_name + '</td>';
+							html += '<td>' + formatCurrency(order.total) + '</td>';
+							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + order.status + '</span></td>';
+							html += '<td>' + formatCurrency(order.commission) + '</td>';
+							html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
+							html += '<td>' + order.date + '</td>';
+							html += '</tr>';
+						});
+
+						html += '</tbody></table>';
+
+						// Add pagination
+						if (totalPages > 1) {
+							html += '<div class="wc-tp-pagination">';
+							html += '<div class="wc-tp-pagination-info">Page ' + earningsCurrentPage + ' of ' + totalPages + '</div>';
+							html += '<div class="wc-tp-pagination-controls">';
+							
+							if (earningsCurrentPage > 1) {
+								html += '<button class="wc-tp-pagination-btn" data-page="' + (earningsCurrentPage - 1) + '">Previous</button>';
+							}
+							
+							for (let i = 1; i <= totalPages; i++) {
+								if (i === earningsCurrentPage) {
+									html += '<button class="wc-tp-pagination-btn active">' + i + '</button>';
+								} else if (i === 1 || i === totalPages || (i >= earningsCurrentPage - 2 && i <= earningsCurrentPage + 2)) {
+									html += '<button class="wc-tp-pagination-btn" data-page="' + i + '">' + i + '</button>';
+								} else if (i === earningsCurrentPage - 3 || i === earningsCurrentPage + 3) {
+									html += '<span class="wc-tp-pagination-ellipsis">...</span>';
+								}
+							}
+							
+							if (earningsCurrentPage < totalPages) {
+								html += '<button class="wc-tp-pagination-btn" data-page="' + (earningsCurrentPage + 1) + '">Next</button>';
+							}
+							
+							html += '</div></div>';
+						}
+
+						container.html(html);
+
+						// Attach event handlers
+						container.find('.wc-tp-sortable-header').on('click', function() {
+							const column = $(this).data('column');
+							if (earningsCurrentSortColumn === column) {
+								earningsCurrentSortDirection = earningsCurrentSortDirection === 'asc' ? 'desc' : 'asc';
+							} else {
+								earningsCurrentSortColumn = column;
+								earningsCurrentSortDirection = 'asc';
+							}
+							renderEarningsTable(allEarnings);
+						});
+
+						container.find('.wc-tp-pagination-btn[data-page]').on('click', function() {
+							earningsCurrentPage = parseInt($(this).data('page'));
+							renderEarningsTable(allEarnings);
+						});
+
+						// Per page change
+						$('#wc-tp-earnings-per-page').on('change', function() {
+							earningsItemsPerPage = parseInt($(this).val());
+							earningsCurrentPage = 1;
+							renderEarningsTable(allEarnings);
+						});
+					}
+
+					function getEarningsSortIcon(column) {
+						if (earningsCurrentSortColumn !== column) {
+							return '';
+						}
+						
+						const icon = earningsCurrentSortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
+						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
 					}
 				}
 
