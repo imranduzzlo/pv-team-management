@@ -137,6 +137,9 @@ class WC_Team_Payroll_Employee_Detail {
 				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=orders" class="nav-tab <?php echo ( ! isset( $_GET['tab'] ) || $_GET['tab'] === 'orders' ) ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
 				</a>
+				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=earnings" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'earnings' ) ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?>
+				</a>
 				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=payments" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'payments' ) ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
 				</a>
@@ -152,6 +155,8 @@ class WC_Team_Payroll_Employee_Detail {
 
 				if ( $current_tab === 'orders' ) {
 					$this->render_orders_tab( $user_id );
+				} elseif ( $current_tab === 'earnings' ) {
+					$this->render_earnings_tab( $user_id );
 				} elseif ( $current_tab === 'payments' ) {
 					$this->render_payments_tab( $user_id );
 				} elseif ( $current_tab === 'salary' ) {
@@ -249,6 +254,91 @@ class WC_Team_Payroll_Employee_Detail {
 			<div class="wc-tp-table-section">
 				<h2><?php esc_html_e( 'Order History', 'wc-team-payroll' ); ?></h2>
 				<div id="wc-tp-orders-table-container">
+					<!-- Content will be loaded via AJAX -->
+				</div>
+			</div>
+		</div>
+
+		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<?php
+		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
+	}
+
+	/**
+	 * Render Earnings Tab
+	 */
+	private function render_earnings_tab( $user_id ) {
+		?>
+		<div class="wc-tp-earnings-tab">
+			<!-- Unified Filter Section -->
+			<div class="wc-tp-unified-filter">
+				<div class="wc-tp-filter-row">
+					<!-- Date Range Preset -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-earnings-date-preset">
+							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Custom Date Range (Hidden by default) -->
+					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-earnings-custom-date-range" style="display: none;">
+						<input type="date" id="wc-tp-earnings-start-date" />
+						<span class="wc-tp-date-separator">to</span>
+						<input type="date" id="wc-tp-earnings-end-date" />
+					</div>
+
+					<!-- Status Filter -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-earnings-status-filter">
+							<option value=""><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
+							<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
+							<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
+							<option value="pending"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></option>
+							<option value="cancelled"><?php esc_html_e( 'Cancelled', 'wc-team-payroll' ); ?></option>
+							<option value="refunded"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Search -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Search:', 'wc-team-payroll' ); ?></label>
+						<input type="text" id="wc-tp-earnings-search" placeholder="<?php esc_attr_e( 'Order ID, Customer...', 'wc-team-payroll' ); ?>" />
+					</div>
+
+					<!-- Filter Button -->
+					<div class="wc-tp-filter-group">
+						<button type="button" class="button button-primary" id="wc-tp-earnings-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
+					</div>
+
+					<!-- Screen Options -->
+					<div class="wc-tp-filter-group">
+						<label><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-earnings-per-page">
+							<option value="5">5</option>
+							<option value="10" selected>10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
+			</div>
+
+			<!-- Earnings Table -->
+			<div class="wc-tp-table-section">
+				<h2><?php esc_html_e( 'Earnings History', 'wc-team-payroll' ); ?></h2>
+				<div id="wc-tp-earnings-table-container">
 					<!-- Content will be loaded via AJAX -->
 				</div>
 			</div>
