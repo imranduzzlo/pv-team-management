@@ -297,16 +297,14 @@ class WC_Team_Payroll_Employee_Detail {
 						<input type="date" id="wc-tp-earnings-end-date" />
 					</div>
 
-					<!-- Status Filter -->
+					<!-- Payment Status Filter -->
 					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
+						<label><?php esc_html_e( 'Payment Status:', 'wc-team-payroll' ); ?></label>
 						<select id="wc-tp-earnings-status-filter">
 							<option value=""><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
-							<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
-							<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
+							<option value="paid"><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></option>
+							<option value="partial_paid"><?php esc_html_e( 'Partial Paid', 'wc-team-payroll' ); ?></option>
 							<option value="pending"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></option>
-							<option value="cancelled"><?php esc_html_e( 'Cancelled', 'wc-team-payroll' ); ?></option>
-							<option value="refunded"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></option>
 						</select>
 					</div>
 
