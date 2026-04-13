@@ -145,6 +145,7 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-automation.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-display-helper.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-debug.php';
 
 	// Initialize custom fields (creates meta fields)
 	new WC_Team_Payroll_Custom_Fields();
