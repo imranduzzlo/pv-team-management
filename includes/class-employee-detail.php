@@ -1935,7 +1935,6 @@ class WC_Team_Payroll_Employee_Detail {
 							earningsCurrentEndDate = $('#wc-tp-earnings-end-date').val();
 						}
 
-						const status = $('#wc-tp-earnings-status-filter').val();
 						const search = $('#wc-tp-earnings-search').val();
 
 						if (!earningsCurrentStartDate || !earningsCurrentEndDate) {
@@ -1953,13 +1952,20 @@ class WC_Team_Payroll_Employee_Detail {
 								user_id: userId,
 								start_date: earningsCurrentStartDate,
 								end_date: earningsCurrentEndDate,
-								status: status,
 								search: search,
 								nonce: nonce
 							},
 							success: function(response) {
 								if (response.success) {
-									allEarnings = response.data.orders;
+									let orders = response.data.orders;
+									
+									// Apply payment status filter on frontend
+									const paymentStatus = $('#wc-tp-earnings-status-filter').val();
+									if (paymentStatus) {
+										orders = filterByPaymentStatus(orders, paymentStatus);
+									}
+									
+									allEarnings = orders;
 									renderEarningsTable(allEarnings);
 								} else {
 									$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>Failed to load earnings</p></div>');
@@ -1971,6 +1977,18 @@ class WC_Team_Payroll_Employee_Detail {
 							complete: function() {
 								$('#wc-tp-earnings-filter-btn').prop('disabled', false).text('Filter');
 							}
+						});
+					}
+
+					function filterByPaymentStatus(orders, paymentStatus) {
+						const totalPaid = window.wc_tp_employee_total_paid || 0;
+						const periodCount = orders.length > 0 ? orders.length : 1;
+						const paidPerOrder = periodCount > 0 ? totalPaid / periodCount : 0;
+						
+						return orders.filter(order => {
+							const earned = parseFloat(order.user_earnings || 0);
+							const status = calculatePaymentStatus(earned, paidPerOrder);
+							return status === paymentStatus;
 						});
 					}
 
