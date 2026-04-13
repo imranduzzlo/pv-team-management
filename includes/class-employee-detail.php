@@ -1916,14 +1916,7 @@ class WC_Team_Payroll_Employee_Detail {
 					let earningsCurrentEndDate = '';
 					let allEarnings = [];
 
-					// Initialize with default date range
-					updateEarningsDateRangeFromPreset('this-month');
-					
-					// Load earnings data on page load
-					setTimeout(function() {
-						loadEarningsData();
-					}, 100);
-
+					// Define all functions first
 					function updateEarningsDateRangeFromPreset(preset) {
 						const range = getDateRangeFromPreset(preset);
 						earningsCurrentStartDate = range.start;
@@ -1943,6 +1936,7 @@ class WC_Team_Payroll_Employee_Detail {
 						const search = $('#wc-tp-earnings-search').val();
 
 						if (!earningsCurrentStartDate || !earningsCurrentEndDate) {
+							console.log('Missing date range:', earningsCurrentStartDate, earningsCurrentEndDate);
 							return;
 						}
 
@@ -1963,6 +1957,7 @@ class WC_Team_Payroll_Employee_Detail {
 							success: function(response) {
 								if (response.success) {
 									let orders = response.data.orders;
+									console.log('Loaded orders:', orders);
 									
 									// Apply payment status filter on frontend
 									const paymentStatus = $('#wc-tp-earnings-status-filter').val();
@@ -1973,10 +1968,12 @@ class WC_Team_Payroll_Employee_Detail {
 									allEarnings = orders;
 									renderEarningsTable(allEarnings);
 								} else {
+									console.log('AJAX error:', response);
 									$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>Failed to load earnings</p></div>');
 								}
 							},
-							error: function() {
+							error: function(xhr, status, error) {
+								console.log('AJAX error:', error, xhr);
 								$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">❌</div><p>Error loading earnings</p></div>');
 							},
 							complete: function() {
@@ -1996,6 +1993,15 @@ class WC_Team_Payroll_Employee_Detail {
 							return status === paymentStatus;
 						});
 					}
+
+					// Initialize with default date range
+					updateEarningsDateRangeFromPreset('this-month');
+					
+					// Load earnings data on page load
+					setTimeout(function() {
+						console.log('Loading earnings data...');
+						loadEarningsData();
+					}, 100);
 
 					// Aggregation helper functions
 					function aggregateEarningsByPeriod(orders, viewPer) {
