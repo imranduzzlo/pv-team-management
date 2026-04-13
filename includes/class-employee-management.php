@@ -910,10 +910,19 @@ class WC_Team_Payroll_Employee_Management {
 
 			update_user_meta( $user_id, '_wc_tp_salary_history', $history );
 
-			// Recalculate commissions for all orders involving this user if type changed
-			if ( $old_type !== $new_type ) {
-				$this->recalculate_user_commissions( $user_id );
-			}
+			// Trigger salary change hook for automatic salary system
+			do_action( 'wc_tp_salary_changed', $user_id, array(
+				'old_type'      => $old_type,
+				'old_amount'    => $old_amount,
+				'old_frequency' => $old_frequency,
+				'new_type'      => $new_type,
+				'new_amount'    => $new_amount,
+				'new_frequency' => $new_frequency,
+			) );
+
+			// REMOVED: Don't recalculate all orders (causes timeout with large datasets)
+			// Commission is based on salary type AT ORDER CREATION TIME, not current salary
+			// Historical orders should not be recalculated
 		}
 	}
 

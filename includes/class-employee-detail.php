@@ -137,9 +137,6 @@ class WC_Team_Payroll_Employee_Detail {
 				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=orders" class="nav-tab <?php echo ( ! isset( $_GET['tab'] ) || $_GET['tab'] === 'orders' ) ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
 				</a>
-				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=earnings" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'earnings' ) ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?>
-				</a>
 				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=payments" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'payments' ) ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Payments', 'wc-team-payroll' ); ?>
 				</a>
@@ -155,8 +152,6 @@ class WC_Team_Payroll_Employee_Detail {
 
 				if ( $current_tab === 'orders' ) {
 					$this->render_orders_tab( $user_id );
-				} elseif ( $current_tab === 'earnings' ) {
-					$this->render_earnings_tab( $user_id );
 				} elseif ( $current_tab === 'payments' ) {
 					$this->render_payments_tab( $user_id );
 				} elseif ( $current_tab === 'salary' ) {
@@ -262,111 +257,6 @@ class WC_Team_Payroll_Employee_Detail {
 		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
 		<?php
 		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
-	}
-
-	/**
-	 * Render Earnings Tab
-	 */
-	private function render_earnings_tab( $user_id ) {
-		?>
-		<div class="wc-tp-earnings-tab">
-			<!-- Unified Filter Section -->
-			<div class="wc-tp-unified-filter">
-				<div class="wc-tp-filter-row">
-					<!-- Date Range Preset -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-earnings-date-preset">
-							<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-							<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
-							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
-							<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
-							<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
-							<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
-							<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
-							<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
-							<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
-							<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Custom Date Range (Hidden by default) -->
-					<div class="wc-tp-filter-group wc-tp-custom-date-range" id="wc-tp-earnings-custom-date-range" style="display: none;">
-						<input type="date" id="wc-tp-earnings-start-date" />
-						<span class="wc-tp-date-separator">to</span>
-						<input type="date" id="wc-tp-earnings-end-date" />
-					</div>
-
-					<!-- Payment Status Filter -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Payment Status:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-earnings-status-filter">
-							<option value=""><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
-							<option value="paid"><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></option>
-							<option value="partial_paid"><?php esc_html_e( 'Partial Paid', 'wc-team-payroll' ); ?></option>
-							<option value="pending"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Search -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Search:', 'wc-team-payroll' ); ?></label>
-						<input type="text" id="wc-tp-earnings-search" placeholder="<?php esc_attr_e( 'Order ID, Customer...', 'wc-team-payroll' ); ?>" />
-					</div>
-
-					<!-- Filter Button -->
-					<div class="wc-tp-filter-group">
-						<button type="button" class="button button-primary" id="wc-tp-earnings-filter-btn"><?php esc_html_e( 'Filter', 'wc-team-payroll' ); ?></button>
-					</div>
-
-					<!-- Screen Options -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Per Page:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-earnings-per-page">
-							<option value="5">5</option>
-							<option value="10" selected>10</option>
-							<option value="25">25</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
-						</select>
-					</div>
-
-					<!-- View As Per -->
-					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'View as Per:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-earnings-view-per">
-							<option value="day"><?php esc_html_e( 'Day', 'wc-team-payroll' ); ?></option>
-							<option value="week"><?php esc_html_e( 'Week', 'wc-team-payroll' ); ?></option>
-							<option value="month" selected><?php esc_html_e( 'Month', 'wc-team-payroll' ); ?></option>
-							<option value="year"><?php esc_html_e( 'Year', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-				</div>
-			</div>
-
-			<!-- Earnings Table -->
-			<div class="wc-tp-table-section">
-				<h2><?php esc_html_e( 'Earnings History', 'wc-team-payroll' ); ?></h2>
-				<div id="wc-tp-earnings-table-container">
-					<!-- Content will be loaded via AJAX -->
-				</div>
-			</div>
-		</div>
-
-		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
-		<script>
-			window.wc_tp_employee_total_paid = <?php echo floatval( $this->get_employee_total_paid( $user_id ) ); ?>;
-		</script>
-		<?php
-		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
-	}
-
-	/**
-	 * Get employee total paid amount
-	 */
-	private function get_employee_total_paid( $user_id ) {
-		$core_engine = new WC_Team_Payroll_Core_Engine();
-		return $core_engine->get_user_total_paid( $user_id );
 	}
 
 	/**
@@ -1595,28 +1485,6 @@ class WC_Team_Payroll_Employee_Detail {
 						}
 					});
 
-					// Earnings Tab Handlers
-					$('#wc-tp-earnings-date-preset').on('change', function() {
-						const preset = $(this).val();
-						
-						if (preset === 'custom') {
-							$('#wc-tp-earnings-custom-date-range').slideDown(200);
-						} else {
-							$('#wc-tp-earnings-custom-date-range').slideUp(200);
-							updateEarningsDateRangeFromPreset(preset);
-						}
-					});
-
-					$('#wc-tp-earnings-filter-btn').on('click', function() {
-						loadEarningsData();
-					});
-
-					$('#wc-tp-earnings-search').on('keypress', function(e) {
-						if (e.which === 13) {
-							loadEarningsData();
-						}
-					});
-
 					function getDateRangeFromPreset(preset) {
 						const today = new Date();
 						const year = today.getFullYear();
@@ -1901,373 +1769,6 @@ class WC_Team_Payroll_Employee_Detail {
 
 					function formatCurrency(value) {
 						return '<?php echo get_woocommerce_currency_symbol(); ?>' + parseFloat(value).toFixed(2);
-					}
-				}
-
-				// ============================================================================
-				// EARNINGS TAB
-				// ============================================================================
-				if ($('.wc-tp-earnings-tab').length) {
-					let earningsCurrentPage = 1;
-					let earningsItemsPerPage = 10;
-					let earningsCurrentSortColumn = 'date';
-					let earningsCurrentSortDirection = 'desc';
-					let earningsCurrentStartDate = '';
-					let earningsCurrentEndDate = '';
-					let allEarnings = [];
-
-					// Define all functions first
-					function updateEarningsDateRangeFromPreset(preset) {
-						const range = getDateRangeFromPreset(preset);
-						earningsCurrentStartDate = range.start;
-						earningsCurrentEndDate = range.end;
-						$('#wc-tp-earnings-start-date').val(range.start);
-						$('#wc-tp-earnings-end-date').val(range.end);
-					}
-
-					function loadEarningsData() {
-						const preset = $('#wc-tp-earnings-date-preset').val();
-						
-						if (preset === 'custom') {
-							earningsCurrentStartDate = $('#wc-tp-earnings-start-date').val();
-							earningsCurrentEndDate = $('#wc-tp-earnings-end-date').val();
-						}
-
-						const search = $('#wc-tp-earnings-search').val();
-
-						if (!earningsCurrentStartDate || !earningsCurrentEndDate) {
-							console.log('Missing date range:', earningsCurrentStartDate, earningsCurrentEndDate);
-							return;
-						}
-
-						earningsCurrentPage = 1;
-						$('#wc-tp-earnings-filter-btn').prop('disabled', true).text('Loading...');
-
-						$.ajax({
-							url: ajaxurl,
-							type: 'POST',
-							data: {
-								action: 'wc_tp_get_employee_orders',
-								user_id: userId,
-								start_date: earningsCurrentStartDate,
-								end_date: earningsCurrentEndDate,
-								search: search,
-								nonce: nonce
-							},
-							success: function(response) {
-								if (response.success) {
-									let orders = response.data.orders;
-									console.log('Loaded orders:', orders);
-									
-									// Apply payment status filter on frontend
-									const paymentStatus = $('#wc-tp-earnings-status-filter').val();
-									if (paymentStatus) {
-										orders = filterByPaymentStatus(orders, paymentStatus);
-									}
-									
-									allEarnings = orders;
-									renderEarningsTable(allEarnings);
-								} else {
-									console.log('AJAX error:', response);
-									$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>Failed to load earnings</p></div>');
-								}
-							},
-							error: function(xhr, status, error) {
-								console.log('AJAX error:', error, xhr);
-								$('#wc-tp-earnings-table-container').html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">❌</div><p>Error loading earnings</p></div>');
-							},
-							complete: function() {
-								$('#wc-tp-earnings-filter-btn').prop('disabled', false).text('Filter');
-							}
-						});
-					}
-
-					function filterByPaymentStatus(orders, paymentStatus) {
-						const totalPaid = window.wc_tp_employee_total_paid || 0;
-						const periodCount = orders.length > 0 ? orders.length : 1;
-						const paidPerOrder = periodCount > 0 ? totalPaid / periodCount : 0;
-						
-						return orders.filter(order => {
-							const earned = parseFloat(order.user_earnings || 0);
-							const status = calculatePaymentStatus(earned, paidPerOrder);
-							return status === paymentStatus;
-						});
-					}
-
-					// Initialize with default date range
-					updateEarningsDateRangeFromPreset('this-month');
-					
-					// Load earnings data on page load
-					setTimeout(function() {
-						console.log('Loading earnings data...');
-						loadEarningsData();
-					}, 100);
-
-					// Aggregation helper functions
-					function aggregateEarningsByPeriod(orders, viewPer) {
-						const aggregated = {};
-						
-						orders.forEach(order => {
-							const orderDate = new Date(order.date);
-							let periodKey;
-							let displayLabel;
-							
-							switch(viewPer) {
-								case 'day':
-									periodKey = formatDateKey(orderDate, 'YYYY-MM-DD');
-									displayLabel = formatDateDisplay(orderDate, 'MMM DD, YYYY');
-									break;
-								case 'week':
-									const weekInfo = getWeekInfo(orderDate);
-									periodKey = weekInfo.key;
-									displayLabel = weekInfo.label;
-									break;
-								case 'month':
-									periodKey = formatDateKey(orderDate, 'YYYY-MM');
-									displayLabel = formatDateDisplay(orderDate, 'MMMM YYYY');
-									break;
-								case 'year':
-									periodKey = formatDateKey(orderDate, 'YYYY');
-									displayLabel = formatDateDisplay(orderDate, 'YYYY');
-									break;
-								default:
-									periodKey = formatDateKey(orderDate, 'YYYY-MM');
-									displayLabel = formatDateDisplay(orderDate, 'MMMM YYYY');
-							}
-							
-							if (!aggregated[periodKey]) {
-								aggregated[periodKey] = {
-									periodKey: periodKey,
-									displayLabel: displayLabel,
-									orders: 0,
-									totalEarned: 0,
-									orderIds: []
-								};
-							}
-							
-							// Count each order entry (including duplicates from different flags)
-							aggregated[periodKey].orders += 1;
-							aggregated[periodKey].totalEarned += parseFloat(order.user_earnings || 0);
-							aggregated[periodKey].orderIds.push(order.order_id);
-						});
-						
-						return Object.values(aggregated);
-					}
-
-					function formatDateKey(date, format) {
-						const year = date.getFullYear();
-						const month = String(date.getMonth() + 1).padStart(2, '0');
-						const day = String(date.getDate()).padStart(2, '0');
-						
-						if (format === 'YYYY-MM-DD') {
-							return `${year}-${month}-${day}`;
-						} else if (format === 'YYYY-MM') {
-							return `${year}-${month}`;
-						} else if (format === 'YYYY') {
-							return `${year}`;
-						}
-						return `${year}-${month}-${day}`;
-					}
-
-					function formatDateDisplay(date, format) {
-						const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-						const year = date.getFullYear();
-						const month = months[date.getMonth()];
-						const day = date.getDate();
-						
-						if (format === 'MMM DD, YYYY') {
-							const shortMonth = month.substring(0, 3);
-							return `${shortMonth} ${day}, ${year}`;
-						} else if (format === 'MMMM YYYY') {
-							return `${month} ${year}`;
-						} else if (format === 'YYYY') {
-							return `${year}`;
-						}
-						return `${month} ${day}, ${year}`;
-					}
-
-					function getWeekInfo(date) {
-						const year = date.getFullYear();
-						const firstDay = new Date(year, 0, 1);
-						const pastDaysOfYear = (date - firstDay) / 86400000;
-						const week = Math.ceil((pastDaysOfYear + firstDay.getDay() + 1) / 7);
-						
-						// Get week start and end dates
-						const weekStart = new Date(date);
-						weekStart.setDate(date.getDate() - date.getDay());
-						const weekEnd = new Date(weekStart);
-						weekEnd.setDate(weekStart.getDate() + 6);
-						
-						const startMonth = (weekStart.getMonth() + 1).toString().padStart(2, '0');
-						const startDay = weekStart.getDate().toString().padStart(2, '0');
-						const endMonth = (weekEnd.getMonth() + 1).toString().padStart(2, '0');
-						const endDay = weekEnd.getDate().toString().padStart(2, '0');
-						
-						return {
-							key: `${year}-W${week}`,
-							label: `Week ${week} (${startMonth}/${startDay} - ${endMonth}/${endDay}, ${year})`
-						};
-					}
-
-					function calculatePaymentStatus(totalEarned, paid) {
-						if (paid >= totalEarned) {
-							return 'paid';
-						} else if (paid > 0 && paid < totalEarned) {
-							return 'partial_paid';
-						} else {
-							return 'pending';
-						}
-					}
-
-					function formatStatusLabel(status) {
-						if (status === 'partial_paid') {
-							return 'Partial Paid';
-						} else if (status === 'paid') {
-							return 'Paid';
-						} else {
-							return 'Pending';
-						}
-					}
-
-					function getTotalPaidForEmployee(userId) {
-						// This will be fetched from the employee data
-						// For now, return 0 - we'll need to pass this from PHP
-						return window.wc_tp_employee_total_paid || 0;
-					}
-
-					function renderEarningsTable(orders) {
-						const container = $('#wc-tp-earnings-table-container');
-						const viewPer = $('#wc-tp-earnings-view-per').val() || 'month';
-						
-						if (!orders || orders.length === 0) {
-							container.html('<div class="wc-tp-empty-state"><div class="wc-tp-empty-icon">💰</div><p>No earnings found</p></div>');
-							return;
-						}
-
-						// Aggregate earnings by period
-						let aggregatedData = aggregateEarningsByPeriod(orders, viewPer);
-						
-						// Sort by period key
-						aggregatedData.sort((a, b) => a.periodKey.localeCompare(b.periodKey));
-
-						// Calculate pagination
-						const totalPages = Math.ceil(aggregatedData.length / earningsItemsPerPage);
-						const startIndex = (earningsCurrentPage - 1) * earningsItemsPerPage;
-						const endIndex = startIndex + earningsItemsPerPage;
-						const paginatedData = aggregatedData.slice(startIndex, endIndex);
-
-						let html = '<table class="wc-tp-data-table"><thead><tr>';
-						html += '<th class="wc-tp-sortable-header" data-column="earning_time">';
-						html += 'Earning Time' + getEarningsSortIcon('earning_time');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="orders">';
-						html += 'Orders' + getEarningsSortIcon('orders');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="total_earned">';
-						html += 'Total Earned' + getEarningsSortIcon('total_earned');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="paid">';
-						html += 'Paid' + getEarningsSortIcon('paid');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="due">';
-						html += 'Due' + getEarningsSortIcon('due');
-						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="status">';
-						html += 'Status' + getEarningsSortIcon('status');
-						html += '</th>';
-						html += '</tr></thead><tbody>';
-
-						paginatedData.forEach(period => {
-							// Calculate paid and due for this period
-							const totalPaid = getTotalPaidForEmployee(userId);
-							const periodCount = aggregatedData.length;
-							const paidPerPeriod = periodCount > 0 ? totalPaid / periodCount : 0;
-							const due = period.totalEarned - paidPerPeriod;
-							const status = calculatePaymentStatus(period.totalEarned, paidPerPeriod);
-							const statusClass = 'wc-tp-status-' + status;
-							
-							html += '<tr>';
-							html += '<td>' + period.displayLabel + '</td>';
-							html += '<td><strong>' + period.orders + '</strong></td>';
-							html += '<td>' + formatCurrency(period.totalEarned) + '</td>';
-							html += '<td>' + formatCurrency(paidPerPeriod) + '</td>';
-							html += '<td>' + formatCurrency(due) + '</td>';
-							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + formatStatusLabel(status) + '</span></td>';
-							html += '</tr>';
-						});
-
-						html += '</tbody></table>';
-
-						// Add pagination
-						if (totalPages > 1) {
-							html += '<div class="wc-tp-pagination">';
-							html += '<div class="wc-tp-pagination-info">Page ' + earningsCurrentPage + ' of ' + totalPages + '</div>';
-							html += '<div class="wc-tp-pagination-controls">';
-							
-							if (earningsCurrentPage > 1) {
-								html += '<button class="wc-tp-pagination-btn" data-page="' + (earningsCurrentPage - 1) + '">Previous</button>';
-							}
-							
-							for (let i = 1; i <= totalPages; i++) {
-								if (i === earningsCurrentPage) {
-									html += '<button class="wc-tp-pagination-btn active">' + i + '</button>';
-								} else if (i === 1 || i === totalPages || (i >= earningsCurrentPage - 2 && i <= earningsCurrentPage + 2)) {
-									html += '<button class="wc-tp-pagination-btn" data-page="' + i + '">' + i + '</button>';
-								} else if (i === earningsCurrentPage - 3 || i === earningsCurrentPage + 3) {
-									html += '<span class="wc-tp-pagination-ellipsis">...</span>';
-								}
-							}
-							
-							if (earningsCurrentPage < totalPages) {
-								html += '<button class="wc-tp-pagination-btn" data-page="' + (earningsCurrentPage + 1) + '">Next</button>';
-							}
-							
-							html += '</div></div>';
-						}
-
-						container.html(html);
-
-						// Attach event handlers
-						container.find('.wc-tp-sortable-header').on('click', function() {
-							const column = $(this).data('column');
-							if (earningsCurrentSortColumn === column) {
-								earningsCurrentSortDirection = earningsCurrentSortDirection === 'asc' ? 'desc' : 'asc';
-							} else {
-								earningsCurrentSortColumn = column;
-								earningsCurrentSortDirection = 'asc';
-							}
-							renderEarningsTable(allEarnings);
-						});
-
-						container.find('.wc-tp-pagination-btn[data-page]').on('click', function() {
-							earningsCurrentPage = parseInt($(this).data('page'));
-							renderEarningsTable(allEarnings);
-						});
-
-						// Per page change
-						$('#wc-tp-earnings-per-page').on('change', function() {
-							earningsItemsPerPage = parseInt($(this).val());
-							earningsCurrentPage = 1;
-							renderEarningsTable(allEarnings);
-						});
-
-						// View as per change
-						$('#wc-tp-earnings-view-per').on('change', function() {
-							const viewPer = $(this).val();
-							// Store the view preference
-							localStorage.setItem('wc_tp_earnings_view_per', viewPer);
-							// Re-render table with new grouping
-							renderEarningsTable(allEarnings);
-						});
-					}
-
-					function getEarningsSortIcon(column) {
-						if (earningsCurrentSortColumn !== column) {
-							return '';
-						}
-						
-						const icon = earningsCurrentSortDirection === 'asc' ? 'arrow-up' : 'arrow-down';
-						return ' <span class="dashicons dashicons-' + icon + '" style="font-size: 14px; margin-left: 4px;"></span>';
 					}
 				}
 
@@ -3189,7 +2690,40 @@ class WC_Team_Payroll_Employee_Detail {
 					let salaryPerPage = 10;
 					let allSalaryHistory = [];
 
+					// Store original values for change detection
+					let originalSalaryType = $('#wc-tp-salary-type').val();
+					let originalSalaryAmount = $('#wc-tp-salary-amount').val();
+					let originalSalaryFrequency = $('#wc-tp-salary-frequency').val();
+
 					loadSalaryHistory();
+
+					// Function to check if form has changes
+					function hasFormChanged() {
+						const currentType = $('#wc-tp-salary-type').val();
+						const currentAmount = $('#wc-tp-salary-amount').val();
+						const currentFrequency = $('#wc-tp-salary-frequency').val();
+
+						return (
+							currentType !== originalSalaryType ||
+							currentAmount !== originalSalaryAmount ||
+							currentFrequency !== originalSalaryFrequency
+						);
+					}
+
+					// Function to update button state
+					function updateButtonState() {
+						const $button = $('#wc-tp-salary-form button[type="submit"]');
+						const hasChanged = hasFormChanged();
+
+						if (hasChanged) {
+							$button.prop('disabled', false).removeClass('wc-tp-button-disabled');
+						} else {
+							$button.prop('disabled', true).addClass('wc-tp-button-disabled');
+						}
+					}
+
+					// Initialize button state
+					updateButtonState();
 
 					// Salary History Screen Options
 					$('#wc-tp-salary-history-per-page').on('change', function() {
@@ -3209,6 +2743,19 @@ class WC_Team_Payroll_Employee_Detail {
 							$('.wc-tp-salary-amount-group, .wc-tp-salary-frequency-group').slideDown(200);
 							$('#wc-tp-salary-amount').val('');
 						}
+
+						// Update button state on type change
+						updateButtonState();
+					});
+
+					// Update button state on amount change
+					$('#wc-tp-salary-amount').on('change input', function() {
+						updateButtonState();
+					});
+
+					// Update button state on frequency change
+					$('#wc-tp-salary-frequency').on('change', function() {
+						updateButtonState();
 					});
 
 					// Salary Form Submit
@@ -3238,6 +2785,15 @@ class WC_Team_Payroll_Employee_Detail {
 							success: function(response) {
 								if (response.success) {
 									wcTPToast('Salary updated successfully');
+									
+									// Update original values after successful save
+									originalSalaryType = salaryType;
+									originalSalaryAmount = salaryAmount;
+									originalSalaryFrequency = salaryFrequency;
+									
+									// Reset button state
+									updateButtonState();
+									
 									loadSalaryHistory();
 								} else {
 									wcTPToast('Failed to update salary: ' + response.data, 'error');

@@ -1,25 +1,28 @@
 # Changelog
 
-## [1.0.38] - 2026-04-13
-### Employee Earnings Tab & Aggregation System
-- **New Earnings Tab**: Added to employee details page in admin
-- **Aggregation by Period**: View earnings aggregated by Day, Week, Month, or Year
-- **Date Formatting**: 
-  - Day: "Apr 11, 2026"
-  - Week: "Week 15 (04/08 - 04/14, 2026)"
-  - Month: "April 2026"
-  - Year: "2026"
-- **Order Counting**: Counts each order entry including duplicates from different flags (same as Orders tab)
-- **Earnings Columns**: Earning Time, Orders, Total Earned, Paid, Due, Status
-- **Payment Status Filter**: All Statuses, Paid, Partial Paid, Pending
-- **Payment Distribution**: Distributes total paid equally across all periods
-- **Status Calculation**: 
-  - Paid: paid >= total earned
-  - Partial Paid: 0 < paid < total earned
-  - Pending: paid = 0
-- **View as Per Dropdown**: Day, Week, Month (default), Year
-- **Filtering**: Date range, payment status, and search all working together
-- **Frontend Payment Status Filtering**: Applied after AJAX data load for accurate calculations
+## [1.0.38] - 2026-04-14
+### Automatic Salary Addition System (Major Feature)
+- **NEW**: Automatic base salary addition for fixed and combined salary types
+- **NEW**: Daily salary accumulation system with cron jobs (11:50 PM - 11:59 PM)
+- **NEW**: Support for daily, weekly, and monthly salary frequencies
+- **NEW**: Automatic period-end transfers (week/month end)
+- **NEW**: Mid-period salary change handling without gaps or overlaps
+- **NEW**: Salary automation class (`class-salary-automation.php`)
+- **NEW**: Salary display helper class (`class-salary-display-helper.php`)
+- **ENHANCED**: `get_user_total_earnings()` now includes commission + base salary
+- **ENHANCED**: Added `get_user_commission_earnings()` for commission-only earnings
+- **OPTIMIZED**: Batch processing for 50 employees per minute (500 total per night)
+- **OPTIMIZED**: Direct SQL queries instead of looping through `get_users()`
+- **OPTIMIZED**: Database indexes for faster meta queries
+- **OPTIMIZED**: Removed expensive `recalculate_user_commissions()` on salary change
+- **FEATURE**: Earnings breakdown display (commission + salary + pending)
+- **FEATURE**: Salary transaction log for audit trail
+- **FEATURE**: Pending accumulation display with next transfer date
+- **FEATURE**: Support for 5,000+ employees without timeouts
+- **FEATURE**: Auto-detect week start day from WordPress settings
+- **FEATURE**: Auto-detect days in month (28/29/30/31)
+- **FEATURE**: Use user_registered as employee join date
+- **DOCUMENTATION**: Complete system documentation and implementation guide
 
 ## [1.0.37] - 2026-04-13
 ### Pagination & Salary History Improvements

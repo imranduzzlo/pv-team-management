@@ -700,11 +700,6 @@
 
 .no-results-message {
 	color: #6c757d;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 40px 20px;
 	text-align: center;
 }
 
@@ -1317,4 +1312,39 @@
 	.woocommerce-table--orders td {
 		padding: 8px;
 	}
+}
+
+
+/* ============================================================================
+   BUTTON DISABLED STATE - SALARY FORM
+   ============================================================================ */
+
+.wc-tp-button-disabled {
+	opacity: 0.5 !important;
+	cursor: not-allowed !important;
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+	pointer-events: none !important;
+}
+
+.wc-tp-button-disabled:hover {
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+}
+
+button[type="submit"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+	pointer-events: none;
+}
+
+button[type="submit"]:disabled:hover {
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
 }

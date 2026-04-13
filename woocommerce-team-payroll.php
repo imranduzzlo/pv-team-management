@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.0.38' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.0.37' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -37,6 +37,18 @@ register_activation_hook( __FILE__, function() {
 	
 	// Flush rewrite rules
 	flush_rewrite_rules();
+
+	// Create database indexes for optimization
+	global $wpdb;
+	
+	// Index for salary type queries
+	$wpdb->query( "
+		CREATE INDEX IF NOT EXISTS idx_wc_tp_salary_meta 
+		ON {$wpdb->usermeta} (meta_key, user_id) 
+	" );
+
+	// Set flag for successful activation
+	update_option( 'wc_tp_salary_system_activated', time() );
 } );
 
 // Also flush on deactivation to clean up
@@ -131,6 +143,8 @@ add_action( 'plugins_loaded', function() {
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-custom-fields.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-myaccount-new.php';
 	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-github-updater.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-automation.php';
+	require_once WC_TEAM_PAYROLL_PATH . 'includes/class-salary-display-helper.php';
 
 	// Initialize custom fields (creates meta fields)
 	new WC_Team_Payroll_Custom_Fields();
@@ -143,6 +157,9 @@ add_action( 'plugins_loaded', function() {
 
 	// Initialize My Account integration
 	WC_Team_Payroll_MyAccount_New::init();
+
+	// Initialize Salary Automation System
+	WC_Team_Payroll_Salary_Automation::init();
 
 	// Add AJAX handlers for My Account
 	add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( 'WC_Team_Payroll_MyAccount_New', 'ajax_get_orders' ) );

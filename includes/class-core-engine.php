@@ -331,8 +331,25 @@ class WC_Team_Payroll_Core_Engine {
 
 	/**
 	 * Get total earnings for a user (all time)
+	 * Includes commission + base salary (if applicable)
 	 */
 	public function get_user_total_earnings( $user_id ) {
+		// Get commission earnings from orders
+		$commission_earnings = $this->get_user_commission_earnings( $user_id );
+
+		// Get base salary earnings (from automatic salary system)
+		$salary_earnings = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
+		if ( ! $salary_earnings ) {
+			$salary_earnings = 0;
+		}
+
+		return $commission_earnings + $salary_earnings;
+	}
+
+	/**
+	 * Get commission earnings only (no base salary)
+	 */
+	public function get_user_commission_earnings( $user_id ) {
 		$args = array(
 			'limit'  => -1,
 			'status' => array( 'completed', 'processing', 'refunded' ),
