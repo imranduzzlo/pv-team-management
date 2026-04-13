@@ -32,12 +32,14 @@ class WC_Team_Payroll_Salary_Debug {
 	 * Enqueue scripts for debug page
 	 */
 	public static function enqueue_scripts( $hook ) {
-		if ( $hook !== 'wc-team-payroll_page_wc-tp-salary-debug' ) {
+		// Check if we're on the salary debug page
+		if ( strpos( $hook, 'wc-tp-salary-debug' ) === false ) {
 			return;
 		}
 
-		// Enqueue toast notification script
-		wp_enqueue_script( 'wc-tp-toast', WC_TEAM_PAYROLL_URL . 'assets/js/wc-tp-toast.js', array( 'jquery' ), '1.0', true );
+		// Toast script should already be enqueued by main plugin file
+		// Just verify it's loaded
+		wp_enqueue_script( 'wc-team-payroll-toast' );
 	}
 
 	/**
