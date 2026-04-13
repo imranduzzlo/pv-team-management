@@ -47,6 +47,9 @@ register_activation_hook( __FILE__, function() {
 		ON {$wpdb->usermeta} (meta_key, user_id) 
 	" );
 
+	// Reset notice dismissal so it shows again on fresh activation
+	delete_option( 'wc_tp_endpoints_notice_dismissed' );
+
 	// Set flag for successful activation
 	update_option( 'wc_tp_salary_system_activated', time() );
 } );
@@ -80,13 +83,51 @@ add_filter( 'query_vars', function( $vars ) {
 
 // Add admin notice to flush rewrite rules
 add_action( 'admin_notices', function() {
-	if ( ! get_option( 'wc_tp_new_endpoints_flushed' ) ) {
+	if ( ! get_option( 'wc_tp_new_endpoints_flushed' ) && ! get_option( 'wc_tp_endpoints_notice_dismissed' ) ) {
 		?>
-		<div class="notice notice-info is-dismissible">
+		<div class="notice notice-info is-dismissible" id="wc-tp-endpoints-notice">
 			<p><strong>WooCommerce Team Payroll:</strong> New My Account endpoints have been added. Please go to <a href="<?php echo admin_url( 'options-permalink.php' ); ?>">Settings > Permalinks</a> and click "Save Changes" to update your rewrite rules.</p>
 		</div>
+		<script>
+			jQuery(document).ready(function($) {
+				$('#wc-tp-endpoints-notice').on('click', '.notice-dismiss', function(e) {
+					e.preventDefault();
+					
+					// AJAX call to dismiss permanently
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'wc_tp_dismiss_endpoints_notice',
+							nonce: '<?php echo wp_create_nonce( 'wc_tp_dismiss_notice' ); ?>'
+						},
+						success: function(response) {
+							if (response.success) {
+								$('#wc-tp-endpoints-notice').fadeOut(300, function() {
+									$(this).remove();
+								});
+							}
+						}
+					});
+				});
+			});
+		</script>
 		<?php
 	}
+} );
+
+// AJAX handler to dismiss the notice permanently
+add_action( 'wp_ajax_wc_tp_dismiss_endpoints_notice', function() {
+	check_ajax_referer( 'wc_tp_dismiss_notice', 'nonce' );
+	
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+	}
+	
+	// Mark notice as dismissed
+	update_option( 'wc_tp_endpoints_notice_dismissed', 1 );
+	
+	wp_send_json_success( array( 'message' => 'Notice dismissed' ) );
 } );
 
 // Force flush rewrite rules if endpoints are not in the database
