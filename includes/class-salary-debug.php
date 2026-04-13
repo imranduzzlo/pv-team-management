@@ -10,6 +10,14 @@ class WC_Team_Payroll_Salary_Debug {
 	 * Initialize debug helpers
 	 */
 	public static function init() {
+		// Check if salary debug is enabled
+		$settings = get_option( 'wc_team_payroll_settings', array() );
+		$debug_enabled = isset( $settings['enable_salary_debug'] ) ? $settings['enable_salary_debug'] : 0;
+
+		if ( ! $debug_enabled ) {
+			return; // Debug disabled, don't register anything
+		}
+
 		// Add debug page to admin menu
 		add_action( 'admin_menu', array( __CLASS__, 'add_debug_menu' ) );
 		
@@ -21,7 +29,7 @@ class WC_Team_Payroll_Salary_Debug {
 	}
 
 	/**
-	 * Add debug menu to admin
+	 * Add debug menu to admin (as submenu of Team Payroll)
 	 */
 	public static function add_debug_menu() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -29,7 +37,7 @@ class WC_Team_Payroll_Salary_Debug {
 		}
 
 		add_submenu_page(
-			'woocommerce',
+			'wc-team-payroll',
 			'Salary Debug',
 			'Salary Debug',
 			'manage_options',
@@ -81,7 +89,12 @@ class WC_Team_Payroll_Salary_Debug {
 							
 							$label = $employee->display_name . ' (' . $salary_type;
 							if ( $salary_amount ) {
-								$label .= ' - ' . wc_price( $salary_amount ) . '/' . $salary_frequency;
+								// Format price without HTML tags
+								$currency_symbol = get_woocommerce_currency_symbol();
+								$formatted_price = wc_price( $salary_amount, array( 'echo' => false ) );
+								// Strip HTML tags from price
+								$price_text = wp_strip_all_tags( $formatted_price );
+								$label .= ' - ' . $price_text . '/' . $salary_frequency;
 							}
 							$label .= ')';
 							

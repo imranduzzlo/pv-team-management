@@ -420,7 +420,50 @@ class WC_Team_Payroll_Settings {
 
 				<?php if ( $current_tab === 'debug' ) : ?>
 					<h2>Debug Information</h2>
-					<p>Use this section to troubleshoot plugin issues and check GitHub update status.</p>
+					<p>Use this section to troubleshoot plugin issues and manage debug tools.</p>
+					
+					<h3>Salary Management Debug</h3>
+					<table class="form-table">
+						<tr>
+							<th><label for="enable_salary_debug">Enable Salary Debug Tools</label></th>
+							<td>
+								<input type="checkbox" id="enable_salary_debug" name="wc_team_payroll_settings[enable_salary_debug]" value="1" <?php checked( isset( $settings['enable_salary_debug'] ) ? $settings['enable_salary_debug'] : 0, 1 ); ?> />
+								<p class="description">Enable advanced debugging tools for salary accumulation and testing</p>
+								
+								<?php if ( isset( $settings['enable_salary_debug'] ) && $settings['enable_salary_debug'] ) : ?>
+								<div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 4px; padding: 12px; margin-top: 10px;">
+									<strong>✅ Salary Debug Enabled</strong>
+									<p style="margin: 8px 0 0 0; font-size: 13px;">
+										<strong>Access Debug Tools:</strong> Go to <strong>Team Payroll → Salary Debug</strong> in the admin menu
+									</p>
+									<p style="margin: 8px 0 0 0; font-size: 13px;">
+										<strong>How It Works:</strong>
+									</p>
+									<ul style="margin: 5px 0 0 20px; font-size: 13px;">
+										<li><strong>Test Accumulation:</strong> Simulate daily salary accumulation without waiting for cron jobs</li>
+										<li><strong>Get Status:</strong> View current salary configuration, pending accumulation, and earnings</li>
+										<li><strong>Manual Cron:</strong> Trigger salary transfer immediately for testing</li>
+										<li><strong>Reset Data:</strong> Clear all salary data for fresh testing</li>
+									</ul>
+									<p style="margin: 8px 0 0 0; font-size: 13px;">
+										<strong>Testing Scenarios:</strong>
+									</p>
+									<ul style="margin: 5px 0 0 20px; font-size: 13px;">
+										<li><strong>Daily:</strong> 1 click = salary added immediately</li>
+										<li><strong>Weekly:</strong> Clicks accumulate until week end (Saturday by default)</li>
+										<li><strong>Monthly:</strong> Clicks accumulate until month end</li>
+										<li><strong>Partial Periods:</strong> Debug tool calculates remaining days from today</li>
+									</ul>
+								</div>
+								<?php else : ?>
+								<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 10px;">
+									<strong>⚠️ Salary Debug Disabled</strong>
+									<p style="margin: 8px 0 0 0; font-size: 13px;">Enable this option to access advanced salary debugging and testing tools.</p>
+								</div>
+								<?php endif; ?>
+							</td>
+						</tr>
+					</table>
 					
 					<h3>GitHub Update Status</h3>
 					<div id="wc-tp-update-status" style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 15px 0;">
