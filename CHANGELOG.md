@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.39] - 2026-04-14
+### Salary System Enhancements & Debug Tools
+- **NEW**: Salary Debug & Testing Tools for immediate testing without waiting for cron jobs
+- **NEW**: Debug menu in admin (Team Payroll → Salary Debug) with enable/disable toggle
+- **NEW**: Test Salary Accumulation - Simulate one day of accumulation
+- **NEW**: Get Current Status - View complete salary status and pending accumulation
+- **NEW**: Manually Trigger Cron - Force salary processing immediately
+- **NEW**: Reset Employee Demo Salary - Clear test data for fresh testing
+- **ENHANCED**: Weekly period detection now fully dynamic based on WordPress settings
+- **ENHANCED**: Days remaining calculation properly accounts for partial weeks
+- **ENHANCED**: Toast notifications integrated for all debug feedback
+- **ENHANCED**: Non-technical instructions for debug tool usage
+- **FIXED**: My Account CSS now properly applied with specific selectors
+- **FIXED**: Employee dropdown shows formatted prices without HTML tags
+- **CONSOLIDATED**: My Account class consolidation complete (class-myaccount.php)
+- **FEATURE**: Debug tools disabled by default, enable in Settings → Debug tab
+- **FEATURE**: Instructions toggle on/off when checkbox is clicked
+- **DOCUMENTATION**: Complete debug tool guide with testing examples
+
 ## [1.0.38] - 2026-04-14
 ### Automatic Salary Addition System (Major Feature)
 - **NEW**: Automatic base salary addition for fixed and combined salary types
