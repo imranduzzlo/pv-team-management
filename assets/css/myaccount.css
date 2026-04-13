@@ -1,3 +1,8 @@
+/* ============================================================================
+   MY ACCOUNT STYLING - WooCommerce Team Payroll
+   CSS LOADED SUCCESSFULLY - Last Updated: 2026-04-14
+   ============================================================================ */
+
 /* My Account Tabs Styling - CSS LOADED SUCCESSFULLY */
 .woocommerce-MyAccount-navigation ul li a i {
 	margin-right: 8px;
@@ -8,6 +13,10 @@
 }
 
 /* Clean styling without debug borders */
+.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-salary-details,
+.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-earnings,
+.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-orders,
+.woocommerce-account .woocommerce-MyAccount-content .wc-team-payroll-reports,
 .wc-team-payroll-salary-details,
 .wc-team-payroll-earnings,
 .wc-team-payroll-orders,
