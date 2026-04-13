@@ -18,9 +18,6 @@ class WC_Team_Payroll_Salary_Debug {
 			return; // Debug disabled, don't register anything
 		}
 
-		// Add debug page to admin menu
-		add_action( 'admin_menu', array( __CLASS__, 'add_debug_menu' ) );
-		
 		// Enqueue toast notification script
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 		
@@ -41,24 +38,6 @@ class WC_Team_Payroll_Salary_Debug {
 
 		// Enqueue toast notification script
 		wp_enqueue_script( 'wc-tp-toast', WC_TEAM_PAYROLL_URL . 'assets/js/wc-tp-toast.js', array( 'jquery' ), '1.0', true );
-	}
-
-	/**
-	 * Add debug menu to admin (as submenu of Team Payroll)
-	 */
-	public static function add_debug_menu() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		add_submenu_page(
-			'wc-team-payroll',
-			'Salary Debug',
-			'Salary Debug',
-			'manage_options',
-			'wc-tp-salary-debug',
-			array( __CLASS__, 'render_debug_page' )
-		);
 	}
 
 	/**

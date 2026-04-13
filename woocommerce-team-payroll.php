@@ -1687,6 +1687,29 @@ add_action( 'admin_menu', function() {
 		}
 	);
 
+	// Salary Debug submenu (conditionally shown based on settings)
+	$debug_settings = get_option( 'wc_team_payroll_settings', array() );
+	$debug_enabled = isset( $debug_settings['enable_salary_debug'] ) ? $debug_settings['enable_salary_debug'] : 0;
+	
+	if ( $debug_enabled ) {
+		add_submenu_page(
+			'wc-team-payroll',
+			__( 'Salary Debug', 'wc-team-payroll' ),
+			__( 'Salary Debug', 'wc-team-payroll' ),
+			'manage_options',
+			'wc-tp-salary-debug',
+			function() {
+				if ( class_exists( 'WC_Team_Payroll_Salary_Debug' ) ) {
+					WC_Team_Payroll_Salary_Debug::render_debug_page();
+				} else {
+					echo '<div class="wrap"><h1>Salary Debug</h1>';
+					echo '<div class="notice notice-error"><p>Plugin not fully loaded.</p></div>';
+					echo '</div>';
+				}
+			}
+		);
+	}
+
 	// Employee Detail (hidden submenu)
 	add_submenu_page(
 		'wc-team-payroll',
