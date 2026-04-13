@@ -410,6 +410,7 @@ class WC_Team_Payroll_Salary_Debug {
 			$accumulation = get_user_meta( $user_id, '_wc_tp_daily_accumulation', true );
 
 			if ( ! is_array( $accumulation ) ) {
+				// Initialize new accumulation
 				$period_start = date( 'Y-m-01' );
 				$period_end = date( 'Y-m-t' );
 
@@ -452,32 +453,42 @@ class WC_Team_Payroll_Salary_Debug {
 			$days_remaining = 0;
 
 			if ( 'weekly' === $salary_frequency ) {
-				$expected_days = 7;
 				$week_start_day = get_option( 'start_of_week', 0 );
 				$week_end_day = ( $week_start_day + 6 ) % 7;
 				$today_day = date( 'w' );
 				
-				// Calculate days remaining until week end
+				// Calculate days remaining until week end (from today)
 				$days_until_end = ( $week_end_day - $today_day + 7 ) % 7;
 				if ( $days_until_end === 0 ) {
-					$days_until_end = 7; // If today is week end, next is in 7 days
+					// Today is the week end day
+					$days_until_end = 0;
+					$period_end_reached = true;
+				} else {
+					// Days remaining in current week (including today)
+					$days_until_end = $days_until_end + 1;
 				}
-				$days_remaining = $days_until_end;
 				
-				// Only transfer if today is the week end day
-				if ( $today_day == $week_end_day ) {
+				$expected_days = $days_until_end;
+				$days_remaining = $days_until_end - $accumulation['days_accumulated'];
+				
+				// Check if we've accumulated enough days to reach week end
+				if ( $accumulation['days_accumulated'] >= $days_until_end ) {
 					$period_end_reached = true;
 				}
 			} elseif ( 'monthly' === $salary_frequency ) {
-				$expected_days = date( 't' ); // Days in current month
 				$today = date( 'Y-m-d' );
 				$month_end = date( 'Y-m-t' );
+				$days_in_month = (int) date( 't' );
+				$current_day = (int) date( 'd' );
 				
-				// Calculate days remaining until month end
-				$days_remaining = (int) date( 't' ) - (int) date( 'd' );
+				// Days remaining in current month (including today)
+				$days_until_end = $days_in_month - $current_day + 1;
 				
-				// Only transfer if today is the month end day
-				if ( $today === $month_end ) {
+				$expected_days = $days_until_end;
+				$days_remaining = $days_until_end - $accumulation['days_accumulated'];
+				
+				// Check if today is month end or we've accumulated enough days
+				if ( $today === $month_end || $accumulation['days_accumulated'] >= $days_until_end ) {
 					$period_end_reached = true;
 				}
 			}
@@ -526,7 +537,7 @@ class WC_Team_Payroll_Salary_Debug {
 				update_user_meta( $user_id, '_wc_tp_daily_accumulation', $accumulation );
 
 				$result = array(
-					'message' => 'Salary accumulated (test) - ' . $days_remaining . ' more days until period end',
+					'message' => 'Salary accumulated (test) - ' . max( 0, $days_remaining ) . ' more days until period end',
 					'salary_type' => $salary_type,
 					'salary_amount' => $salary_amount,
 					'salary_frequency' => $salary_frequency,
@@ -534,7 +545,7 @@ class WC_Team_Payroll_Salary_Debug {
 					'accumulated_total' => $accumulation['accumulated_total'],
 					'days_accumulated' => $accumulation['days_accumulated'],
 					'expected_days_for_period' => $expected_days,
-					'days_remaining' => $days_remaining,
+					'days_remaining' => max( 0, $days_remaining ),
 					'period_start' => $accumulation['period_start'],
 					'period_end' => $accumulation['period_end'],
 					'action' => 'accumulation',
