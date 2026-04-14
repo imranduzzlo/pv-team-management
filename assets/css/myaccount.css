@@ -1357,3 +1357,558 @@ button[type="submit"]:disabled:hover {
 	border-color: #999 !important;
 	color: #666 !important;
 }
+
+
+/* ============================================================================
+   MODAL STYLING - ORDER DETAILS
+   ============================================================================ */
+
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+
+.modal-content {
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+	max-width: 600px;
+	width: 90%;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+	margin: 0;
+	font-size: 18px;
+	color: #333;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.modal-header h3 i {
+	color: #0073aa;
+	font-size: 20px;
+}
+
+.modal-close {
+	background: transparent;
+	border: none;
+	font-size: 24px;
+	color: #6c757d;
+	cursor: pointer;
+	padding: 0;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+	color: #333;
+}
+
+.modal-body {
+	padding: 20px;
+}
+
+.order-details-content {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.order-header,
+.customer-info {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.order-header h4,
+.customer-info h4 {
+	margin: 0;
+	font-size: 16px;
+	color: #495057;
+	font-weight: 600;
+	border-bottom: 1px solid #e9ecef;
+	padding-bottom: 10px;
+}
+
+.order-basic-info,
+.customer-details {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.info-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+	border-bottom: none;
+}
+
+.info-row .label {
+	font-weight: 600;
+	color: #495057;
+	font-size: 14px;
+}
+
+.info-row .value {
+	color: #333;
+	font-size: 14px;
+}
+
+.info-row .value.amount {
+	font-weight: 600;
+	color: #28a745;
+}
+
+/* ============================================================================
+   LOADING SPINNER - PHOSPHOR ICON ANIMATION
+   ============================================================================ */
+
+.loading-spinner {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 20px;
+	color: #6c757d;
+}
+
+.loading-spinner i {
+	animation: spin 1s linear infinite;
+	font-size: 20px;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* ============================================================================
+   ACTION BUTTONS STYLING
+   ============================================================================ */
+
+.action-buttons {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.page-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px 12px;
+	border: 1px solid #0073aa;
+	background: transparent;
+	color: #0073aa;
+	cursor: pointer;
+	border-radius: 4px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	min-width: 40px;
+	text-align: center;
+	text-decoration: none;
+}
+
+.page-btn i {
+	color: #0073aa;
+	font-size: 16px;
+}
+
+.page-btn:hover {
+	background: rgba(0, 115, 170, 0.1);
+	border-color: #0073aa;
+}
+
+.page-btn.current-page {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+}
+
+.page-btn.current-page i {
+	color: #fff;
+}
+
+.page-btn.prev-btn,
+.page-btn.next-btn {
+	padding: 8px 10px;
+}
+
+/* ============================================================================
+   ROLE BADGE STYLING
+   ============================================================================ */
+
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 6px 12px;
+	border-radius: 15px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.status-badge.status-agent {
+	background: #d1ecf1;
+	color: #0c5460;
+	border: 1px solid #bee5eb;
+}
+
+.status-badge.status-processor {
+	background: #e2e3e5;
+	color: #383d41;
+	border: 1px solid #d6d8db;
+}
+
+.status-badge.status-completed {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.status-badge.status-processing {
+	background: #fff3cd;
+	color: #856404;
+	border: 1px solid #ffeaa7;
+}
+
+.status-badge.status-refunded {
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+}
+
+.status-badge i {
+	font-size: 14px;
+}
+
+/* ============================================================================
+   AMOUNT CELL STYLING
+   ============================================================================ */
+
+.amount-cell {
+	font-weight: 500;
+	color: #333;
+	text-align: right;
+}
+
+.amount-earned {
+	color: #28a745;
+	font-weight: 600;
+}
+
+/* ============================================================================
+   RESPONSIVE MODAL
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.modal-content {
+		width: 95%;
+		max-height: 90vh;
+	}
+	
+	.modal-header {
+		padding: 15px;
+	}
+	
+	.modal-body {
+		padding: 15px;
+	}
+	
+	.info-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+	}
+}
+
+
+/* ============================================================================
+   REPORTS PAGE STYLING
+   ============================================================================ */
+
+.report-tabs {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+	border-bottom: 2px solid #e9ecef;
+	padding-bottom: 0;
+}
+
+.report-tab-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	background: transparent;
+	border: none;
+	border-bottom: 3px solid transparent;
+	color: #6c757d;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	margin-bottom: -2px;
+}
+
+.report-tab-btn i {
+	font-size: 16px;
+}
+
+.report-tab-btn:hover {
+	color: #0073aa;
+	background: rgba(0, 115, 170, 0.05);
+}
+
+.report-tab-btn.active {
+	color: #0073aa;
+	border-bottom-color: #0073aa;
+	background: rgba(0, 115, 170, 0.05);
+}
+
+.report-content {
+	display: none;
+	animation: fadeIn 0.3s ease;
+}
+
+.report-content.active {
+	display: block;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ============================================================================
+   COMMISSION BREAKDOWN STYLING
+   ============================================================================ */
+
+.commission-breakdown-content {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.breakdown-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 20px;
+}
+
+.stat-card {
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 20px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.stat-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.stat-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: #0073aa;
+}
+
+.breakdown-note {
+	background: #e7f3ff;
+	border: 1px solid #b3d9ff;
+	border-radius: 8px;
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #0056b3;
+	font-size: 14px;
+}
+
+.breakdown-note i {
+	color: #0073aa;
+	flex-shrink: 0;
+	font-size: 18px;
+}
+
+/* ============================================================================
+   PERFORMANCE ANALYTICS STYLING
+   ============================================================================ */
+
+.performance-content {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.performance-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 20px;
+}
+
+.perf-card {
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 12px;
+	padding: 25px;
+	text-align: center;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: center;
+}
+
+.perf-card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.perf-icon {
+	width: 50px;
+	height: 50px;
+	background: rgba(0, 115, 170, 0.1);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	color: #0073aa;
+}
+
+.perf-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.perf-value {
+	font-size: 28px;
+	font-weight: 700;
+	color: #333;
+}
+
+/* ============================================================================
+   RESPONSIVE REPORTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.report-tabs {
+		gap: 5px;
+	}
+	
+	.report-tab-btn {
+		padding: 10px 12px;
+		font-size: 12px;
+	}
+	
+	.report-tab-btn i {
+		font-size: 14px;
+	}
+	
+	.breakdown-stats,
+	.performance-stats {
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		gap: 15px;
+	}
+	
+	.stat-card,
+	.perf-card {
+		padding: 15px;
+	}
+	
+	.stat-value,
+	.perf-value {
+		font-size: 20px;
+	}
+	
+	.perf-icon {
+		width: 40px;
+		height: 40px;
+		font-size: 20px;
+	}
+}
+
+@media (max-width: 480px) {
+	.report-tabs {
+		gap: 3px;
+	}
+	
+	.report-tab-btn {
+		padding: 8px 10px;
+		font-size: 11px;
+	}
+	
+	.report-tab-btn i {
+		display: none;
+	}
+	
+	.breakdown-stats,
+	.performance-stats {
+		grid-template-columns: 1fr;
+	}
+	
+	.stat-card,
+	.perf-card {
+		padding: 12px;
+	}
+	
+	.stat-value,
+	.perf-value {
+		font-size: 18px;
+	}
+}
