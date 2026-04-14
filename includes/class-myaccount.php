@@ -525,115 +525,411 @@ class WC_Team_Payroll_MyAccount {
 	public static function my_earnings_content() {
 		$user_id = get_current_user_id();
 		
+		// Get salary information
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary ) {
+			$salary_type = 'fixed';
+		} elseif ( $is_combined_salary ) {
+			$salary_type = 'combined';
+		} else {
+			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
+		}
+		
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
+		
+		// Get actual earnings data
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+		$commission_earnings = $core_engine->get_user_total_earnings( $user_id );
+		$salary_earnings = floatval( get_user_meta( $user_id, '_wc_tp_total_earnings', true ) ) ?: 0;
+		$total_earnings = $commission_earnings + $salary_earnings;
+		
+		// Get pending accumulation
+		$pending_accumulation = get_user_meta( $user_id, '_wc_tp_daily_accumulation', true );
+		$pending_amount = 0;
+		if ( is_array( $pending_accumulation ) && isset( $pending_accumulation['accumulated_total'] ) ) {
+			$pending_amount = $pending_accumulation['accumulated_total'];
+		}
+		
 		// Get current month earnings
 		$current_month_start = date( 'Y-m-01' );
 		$current_month_end = date( 'Y-m-t' );
-		
-		// Get earnings data (you'll need to implement this based on your payroll engine)
 		$current_month_earnings = self::get_user_earnings_for_period( $user_id, $current_month_start, $current_month_end );
-		$total_earnings = self::get_user_total_earnings( $user_id );
-		$total_paid = self::get_user_total_paid( $user_id );
-		$total_due = $total_earnings - $total_paid;
 		
 		// Get monthly history (last 12 months)
 		$monthly_history = self::get_user_monthly_history( $user_id, 12 );
+		
+		// Determine salary type labels
+		$is_fixed = ( $salary_type === 'fixed' );
+		$is_combined = ( $salary_type === 'combined' );
+		$is_commission = ( $salary_type === 'commission' );
 		
 		?>
 		<div class="wc-team-payroll-earnings">
 			<!-- Employee Header -->
 			<?php echo self::get_employee_header( $user_id ); ?>
 
-			<!-- Earnings Summary Cards -->
-			<div class="earnings-summary">
-				<div class="earning-card current-month">
-					<div class="card-header">
-						<i class="ph ph-calendar"></i>
-						<h4><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></h4>
+			<!-- Earnings Information Section (styled like Salary Details) -->
+			<div class="earnings-info-section">
+				<h3><?php esc_html_e( 'Earnings Overview', 'wc-team-payroll' ); ?></h3>
+				<div class="earnings-info-card">
+					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
+							<?php
+							if ( $is_fixed ) {
+								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
+							} elseif ( $is_combined ) {
+								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
+							} else {
+								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
+							}
+							?>
+						</div>
+						
+						<!-- Total Earnings Display in Top Right -->
+						<div style="text-align: right;">
+							<div style="font-size: 24px; font-weight: 700; color: #28a745; margin-bottom: 5px;">
+								<?php echo wp_kses_post( wc_price( $total_earnings ) ); ?>
+							</div>
+							<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
+								<?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?>
+							</div>
+						</div>
 					</div>
-					<p class="amount"><?php echo wp_kses_post( wc_price( $current_month_earnings ) ); ?></p>
-					<p class="label"><?php echo esc_html( date( 'F Y' ) ); ?></p>
-				</div>
-				
-				<div class="earning-card total-earnings">
-					<div class="card-header">
-						<i class="ph ph-chart-line-up"></i>
-						<h4><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></h4>
+					
+					<!-- Earnings Breakdown -->
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+						<!-- Salary Earnings -->
+						<div style="padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #007bff;">
+							<div style="font-size: 12px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+								<?php esc_html_e( 'Base Salary Earnings', 'wc-team-payroll' ); ?>
+							</div>
+							<div style="font-size: 20px; font-weight: 700; color: #007bff;">
+								<?php echo wp_kses_post( wc_price( $salary_earnings ) ); ?>
+							</div>
+							<?php if ( $pending_amount > 0 ) : ?>
+								<div style="font-size: 12px; color: #6c757d; margin-top: 8px;">
+									<?php esc_html_e( 'Pending:', 'wc-team-payroll' ); ?> <?php echo wp_kses_post( wc_price( $pending_amount ) ); ?>
+								</div>
+							<?php endif; ?>
+						</div>
+						
+						<!-- Commission Earnings -->
+						<div style="padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #ffc107;">
+							<div style="font-size: 12px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+								<?php esc_html_e( 'Commission Earnings', 'wc-team-payroll' ); ?>
+							</div>
+							<div style="font-size: 20px; font-weight: 700; color: #ffc107;">
+								<?php echo wp_kses_post( wc_price( $commission_earnings ) ); ?>
+							</div>
+							<div style="font-size: 12px; color: #6c757d; margin-top: 8px;">
+								<?php esc_html_e( 'From orders', 'wc-team-payroll' ); ?>
+							</div>
+						</div>
 					</div>
-					<p class="amount"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
-					<p class="label"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></p>
-				</div>
-				
-				<div class="earning-card total-paid">
-					<div class="card-header">
-						<i class="ph ph-check-circle"></i>
-						<h4><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></h4>
-					</div>
-					<p class="amount paid"><?php echo wp_kses_post( wc_price( $total_paid ) ); ?></p>
-					<p class="label"><?php esc_html_e( 'Received', 'wc-team-payroll' ); ?></p>
-				</div>
-				
-				<div class="earning-card total-due">
-					<div class="card-header">
-						<i class="ph ph-clock"></i>
-						<h4><?php esc_html_e( 'Amount Due', 'wc-team-payroll' ); ?></h4>
-					</div>
-					<p class="amount due"><?php echo wp_kses_post( wc_price( $total_due ) ); ?></p>
-					<p class="label"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></p>
+					
+					<?php if ( $is_combined ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'You earn both a base salary and commission from orders.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php elseif ( $is_commission ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php elseif ( $is_fixed ) : ?>
+						<div class="salary-type-note">
+							<i class="ph ph-info"></i>
+							<span><?php esc_html_e( 'You receive a fixed salary. Commission earnings are shown separately.', 'wc-team-payroll' ); ?></span>
+						</div>
+					<?php endif; ?>
 				</div>
 			</div>
 
 			<!-- Monthly History -->
 			<?php if ( ! empty( $monthly_history ) ) : ?>
 				<div class="earnings-history-section">
-					<h3><i class="fas fa-history"></i> <?php esc_html_e( 'Monthly Earnings History', 'wc-team-payroll' ); ?></h3>
-					<div class="table-container">
-						<table class="woocommerce-table woocommerce-table--earnings">
-							<thead>
-								<tr>
-									<th><?php esc_html_e( 'Month', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Total Earned', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Due', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $monthly_history as $month_data ) : 
-									$due_amount = $month_data['total'] - $month_data['paid'];
-									$status = $due_amount <= 0 ? 'paid' : 'pending';
-								?>
+					<h3><?php esc_html_e( 'Monthly Earnings History', 'wc-team-payroll' ); ?></h3>
+					<div class="table-wrapper">
+						<div class="section-header">
+							<div class="table-controls">
+								<div class="search-control">
+									<input type="text" id="earnings-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
+									<i class="ph ph-magnifying-glass"></i>
+								</div>
+								<div class="per-page-control">
+									<label for="earnings-history-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+									<select id="earnings-history-per-page">
+										<option value="5">5</option>
+										<option value="10" selected>10</option>
+										<option value="25">25</option>
+										<option value="50">50</option>
+									</select>
+									<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+								</div>
+							</div>
+						</div>
+						
+						<div class="table-container">
+							<table class="woocommerce-table woocommerce-table--earnings-history" id="earnings-history-table">
+								<thead>
 									<tr>
-										<td>
-											<span class="month-name"><?php echo esc_html( date( 'F Y', strtotime( $month_data['date'] . '-01' ) ) ); ?></span>
-										</td>
-										<td>
-											<span class="orders-count"><?php echo esc_html( $month_data['orders_count'] ?? 0 ); ?></span>
-										</td>
-										<td>
-											<span class="amount-earned"><?php echo wp_kses_post( wc_price( $month_data['total'] ) ); ?></span>
-										</td>
-										<td>
-											<span class="amount-paid"><?php echo wp_kses_post( wc_price( $month_data['paid'] ) ); ?></span>
-										</td>
-										<td>
-											<span class="amount-due"><?php echo wp_kses_post( wc_price( $due_amount ) ); ?></span>
-										</td>
-										<td>
-											<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
-												<?php if ( $status === 'paid' ) : ?>
-													<i class="ph ph-check-circle"></i> <?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
-												<?php else : ?>
-													<i class="ph ph-clock"></i> <?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>
-												<?php endif; ?>
-											</span>
-										</td>
+										<th class="sortable" data-sort="month">
+											<?php esc_html_e( 'Month', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="salary">
+											<?php esc_html_e( 'Salary', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="commission">
+											<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="total">
+											<?php esc_html_e( 'Total Earned', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
+										<th class="sortable" data-sort="orders">
+											<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
+											<i class="ph ph-caret-up-down sort-icon"></i>
+										</th>
 									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
+								</thead>
+								<tbody id="earnings-history-tbody">
+									<?php foreach ( $monthly_history as $index => $month_data ) : 
+										$month_date = date( 'F Y', strtotime( $month_data['date'] . '-01' ) );
+										$salary_for_month = isset( $month_data['salary'] ) ? floatval( $month_data['salary'] ) : 0;
+										$commission_for_month = isset( $month_data['commission'] ) ? floatval( $month_data['commission'] ) : 0;
+										$total_for_month = isset( $month_data['total'] ) ? floatval( $month_data['total'] ) : 0;
+										$orders_count = isset( $month_data['orders_count'] ) ? intval( $month_data['orders_count'] ) : 0;
+									?>
+										<tr data-index="<?php echo esc_attr( $index ); ?>">
+											<td data-sort-value="<?php echo esc_attr( strtotime( $month_data['date'] . '-01' ) ); ?>">
+												<span class="month-name"><?php echo esc_html( $month_date ); ?></span>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $salary_for_month ); ?>">
+												<span class="amount-salary"><?php echo wp_kses_post( wc_price( $salary_for_month ) ); ?></span>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $commission_for_month ); ?>">
+												<span class="amount-commission"><?php echo wp_kses_post( wc_price( $commission_for_month ) ); ?></span>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $total_for_month ); ?>">
+												<span class="amount-total" style="font-weight: 700; color: #28a745;"><?php echo wp_kses_post( wc_price( $total_for_month ) ); ?></span>
+											</td>
+											<td data-sort-value="<?php echo esc_attr( $orders_count ); ?>">
+												<span class="orders-count"><?php echo esc_html( $orders_count ); ?></span>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					
+					<!-- Pagination -->
+					<div class="pagination-container" id="earnings-history-pagination">
+						<!-- Pagination will be inserted here by JavaScript -->
 					</div>
 				</div>
+				
+				<script>
+					jQuery(document).ready(function($) {
+						// Earnings History Table Management
+						let currentPage = 1;
+						let perPage = 10;
+						let currentSort = { column: 'month', direction: 'desc' };
+						let searchTerm = '';
+						let allRows = [];
+						
+						// Initialize table
+						function initEarningsHistoryTable() {
+							// Store all rows
+							$('#earnings-history-tbody tr').each(function() {
+								allRows.push({
+									element: $(this).clone(),
+									data: {
+										month: $(this).find('td').eq(0).data('sort-value'),
+										salary: $(this).find('td').eq(1).data('sort-value'),
+										commission: $(this).find('td').eq(2).data('sort-value'),
+										total: $(this).find('td').eq(3).data('sort-value'),
+										orders: $(this).find('td').eq(4).data('sort-value'),
+										text: $(this).text().toLowerCase()
+									}
+								});
+							});
+							
+							updateTable();
+						}
+						
+						// Update table display
+						function updateTable() {
+							let filteredRows = allRows.slice();
+							
+							// Apply search filter
+							if (searchTerm) {
+								filteredRows = filteredRows.filter(row => 
+									row.data.text.includes(searchTerm.toLowerCase())
+								);
+							}
+							
+							// Apply sorting
+							filteredRows.sort((a, b) => {
+								let aVal = a.data[currentSort.column];
+								let bVal = b.data[currentSort.column];
+								
+								if (typeof aVal === 'string') {
+									aVal = aVal.toLowerCase();
+									bVal = bVal.toLowerCase();
+								}
+								
+								if (currentSort.direction === 'asc') {
+									return aVal > bVal ? 1 : -1;
+								} else {
+									return aVal < bVal ? 1 : -1;
+								}
+							});
+							
+							// Calculate pagination
+							const totalRows = filteredRows.length;
+							const totalPages = Math.ceil(totalRows / perPage);
+							const startIndex = (currentPage - 1) * perPage;
+							const endIndex = startIndex + perPage;
+							const pageRows = filteredRows.slice(startIndex, endIndex);
+							
+							// Update table body
+							const tbody = $('#earnings-history-tbody');
+							tbody.empty();
+							
+							if (pageRows.length === 0) {
+								tbody.append(`
+									<tr>
+										<td colspan="5" class="no-results">
+											<div class="no-results-message">
+												<i class="ph ph-magnifying-glass"></i>
+												<p><?php esc_html_e( 'No earnings history found matching your search.', 'wc-team-payroll' ); ?></p>
+											</div>
+										</td>
+									</tr>
+								`);
+							} else {
+								pageRows.forEach(row => {
+									tbody.append(row.element);
+								});
+							}
+							
+							// Update pagination
+							updatePagination(totalPages, totalRows, startIndex + 1, Math.min(endIndex, totalRows));
+							
+							// Update sort icons
+							updateSortIcons();
+						}
+						
+						// Update pagination
+						function updatePagination(totalPages, totalRows, start, end) {
+							const container = $('#earnings-history-pagination');
+							
+							if (totalPages <= 1) {
+								container.html('');
+								return;
+							}
+							
+							let paginationHTML = '<div class="pagination-wrapper">';
+							paginationHTML += '<div class="pagination-info">';
+							paginationHTML += `<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> ${start} <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> ${end} <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> ${totalRows} <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>`;
+							paginationHTML += '</div>';
+							paginationHTML += '<div class="pagination-controls">';
+							
+							// Previous button
+							if (currentPage > 1) {
+								paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></a>`;
+							}
+							
+							// Page numbers
+							for (let i = 1; i <= totalPages; i++) {
+								if (i === currentPage) {
+									paginationHTML += `<a href="#" class="page-btn current-page">${i}</a>`;
+								} else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+									paginationHTML += `<a href="#" class="page-btn" data-page="${i}">${i}</a>`;
+								} else if (i === currentPage - 3 || i === currentPage + 3) {
+									paginationHTML += '<span class="page-ellipsis">...</span>';
+								}
+							}
+							
+							// Next button
+							if (currentPage < totalPages) {
+								paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></a>`;
+							}
+							
+							paginationHTML += '</div></div>';
+							container.html(paginationHTML);
+						}
+						
+						// Update sort icons
+						function updateSortIcons() {
+							$('.sortable .sort-icon').removeClass('ph-caret-up ph-caret-down').addClass('ph-caret-up-down');
+							$(`.sortable[data-sort="${currentSort.column}"] .sort-icon`)
+								.removeClass('ph-caret-up-down')
+								.addClass(currentSort.direction === 'asc' ? 'ph-caret-up' : 'ph-caret-down');
+						}
+						
+						// Event handlers
+						$('.sortable').on('click', function() {
+							const column = $(this).data('sort');
+							if (currentSort.column === column) {
+								currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+							} else {
+								currentSort.column = column;
+								currentSort.direction = 'desc';
+							}
+							currentPage = 1;
+							updateTable();
+						});
+						
+						$('#earnings-history-search').on('input', function() {
+							searchTerm = $(this).val();
+							currentPage = 1;
+							
+							// Toggle search icon
+							var $icon = $(this).siblings('i');
+							if (searchTerm.length > 0) {
+								$icon.removeClass('ph-magnifying-glass').addClass('ph-x');
+							} else {
+								$icon.removeClass('ph-x').addClass('ph-magnifying-glass');
+							}
+							
+							updateTable();
+						});
+						
+						// Clear search on icon click
+						$(document).on('click', '.search-control i.ph-x', function() {
+							$('#earnings-history-search').val('').trigger('input');
+						});
+						
+						$('#earnings-history-per-page').on('change', function() {
+							perPage = parseInt($(this).val());
+							currentPage = 1;
+							updateTable();
+						});
+						
+						$(document).on('click', '.page-btn[data-page]', function(e) {
+							e.preventDefault();
+							currentPage = parseInt($(this).data('page'));
+							updateTable();
+							
+							// Scroll to table header smoothly
+							$('html, body').animate({
+								scrollTop: $('#earnings-history-table').offset().top - 100
+							}, 300);
+						});
+						
+						// Initialize
+						initEarningsHistoryTable();
+					});
+				</script>
 			<?php else : ?>
 				<div class="no-earnings-message">
 					<i class="ph ph-chart-line-up"></i>
