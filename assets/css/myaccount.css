@@ -1021,52 +1021,53 @@
 /* Earnings Summary */
 .earnings-summary {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-	gap: 20px;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 15px;
 	margin-bottom: 40px;
 }
 
 .earning-card {
 	background: #fff;
 	border: 1px solid #e9ecef;
-	border-radius: 12px;
-	padding: 25px;
+	border-left: 4px solid #0073aa;
+	border-radius: 8px;
+	padding: 18px;
 	text-align: center;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .earning-card:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
 
 .earning-card.current-month {
-	border-left: 4px solid #17a2b8;
+	border-left-color: #17a2b8;
 }
 
 .earning-card.total-earnings {
-	border-left: 4px solid #28a745;
+	border-left-color: #28a745;
 }
 
 .earning-card.total-paid {
-	border-left: 4px solid #20c997;
+	border-left-color: #20c997;
 }
 
 .earning-card.total-due {
-	border-left: 4px solid #ffc107;
+	border-left-color: #ffc107;
 }
 
 .card-header {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	margin-bottom: 15px;
+	gap: 6px;
+	margin-bottom: 10px;
 }
 
 .card-header i {
-	font-size: 18px;
+	font-size: 16px;
 }
 
 .earning-card.current-month .card-header i {
@@ -1087,18 +1088,20 @@
 
 .earning-card h4 {
 	margin: 0;
-	font-size: 14px;
+	font-size: 12px;
 	color: #6c757d;
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	letter-spacing: 0.4px;
 	font-weight: 600;
+	line-height: 1.2;
 }
 
 .earning-card .amount {
-	margin: 15px 0 10px 0;
-	font-size: 32px;
+	margin: 10px 0 6px 0;
+	font-size: 24px;
 	font-weight: 700;
 	color: #333;
+	line-height: 1.2;
 }
 
 .earning-card .amount.paid {
@@ -1111,10 +1114,10 @@
 
 .earning-card .label {
 	margin: 0;
-	font-size: 12px;
+	font-size: 11px;
 	color: #999;
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	letter-spacing: 0.3px;
 }
 
 /* Earnings History Section */
@@ -1374,6 +1377,18 @@
 	.woocommerce-table--orders th,
 	.woocommerce-table--orders td {
 		padding: 8px;
+	}
+}
+
+@media (max-width: 1200px) {
+	.earnings-summary {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 768px) {
+	.earnings-summary {
+		grid-template-columns: 1fr;
 	}
 }
 

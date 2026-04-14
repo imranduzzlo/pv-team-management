@@ -682,10 +682,10 @@ class WC_Team_Payroll_MyAccount {
 								const data = response.data;
 								
 								// Update summary cards
-								$('#current-month-earnings').text(data.current_month_earnings);
-								$('#total-earnings').text(data.total_earnings);
-								$('#total-paid').text(data.total_paid);
-								$('#total-due').text(data.total_due);
+								$('#current-month-earnings').html(data.current_month_earnings);
+								$('#total-earnings').html(data.total_earnings);
+								$('#total-paid').html(data.total_paid);
+								$('#total-due').html(data.total_due);
 
 								// Populate table rows
 								allRows = [];
@@ -741,29 +741,28 @@ class WC_Team_Payroll_MyAccount {
 					row.attr('data-sort-due', dueAmount);
 					row.attr('data-sort-status', status);
 
-					row.html(`
-						<td data-sort-value="${month.date}">
-							<span class="month-name">${month.date}</span>
-						</td>
-						<td data-sort-value="${month.orders_count}">
-							<span class="orders-count">${month.orders_count}</span>
-						</td>
-						<td data-sort-value="${month.total}">
-							<span class="amount-earned">${month.total_formatted}</span>
-						</td>
-						<td data-sort-value="${month.paid}">
-							<span class="amount-paid">${month.paid_formatted}</span>
-						</td>
-						<td data-sort-value="${dueAmount}">
-							<span class="amount-due">${month.due_formatted}</span>
-						</td>
-						<td data-sort-value="${status}">
-							<span class="status-badge status-${status}">
-								<i class="ph ${statusIcon}"></i> ${statusLabel}
-							</span>
-						</td>
-					`);
+					// Create cells with proper HTML handling
+					const monthCell = $('<td></td>').attr('data-sort-value', month.date)
+						.append($('<span class="month-name"></span>').text(month.date));
+					
+					const ordersCell = $('<td></td>').attr('data-sort-value', month.orders_count)
+						.append($('<span class="orders-count"></span>').text(month.orders_count));
+					
+					const earnedCell = $('<td></td>').attr('data-sort-value', month.total)
+						.append($('<span class="amount-earned"></span>').html(month.total_formatted));
+					
+					const paidCell = $('<td></td>').attr('data-sort-value', month.paid)
+						.append($('<span class="amount-paid"></span>').html(month.paid_formatted));
+					
+					const dueCell = $('<td></td>').attr('data-sort-value', dueAmount)
+						.append($('<span class="amount-due"></span>').html(month.due_formatted));
+					
+					const statusCell = $('<td></td>').attr('data-sort-value', status)
+						.append($('<span class="status-badge status-' + status + '"></span>')
+							.append($('<i class="ph ' + statusIcon + '"></i>'))
+							.append(' ' + statusLabel));
 
+					row.append(monthCell, ordersCell, earnedCell, paidCell, dueCell, statusCell);
 					return row;
 				}
 
@@ -2099,45 +2098,166 @@ class WC_Team_Payroll_MyAccount {
 		flush_rewrite_rules();
 	}
 	private static function get_user_earnings_for_period( $user_id, $start_date, $end_date ) {
-		// This would integrate with your payroll engine
-		// For now, return sample data
-		return 1250.00;
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing', 'refunded' ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+
+		$orders = wc_get_orders( $args );
+		$total_earnings = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['agent_earnings'];
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['processor_earnings'];
+			}
+		}
+
+		return $total_earnings;
 	}
 
 	/**
 	 * Helper: Get user total earnings
 	 */
 	private static function get_user_total_earnings( $user_id ) {
-		// This would integrate with your payroll engine
-		// For now, return sample data
-		return 15750.00;
+		$args = array(
+			'limit'  => -1,
+			'status' => array( 'completed', 'processing', 'refunded' ),
+		);
+
+		$orders = wc_get_orders( $args );
+		$total_earnings = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['agent_earnings'];
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$total_earnings += $commission_data['processor_earnings'];
+			}
+		}
+
+		return $total_earnings;
 	}
 
 	/**
 	 * Helper: Get user total paid amount
 	 */
 	private static function get_user_total_paid( $user_id ) {
-		// This would integrate with your payroll engine
-		// For now, return sample data
-		return 12500.00;
+		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			return 0;
+		}
+
+		$total_paid = 0;
+		foreach ( $payments as $payment ) {
+			$total_paid += floatval( $payment['amount'] );
+		}
+
+		return $total_paid;
 	}
 
 	/**
-	 * Helper: Get user monthly history
+	 * Helper: Get user monthly history with real data
 	 */
 	private static function get_user_monthly_history( $user_id, $months = 12 ) {
-		// This would integrate with your payroll engine
-		// For now, return sample data
 		$history = array();
+
 		for ( $i = 0; $i < $months; $i++ ) {
 			$date = date( 'Y-m', strtotime( "-{$i} months" ) );
-			$history[] = array(
-				'date' => $date,
-				'total' => rand( 800, 2000 ),
-				'paid' => rand( 600, 1800 ),
-				'orders_count' => rand( 5, 25 ),
+			$start_date = $date . '-01';
+			$end_date = date( 'Y-m-t', strtotime( $start_date ) );
+
+			// Get earnings for this month
+			$args = array(
+				'limit'  => -1,
+				'status' => array( 'completed', 'processing', 'refunded' ),
+				'date_query' => array(
+					array(
+						'after'     => $start_date,
+						'before'    => $end_date,
+						'inclusive' => true,
+					),
+				),
 			);
+
+			$orders = wc_get_orders( $args );
+			$total_earned = 0;
+			$orders_count = 0;
+
+			foreach ( $orders as $order ) {
+				$agent_id = $order->get_meta( '_primary_agent_id' );
+				$processor_id = $order->get_meta( '_processor_user_id' );
+				$commission_data = $order->get_meta( '_commission_data' );
+
+				if ( ! $commission_data ) {
+					continue;
+				}
+
+				if ( intval( $agent_id ) === intval( $user_id ) ) {
+					$total_earned += $commission_data['agent_earnings'];
+					$orders_count++;
+				} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+					$total_earned += $commission_data['processor_earnings'];
+					$orders_count++;
+				}
+			}
+
+			// Get payments for this month
+			$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+			$total_paid = 0;
+
+			if ( is_array( $payments ) ) {
+				$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+				$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+
+				foreach ( $payments as $payment ) {
+					$payment_date_str = $payment['date'];
+					if ( strpos( $payment_date_str, 'T' ) !== false ) {
+						$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+					}
+
+					$payment_timestamp = strtotime( $payment_date_str );
+					if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+						$total_paid += floatval( $payment['amount'] );
+					}
+				}
+			}
+
+			// Only add months with earnings or payments
+			if ( $total_earned > 0 || $total_paid > 0 ) {
+				$history[] = array(
+					'date' => $date,
+					'total' => $total_earned,
+					'paid' => $total_paid,
+					'orders_count' => $orders_count,
+				);
+			}
 		}
+
 		return array_reverse( $history );
 	}
 
@@ -2181,20 +2301,20 @@ class WC_Team_Payroll_MyAccount {
 				'date' => date( 'F Y', strtotime( $month_data['date'] . '-01' ) ),
 				'orders_count' => $month_data['orders_count'],
 				'total' => $month_data['total'],
-				'total_formatted' => wc_price( $month_data['total'] ),
+				'total_formatted' => wp_kses_post( wc_price( $month_data['total'] ) ),
 				'paid' => $month_data['paid'],
-				'paid_formatted' => wc_price( $month_data['paid'] ),
+				'paid_formatted' => wp_kses_post( wc_price( $month_data['paid'] ) ),
 				'due' => $due_amount,
-				'due_formatted' => wc_price( $due_amount ),
+				'due_formatted' => wp_kses_post( wc_price( $due_amount ) ),
 				'status' => $status,
 			);
 		}
 
 		wp_send_json_success( array(
-			'current_month_earnings' => wc_price( $current_month_earnings ),
-			'total_earnings' => wc_price( $total_earnings ),
-			'total_paid' => wc_price( $total_paid ),
-			'total_due' => wc_price( $total_due ),
+			'current_month_earnings' => wp_kses_post( wc_price( $current_month_earnings ) ),
+			'total_earnings' => wp_kses_post( wc_price( $total_earnings ) ),
+			'total_paid' => wp_kses_post( wc_price( $total_paid ) ),
+			'total_due' => wp_kses_post( wc_price( $total_due ) ),
 			'monthly_history' => $formatted_history,
 		) );
 	}
