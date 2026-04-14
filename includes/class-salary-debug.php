@@ -750,16 +750,7 @@ class WC_Team_Payroll_Salary_Debug {
 	}
 
 	/**
-	 * Reset employee salary data (ONLY salary-related data, nothing else)
-	 * This function ONLY deletes:
-	 * - _wc_tp_daily_accumulation (pending salary accumulation)
-	 * - _wc_tp_total_earnings (base salary earnings)
-	 * - _wc_tp_salary_transactions (salary transaction log)
-	 * 
-	 * This function does NOT delete:
-	 * - Styling settings (stored as options, not user meta)
-	 * - Commission earnings
-	 * - Any other user data
+	 * Reset employee salary data
 	 */
 	public static function ajax_reset_employee_salary() {
 		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
@@ -770,8 +761,7 @@ class WC_Team_Payroll_Salary_Debug {
 
 		$user_id = intval( $_POST['user_id'] );
 
-		// Delete ONLY salary-related user meta
-		// These are the ONLY keys that should be deleted
+		// Delete salary data
 		delete_user_meta( $user_id, '_wc_tp_daily_accumulation' );
 		delete_user_meta( $user_id, '_wc_tp_total_earnings' );
 		delete_user_meta( $user_id, '_wc_tp_salary_transactions' );

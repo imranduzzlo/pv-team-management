@@ -36,6 +36,9 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'woocommerce_account_orders-commission_endpoint', array( __CLASS__, 'orders_commission_content' ) );
 		add_action( 'woocommerce_account_reports_endpoint', array( __CLASS__, 'reports_content' ) );
 
+		// AJAX handlers
+		add_action( 'wp_ajax_wc_tp_get_earnings_data', array( __CLASS__, 'ajax_get_earnings_data' ) );
+
 		// Enqueue assets
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
@@ -525,419 +528,404 @@ class WC_Team_Payroll_MyAccount {
 	public static function my_earnings_content() {
 		$user_id = get_current_user_id();
 		
-		// Get salary information
-		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
-		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
-		
-		if ( $is_fixed_salary ) {
-			$salary_type = 'fixed';
-		} elseif ( $is_combined_salary ) {
-			$salary_type = 'combined';
-		} else {
-			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
-		}
-		
-		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0;
-		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
-		
-		// Get actual earnings data
-		$core_engine = new WC_Team_Payroll_Core_Engine();
-		$commission_earnings = $core_engine->get_user_total_earnings( $user_id );
-		$salary_earnings = floatval( get_user_meta( $user_id, '_wc_tp_total_earnings', true ) ) ?: 0;
-		$total_earnings = $commission_earnings + $salary_earnings;
-		
-		// Get pending accumulation
-		$pending_accumulation = get_user_meta( $user_id, '_wc_tp_daily_accumulation', true );
-		$pending_amount = 0;
-		if ( is_array( $pending_accumulation ) && isset( $pending_accumulation['accumulated_total'] ) ) {
-			$pending_amount = $pending_accumulation['accumulated_total'];
-		}
-		
-		// Get current month earnings
-		$current_month_start = date( 'Y-m-01' );
-		$current_month_end = date( 'Y-m-t' );
-		$current_month_earnings = self::get_user_earnings_for_period( $user_id, $current_month_start, $current_month_end );
-		
-		// Get monthly history (last 12 months)
-		$monthly_history = self::get_user_monthly_history( $user_id, 12 );
-		
-		// Determine salary type labels
-		$is_fixed = ( $salary_type === 'fixed' );
-		$is_combined = ( $salary_type === 'combined' );
-		$is_commission = ( $salary_type === 'commission' );
-		
 		?>
 		<div class="wc-team-payroll-earnings">
 			<!-- Employee Header -->
 			<?php echo self::get_employee_header( $user_id ); ?>
 
-			<!-- Earnings Information Section (styled like Salary Details) -->
-			<div class="earnings-info-section">
-				<h3><?php esc_html_e( 'Earnings Overview', 'wc-team-payroll' ); ?></h3>
-				<div class="earnings-info-card">
-					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
-						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
-							<?php
-							if ( $is_fixed ) {
-								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-							} elseif ( $is_combined ) {
-								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
-							} else {
-								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
-							}
-							?>
-						</div>
-						
-						<!-- Total Earnings Display in Top Right -->
-						<div style="text-align: right;">
-							<div style="font-size: 24px; font-weight: 700; color: #28a745; margin-bottom: 5px;">
-								<?php echo wp_kses_post( wc_price( $total_earnings ) ); ?>
-							</div>
-							<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
-								<?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?>
-							</div>
-						</div>
+			<!-- Earnings Summary Cards -->
+			<div class="earnings-summary" id="earnings-summary">
+				<div class="earning-card current-month">
+					<div class="card-header">
+						<i class="ph ph-calendar"></i>
+						<h4><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></h4>
 					</div>
-					
-					<!-- Earnings Breakdown -->
-					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-						<!-- Salary Earnings -->
-						<div style="padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #007bff;">
-							<div style="font-size: 12px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-								<?php esc_html_e( 'Base Salary Earnings', 'wc-team-payroll' ); ?>
-							</div>
-							<div style="font-size: 20px; font-weight: 700; color: #007bff;">
-								<?php echo wp_kses_post( wc_price( $salary_earnings ) ); ?>
-							</div>
-							<?php if ( $pending_amount > 0 ) : ?>
-								<div style="font-size: 12px; color: #6c757d; margin-top: 8px;">
-									<?php esc_html_e( 'Pending:', 'wc-team-payroll' ); ?> <?php echo wp_kses_post( wc_price( $pending_amount ) ); ?>
-								</div>
-							<?php endif; ?>
-						</div>
-						
-						<!-- Commission Earnings -->
-						<div style="padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #ffc107;">
-							<div style="font-size: 12px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-								<?php esc_html_e( 'Commission Earnings', 'wc-team-payroll' ); ?>
-							</div>
-							<div style="font-size: 20px; font-weight: 700; color: #ffc107;">
-								<?php echo wp_kses_post( wc_price( $commission_earnings ) ); ?>
-							</div>
-							<div style="font-size: 12px; color: #6c757d; margin-top: 8px;">
-								<?php esc_html_e( 'From orders', 'wc-team-payroll' ); ?>
-							</div>
-						</div>
+					<p class="amount" id="current-month-earnings">$0.00</p>
+					<p class="label"><?php echo esc_html( date( 'F Y' ) ); ?></p>
+				</div>
+				
+				<div class="earning-card total-earnings">
+					<div class="card-header">
+						<i class="ph ph-chart-line-up"></i>
+						<h4><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></h4>
 					</div>
-					
-					<?php if ( $is_combined ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'You earn both a base salary and commission from orders.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php elseif ( $is_commission ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php elseif ( $is_fixed ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'You receive a fixed salary. Commission earnings are shown separately.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php endif; ?>
+					<p class="amount" id="total-earnings">$0.00</p>
+					<p class="label"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></p>
+				</div>
+				
+				<div class="earning-card total-paid">
+					<div class="card-header">
+						<i class="ph ph-check-circle"></i>
+						<h4><?php esc_html_e( 'Total Paid', 'wc-team-payroll' ); ?></h4>
+					</div>
+					<p class="amount paid" id="total-paid">$0.00</p>
+					<p class="label"><?php esc_html_e( 'Received', 'wc-team-payroll' ); ?></p>
+				</div>
+				
+				<div class="earning-card total-due">
+					<div class="card-header">
+						<i class="ph ph-clock"></i>
+						<h4><?php esc_html_e( 'Amount Due', 'wc-team-payroll' ); ?></h4>
+					</div>
+					<p class="amount due" id="total-due">$0.00</p>
+					<p class="label"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></p>
 				</div>
 			</div>
 
-			<!-- Monthly History -->
-			<?php if ( ! empty( $monthly_history ) ) : ?>
-				<div class="earnings-history-section">
+			<!-- Monthly History Section -->
+			<div class="earnings-history-section">
+				<div class="section-header">
 					<h3><?php esc_html_e( 'Monthly Earnings History', 'wc-team-payroll' ); ?></h3>
-					<div class="table-wrapper">
-						<div class="section-header">
-							<div class="table-controls">
-								<div class="search-control">
-									<input type="text" id="earnings-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
-									<i class="ph ph-magnifying-glass"></i>
-								</div>
-								<div class="per-page-control">
-									<label for="earnings-history-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
-									<select id="earnings-history-per-page">
-										<option value="5">5</option>
-										<option value="10" selected>10</option>
-										<option value="25">25</option>
-										<option value="50">50</option>
-									</select>
-									<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
-								</div>
-							</div>
+					<div class="table-controls">
+						<div class="search-control">
+							<input type="text" id="earnings-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
+							<i class="ph ph-magnifying-glass"></i>
 						</div>
-						
-						<div class="table-container">
-							<table class="woocommerce-table woocommerce-table--earnings-history" id="earnings-history-table">
-								<thead>
-									<tr>
-										<th class="sortable" data-sort="month">
-											<?php esc_html_e( 'Month', 'wc-team-payroll' ); ?>
-											<i class="ph ph-caret-up-down sort-icon"></i>
-										</th>
-										<th class="sortable" data-sort="salary">
-											<?php esc_html_e( 'Salary', 'wc-team-payroll' ); ?>
-											<i class="ph ph-caret-up-down sort-icon"></i>
-										</th>
-										<th class="sortable" data-sort="commission">
-											<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>
-											<i class="ph ph-caret-up-down sort-icon"></i>
-										</th>
-										<th class="sortable" data-sort="total">
-											<?php esc_html_e( 'Total Earned', 'wc-team-payroll' ); ?>
-											<i class="ph ph-caret-up-down sort-icon"></i>
-										</th>
-										<th class="sortable" data-sort="orders">
-											<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
-											<i class="ph ph-caret-up-down sort-icon"></i>
-										</th>
-									</tr>
-								</thead>
-								<tbody id="earnings-history-tbody">
-									<?php foreach ( $monthly_history as $index => $month_data ) : 
-										$month_date = date( 'F Y', strtotime( $month_data['date'] . '-01' ) );
-										$salary_for_month = isset( $month_data['salary'] ) ? floatval( $month_data['salary'] ) : 0;
-										$commission_for_month = isset( $month_data['commission'] ) ? floatval( $month_data['commission'] ) : 0;
-										$total_for_month = isset( $month_data['total'] ) ? floatval( $month_data['total'] ) : 0;
-										$orders_count = isset( $month_data['orders_count'] ) ? intval( $month_data['orders_count'] ) : 0;
-									?>
-										<tr data-index="<?php echo esc_attr( $index ); ?>">
-											<td data-sort-value="<?php echo esc_attr( strtotime( $month_data['date'] . '-01' ) ); ?>">
-												<span class="month-name"><?php echo esc_html( $month_date ); ?></span>
-											</td>
-											<td data-sort-value="<?php echo esc_attr( $salary_for_month ); ?>">
-												<span class="amount-salary"><?php echo wp_kses_post( wc_price( $salary_for_month ) ); ?></span>
-											</td>
-											<td data-sort-value="<?php echo esc_attr( $commission_for_month ); ?>">
-												<span class="amount-commission"><?php echo wp_kses_post( wc_price( $commission_for_month ) ); ?></span>
-											</td>
-											<td data-sort-value="<?php echo esc_attr( $total_for_month ); ?>">
-												<span class="amount-total" style="font-weight: 700; color: #28a745;"><?php echo wp_kses_post( wc_price( $total_for_month ) ); ?></span>
-											</td>
-											<td data-sort-value="<?php echo esc_attr( $orders_count ); ?>">
-												<span class="orders-count"><?php echo esc_html( $orders_count ); ?></span>
-											</td>
-										</tr>
-									<?php endforeach; ?>
-								</tbody>
-							</table>
+						<div class="per-page-control">
+							<label for="earnings-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+							<select id="earnings-per-page">
+								<option value="5">5</option>
+								<option value="10" selected>10</option>
+								<option value="25">25</option>
+								<option value="50">50</option>
+							</select>
+							<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
 						</div>
 					</div>
-					
-					<!-- Pagination -->
-					<div class="pagination-container" id="earnings-history-pagination">
-						<!-- Pagination will be inserted here by JavaScript -->
+				</div>
+
+				<div class="table-wrapper">
+					<div class="table-container">
+						<table class="woocommerce-table woocommerce-table--earnings" id="earnings-table">
+							<thead>
+								<tr>
+									<th class="sortable" data-sort="month">
+										<?php esc_html_e( 'Month', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="orders">
+										<?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="earned">
+										<?php esc_html_e( 'Total Earned', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="paid">
+										<?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="due">
+										<?php esc_html_e( 'Due', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="status">
+										<?php esc_html_e( 'Status', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+								</tr>
+							</thead>
+							<tbody id="earnings-tbody">
+								<tr>
+									<td colspan="6" style="text-align: center; padding: 40px 20px;">
+										<i class="ph ph-spinner" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
+										<p><?php esc_html_e( 'Loading earnings data...', 'wc-team-payroll' ); ?></p>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
-				
-				<script>
-					jQuery(document).ready(function($) {
-						// Earnings History Table Management
-						let currentPage = 1;
-						let perPage = 10;
-						let currentSort = { column: 'month', direction: 'desc' };
-						let searchTerm = '';
-						let allRows = [];
-						
-						// Initialize table
-						function initEarningsHistoryTable() {
-							// Store all rows
-							$('#earnings-history-tbody tr').each(function() {
-								allRows.push({
-									element: $(this).clone(),
-									data: {
-										month: $(this).find('td').eq(0).data('sort-value'),
-										salary: $(this).find('td').eq(1).data('sort-value'),
-										commission: $(this).find('td').eq(2).data('sort-value'),
-										total: $(this).find('td').eq(3).data('sort-value'),
-										orders: $(this).find('td').eq(4).data('sort-value'),
-										text: $(this).text().toLowerCase()
-									}
-								});
-							});
-							
-							updateTable();
-						}
-						
-						// Update table display
-						function updateTable() {
-							let filteredRows = allRows.slice();
-							
-							// Apply search filter
-							if (searchTerm) {
-								filteredRows = filteredRows.filter(row => 
-									row.data.text.includes(searchTerm.toLowerCase())
-								);
-							}
-							
-							// Apply sorting
-							filteredRows.sort((a, b) => {
-								let aVal = a.data[currentSort.column];
-								let bVal = b.data[currentSort.column];
-								
-								if (typeof aVal === 'string') {
-									aVal = aVal.toLowerCase();
-									bVal = bVal.toLowerCase();
-								}
-								
-								if (currentSort.direction === 'asc') {
-									return aVal > bVal ? 1 : -1;
-								} else {
-									return aVal < bVal ? 1 : -1;
-								}
-							});
-							
-							// Calculate pagination
-							const totalRows = filteredRows.length;
-							const totalPages = Math.ceil(totalRows / perPage);
-							const startIndex = (currentPage - 1) * perPage;
-							const endIndex = startIndex + perPage;
-							const pageRows = filteredRows.slice(startIndex, endIndex);
-							
-							// Update table body
-							const tbody = $('#earnings-history-tbody');
-							tbody.empty();
-							
-							if (pageRows.length === 0) {
-								tbody.append(`
-									<tr>
-										<td colspan="5" class="no-results">
-											<div class="no-results-message">
-												<i class="ph ph-magnifying-glass"></i>
-												<p><?php esc_html_e( 'No earnings history found matching your search.', 'wc-team-payroll' ); ?></p>
-											</div>
-										</td>
-									</tr>
-								`);
-							} else {
-								pageRows.forEach(row => {
-									tbody.append(row.element);
-								});
-							}
-							
-							// Update pagination
-							updatePagination(totalPages, totalRows, startIndex + 1, Math.min(endIndex, totalRows));
-							
-							// Update sort icons
-							updateSortIcons();
-						}
-						
-						// Update pagination
-						function updatePagination(totalPages, totalRows, start, end) {
-							const container = $('#earnings-history-pagination');
-							
-							if (totalPages <= 1) {
-								container.html('');
-								return;
-							}
-							
-							let paginationHTML = '<div class="pagination-wrapper">';
-							paginationHTML += '<div class="pagination-info">';
-							paginationHTML += `<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> ${start} <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> ${end} <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> ${totalRows} <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>`;
-							paginationHTML += '</div>';
-							paginationHTML += '<div class="pagination-controls">';
-							
-							// Previous button
-							if (currentPage > 1) {
-								paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></a>`;
-							}
-							
-							// Page numbers
-							for (let i = 1; i <= totalPages; i++) {
-								if (i === currentPage) {
-									paginationHTML += `<a href="#" class="page-btn current-page">${i}</a>`;
-								} else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-									paginationHTML += `<a href="#" class="page-btn" data-page="${i}">${i}</a>`;
-								} else if (i === currentPage - 3 || i === currentPage + 3) {
-									paginationHTML += '<span class="page-ellipsis">...</span>';
-								}
-							}
-							
-							// Next button
-							if (currentPage < totalPages) {
-								paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></a>`;
-							}
-							
-							paginationHTML += '</div></div>';
-							container.html(paginationHTML);
-						}
-						
-						// Update sort icons
-						function updateSortIcons() {
-							$('.sortable .sort-icon').removeClass('ph-caret-up ph-caret-down').addClass('ph-caret-up-down');
-							$(`.sortable[data-sort="${currentSort.column}"] .sort-icon`)
-								.removeClass('ph-caret-up-down')
-								.addClass(currentSort.direction === 'asc' ? 'ph-caret-up' : 'ph-caret-down');
-						}
-						
-						// Event handlers
-						$('.sortable').on('click', function() {
-							const column = $(this).data('sort');
-							if (currentSort.column === column) {
-								currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-							} else {
-								currentSort.column = column;
-								currentSort.direction = 'desc';
-							}
-							currentPage = 1;
-							updateTable();
-						});
-						
-						$('#earnings-history-search').on('input', function() {
-							searchTerm = $(this).val();
-							currentPage = 1;
-							
-							// Toggle search icon
-							var $icon = $(this).siblings('i');
-							if (searchTerm.length > 0) {
-								$icon.removeClass('ph-magnifying-glass').addClass('ph-x');
-							} else {
-								$icon.removeClass('ph-x').addClass('ph-magnifying-glass');
-							}
-							
-							updateTable();
-						});
-						
-						// Clear search on icon click
-						$(document).on('click', '.search-control i.ph-x', function() {
-							$('#earnings-history-search').val('').trigger('input');
-						});
-						
-						$('#earnings-history-per-page').on('change', function() {
-							perPage = parseInt($(this).val());
-							currentPage = 1;
-							updateTable();
-						});
-						
-						$(document).on('click', '.page-btn[data-page]', function(e) {
-							e.preventDefault();
-							currentPage = parseInt($(this).data('page'));
-							updateTable();
-							
-							// Scroll to table header smoothly
-							$('html, body').animate({
-								scrollTop: $('#earnings-history-table').offset().top - 100
-							}, 300);
-						});
-						
-						// Initialize
-						initEarningsHistoryTable();
-					});
-				</script>
-			<?php else : ?>
-				<div class="no-earnings-message">
-					<i class="ph ph-chart-line-up"></i>
-					<h4><?php esc_html_e( 'No Earnings Yet', 'wc-team-payroll' ); ?></h4>
-					<p><?php esc_html_e( 'Start processing orders to see your earnings here.', 'wc-team-payroll' ); ?></p>
+
+				<!-- Pagination -->
+				<div class="pagination-container" id="earnings-pagination">
+					<!-- Pagination will be inserted here by JavaScript -->
 				</div>
-			<?php endif; ?>
+			</div>
+
+			<!-- No Earnings Message (hidden by default) -->
+			<div class="no-earnings-message" id="no-earnings-message" style="display: none;">
+				<i class="ph ph-chart-line-up"></i>
+				<h4><?php esc_html_e( 'No Earnings Yet', 'wc-team-payroll' ); ?></h4>
+				<p><?php esc_html_e( 'Start processing orders to see your earnings here.', 'wc-team-payroll' ); ?></p>
+			</div>
 		</div>
+
+		<style>
+			@keyframes spin {
+				from { transform: rotate(0deg); }
+				to { transform: rotate(360deg); }
+			}
+		</style>
+
+		<script>
+			jQuery(document).ready(function($) {
+				let currentPage = 1;
+				let perPage = 10;
+				let currentSort = { column: 'month', direction: 'desc' };
+				let searchTerm = '';
+				let allRows = [];
+
+				// Load earnings data on page load
+				loadEarningsData();
+
+				function loadEarningsData() {
+					$.ajax({
+						url: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
+						type: 'POST',
+						data: {
+							action: 'wc_tp_get_earnings_data',
+							nonce: '<?php echo esc_attr( wp_create_nonce( 'wc_team_payroll_nonce' ) ); ?>'
+						},
+						success: function(response) {
+							if (response.success) {
+								const data = response.data;
+								
+								// Update summary cards
+								$('#current-month-earnings').text(data.current_month_earnings);
+								$('#total-earnings').text(data.total_earnings);
+								$('#total-paid').text(data.total_paid);
+								$('#total-due').text(data.total_due);
+
+								// Populate table rows
+								allRows = [];
+								if (data.monthly_history && data.monthly_history.length > 0) {
+									data.monthly_history.forEach(function(month) {
+										allRows.push({
+											element: createTableRow(month),
+											data: {
+												month: month.date,
+												orders: month.orders_count,
+												earned: month.total,
+												paid: month.paid,
+												due: month.due,
+												status: month.status,
+												text: (month.date + ' ' + month.status).toLowerCase()
+											}
+										});
+									});
+									$('#no-earnings-message').hide();
+									$('#earnings-history-section').show();
+									updateTable();
+								} else {
+									$('#no-earnings-message').show();
+									$('#earnings-history-section').hide();
+								}
+							}
+						},
+						error: function() {
+							$('#earnings-tbody').html('<tr><td colspan="6" style="text-align: center; padding: 20px;"><p style="color: #dc3545;"><?php esc_html_e( 'Error loading earnings data', 'wc-team-payroll' ); ?></p></td></tr>');
+						}
+					});
+				}
+
+				function createTableRow(month) {
+					const dueAmount = month.total - month.paid;
+					const status = month.status; // Use status from server
+					let statusLabel = '<?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?>';
+					let statusIcon = 'ph-clock';
+					
+					if (status === 'paid') {
+						statusLabel = '<?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?>';
+						statusIcon = 'ph-check-circle';
+					} else if (status === 'partially_paid') {
+						statusLabel = '<?php esc_html_e( 'Partially Paid', 'wc-team-payroll' ); ?>';
+						statusIcon = 'ph-warning';
+					}
+
+					const row = $('<tr></tr>');
+					row.attr('data-sort-month', month.date);
+					row.attr('data-sort-orders', month.orders_count);
+					row.attr('data-sort-earned', month.total);
+					row.attr('data-sort-paid', month.paid);
+					row.attr('data-sort-due', dueAmount);
+					row.attr('data-sort-status', status);
+
+					row.html(`
+						<td data-sort-value="${month.date}">
+							<span class="month-name">${month.date}</span>
+						</td>
+						<td data-sort-value="${month.orders_count}">
+							<span class="orders-count">${month.orders_count}</span>
+						</td>
+						<td data-sort-value="${month.total}">
+							<span class="amount-earned">${month.total_formatted}</span>
+						</td>
+						<td data-sort-value="${month.paid}">
+							<span class="amount-paid">${month.paid_formatted}</span>
+						</td>
+						<td data-sort-value="${dueAmount}">
+							<span class="amount-due">${month.due_formatted}</span>
+						</td>
+						<td data-sort-value="${status}">
+							<span class="status-badge status-${status}">
+								<i class="ph ${statusIcon}"></i> ${statusLabel}
+							</span>
+						</td>
+					`);
+
+					return row;
+				}
+
+				function updateTable() {
+					let filteredRows = allRows.slice();
+
+					// Apply search filter
+					if (searchTerm) {
+						filteredRows = filteredRows.filter(row => 
+							row.data.text.includes(searchTerm.toLowerCase())
+						);
+					}
+
+					// Apply sorting
+					filteredRows.sort((a, b) => {
+						let aVal = a.data[currentSort.column];
+						let bVal = b.data[currentSort.column];
+
+						if (typeof aVal === 'string') {
+							aVal = aVal.toLowerCase();
+							bVal = bVal.toLowerCase();
+						}
+
+						if (currentSort.direction === 'asc') {
+							return aVal > bVal ? 1 : -1;
+						} else {
+							return aVal < bVal ? 1 : -1;
+						}
+					});
+
+					// Calculate pagination
+					const totalRows = filteredRows.length;
+					const totalPages = Math.ceil(totalRows / perPage);
+					const startIndex = (currentPage - 1) * perPage;
+					const endIndex = startIndex + perPage;
+					const pageRows = filteredRows.slice(startIndex, endIndex);
+
+					// Update table body
+					const tbody = $('#earnings-tbody');
+					tbody.empty();
+
+					if (pageRows.length === 0) {
+						tbody.append(`
+							<tr>
+								<td colspan="6" class="no-results">
+									<div class="no-results-message">
+										<i class="ph ph-magnifying-glass"></i>
+										<p><?php esc_html_e( 'No earnings history found matching your search.', 'wc-team-payroll' ); ?></p>
+									</div>
+								</td>
+							</tr>
+						`);
+					} else {
+						pageRows.forEach(row => {
+							tbody.append(row.element);
+						});
+					}
+
+					// Update pagination
+					updatePagination(totalPages, totalRows, startIndex + 1, Math.min(endIndex, totalRows));
+
+					// Update sort icons
+					updateSortIcons();
+				}
+
+				function updatePagination(totalPages, totalRows, start, end) {
+					const container = $('#earnings-pagination');
+
+					if (totalPages <= 1) {
+						container.html('');
+						return;
+					}
+
+					let paginationHTML = '<div class="pagination-wrapper">';
+					paginationHTML += '<div class="pagination-info">';
+					paginationHTML += `<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> ${start} <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> ${end} <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> ${totalRows} <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>`;
+					paginationHTML += '</div>';
+					paginationHTML += '<div class="pagination-controls">';
+
+					// Previous button
+					if (currentPage > 1) {
+						paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${currentPage - 1}"><i class="ph ph-caret-left"></i></a>`;
+					}
+
+					// Page numbers
+					for (let i = 1; i <= totalPages; i++) {
+						if (i === currentPage) {
+							paginationHTML += `<a href="#" class="page-btn current-page">${i}</a>`;
+						} else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+							paginationHTML += `<a href="#" class="page-btn" data-page="${i}">${i}</a>`;
+						} else if (i === currentPage - 3 || i === currentPage + 3) {
+							paginationHTML += '<span class="page-ellipsis">...</span>';
+						}
+					}
+
+					// Next button
+					if (currentPage < totalPages) {
+						paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${currentPage + 1}"><i class="ph ph-caret-right"></i></a>`;
+					}
+
+					paginationHTML += '</div></div>';
+					container.html(paginationHTML);
+				}
+
+				function updateSortIcons() {
+					$('.sortable .sort-icon').removeClass('ph-caret-up ph-caret-down').addClass('ph-caret-up-down');
+					$(`.sortable[data-sort="${currentSort.column}"] .sort-icon`)
+						.removeClass('ph-caret-up-down')
+						.addClass(currentSort.direction === 'asc' ? 'ph-caret-up' : 'ph-caret-down');
+				}
+
+				// Event handlers
+				$('.sortable').on('click', function() {
+					const column = $(this).data('sort');
+					if (currentSort.column === column) {
+						currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+					} else {
+						currentSort.column = column;
+						currentSort.direction = 'desc';
+					}
+					currentPage = 1;
+					updateTable();
+				});
+
+				$('#earnings-search').on('input', function() {
+					searchTerm = $(this).val();
+					currentPage = 1;
+
+					// Toggle search icon
+					var $icon = $(this).siblings('i');
+					if (searchTerm.length > 0) {
+						$icon.removeClass('ph-magnifying-glass').addClass('ph-x');
+					} else {
+						$icon.removeClass('ph-x').addClass('ph-magnifying-glass');
+					}
+
+					updateTable();
+				});
+
+				// Clear search on icon click
+				$(document).on('click', '.search-control i.ph-x', function() {
+					$('#earnings-search').val('').trigger('input');
+				});
+
+				$('#earnings-per-page').on('change', function() {
+					perPage = parseInt($(this).val());
+					currentPage = 1;
+					updateTable();
+				});
+
+				$(document).on('click', '.page-btn[data-page]', function(e) {
+					e.preventDefault();
+					currentPage = parseInt($(this).data('page'));
+					updateTable();
+
+					// Scroll to table header smoothly
+					$('html, body').animate({
+						scrollTop: $('#earnings-table').offset().top - 100
+					}, 300);
+				});
+			});
+		</script>
 		<?php
 	}
 
@@ -947,112 +935,19 @@ class WC_Team_Payroll_MyAccount {
 	public static function orders_commission_content() {
 		$user_id = get_current_user_id();
 		
-		// Get salary information
-		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
-		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
-		
-		if ( $is_fixed_salary ) {
-			$salary_type = 'fixed';
-		} elseif ( $is_combined_salary ) {
-			$salary_type = 'combined';
-		} else {
-			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
-		}
-		
-		// Get actual earnings data
-		$core_engine = new WC_Team_Payroll_Core_Engine();
-		$commission_earnings = $core_engine->get_user_total_earnings( $user_id );
-		
-		// Determine salary type labels
-		$is_fixed = ( $salary_type === 'fixed' );
-		$is_combined = ( $salary_type === 'combined' );
-		$is_commission = ( $salary_type === 'commission' );
-		
 		?>
 		<div class="wc-team-payroll-orders">
 			<!-- Employee Header -->
 			<?php echo self::get_employee_header( $user_id ); ?>
 
-			<!-- Commission Information Section (styled like Salary Details) -->
-			<div class="salary-info-section">
-				<h3><i class="ph ph-percent"></i> <?php esc_html_e( 'Commission Overview', 'wc-team-payroll' ); ?></h3>
-				<div>
-					<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
-						<div class="salary-type-badge salary-type-<?php echo esc_attr( $salary_type ); ?>">
-							<?php
-							if ( $is_fixed ) {
-								echo '<i class="ph ph-coins"></i> ' . esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-							} elseif ( $is_combined ) {
-								echo '<i class="ph ph-chart-line-up"></i> ' . esc_html__( 'Combined (Base + Commission)', 'wc-team-payroll' );
-							} else {
-								echo '<i class="ph ph-percent"></i> ' . esc_html__( 'Commission Based', 'wc-team-payroll' );
-							}
-							?>
-						</div>
-						
-						<!-- Total Commission Display in Top Right -->
-						<div style="text-align: right;">
-							<div style="font-size: 24px; font-weight: 700; color: #ffc107; margin-bottom: 5px;">
-								<?php echo wp_kses_post( wc_price( $commission_earnings ) ); ?>
-							</div>
-							<div style="font-size: 13px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">
-								<?php esc_html_e( 'Total Commission', 'wc-team-payroll' ); ?>
-							</div>
-						</div>
-					</div>
-					
-					<?php if ( $is_combined ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'You earn both a base salary and commission from orders.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php elseif ( $is_commission ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'Your earnings are based entirely on commission from orders you process.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php elseif ( $is_fixed ) : ?>
-						<div class="salary-type-note">
-							<i class="ph ph-info"></i>
-							<span><?php esc_html_e( 'You receive a fixed salary. Commission earnings from orders are shown separately.', 'wc-team-payroll' ); ?></span>
-						</div>
-					<?php endif; ?>
-				</div>
-			</div>
-
-			<!-- Orders Summary Cards -->
-			<div class="earnings-summary">
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-shopping-cart"></i>
-					</div>
-					<h4><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></h4>
-					<div class="amount" id="total-orders">0</div>
-				</div>
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-percent"></i>
-					</div>
-					<h4><?php esc_html_e( 'Total Commission', 'wc-team-payroll' ); ?></h4>
-					<div class="amount" id="total-commission">$0.00</div>
-				</div>
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-wallet"></i>
-					</div>
-					<h4><?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></h4>
-					<div class="amount paid" id="my-earnings">$0.00</div>
-				</div>
-			</div>
-
 			<!-- Filters and Controls -->
-			<div class="salary-history-section">
-				<h3><i class="ph ph-funnel"></i> <?php esc_html_e( 'Filters & Search', 'wc-team-payroll' ); ?></h3>
-				<div class="table-wrapper">
-					<div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+			<div class="orders-controls">
+				<div class="filters-section">
+					<h3><i class="fas fa-filter"></i> <?php esc_html_e( 'Filters & Search', 'wc-team-payroll' ); ?></h3>
+					<div class="filters-grid">
 						<div class="filter-group">
 							<label for="role-filter"><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></label>
-							<select id="role-filter" onchange="loadOrdersData()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+							<select id="role-filter" onchange="loadOrdersData()">
 								<option value="all"><?php esc_html_e( 'All Orders', 'wc-team-payroll' ); ?></option>
 								<option value="agent"><?php esc_html_e( 'As Agent', 'wc-team-payroll' ); ?></option>
 								<option value="processor"><?php esc_html_e( 'As Processor', 'wc-team-payroll' ); ?></option>
@@ -1061,17 +956,17 @@ class WC_Team_Payroll_MyAccount {
 
 						<div class="filter-group">
 							<label for="date-from"><?php esc_html_e( 'Date From', 'wc-team-payroll' ); ?></label>
-							<input type="date" id="date-from" onchange="loadOrdersData()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" />
+							<input type="date" id="date-from" onchange="loadOrdersData()" />
 						</div>
 
 						<div class="filter-group">
 							<label for="date-to"><?php esc_html_e( 'Date To', 'wc-team-payroll' ); ?></label>
-							<input type="date" id="date-to" onchange="loadOrdersData()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" />
+							<input type="date" id="date-to" onchange="loadOrdersData()" />
 						</div>
 
 						<div class="filter-group">
 							<label for="status-filter"><?php esc_html_e( 'Order Status', 'wc-team-payroll' ); ?></label>
-							<select id="status-filter" onchange="loadOrdersData()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+							<select id="status-filter" onchange="loadOrdersData()">
 								<option value="all"><?php esc_html_e( 'All Status', 'wc-team-payroll' ); ?></option>
 								<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
 								<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
@@ -1081,7 +976,7 @@ class WC_Team_Payroll_MyAccount {
 
 						<div class="filter-group">
 							<label for="sort-by"><?php esc_html_e( 'Sort By', 'wc-team-payroll' ); ?></label>
-							<select id="sort-by" onchange="loadOrdersData()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+							<select id="sort-by" onchange="loadOrdersData()">
 								<option value="date-desc"><?php esc_html_e( 'Date (Newest First)', 'wc-team-payroll' ); ?></option>
 								<option value="date-asc"><?php esc_html_e( 'Date (Oldest First)', 'wc-team-payroll' ); ?></option>
 								<option value="total-desc"><?php esc_html_e( 'Total (High to Low)', 'wc-team-payroll' ); ?></option>
@@ -1093,25 +988,50 @@ class WC_Team_Payroll_MyAccount {
 
 						<div class="filter-group">
 							<label for="search-orders"><?php esc_html_e( 'Search Orders', 'wc-team-payroll' ); ?></label>
-							<input type="text" id="search-orders" placeholder="<?php esc_attr_e( 'Order ID, Customer...', 'wc-team-payroll' ); ?>" onkeyup="debounceSearch()" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" />
+							<input type="text" id="search-orders" placeholder="<?php esc_attr_e( 'Order ID, Customer...', 'wc-team-payroll' ); ?>" onkeyup="debounceSearch()" />
 						</div>
 					</div>
 					
-					<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-						<button type="button" onclick="clearFilters()" class="page-btn" style="background: #f8f9fa; border: 1px solid #dee2e6;">
-							<i class="ph ph-x"></i> <?php esc_html_e( 'Clear Filters', 'wc-team-payroll' ); ?>
+					<div class="filter-actions">
+						<button type="button" onclick="clearFilters()" class="btn-clear">
+							<i class="fas fa-times"></i> <?php esc_html_e( 'Clear Filters', 'wc-team-payroll' ); ?>
 						</button>
-						<button type="button" onclick="exportOrders()" class="page-btn" style="background: #f8f9fa; border: 1px solid #dee2e6;">
-							<i class="ph ph-download"></i> <?php esc_html_e( 'Export Data', 'wc-team-payroll' ); ?>
+						<button type="button" onclick="exportOrders()" class="btn-export">
+							<i class="fas fa-download"></i> <?php esc_html_e( 'Export Data', 'wc-team-payroll' ); ?>
 						</button>
 					</div>
 				</div>
 			</div>
 
+			<!-- Orders Summary -->
+			<div class="orders-summary" id="orders-summary">
+				<div class="summary-card">
+					<i class="fas fa-shopping-cart"></i>
+					<div class="summary-content">
+						<span class="summary-number" id="total-orders">0</span>
+						<span class="summary-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+				<div class="summary-card">
+					<i class="fas fa-dollar-sign"></i>
+					<div class="summary-content">
+						<span class="summary-number" id="total-commission">$0.00</span>
+						<span class="summary-label"><?php esc_html_e( 'Total Commission', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+				<div class="summary-card">
+					<i class="fas fa-wallet"></i>
+					<div class="summary-content">
+						<span class="summary-number" id="my-earnings">$0.00</span>
+						<span class="summary-label"><?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+			</div>
+
 			<!-- Orders Table -->
-			<div class="salary-history-section">
-				<div class="section-header">
-					<h3><i class="ph ph-list"></i> <?php esc_html_e( 'Orders List', 'wc-team-payroll' ); ?></h3>
+			<div class="orders-table-section">
+				<div class="table-header">
+					<h3><i class="fas fa-table"></i> <?php esc_html_e( 'Orders List', 'wc-team-payroll' ); ?></h3>
 					<div class="table-controls">
 						<div class="per-page-control">
 							<label for="per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
@@ -1126,46 +1046,44 @@ class WC_Team_Payroll_MyAccount {
 					</div>
 				</div>
 
-				<div class="table-wrapper">
-					<div class="table-container">
-						<table class="woocommerce-table woocommerce-table--orders" id="orders-table">
-							<thead>
-								<tr>
-									<th class="sortable" data-sort="order_id">
-										<?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?>
-										<i class="ph ph-arrows-up-down"></i>
-									</th>
-									<th class="sortable" data-sort="date">
-										<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
-										<i class="ph ph-arrows-up-down"></i>
-									</th>
-									<th><?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></th>
-									<th class="sortable" data-sort="total">
-										<?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?>
-										<i class="ph ph-arrows-up-down"></i>
-									</th>
-									<th><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
-									<th class="sortable" data-sort="earning">
-										<?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?>
-										<i class="ph ph-arrows-up-down"></i>
-									</th>
-									<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'Actions', 'wc-team-payroll' ); ?></th>
-								</tr>
-							</thead>
-							<tbody id="orders-tbody">
-								<tr>
-									<td colspan="9" class="loading-row">
-										<div class="loading-spinner">
-											<i class="ph ph-spinner"></i>
-											<?php esc_html_e( 'Loading orders...', 'wc-team-payroll' ); ?>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
+				<div class="table-container">
+					<table class="woocommerce-table woocommerce-table--orders" id="orders-table">
+						<thead>
+							<tr>
+								<th class="sortable" data-sort="order_id">
+									<?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?>
+									<i class="fas fa-sort"></i>
+								</th>
+								<th class="sortable" data-sort="date">
+									<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
+									<i class="fas fa-sort"></i>
+								</th>
+								<th><?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></th>
+								<th class="sortable" data-sort="total">
+									<?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?>
+									<i class="fas fa-sort"></i>
+								</th>
+								<th><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
+								<th class="sortable" data-sort="earning">
+									<?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?>
+									<i class="fas fa-sort"></i>
+								</th>
+								<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
+								<th><?php esc_html_e( 'Actions', 'wc-team-payroll' ); ?></th>
+							</tr>
+						</thead>
+						<tbody id="orders-tbody">
+							<tr>
+								<td colspan="9" class="loading-row">
+									<div class="loading-spinner">
+										<i class="fas fa-spinner fa-spin"></i>
+										<?php esc_html_e( 'Loading orders...', 'wc-team-payroll' ); ?>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 
 				<!-- Pagination -->
@@ -1178,9 +1096,9 @@ class WC_Team_Payroll_MyAccount {
 			<div id="order-details-modal" class="modal-overlay" style="display: none;">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h3><i class="ph ph-receipt"></i> <?php esc_html_e( 'Order Details', 'wc-team-payroll' ); ?></h3>
+						<h3><i class="fas fa-receipt"></i> <?php esc_html_e( 'Order Details', 'wc-team-payroll' ); ?></h3>
 						<button type="button" class="modal-close" onclick="closeOrderDetails()">
-							<i class="ph ph-x"></i>
+							<i class="fas fa-times"></i>
 						</button>
 					</div>
 					<div class="modal-body" id="order-details-content">
@@ -1209,7 +1127,7 @@ class WC_Team_Payroll_MyAccount {
 					<tr>
 						<td colspan="9" class="loading-row">
 							<div class="loading-spinner">
-								<i class="ph ph-spinner"></i>
+								<i class="fas fa-spinner fa-spin"></i>
 								<?php esc_html_e( 'Loading orders...', 'wc-team-payroll' ); ?>
 							</div>
 						</td>
@@ -1253,9 +1171,9 @@ class WC_Team_Payroll_MyAccount {
 				if (orders.length === 0) {
 					tbody.innerHTML = `
 						<tr>
-							<td colspan="9" class="no-results">
-								<div class="no-results-message">
-									<i class="ph ph-shopping-bag"></i>
+							<td colspan="9" class="no-orders-row">
+								<div class="no-orders-message">
+									<i class="fas fa-shopping-bag"></i>
 									<p><?php esc_html_e( 'No orders found matching your criteria.', 'wc-team-payroll' ); ?></p>
 								</div>
 							</td>
@@ -1274,34 +1192,34 @@ class WC_Team_Payroll_MyAccount {
 							</a>
 						</td>
 						<td>
-							<span class="date">${order.date}</span>
-							<small>${order.time}</small>
+							<span class="order-date">${order.date}</span>
+							<small class="order-time">${order.time}</small>
 						</td>
 						<td>
 							<span class="customer-name">${order.customer_name}</span>
-							<small>${order.customer_email}</small>
+							<small class="customer-email">${order.customer_email}</small>
 						</td>
 						<td>
-							<span class="status-badge status-${order.my_role}">
-								<i class="ph ${order.my_role === 'agent' ? 'ph-user-circle' : 'ph-gear'}"></i>
+							<span class="role-badge role-${order.my_role}">
+								<i class="fas ${order.my_role === 'agent' ? 'fa-user-tie' : 'fa-cogs'}"></i>
 								${order.my_role_label}
 							</span>
 						</td>
 						<td class="amount-cell">${order.total}</td>
 						<td class="amount-cell">${order.commission}</td>
-						<td class="amount-cell amount-earned">${order.earning}</td>
+						<td class="amount-cell earning-amount">${order.earning}</td>
 						<td>
 							<span class="status-badge status-${order.status}">
 								${order.status_label}
 							</span>
 						</td>
 						<td>
-							<div class="action-buttons" style="display: flex; gap: 8px;">
-								<button onclick="showOrderDetails(${order.order_id})" class="page-btn" style="padding: 6px 10px; font-size: 12px;" title="<?php esc_attr_e( 'View Details', 'wc-team-payroll' ); ?>">
-									<i class="ph ph-eye"></i>
+							<div class="action-buttons">
+								<button onclick="showOrderDetails(${order.order_id})" class="btn-action btn-view" title="<?php esc_attr_e( 'View Details', 'wc-team-payroll' ); ?>">
+									<i class="fas fa-eye"></i>
 								</button>
-								<a href="${order.edit_url}" class="page-btn" style="padding: 6px 10px; font-size: 12px;" title="<?php esc_attr_e( 'Edit Order', 'wc-team-payroll' ); ?>" target="_blank">
-									<i class="ph ph-pencil"></i>
+								<a href="${order.edit_url}" class="btn-action btn-edit" title="<?php esc_attr_e( 'Edit Order', 'wc-team-payroll' ); ?>" target="_blank">
+									<i class="fas fa-edit"></i>
 								</a>
 							</div>
 						</td>
@@ -1325,11 +1243,11 @@ class WC_Team_Payroll_MyAccount {
 					return;
 				}
 
-				let paginationHTML = '<div class="pagination-wrapper"><div class="pagination-controls">';
+				let paginationHTML = '<div class="pagination">';
 				
 				// Previous button
 				if (pagination.current_page > 1) {
-					paginationHTML += `<button onclick="goToPage(${pagination.current_page - 1})" class="page-btn prev-btn"><i class="ph ph-caret-left"></i></button>`;
+					paginationHTML += `<button onclick="goToPage(${pagination.current_page - 1})" class="page-btn prev-btn"><i class="fas fa-chevron-left"></i></button>`;
 				}
 
 				// Page numbers
@@ -1345,12 +1263,11 @@ class WC_Team_Payroll_MyAccount {
 
 				// Next button
 				if (pagination.current_page < pagination.total_pages) {
-					paginationHTML += `<button onclick="goToPage(${pagination.current_page + 1})" class="page-btn next-btn"><i class="ph ph-caret-right"></i></button>`;
+					paginationHTML += `<button onclick="goToPage(${pagination.current_page + 1})" class="page-btn next-btn"><i class="fas fa-chevron-right"></i></button>`;
 				}
 
 				paginationHTML += '</div>';
 				paginationHTML += `<div class="pagination-info">Showing ${pagination.start} to ${pagination.end} of ${pagination.total} orders</div>`;
-				paginationHTML += '</div>';
 				
 				container.innerHTML = paginationHTML;
 			}
@@ -1423,9 +1340,9 @@ class WC_Team_Payroll_MyAccount {
 			function showError(message) {
 				document.getElementById('orders-tbody').innerHTML = `
 					<tr>
-						<td colspan="9" class="no-results">
-							<div class="no-results-message">
-								<i class="ph ph-warning"></i>
+						<td colspan="9" class="error-row">
+							<div class="error-message">
+								<i class="fas fa-exclamation-triangle"></i>
 								<p>${message}</p>
 							</div>
 						</td>
@@ -1453,310 +1370,39 @@ class WC_Team_Payroll_MyAccount {
 	 */
 	public static function reports_content() {
 		$user_id = get_current_user_id();
-		
-		// Get salary information
-		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
-		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
-		
-		if ( $is_fixed_salary ) {
-			$salary_type = 'fixed';
-		} elseif ( $is_combined_salary ) {
-			$salary_type = 'combined';
-		} else {
-			$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true ) ?: 'commission';
-		}
-		
-		// Get earnings data
-		$core_engine = new WC_Team_Payroll_Core_Engine();
-		$total_earnings = $core_engine->get_user_total_earnings( $user_id );
-		$commission_earnings = $core_engine->get_user_commission_earnings( $user_id );
-		$salary_earnings = get_user_meta( $user_id, '_wc_tp_total_earnings', true ) ?: 0;
-		
-		// Get monthly history
-		$monthly_history = self::get_user_monthly_history( $user_id, 12 );
-		
-		// Calculate totals
-		$total_orders = 0;
-		$total_paid = 0;
-		foreach ( $monthly_history as $month ) {
-			$total_orders += intval( $month['orders'] );
-			$total_paid += floatval( $month['paid'] );
-		}
-		
 		?>
 		<div class="wc-team-payroll-reports">
 			<!-- Employee Header -->
 			<?php echo self::get_employee_header( $user_id ); ?>
 			
-			<!-- Key Metrics Cards -->
-			<div class="earnings-summary">
-				<div class="earning-card total-earnings">
-					<div class="card-header">
-						<i class="ph ph-wallet"></i>
-					</div>
-					<h4><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></h4>
-					<div class="amount paid"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></div>
+			<div class="reports-grid">
+				<div class="report-card">
+					<h4><?php esc_html_e( 'Monthly Summary', 'wc-team-payroll' ); ?></h4>
+					<p><?php esc_html_e( 'View your monthly earnings and performance.', 'wc-team-payroll' ); ?></p>
 				</div>
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-percent"></i>
-					</div>
-					<h4><?php esc_html_e( 'Commission Earned', 'wc-team-payroll' ); ?></h4>
-					<div class="amount"><?php echo wp_kses_post( wc_price( $commission_earnings ) ); ?></div>
+				<div class="report-card">
+					<h4><?php esc_html_e( 'Commission Breakdown', 'wc-team-payroll' ); ?></h4>
+					<p><?php esc_html_e( 'Detailed breakdown of your commissions.', 'wc-team-payroll' ); ?></p>
 				</div>
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-coins"></i>
-					</div>
-					<h4><?php esc_html_e( 'Base Salary', 'wc-team-payroll' ); ?></h4>
-					<div class="amount"><?php echo wp_kses_post( wc_price( $salary_earnings ) ); ?></div>
+				<div class="report-card">
+					<h4><?php esc_html_e( 'Performance Analytics', 'wc-team-payroll' ); ?></h4>
+					<p><?php esc_html_e( 'Track your performance over time.', 'wc-team-payroll' ); ?></p>
 				</div>
-				<div class="earning-card">
-					<div class="card-header">
-						<i class="ph ph-shopping-cart"></i>
-					</div>
-					<h4><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></h4>
-					<div class="amount"><?php echo esc_html( $total_orders ); ?></div>
+				<div class="report-card">
+					<h4><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h4>
+					<p><?php esc_html_e( 'View all your payment records.', 'wc-team-payroll' ); ?></p>
 				</div>
 			</div>
-
-			<!-- Report Tabs -->
-			<div class="salary-history-section">
-				<h3><i class="ph ph-chart-line"></i> <?php esc_html_e( 'Reports', 'wc-team-payroll' ); ?></h3>
-				<div class="table-wrapper">
-					<div class="report-tabs">
-						<button class="report-tab-btn active" onclick="switchReport('monthly-summary')">
-							<i class="ph ph-calendar"></i> <?php esc_html_e( 'Monthly Summary', 'wc-team-payroll' ); ?>
-						</button>
-						<button class="report-tab-btn" onclick="switchReport('commission-breakdown')">
-							<i class="ph ph-chart-pie"></i> <?php esc_html_e( 'Commission Breakdown', 'wc-team-payroll' ); ?>
-						</button>
-						<button class="report-tab-btn" onclick="switchReport('performance')">
-							<i class="ph ph-trending-up"></i> <?php esc_html_e( 'Performance', 'wc-team-payroll' ); ?>
-						</button>
-						<button class="report-tab-btn" onclick="switchReport('payment-history')">
-							<i class="ph ph-receipt"></i> <?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?>
-						</button>
-					</div>
-
-					<!-- Monthly Summary Report -->
-					<div id="monthly-summary" class="report-content active">
-						<div class="section-header">
-							<h3><?php esc_html_e( 'Monthly Summary', 'wc-team-payroll' ); ?></h3>
-						</div>
-						<div class="table-container">
-							<table class="woocommerce-table woocommerce-table--salary-history">
-								<thead>
-									<tr>
-										<th><?php esc_html_e( 'Month', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Base Salary', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Total Earned', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Paid', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-									if ( ! empty( $monthly_history ) ) {
-										foreach ( $monthly_history as $month ) {
-											$earned = floatval( $month['commission'] ) + floatval( $month['salary'] );
-											$due = $earned - floatval( $month['paid'] );
-											$status = $due > 0 ? 'pending' : 'paid';
-											?>
-											<tr>
-												<td class="month-name"><?php echo esc_html( $month['month'] ); ?></td>
-												<td><?php echo esc_html( $month['orders'] ); ?></td>
-												<td><?php echo wp_kses_post( wc_price( $month['commission'] ) ); ?></td>
-												<td><?php echo wp_kses_post( wc_price( $month['salary'] ) ); ?></td>
-												<td class="amount-earned"><?php echo wp_kses_post( wc_price( $earned ) ); ?></td>
-												<td class="amount-paid"><?php echo wp_kses_post( wc_price( $month['paid'] ) ); ?></td>
-												<td>
-													<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
-														<?php echo $status === 'paid' ? esc_html__( 'Paid', 'wc-team-payroll' ) : esc_html__( 'Pending', 'wc-team-payroll' ); ?>
-													</span>
-												</td>
-											</tr>
-											<?php
-										}
-									} else {
-										?>
-										<tr>
-											<td colspan="7" class="no-results">
-												<div class="no-results-message">
-													<i class="ph ph-calendar-blank"></i>
-													<p><?php esc_html_e( 'No monthly data available yet.', 'wc-team-payroll' ); ?></p>
-												</div>
-											</td>
-										</tr>
-										<?php
-									}
-									?>
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-					<!-- Commission Breakdown Report -->
-					<div id="commission-breakdown" class="report-content">
-						<div class="section-header">
-							<h3><?php esc_html_e( 'Commission Breakdown', 'wc-team-payroll' ); ?></h3>
-						</div>
-						<div class="commission-breakdown-content">
-							<div class="breakdown-stats">
-								<div class="stat-card">
-									<div class="stat-label"><?php esc_html_e( 'Total Commission', 'wc-team-payroll' ); ?></div>
-									<div class="stat-value"><?php echo wp_kses_post( wc_price( $commission_earnings ) ); ?></div>
-								</div>
-								<div class="stat-card">
-									<div class="stat-label"><?php esc_html_e( 'Average per Order', 'wc-team-payroll' ); ?></div>
-									<div class="stat-value">
-										<?php
-										$avg_commission = $total_orders > 0 ? $commission_earnings / $total_orders : 0;
-										echo wp_kses_post( wc_price( $avg_commission ) );
-										?>
-									</div>
-								</div>
-								<div class="stat-card">
-									<div class="stat-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></div>
-									<div class="stat-value"><?php echo esc_html( $total_orders ); ?></div>
-								</div>
-								<div class="stat-card">
-									<div class="stat-label"><?php esc_html_e( 'Salary Type', 'wc-team-payroll' ); ?></div>
-									<div class="stat-value">
-										<?php
-										if ( $salary_type === 'fixed' ) {
-											echo esc_html__( 'Fixed Salary', 'wc-team-payroll' );
-										} elseif ( $salary_type === 'combined' ) {
-											echo esc_html__( 'Combined', 'wc-team-payroll' );
-										} else {
-											echo esc_html__( 'Commission', 'wc-team-payroll' );
-										}
-										?>
-									</div>
-								</div>
-							</div>
-							<div class="breakdown-note">
-								<i class="ph ph-info"></i>
-								<span>
-									<?php
-									if ( $salary_type === 'fixed' ) {
-										esc_html_e( 'You receive a fixed salary. Commission from orders is tracked separately.', 'wc-team-payroll' );
-									} elseif ( $salary_type === 'combined' ) {
-										esc_html_e( 'You earn both base salary and commission from orders.', 'wc-team-payroll' );
-									} else {
-										esc_html_e( 'Your earnings are based entirely on commission from orders.', 'wc-team-payroll' );
-									}
-									?>
-								</span>
-							</div>
-						</div>
-					</div>
-
-					<!-- Performance Report -->
-					<div id="performance" class="report-content">
-						<div class="section-header">
-							<h3><?php esc_html_e( 'Performance Analytics', 'wc-team-payroll' ); ?></h3>
-						</div>
-						<div class="performance-content">
-							<div class="performance-stats">
-								<div class="perf-card">
-									<div class="perf-icon"><i class="ph ph-chart-line-up"></i></div>
-									<div class="perf-label"><?php esc_html_e( 'Avg Monthly Earnings', 'wc-team-payroll' ); ?></div>
-									<div class="perf-value">
-										<?php
-										$avg_monthly = count( $monthly_history ) > 0 ? $total_earnings / count( $monthly_history ) : 0;
-										echo wp_kses_post( wc_price( $avg_monthly ) );
-										?>
-									</div>
-								</div>
-								<div class="perf-card">
-									<div class="perf-icon"><i class="ph ph-shopping-cart"></i></div>
-									<div class="perf-label"><?php esc_html_e( 'Avg Orders per Month', 'wc-team-payroll' ); ?></div>
-									<div class="perf-value">
-										<?php
-										$avg_orders = count( $monthly_history ) > 0 ? $total_orders / count( $monthly_history ) : 0;
-										echo esc_html( number_format( $avg_orders, 1 ) );
-										?>
-									</div>
-								</div>
-								<div class="perf-card">
-									<div class="perf-icon"><i class="ph ph-percent"></i></div>
-									<div class="perf-label"><?php esc_html_e( 'Commission Rate', 'wc-team-payroll' ); ?></div>
-									<div class="perf-value">
-										<?php
-										$commission_rate = get_user_meta( $user_id, '_wc_tp_commission_rate', true ) ?: 0;
-										echo esc_html( $commission_rate . '%' );
-										?>
-									</div>
-								</div>
-								<div class="perf-card">
-									<div class="perf-icon"><i class="ph ph-calendar"></i></div>
-									<div class="perf-label"><?php esc_html_e( 'Member Since', 'wc-team-payroll' ); ?></div>
-									<div class="perf-value">
-										<?php
-										$user = get_user_by( 'ID', $user_id );
-										echo esc_html( date_i18n( 'M Y', strtotime( $user->user_registered ) ) );
-										?>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- Payment History Report -->
-					<div id="payment-history" class="report-content">
-						<div class="section-header">
-							<h3><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h3>
-						</div>
-						<div class="table-container">
-							<table class="woocommerce-table woocommerce-table--salary-history">
-								<thead>
-									<tr>
-										<th><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Period', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Method', 'wc-team-payroll' ); ?></th>
-										<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td colspan="5" class="no-results">
-											<div class="no-results-message">
-												<i class="ph ph-receipt"></i>
-												<p><?php esc_html_e( 'No payment records available yet.', 'wc-team-payroll' ); ?></p>
-											</div>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
+			
+			<!-- Debug Info -->
+			<div style="margin-top: 30px; padding: 15px; background: #f0f0f1; border-radius: 5px; font-size: 12px; color: #666;">
+				<strong>Debug Info:</strong><br>
+				User ID: <?php echo esc_html( $user_id ); ?><br>
+				VB User ID: <?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?><br>
+				CSS Version: <?php echo esc_html( WC_TEAM_PAYROLL_VERSION ); ?><br>
+				CSS File: <?php echo esc_html( WC_TEAM_PAYROLL_URL . 'assets/css/myaccount.css' ); ?>
 			</div>
 		</div>
-
-		<script>
-			function switchReport(reportId) {
-				// Hide all reports
-				document.querySelectorAll('.report-content').forEach(el => {
-					el.classList.remove('active');
-				});
-				
-				// Remove active class from all tabs
-				document.querySelectorAll('.report-tab-btn').forEach(btn => {
-					btn.classList.remove('active');
-				});
-				
-				// Show selected report
-				document.getElementById(reportId).classList.add('active');
-				
-				// Add active class to clicked tab
-				event.target.closest('.report-tab-btn').classList.add('active');
-			}
-		</script>
 		<?php
 	}
 
@@ -2493,6 +2139,120 @@ class WC_Team_Payroll_MyAccount {
 			);
 		}
 		return array_reverse( $history );
+	}
+
+	/**
+	 * AJAX: Get earnings data for My Earnings page
+	 */
+	public static function ajax_get_earnings_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get current month earnings
+		$current_month_start = date( 'Y-m-01' );
+		$current_month_end = date( 'Y-m-t' );
+		$current_month_earnings = self::get_user_earnings_for_period( $user_id, $current_month_start, $current_month_end );
+		$total_earnings = self::get_user_total_earnings( $user_id );
+		$total_paid = self::get_user_total_paid( $user_id );
+		$total_due = $total_earnings - $total_paid;
+
+		// Get monthly history
+		$monthly_history = self::get_user_monthly_history( $user_id, 12 );
+
+		// Get all payments for this user
+		$all_payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $all_payments ) ) {
+			$all_payments = array();
+		}
+
+		// Format monthly history for frontend
+		$formatted_history = array();
+		foreach ( $monthly_history as $month_data ) {
+			$due_amount = $month_data['total'] - $month_data['paid'];
+			
+			// Determine status based on actual payment records
+			$status = self::get_payment_status_for_period( $user_id, $month_data['date'], $month_data['total'], $month_data['paid'], $all_payments );
+			
+			$formatted_history[] = array(
+				'date' => date( 'F Y', strtotime( $month_data['date'] . '-01' ) ),
+				'orders_count' => $month_data['orders_count'],
+				'total' => $month_data['total'],
+				'total_formatted' => wc_price( $month_data['total'] ),
+				'paid' => $month_data['paid'],
+				'paid_formatted' => wc_price( $month_data['paid'] ),
+				'due' => $due_amount,
+				'due_formatted' => wc_price( $due_amount ),
+				'status' => $status,
+			);
+		}
+
+		wp_send_json_success( array(
+			'current_month_earnings' => wc_price( $current_month_earnings ),
+			'total_earnings' => wc_price( $total_earnings ),
+			'total_paid' => wc_price( $total_paid ),
+			'total_due' => wc_price( $total_due ),
+			'monthly_history' => $formatted_history,
+		) );
+	}
+
+	/**
+	 * Helper: Determine payment status for a period
+	 * 
+	 * Status logic:
+	 * - 'paid': Total earned amount is fully covered by payments
+	 * - 'partially_paid': Some payments exist but don't cover full amount
+	 * - 'pending': No payments recorded for this period
+	 */
+	private static function get_payment_status_for_period( $user_id, $month_date, $total_earned, $total_paid, $all_payments = array() ) {
+		// If no earnings, mark as paid
+		if ( $total_earned <= 0 ) {
+			return 'paid';
+		}
+
+		// If no payments recorded, it's pending
+		if ( empty( $all_payments ) ) {
+			return 'pending';
+		}
+
+		// Extract year and month from date string (format: 'Y-m')
+		$date_parts = explode( '-', $month_date );
+		$year = $date_parts[0];
+		$month = $date_parts[1];
+		$start_date = sprintf( '%s-%s-01', $year, $month );
+		$end_date = date( 'Y-m-t', strtotime( $start_date ) );
+		$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+		$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+
+		// Calculate payments for this period
+		$period_paid = 0;
+		foreach ( $all_payments as $payment ) {
+			$payment_date_str = $payment['date'];
+			
+			// Handle datetime-local format (2026-04-11T14:30)
+			if ( strpos( $payment_date_str, 'T' ) !== false ) {
+				$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+			}
+			
+			$payment_timestamp = strtotime( $payment_date_str );
+			
+			// Only count payments within this period
+			if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+				$period_paid += floatval( $payment['amount'] );
+			}
+		}
+
+		// Determine status based on payment coverage
+		if ( $period_paid >= $total_earned ) {
+			return 'paid';
+		} elseif ( $period_paid > 0 ) {
+			return 'partially_paid';
+		} else {
+			return 'pending';
+		}
 	}
 
 	/**
