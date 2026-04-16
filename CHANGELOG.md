@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.54] - 2026-04-17
+### Performance Settings Employee Roles Integration
+- **FEATURE**: Performance Settings now respects Employee User Roles configuration
+- **FEATURE**: Only roles configured in Settings → WooCommerce → Employee User Roles appear in Performance Settings
+- **ENHANCEMENT**: Performance score calculation now validates employee roles before applying configurations
+- **ENHANCEMENT**: Added clear messaging explaining employee roles requirement in Performance Settings
+- **ENHANCEMENT**: Empty state handling when no employee roles are configured with direct navigation links
+- **ENHANCEMENT**: Disabled dropdowns with helpful messages when no employee roles exist
+- **FIX**: Performance configurations no longer apply to non-employee roles (admin, editor, etc.)
+- **FIX**: Role filtering ensures only actual employees get performance evaluations
+- **UI**: Updated all role selectors to clearly indicate "Employee Role" selection
+- **UI**: Added warning messages and quick navigation to Employee Roles configuration
+- **TECHNICAL**: Enhanced `get_all_roles()` method to filter by employee roles from settings
+- **TECHNICAL**: Updated performance score calculation to validate employee role membership
+- **TECHNICAL**: Improved role-based configuration security and data integrity
+
 ## [1.0.53] - 2026-04-17
 ### Performance Settings Save Functionality Fix
 - **FIX**: Fixed Performance Settings save functionality not properly persisting data

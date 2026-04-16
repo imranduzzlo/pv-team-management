@@ -29,7 +29,7 @@ jQuery(document).ready(function($) {
 			$('#wc-tp-role-config-container').html(
 				'<div class="wc-tp-empty-state">' +
 				'<span class="dashicons dashicons-admin-users"></span>' +
-				'<p>Select a role above to configure performance scoring factors.</p>' +
+				'<p>Select an employee role above to configure performance scoring factors.</p>' +
 				'</div>'
 			);
 			return;
@@ -589,7 +589,7 @@ jQuery(document).ready(function($) {
 			$('#wc-tp-goals-config-container').html(
 				'<div class="wc-tp-empty-state">' +
 				'<span class="dashicons dashicons-flag"></span>' +
-				'<p>Select a role above to configure goals and targets.</p>' +
+				'<p>Select an employee role above to configure goals and targets.</p>' +
 				'</div>'
 			);
 			return;
@@ -794,7 +794,7 @@ jQuery(document).ready(function($) {
 			$('#wc-tp-achievements-config-container').html(
 				'<div class="wc-tp-empty-state">' +
 				'<span class="dashicons dashicons-awards"></span>' +
-				'<p>Select a role above to configure achievements and badges.</p>' +
+				'<p>Select an employee role above to configure achievements and badges.</p>' +
 				'</div>'
 			);
 			return;

@@ -598,7 +598,7 @@ class WC_Team_Payroll_Settings {
 							</td>
 						</tr>
 						<tr>
-							<th><label for="agent_user_roles">Agent User Roles</label></th>
+							<th><label for="agent_user_roles">Employee User Roles</label></th>
 							<td>
 								<?php
 								global $wp_roles;

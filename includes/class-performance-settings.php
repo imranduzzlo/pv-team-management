@@ -204,7 +204,7 @@ class WC_Team_Payroll_Performance_Settings {
 	 * Render Performance Scoring Section
 	 */
 	private static function render_scoring_section() {
-		// Get all WordPress roles dynamically
+		// Get employee roles from settings (only configured employee roles)
 		$all_roles = self::get_all_roles();
 		$performance_config = get_option( 'wc_tp_performance_config', array() );
 		?>
@@ -229,10 +229,16 @@ class WC_Team_Payroll_Performance_Settings {
 			<!-- Role Selector -->
 			<div class="wc-tp-perf-card">
 				<h4><?php esc_html_e( 'Configure Performance Factors by Role', 'wc-team-payroll' ); ?></h4>
+				<p class="description">
+					<?php esc_html_e( 'Configure performance scoring for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+					<?php endif; ?>
+				</p>
 				<div class="wc-tp-role-selector-wrapper">
-					<label for="wc-tp-role-selector"><?php esc_html_e( 'Select Role to Configure:', 'wc-team-payroll' ); ?></label>
-					<select id="wc-tp-role-selector" class="wc-tp-role-selector">
-						<option value=""><?php esc_html_e( '-- Select a Role --', 'wc-team-payroll' ); ?></option>
+					<label for="wc-tp-role-selector"><?php esc_html_e( 'Select Employee Role to Configure:', 'wc-team-payroll' ); ?></label>
+					<select id="wc-tp-role-selector" class="wc-tp-role-selector" <?php echo empty( $all_roles ) ? 'disabled' : ''; ?>>
+						<option value=""><?php esc_html_e( '-- Select an Employee Role --', 'wc-team-payroll' ); ?></option>
 						<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
 							<option value="<?php echo esc_attr( $role_key ); ?>"><?php echo esc_html( $role_name ); ?></option>
 						<?php endforeach; ?>
@@ -255,7 +261,10 @@ class WC_Team_Payroll_Performance_Settings {
 			<div id="wc-tp-role-config-container">
 				<div class="wc-tp-empty-state">
 					<span class="dashicons dashicons-admin-users"></span>
-					<p><?php esc_html_e( 'Select a role above to configure performance scoring factors.', 'wc-team-payroll' ); ?></p>
+					<p><?php esc_html_e( 'Select an employee role above to configure performance scoring factors.', 'wc-team-payroll' ); ?></p>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<p><a href="?page=wc-team-payroll-settings&tab=woocommerce" class="button button-secondary"><?php esc_html_e( 'Configure Employee Roles', 'wc-team-payroll' ); ?></a></p>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -266,7 +275,7 @@ class WC_Team_Payroll_Performance_Settings {
 	 * Render Goals & Targets Section
 	 */
 	private static function render_goals_section() {
-		// Get all WordPress roles dynamically
+		// Get employee roles from settings (only configured employee roles)
 		$all_roles = self::get_all_roles();
 		$goals_config = get_option( 'wc_tp_goals_config', array() );
 		?>
@@ -331,10 +340,16 @@ class WC_Team_Payroll_Performance_Settings {
 			<!-- Role Selector -->
 			<div class="wc-tp-perf-card">
 				<h4><?php esc_html_e( 'Configure Goals by Role', 'wc-team-payroll' ); ?></h4>
+				<p class="description">
+					<?php esc_html_e( 'Set different goal targets for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+					<?php endif; ?>
+				</p>
 				<div class="wc-tp-role-selector-wrapper">
-					<label for="wc-tp-goals-role-selector"><?php esc_html_e( 'Select Role to Configure:', 'wc-team-payroll' ); ?></label>
-					<select id="wc-tp-goals-role-selector" class="wc-tp-role-selector">
-						<option value=""><?php esc_html_e( '-- Select a Role --', 'wc-team-payroll' ); ?></option>
+					<label for="wc-tp-goals-role-selector"><?php esc_html_e( 'Select Employee Role to Configure:', 'wc-team-payroll' ); ?></label>
+					<select id="wc-tp-goals-role-selector" class="wc-tp-role-selector" <?php echo empty( $all_roles ) ? 'disabled' : ''; ?>>
+						<option value=""><?php esc_html_e( '-- Select an Employee Role --', 'wc-team-payroll' ); ?></option>
 						<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
 							<option value="<?php echo esc_attr( $role_key ); ?>"><?php echo esc_html( $role_name ); ?></option>
 						<?php endforeach; ?>
@@ -357,7 +372,10 @@ class WC_Team_Payroll_Performance_Settings {
 			<div id="wc-tp-goals-config-container">
 				<div class="wc-tp-empty-state">
 					<span class="dashicons dashicons-flag"></span>
-					<p><?php esc_html_e( 'Select a role above to configure goals and targets.', 'wc-team-payroll' ); ?></p>
+					<p><?php esc_html_e( 'Select an employee role above to configure goals and targets.', 'wc-team-payroll' ); ?></p>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<p><a href="?page=wc-team-payroll-settings&tab=woocommerce" class="button button-secondary"><?php esc_html_e( 'Configure Employee Roles', 'wc-team-payroll' ); ?></a></p>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -368,7 +386,7 @@ class WC_Team_Payroll_Performance_Settings {
 	 * Render Achievements Section
 	 */
 	private static function render_achievements_section() {
-		// Get all WordPress roles dynamically
+		// Get employee roles from settings (only configured employee roles)
 		$all_roles = self::get_all_roles();
 		$achievements_config = get_option( 'wc_tp_achievements_config', array() );
 		?>
@@ -427,10 +445,16 @@ class WC_Team_Payroll_Performance_Settings {
 			<!-- Role Selector -->
 			<div class="wc-tp-perf-card">
 				<h4><?php esc_html_e( 'Configure Achievements by Role', 'wc-team-payroll' ); ?></h4>
+				<p class="description">
+					<?php esc_html_e( 'Create role-specific achievements with different criteria for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+					<?php endif; ?>
+				</p>
 				<div class="wc-tp-role-selector-wrapper">
-					<label for="wc-tp-achievements-role-selector"><?php esc_html_e( 'Select Role to Configure:', 'wc-team-payroll' ); ?></label>
-					<select id="wc-tp-achievements-role-selector" class="wc-tp-role-selector">
-						<option value=""><?php esc_html_e( '-- Select a Role --', 'wc-team-payroll' ); ?></option>
+					<label for="wc-tp-achievements-role-selector"><?php esc_html_e( 'Select Employee Role to Configure:', 'wc-team-payroll' ); ?></label>
+					<select id="wc-tp-achievements-role-selector" class="wc-tp-role-selector" <?php echo empty( $all_roles ) ? 'disabled' : ''; ?>>
+						<option value=""><?php esc_html_e( '-- Select an Employee Role --', 'wc-team-payroll' ); ?></option>
 						<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
 							<option value="<?php echo esc_attr( $role_key ); ?>"><?php echo esc_html( $role_name ); ?></option>
 						<?php endforeach; ?>
@@ -453,7 +477,10 @@ class WC_Team_Payroll_Performance_Settings {
 			<div id="wc-tp-achievements-config-container">
 				<div class="wc-tp-empty-state">
 					<span class="dashicons dashicons-awards"></span>
-					<p><?php esc_html_e( 'Select a role above to configure achievements and badges.', 'wc-team-payroll' ); ?></p>
+					<p><?php esc_html_e( 'Select an employee role above to configure achievements and badges.', 'wc-team-payroll' ); ?></p>
+					<?php if ( empty( $all_roles ) ) : ?>
+						<p><a href="?page=wc-team-payroll-settings&tab=woocommerce" class="button button-secondary"><?php esc_html_e( 'Configure Employee Roles', 'wc-team-payroll' ); ?></a></p>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -1264,16 +1291,32 @@ class WC_Team_Payroll_Performance_Settings {
 	}
 
 	/**
-	 * Get all WordPress roles dynamically
+	 * Get employee roles from settings (not all WordPress roles)
 	 */
 	private static function get_all_roles() {
-		global $wp_roles;
+		// Get employee roles from settings
+		$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
 		
+		// Get WordPress roles for display names
+		global $wp_roles;
 		if ( ! isset( $wp_roles ) ) {
 			$wp_roles = wp_roles();
 		}
 		
-		return $wp_roles->get_names();
+		$all_wp_roles = $wp_roles->get_names();
+		$filtered_roles = array();
+		
+		// Only include roles that are configured as employee roles
+		foreach ( $employee_roles as $role_key ) {
+			if ( isset( $all_wp_roles[ $role_key ] ) ) {
+				$filtered_roles[ $role_key ] = $all_wp_roles[ $role_key ];
+			} else {
+				// If role doesn't exist in WordPress, use the role key as display name
+				$filtered_roles[ $role_key ] = ucwords( str_replace( '_', ' ', $role_key ) );
+			}
+		}
+		
+		return $filtered_roles;
 	}
 
 	/**

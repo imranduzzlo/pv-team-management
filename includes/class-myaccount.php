@@ -5270,14 +5270,17 @@ class WC_Team_Payroll_MyAccount {
 		$base_score = isset( $performance_config['base_score'] ) ? floatval( $performance_config['base_score'] ) : 5;
 		$score = $base_score;
 
-		// Get user's WordPress roles
+		// Get user's WordPress roles (only check employee roles)
 		$user_role = null;
 		if ( $user_id ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( $user && isset( $user->roles ) && is_array( $user->roles ) ) {
-				// Get the first role that has performance config
+				// Get configured employee roles
+				$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+				
+				// Get the first role that is both an employee role AND has performance config
 				foreach ( $user->roles as $role ) {
-					if ( isset( $performance_config['roles'][ $role ] ) ) {
+					if ( in_array( $role, $employee_roles ) && isset( $performance_config['roles'][ $role ] ) ) {
 						$user_role = $role;
 						break;
 					}
