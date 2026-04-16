@@ -1,0 +1,461 @@
+/* ============================================================================
+   REPORTS PAGE SPECIFIC STYLING
+   WooCommerce Team Payroll - Reports Page
+   ============================================================================ */
+
+/* ============================================================================
+   REPORTS GRID
+   ============================================================================ */
+
+.reports-grid {
+	/* Grid layout handled by .pv-summary-grid parent */
+	margin-bottom: 30px;
+}
+
+.report-card {
+	/* Base card styling handled by .pv-card parent */
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.report-card h4 {
+	margin: 0 0 10px 0;
+	font-size: 16px;
+	color: #495057;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.report-card h4 i {
+	color: #0073aa;
+	font-size: 18px;
+}
+
+.report-card p {
+	margin: 0;
+	font-size: 14px;
+	color: #6c757d;
+	line-height: 1.5;
+}
+
+.report-card .report-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: #28a745;
+	margin: 15px 0 10px 0;
+}
+
+.report-card .report-label {
+	font-size: 12px;
+	color: #999;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   REPORTS SECTIONS
+   ============================================================================ */
+
+.reports-section {
+	margin-bottom: 40px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.reports-section h3 {
+	margin: 0 !important;
+	padding: 0 0 10px 0;
+	font-size: 18px;
+	color: #495057;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border-bottom: 1px solid #e9ecef;
+	position: relative;
+}
+
+.reports-section h3::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 34px;
+	height: 3px;
+	background: #0073aa;
+}
+
+/* ============================================================================
+   REPORTS TABLE
+   ============================================================================ */
+
+.reports-table {
+	margin-bottom: 20px;
+}
+
+.woocommerce-table--reports {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 20px;
+}
+
+.woocommerce-table--reports thead tr {
+	background: #f8f9fa;
+	border-bottom: 2px solid #dee2e6;
+}
+
+.woocommerce-table--reports th,
+.woocommerce-table--reports td {
+	padding: 12px;
+	text-align: left;
+	border-bottom: 1px solid #dee2e6;
+	vertical-align: middle;
+}
+
+.woocommerce-table--reports th {
+	font-weight: 600;
+	color: #495057;
+	font-size: 14px;
+}
+
+.woocommerce-table--reports tbody tr:hover {
+	background: #f8f9fa;
+}
+
+.report-row-label {
+	font-weight: 500;
+	color: #333;
+}
+
+.report-row-value {
+	color: #28a745;
+	font-weight: 600;
+	font-size: 15px;
+}
+
+.report-row-value.secondary {
+	color: #0073aa;
+}
+
+.report-row-value.warning {
+	color: #ffc107;
+}
+
+.report-row-value.danger {
+	color: #dc3545;
+}
+
+/* ============================================================================
+   REPORT FILTERS
+   ============================================================================ */
+
+.report-filters {
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 30px;
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+	align-items: flex-end;
+}
+
+.filter-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.filter-group label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.filter-group input,
+.filter-group select {
+	padding: 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #495057;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.filter-button {
+	padding: 8px 20px;
+	background: #0073aa;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.filter-button:hover {
+	background: #005a87;
+}
+
+.filter-button:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+/* ============================================================================
+   REPORT EXPORT
+   ============================================================================ */
+
+.report-export {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+}
+
+.export-button {
+	padding: 8px 16px;
+	background: transparent;
+	border: 1px solid #0073aa;
+	color: #0073aa;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.export-button:hover {
+	background: rgba(0, 115, 170, 0.1);
+	border-color: #0073aa;
+}
+
+.export-button i {
+	font-size: 16px;
+}
+
+/* ============================================================================
+   REPORT SUMMARY
+   ============================================================================ */
+
+.report-summary {
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 30px;
+}
+
+.report-summary h4 {
+	margin: 0 0 15px 0;
+	font-size: 16px;
+	color: #333;
+	font-weight: 600;
+}
+
+.summary-items {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 15px;
+}
+
+.summary-item {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding: 10px;
+	background: #f8f9fa;
+	border-radius: 4px;
+}
+
+.summary-item label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.summary-item .value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #333;
+}
+
+.summary-item .value.positive {
+	color: #28a745;
+}
+
+.summary-item .value.negative {
+	color: #dc3545;
+}
+
+/* ============================================================================
+   NO REPORTS MESSAGE
+   ============================================================================ */
+
+.no-reports-message {
+	text-align: center;
+	padding: 40px 20px;
+	background: #f8f9fa;
+	border-radius: 8px;
+	color: #6c757d;
+}
+
+.no-reports-message i {
+	font-size: 48px;
+	color: #dee2e6;
+	margin-bottom: 15px;
+	display: block;
+}
+
+.no-reports-message p {
+	margin: 0;
+	font-size: 16px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - REPORTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.reports-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.report-filters {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	
+	.filter-group {
+		flex: 1;
+	}
+	
+	.filter-button {
+		width: 100%;
+	}
+	
+	.report-export {
+		flex-direction: column;
+	}
+	
+	.export-button {
+		width: 100%;
+		justify-content: center;
+	}
+	
+	.woocommerce-table--reports {
+		font-size: 12px;
+	}
+	
+	.woocommerce-table--reports th,
+	.woocommerce-table--reports td {
+		padding: 8px;
+	}
+	
+	.summary-items {
+		grid-template-columns: 1fr;
+	}
+	
+	.report-card {
+		padding: 15px;
+	}
+	
+	.report-card .report-value {
+		font-size: 22px;
+	}
+}
+
+@media (max-width: 480px) {
+	.reports-grid {
+		grid-template-columns: 1fr;
+		gap: 15px;
+	}
+	
+	.report-card {
+		padding: 12px;
+	}
+	
+	.report-card h4 {
+		font-size: 14px;
+	}
+	
+	.report-card p {
+		font-size: 12px;
+	}
+	
+	.report-card .report-value {
+		font-size: 20px;
+		margin: 10px 0 8px 0;
+	}
+	
+	.report-card .report-label {
+		font-size: 11px;
+	}
+	
+	.report-filters {
+		padding: 15px;
+		gap: 10px;
+	}
+	
+	.filter-group input,
+	.filter-group select {
+		padding: 6px 10px;
+		font-size: 13px;
+	}
+	
+	.filter-button {
+		padding: 6px 12px;
+		font-size: 12px;
+	}
+	
+	.woocommerce-table--reports {
+		font-size: 11px;
+	}
+	
+	.woocommerce-table--reports th,
+	.woocommerce-table--reports td {
+		padding: 6px;
+	}
+	
+	.report-row-value {
+		font-size: 13px;
+	}
+	
+	.summary-item {
+		padding: 8px;
+	}
+	
+	.summary-item label {
+		font-size: 11px;
+	}
+	
+	.summary-item .value {
+		font-size: 16px;
+	}
+	
+	.export-button {
+		padding: 6px 12px;
+		font-size: 12px;
+	}
+}

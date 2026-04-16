@@ -36,13 +36,19 @@ class WC_Team_Payroll_Settings {
 				<a href="?page=wc-team-payroll-settings&tab=general" class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">General</a>
 				<a href="?page=wc-team-payroll-settings&tab=commission" class="nav-tab <?php echo $current_tab === 'commission' ? 'nav-tab-active' : ''; ?>">Commission</a>
 				<a href="?page=wc-team-payroll-settings&tab=styling" class="nav-tab <?php echo $current_tab === 'styling' ? 'nav-tab-active' : ''; ?>">Frontend Styling</a>
-				<a href="?page=wc-team-payroll-settings&tab=roles" class="nav-tab <?php echo $current_tab === 'roles' ? 'nav-tab-active' : ''; ?>">Employee Roles</a>
-				<a href="?page=wc-team-payroll-settings&tab=checkout" class="nav-tab <?php echo $current_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">Checkout</a>
-				<a href="?page=wc-team-payroll-settings&tab=advanced" class="nav-tab <?php echo $current_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">Advanced</a>
+				<a href="?page=wc-team-payroll-settings&tab=roles" class="nav-tab <?php echo $current_tab === 'roles' ? 'nav-tab-active' : ''; ?>">User Roles</a>
+				<a href="?page=wc-team-payroll-settings&tab=woocommerce" class="nav-tab <?php echo $current_tab === 'woocommerce' ? 'nav-tab-active' : ''; ?>">WooCommerce</a>
 				<a href="?page=wc-team-payroll-settings&tab=debug" class="nav-tab <?php echo $current_tab === 'debug' ? 'nav-tab-active' : ''; ?>">Debug</a>
 			</nav>
 
-			<form method="post" action="">
+			<!-- Unsaved Changes Warning -->
+			<div id="wc-tp-unsaved-warning" style="display: none !important; position: sticky !important; top: 40px !important; z-index: 999 !important; background-color: #fff4e6 !important; border-left: 4px solid #ff9900 !important; border-bottom: 1px solid #ffcc99 !important; padding: 12px 15px !important; margin: 0 !important; border-radius: 0 !important; width: 100% !important; box-sizing: border-box !important; box-shadow: 0 2px 4px rgba(255, 153, 0, 0.1) !important;">
+				<p style="margin: 0 !important; color: #cc7700 !important; font-weight: 600 !important; font-size: 14px !important;">
+					⚠️ Settings have changed, you should save them!
+				</p>
+			</div>
+
+			<form method="post" action="" id="wc-tp-settings-form">
 				<?php wp_nonce_field( 'wc_team_payroll_settings_nonce' ); ?>
 
 				<?php if ( $current_tab === 'general' ) : ?>
@@ -136,7 +142,7 @@ class WC_Team_Payroll_Settings {
 							<th><label for="primary_color">Primary Color</label></th>
 							<td>
 								<input type="color" id="primary_color" name="wc_team_payroll_styling[primary_color]" value="<?php echo esc_attr( isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa' ); ?>" />
-								<p class="description">Main brand color used for buttons, links, and accents</p>
+								<p class="description">Main brand color used for buttons, links, and accents.</p>
 							</td>
 						</tr>
 						<tr>
@@ -176,13 +182,15 @@ class WC_Team_Payroll_Settings {
 						</tr>
 					</table>
 
+
+
 					<h3>Background Colors</h3>
 					<table class="form-table">
 						<tr>
 							<th><label for="background_color">Main Background</label></th>
 							<td>
 								<input type="color" id="background_color" name="wc_team_payroll_styling[background_color]" value="<?php echo esc_attr( isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff' ); ?>" />
-								<p class="description">Background color for main content areas</p>
+								<p class="description">Background color for main content areas. Use hex color (#ffffff) or CSS variable (var(--color-bg))</p>
 							</td>
 						</tr>
 						<tr>
@@ -248,6 +256,9 @@ class WC_Team_Payroll_Settings {
 								<select id="font_family" name="wc_team_payroll_styling[font_family]">
 									<?php
 									$font_family = isset( $styling_settings['font_family'] ) ? $styling_settings['font_family'] : 'inherit';
+									// Normalize the stored value for comparison
+									$font_family_normalized = trim( $font_family );
+									
 									$font_options = array(
 										'inherit' => 'Inherit from theme',
 										'Arial, sans-serif' => 'Arial',
@@ -259,29 +270,53 @@ class WC_Team_Payroll_Settings {
 										'"Poppins", sans-serif' => 'Poppins',
 										'Georgia, serif' => 'Georgia',
 										'"Times New Roman", serif' => 'Times New Roman',
+										'custom' => '--- Custom Font ---',
 									);
 									foreach ( $font_options as $value => $label ) {
-										echo '<option value="' . esc_attr( $value ) . '"' . selected( $font_family, $value, false ) . '>' . esc_html( $label ) . '</option>';
+										$is_selected = ( $font_family_normalized === trim( $value ) ) ? 'selected' : '';
+										echo '<option value="' . esc_attr( $value ) . '"' . $is_selected . '>' . esc_html( $label ) . '</option>';
 									}
 									?>
 								</select>
-								<p class="description">Font family for all text elements</p>
+								<p class="description">Font family for all text elements. Select "Custom Font" to enter a custom font name or CSS variable.</p>
+							</td>
+						</tr>
+						<tr id="custom_font_row" style="display: <?php echo ( $font_family_normalized === 'custom' ) ? 'table-row' : 'none'; ?>;">
+							<th><label for="custom_font_family">Custom Font</label></th>
+							<td>
+								<input type="text" id="custom_font_family" name="wc_team_payroll_styling[custom_font_family]" value="<?php echo esc_attr( isset( $styling_settings['custom_font_family'] ) ? $styling_settings['custom_font_family'] : '' ); ?>" placeholder="e.g., 'Courier New', monospace or var(--my-font)" />
+								<p class="description">Enter a font family name (e.g., 'Courier New', monospace) or CSS variable (e.g., var(--my-font) or --my-font)</p>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="base_font_size">Base Font Size</label></th>
-							<td>
-								<input type="number" id="base_font_size" name="wc_team_payroll_styling[base_font_size]" value="<?php echo esc_attr( isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14 ); ?>" min="10" max="24" step="1" />
-								<span>px</span>
-								<p class="description">Base font size for body text (10-24px)</p>
+							<td style="display: flex; gap: 10px; align-items: center;">
+								<input type="text" id="base_font_size" name="wc_team_payroll_styling[base_font_size]" value="<?php echo esc_attr( isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14 ); ?>" placeholder="14 or var(--fs-body)" style="flex: 1; max-width: 150px;" />
+								<select id="base_font_size_unit" name="wc_team_payroll_styling[base_font_size_unit]" style="max-width: 100px;">
+									<?php
+									$base_font_size_unit = isset( $styling_settings['base_font_size_unit'] ) ? $styling_settings['base_font_size_unit'] : 'px';
+									$unit_options = array( 'px' => 'px', 'var' => 'CSS Variable' );
+									foreach ( $unit_options as $value => $label ) {
+										echo '<option value="' . esc_attr( $value ) . '"' . selected( $base_font_size_unit, $value, false ) . '>' . esc_html( $label ) . '</option>';
+									}
+									?>
+								</select>
+								<p class="description" style="margin: 0; font-size: 12px;">Base font size for body text. Use px (10-24) or CSS variable (e.g., var(--fs-body) or --fs-body)</p>
 							</td>
 						</tr>
 						<tr>
 							<th><label for="heading_font_size">Heading Font Size</label></th>
-							<td>
-								<input type="number" id="heading_font_size" name="wc_team_payroll_styling[heading_font_size]" value="<?php echo esc_attr( isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24 ); ?>" min="16" max="48" step="1" />
-								<span>px</span>
-								<p class="description">Font size for main headings (16-48px)</p>
+							<td style="display: flex; gap: 10px; align-items: center;">
+								<input type="text" id="heading_font_size" name="wc_team_payroll_styling[heading_font_size]" value="<?php echo esc_attr( isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24 ); ?>" placeholder="24 or var(--fs-heading)" style="flex: 1; max-width: 150px;" />
+								<select id="heading_font_size_unit" name="wc_team_payroll_styling[heading_font_size_unit]" style="max-width: 100px;">
+									<?php
+									$heading_font_size_unit = isset( $styling_settings['heading_font_size_unit'] ) ? $styling_settings['heading_font_size_unit'] : 'px';
+									foreach ( $unit_options as $value => $label ) {
+										echo '<option value="' . esc_attr( $value ) . '"' . selected( $heading_font_size_unit, $value, false ) . '>' . esc_html( $label ) . '</option>';
+									}
+									?>
+								</select>
+								<p class="description" style="margin: 0; font-size: 12px;">Font size for main headings. Use px (16-48) or CSS variable (e.g., var(--fs-heading) or --fs-heading)</p>
 							</td>
 						</tr>
 					</table>
@@ -351,37 +386,33 @@ class WC_Team_Payroll_Settings {
 						</tr>
 					</table>
 
-					<h3>Preview</h3>
-					<div style="background: <?php echo esc_attr( isset( $styling_settings['background_color'] ) ? $styling_settings['background_color'] : '#ffffff' ); ?>; padding: 20px; border: 1px solid <?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>; border-radius: <?php echo esc_attr( isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8 ); ?>px; margin: 15px 0;">
-						<h3 style="color: <?php echo esc_attr( isset( $styling_settings['heading_color'] ) ? $styling_settings['heading_color'] : '#333333' ); ?>; font-size: <?php echo esc_attr( isset( $styling_settings['heading_font_size'] ) ? $styling_settings['heading_font_size'] : 24 ); ?>px; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">Sample Heading</h3>
-						<p style="color: <?php echo esc_attr( isset( $styling_settings['text_color'] ) ? $styling_settings['text_color'] : '#495057' ); ?>; font-size: <?php echo esc_attr( isset( $styling_settings['base_font_size'] ) ? $styling_settings['base_font_size'] : 14 ); ?>px; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">This is sample text content. <a href="#" style="color: <?php echo esc_attr( isset( $styling_settings['link_color'] ) ? $styling_settings['link_color'] : '#0073aa' ); ?>;">This is a sample link</a> within the text.</p>
-						<div style="background: <?php echo esc_attr( isset( $styling_settings['card_background'] ) ? $styling_settings['card_background'] : '#f8f9fa' ); ?>; padding: 15px; border: 1px solid <?php echo esc_attr( isset( $styling_settings['border_color'] ) ? $styling_settings['border_color'] : '#e9ecef' ); ?>; border-radius: <?php echo esc_attr( isset( $styling_settings['card_border_radius'] ) ? $styling_settings['card_border_radius'] : 8 ); ?>px; margin: 10px 0;">
-							<strong>Sample Card Content</strong><br>
-							<span style="color: <?php echo esc_attr( isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745' ); ?>; font-weight: 600;">$1,250.00</span>
-						</div>
-						<button type="button" style="background: <?php echo esc_attr( isset( $styling_settings['button_background'] ) ? $styling_settings['button_background'] : '#0073aa' ); ?>; color: <?php echo esc_attr( isset( $styling_settings['button_text_color'] ) ? $styling_settings['button_text_color'] : '#ffffff' ); ?>; border: none; padding: 8px 16px; border-radius: <?php echo esc_attr( isset( $styling_settings['button_border_radius'] ) ? $styling_settings['button_border_radius'] : 4 ); ?>px; cursor: pointer; font-family: <?php echo esc_attr( isset( $styling_settings['font_family'] ) && $styling_settings['font_family'] !== 'inherit' ? $styling_settings['font_family'] : 'inherit' ); ?>;">Sample Button</button>
-					</div>
+					<h3>Custom CSS</h3>
+					<p>Add custom CSS rules to further customize the frontend styling. CSS will be automatically injected into the page.</p>
+					<textarea id="custom_css" name="wc_team_payroll_styling[custom_css]" rows="12" style="width: 100%; font-family: 'Courier New', monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;"><?php echo esc_textarea( isset( $styling_settings['custom_css'] ) ? $styling_settings['custom_css'] : '' ); ?></textarea>
+					<p class="description">Example: <code>.my-class { color: #333; }</code> - Auto-closing braces will be added when needed.</p>
 
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'roles' ) : ?>
-					<h2>Employee Roles Management</h2>
-					<p>Manage which user roles are considered employees. Add new roles or customize existing ones.</p>
+					<h2>User Roles Management</h2>
+					<p>Manage which user roles are considered employees. Default WordPress and WooCommerce roles cannot be removed but can be edited. Only custom roles created by this plugin can be removed.</p>
 					<div class="wc-tp-roles-container" id="wc-tp-roles-container">
 						<?php $this->render_roles_repeater( $employee_roles ); ?>
 					</div>
 					<button type="button" class="button button-secondary" id="wc-tp-add-role-btn">+ Add New Role</button>
 				<?php endif; ?>
 
-				<?php if ( $current_tab === 'checkout' ) : ?>
-					<h2>Checkout Field Mapping</h2>
-					<p>Configure your custom checkout field names (created via ThemeHigh Checkout Field Editor)</p>
+				<?php if ( $current_tab === 'woocommerce' ) : ?>
+					<h2>WooCommerce Settings</h2>
+					
+					<h3>Checkout Field Mapping</h3>
+					<p>Configure your checkout field names to integrate with the agent dropdown. These fields can be created using ThemeHigh Checkout Field Editor, WooCommerce Checkout Field Editor, or any other checkout field editor plugin.</p>
 					<table class="form-table">
 						<tr>
-							<th><label for="agent_field_name">Agent Dropdown Field Name</label></th>
+							<th><label for="agent_field_name">Agent Dropdown Reference Field</label></th>
 							<td>
 								<input type="text" id="agent_field_name" name="wc_team_payroll_checkout_fields[agent_field_name]" value="<?php echo esc_attr( isset( $checkout_fields['agent_field_name'] ) ? $checkout_fields['agent_field_name'] : 'order_other_agent_or_not' ); ?>" />
-								<p class="description">The POST field name from your ThemeHigh checkout field</p>
+								<p class="description">The POST field name where the agent dropdown will be inserted. This is the reference field from your checkout field editor (e.g., ThemeHigh, WooCommerce Checkout Field Editor, or any custom checkout field). The dynamic agent dropdown will be placed after this field.</p>
 							</td>
 						</tr>
 						<tr>
@@ -389,33 +420,47 @@ class WC_Team_Payroll_Settings {
 							<td>
 								<?php
 								global $wp_roles;
-								$all_roles = $wp_roles->roles;
-								$agent_user_roles = isset( $checkout_fields['agent_user_roles'] ) ? $checkout_fields['agent_user_roles'] : array( 'shop_employee', 'shop_manager', 'administrator' );
+								$all_roles = isset( $wp_roles ) && isset( $wp_roles->roles ) ? $wp_roles->roles : array();
+								$agent_user_roles = isset( $checkout_fields['agent_user_roles'] ) && is_array( $checkout_fields['agent_user_roles'] ) ? $checkout_fields['agent_user_roles'] : array( 'shop_employee', 'shop_manager', 'administrator' );
 								?>
 								<select id="agent_user_roles" name="wc_team_payroll_checkout_fields[agent_user_roles][]" multiple="multiple" style="width: 100%; min-height: 100px;">
-									<?php foreach ( $all_roles as $role_key => $role_data ) : ?>
+									<?php 
+									if ( ! empty( $all_roles ) ) {
+										foreach ( $all_roles as $role_key => $role_data ) : 
+											if ( is_array( $role_data ) && isset( $role_data['name'] ) ) :
+									?>
 										<option value="<?php echo esc_attr( $role_key ); ?>" <?php echo in_array( $role_key, $agent_user_roles ) ? 'selected' : ''; ?>>
 											<?php echo esc_html( $role_data['name'] ); ?>
 										</option>
-									<?php endforeach; ?>
+									<?php 
+											endif;
+										endforeach;
+									}
+									?>
 								</select>
 								<p class="description">Select which user roles can be shown as agents in the checkout dropdown</p>
 							</td>
 						</tr>
 					</table>
-				<?php endif; ?>
 
-				<?php if ( $current_tab === 'advanced' ) : ?>
-					<h2>Advanced Settings</h2>
+					<h3>Product Commission Field</h3>
+					<p>Configure the field name used on products to store commission rates.</p>
 					<table class="form-table">
 						<tr>
 							<th><label for="commission_field_name">Product Commission Field Name</label></th>
 							<td>
 								<input type="text" id="commission_field_name" name="wc_team_payroll_acf_fields[commission_field_name]" value="<?php echo esc_attr( isset( $acf_fields['commission_field_name'] ) ? $acf_fields['commission_field_name'] : 'team_commission' ); ?>" />
-								<p class="description">The field name on products for commission rate (e.g., team_commission)</p>
+								<p class="description">The field name on products for commission rate (e.g., team_commission). This can be created using ACF (Advanced Custom Fields), custom meta fields, or any product field editor.</p>
 							</td>
 						</tr>
 					</table>
+
+					<h3>Order Statuses</h3>
+					<p>Manage WooCommerce order statuses and configure which ones appear in bulk actions.</p>
+					<div class="wc-tp-statuses-container" id="wc-tp-statuses-container">
+						<?php $this->render_statuses_repeater( $checkout_fields ); ?>
+					</div>
+					<button type="button" class="button button-secondary" id="wc-tp-add-status-btn">+ Add New Status</button>
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'debug' ) : ?>
@@ -492,8 +537,299 @@ class WC_Team_Payroll_Settings {
 				<?php endif; ?>
 
 				<?php submit_button(); ?>
+				
+				<!-- Preview Button -->
+				<button type="button" id="wc-tp-preview-btn" class="button button-secondary" style="position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; font-size: 14px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 999;">
+					👁️ Live Preview
+				</button>
 			</form>
 		</div>
+
+		<!-- Live Preview Offcanvas (Right Side) -->
+		<div id="wc-tp-preview-modal" style="display: none; position: fixed; top: 0; right: 0; width: 450px; height: 100vh; background: white; z-index: 10000; overflow-y: auto; box-shadow: -2px 0 10px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
+			<!-- Offcanvas Header -->
+			<div style="background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001;">
+				<h2 style="margin: 0; font-size: 18px; font-weight: 600;">Live Preview</h2>
+				<button type="button" id="wc-tp-preview-close" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+			</div>
+
+			<!-- Offcanvas Content -->
+			<div style="padding: 20px; background: #f9f9f9; min-height: 100vh;">
+					<!-- Employee Header Preview -->
+					<div id="wc-tp-preview-header" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+						<div style="display: flex; align-items: center; gap: 15px;">
+							<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">JD</div>
+							<div>
+								<h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 600;">John Doe</h3>
+								<p style="margin: 0; font-size: 14px; color: #666;">Employee</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Cards Preview -->
+					<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+						<div id="wc-tp-preview-card-1" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Total Earnings</h3>
+							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 50,000</p>
+						</div>
+						<div id="wc-tp-preview-card-2" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">This Month</h3>
+							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 5,000</p>
+						</div>
+						<div id="wc-tp-preview-card-3" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Last Paid</h3>
+							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 2,500</p>
+						</div>
+					</div>
+
+					<!-- Table Preview -->
+					<div id="wc-tp-preview-table" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+						<table style="width: 100%; border-collapse: collapse;">
+							<thead>
+								<tr style="background: #f5f5f5; border-bottom: 2px solid #0073aa;">
+									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Date</th>
+									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Amount</th>
+									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr style="border-bottom: 1px solid #eee;">
+									<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-15</td>
+									<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
+									<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
+								</tr>
+								<tr style="border-bottom: 1px solid #eee;">
+									<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-08</td>
+									<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
+									<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<p style="margin-top: 20px; font-size: 12px; color: #999; text-align: center;">Changes are reflected in real-time. No save needed to see preview.</p>
+			</div>
+		</div>
+
+		<script>
+			jQuery(document).ready(function($) {
+				let hasChanges = false;
+				const form = $('#wc-tp-settings-form');
+				const warningDiv = $('#wc-tp-unsaved-warning');
+				const originalFormData = form.serialize();
+
+				// Track all form changes
+				form.on('change', 'input, select, textarea', function() {
+					if (!hasChanges) {
+						hasChanges = true;
+						warningDiv.fadeIn(300);
+					}
+				});
+
+				// Track checkbox changes
+				form.on('change', 'input[type="checkbox"]', function() {
+					if (!hasChanges) {
+						hasChanges = true;
+						warningDiv.fadeIn(300);
+					}
+				});
+
+				// Track color picker changes
+				form.on('change', 'input[type="color"]', function() {
+					if (!hasChanges) {
+						hasChanges = true;
+						warningDiv.fadeIn(300);
+					}
+				});
+
+				// Reset hasChanges when form is submitted
+				form.on('submit', function() {
+					hasChanges = false;
+					warningDiv.fadeOut(300);
+				});
+
+				// Show browser warning when leaving page with unsaved changes
+				$(window).on('beforeunload', function() {
+					if (hasChanges) {
+						return 'You have unsaved changes. Are you sure you want to leave?';
+					}
+				});
+
+				// Handle tab navigation with unsaved changes
+				$('.nav-tab').on('click', function(e) {
+					if (hasChanges) {
+						const confirmed = confirm('You have unsaved changes. Are you sure you want to leave this tab without saving?');
+						if (!confirmed) {
+							e.preventDefault();
+							return false;
+						}
+					}
+				});
+
+				// Live Preview Functionality
+				const previewBtn = $('#wc-tp-preview-btn');
+				const previewModal = $('#wc-tp-preview-modal');
+				const previewClose = $('#wc-tp-preview-close');
+
+				// Open preview offcanvas
+				previewBtn.on('click', function(e) {
+					e.preventDefault();
+					previewModal.css('transform', 'translateX(0)').fadeIn(300);
+					updatePreview();
+				});
+
+				// Close preview offcanvas
+				previewClose.on('click', function(e) {
+					e.preventDefault();
+					previewModal.css('transform', 'translateX(100%)').fadeOut(300);
+				});
+
+				// Update preview in real-time
+				form.on('change', 'input, select, textarea', function() {
+					updatePreview();
+				});
+
+				// Update preview function
+				function updatePreview() {
+					// Get current styling values
+					const primaryColor = $('input[name="wc_team_payroll_styling[primary_color]"]').val() || '#0073aa';
+					const textColor = $('input[name="wc_team_payroll_styling[text_color]"]').val() || '#333';
+					const backgroundColor = $('input[name="wc_team_payroll_styling[background_color]"]').val() || '#fff';
+					const cardBgColor = $('input[name="wc_team_payroll_styling[card_background_color]"]').val() || '#fff';
+					const fontFamily = $('select[name="wc_team_payroll_styling[font_family]"]').val() || 'inherit';
+					const baseFontSize = $('input[name="wc_team_payroll_styling[base_font_size]"]').val() || '14';
+					const cardBorderRadius = $('input[name="wc_team_payroll_styling[card_border_radius]"]').val() || '8';
+					const shadowIntensity = $('input[name="wc_team_payroll_styling[shadow_intensity]"]').val() || '0.1';
+
+					// Update header
+					$('#wc-tp-preview-header').css({
+						'background-color': backgroundColor,
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+						'color': textColor
+					});
+
+					// Update header profile circle
+					$('#wc-tp-preview-header div[style*="border-radius: 50%"]').css({
+						'background': `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`
+					});
+
+					// Update cards
+					$('[id^="wc-tp-preview-card-"]').css({
+						'background-color': cardBgColor,
+						'border-radius': cardBorderRadius + 'px',
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+						'color': textColor,
+						'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
+					});
+
+					// Update card headings
+					$('[id^="wc-tp-preview-card-"] h3').css({
+						'color': textColor,
+						'border-bottom-color': primaryColor,
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily
+					});
+
+					// Update card values
+					$('[id^="wc-tp-preview-card-"] p').css({
+						'color': primaryColor,
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+						'font-size': (parseInt(baseFontSize) + 10) + 'px'
+					});
+
+					// Update table
+					$('#wc-tp-preview-table').css({
+						'background-color': cardBgColor,
+						'border-radius': cardBorderRadius + 'px',
+						'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
+					});
+
+					// Update table header
+					$('#wc-tp-preview-table thead tr').css({
+						'background-color': backgroundColor,
+						'border-bottom-color': primaryColor
+					});
+
+					$('#wc-tp-preview-table thead th').css({
+						'color': textColor,
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+						'font-size': baseFontSize + 'px'
+					});
+
+					// Update table body
+					$('#wc-tp-preview-table tbody td').css({
+						'color': textColor,
+						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+						'font-size': baseFontSize + 'px'
+					});
+
+					// Update table body amount cells
+					$('#wc-tp-preview-table tbody td:nth-child(2)').css({
+						'color': primaryColor
+					});
+				}
+
+				// Custom CSS Auto-Closing Braces
+				const customCssTextarea = $('#custom_css');
+				
+				customCssTextarea.on('keydown', function(e) {
+					// Auto-close opening brace
+					if (e.key === '{') {
+						e.preventDefault();
+						const textarea = this;
+						const start = textarea.selectionStart;
+						const end = textarea.selectionEnd;
+						const text = textarea.value;
+						
+						// Insert { and }
+						textarea.value = text.substring(0, start) + '{ ' + text.substring(end);
+						
+						// Move cursor inside braces
+						textarea.selectionStart = textarea.selectionEnd = start + 2;
+						
+						// Trigger change event for unsaved changes detection
+						$(this).trigger('change');
+					}
+					
+					// Auto-indent on Enter
+					if (e.key === 'Enter') {
+						const textarea = this;
+						const start = textarea.selectionStart;
+						const text = textarea.value;
+						const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+						const lineText = text.substring(lineStart, start);
+						const indent = lineText.match(/^\s*/)[0];
+						
+						// Check if previous line ends with {
+						const prevLineEnd = text.lastIndexOf('\n', lineStart - 2);
+						const prevLine = text.substring(prevLineEnd + 1, lineStart - 1).trim();
+						
+						if (prevLine.endsWith('{')) {
+							e.preventDefault();
+							const newIndent = indent + '\t';
+							textarea.value = text.substring(0, start) + '\n' + newIndent + text.substring(start);
+							textarea.selectionStart = textarea.selectionEnd = start + newIndent.length + 1;
+							$(this).trigger('change');
+						}
+					}
+				});
+			});
+		</script>
+
+		<script>
+			jQuery(document).ready(function($) {
+				// Font Family Custom Field Toggle
+				const $fontFamilySelect = $('#font_family');
+				const $customFontRow = $('#custom_font_row');
+
+				$fontFamilySelect.on('change', function() {
+					if ($(this).val() === 'custom') {
+						$customFontRow.show();
+					} else {
+						$customFontRow.hide();
+					}
+				});
+			});
+		</script>
 
 		<style>
 			.wc-tp-roles-container { margin: 20px 0; }
@@ -614,13 +950,65 @@ class WC_Team_Payroll_Settings {
 				});
 			});
 		</script>
+
+		<script>
+			jQuery(document).ready(function($) {
+				// Status Management
+				$('#wc-tp-add-status-btn').on('click', function() {
+					const container = $('#wc-tp-statuses-container');
+					const timestamp = Date.now();
+					const html = `
+						<div class="wc-tp-status-item" style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin-bottom: 15px; position: relative;">
+							<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+								<div style="flex: 1;">
+									<div style="margin-bottom: 12px;">
+										<label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;">Status Label</label>
+										<input type="text" class="wc-tp-status-label-input" name="wc_team_payroll_checkout_fields[custom_statuses][new_${timestamp}][label]" placeholder="e.g., Custom Processing" value="" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" />
+										<p class="description" style="margin: 5px 0 0 0; font-size: 12px;">Display name for this status</p>
+									</div>
+
+									<div style="margin-bottom: 12px;">
+										<label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;">Status Name</label>
+										<input type="text" class="wc-tp-status-name-input" name="wc_team_payroll_checkout_fields[custom_statuses][new_${timestamp}][name]" placeholder="e.g., custom_processing" value="" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" />
+										<p class="description" style="margin: 5px 0 0 0; font-size: 12px;">Unique identifier for this status (e.g., processing, completed)</p>
+									</div>
+								</div>
+
+								<div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+									<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; white-space: nowrap;">
+										<input type="checkbox" name="wc_team_payroll_checkout_fields[custom_statuses][new_${timestamp}][in_bulk_actions]" value="1" checked />
+										<span>Include in Bulk Actions</span>
+									</label>
+									
+									<button type="button" class="wc-tp-status-remove" data-status="new_${timestamp}" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 600;">
+										Remove
+									</button>
+								</div>
+							</div>
+
+							<input type="hidden" name="wc_team_payroll_checkout_fields[custom_statuses][new_${timestamp}][is_default]" value="0" />
+							<input type="hidden" name="wc_team_payroll_checkout_fields[custom_statuses][new_${timestamp}][status_key]" value="new_${timestamp}" />
+						</div>
+					`;
+					container.append(html);
+				});
+
+				$(document).on('click', '.wc-tp-status-remove', function(e) {
+					e.preventDefault();
+					$(this).closest('.wc-tp-status-item').remove();
+				});
+			});
+		</script>
 		<?php
 	}
 
 	private function render_roles_repeater( $employee_roles ) {
 		global $wp_roles;
-		$all_roles = $wp_roles->roles;
-		$all_role_keys = array_keys( $all_roles );
+		$all_roles = isset( $wp_roles ) && isset( $wp_roles->roles ) ? $wp_roles->roles : array();
+		$all_role_keys = ! empty( $all_roles ) ? array_keys( $all_roles ) : array();
+
+		// Define default WordPress and WooCommerce roles that cannot be removed
+		$default_roles = array( 'administrator', 'editor', 'author', 'contributor', 'subscriber', 'shop_manager' );
 
 		$detected_roles = array();
 		foreach ( $all_role_keys as $role_key ) {
@@ -634,6 +1022,7 @@ class WC_Team_Payroll_Settings {
 		foreach ( $all_employee_roles as $role ) :
 			$role_data = isset( $all_roles[ $role ] ) ? $all_roles[ $role ] : array( 'name' => $role );
 			$is_admin = $role === 'administrator';
+			$is_default_role = in_array( $role, $default_roles );
 			$role_obj = get_role( $role );
 			$capabilities = $role_obj ? $role_obj->capabilities : array();
 			?>
@@ -644,13 +1033,23 @@ class WC_Team_Payroll_Settings {
 					</div>
 				<?php endif; ?>
 
+				<?php if ( $is_default_role ) : ?>
+					<div class="wc-tp-role-info" style="background-color: #e7f3ff; border-left: 4px solid #0073aa; padding: 10px; margin-bottom: 10px; border-radius: 3px;">
+						ℹ️ This is a default WordPress/WooCommerce role and cannot be removed.
+					</div>
+				<?php endif; ?>
+
 				<div class="wc-tp-role-item-header">
 					<div style="flex: 1;">
 						<input type="text" class="wc-tp-role-name-input" name="wc_tp_employee_roles[<?php echo esc_attr( $role ); ?>][name]" value="<?php echo esc_attr( $role_data['name'] ); ?>" style="font-weight: bold; padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" />
 					</div>
-					<button type="button" class="wc-tp-role-remove" data-role="<?php echo esc_attr( $role ); ?>">
-						Remove
-					</button>
+					<?php if ( ! $is_default_role ) : ?>
+						<button type="button" class="wc-tp-role-remove" data-role="<?php echo esc_attr( $role ); ?>">
+							Remove
+						</button>
+					<?php else : ?>
+						<span style="color: #999; font-size: 12px; padding: 6px 12px;">Cannot remove</span>
+					<?php endif; ?>
 				</div>
 
 				<div class="wc-tp-role-capabilities" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
@@ -685,13 +1084,209 @@ class WC_Team_Payroll_Settings {
 		endforeach;
 	}
 
-	private function save_settings() {
-		$settings = isset( $_POST['wc_team_payroll_settings'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_settings'] ) : array();
-		$checkout_fields = isset( $_POST['wc_team_payroll_checkout_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_checkout_fields'] ) : array();
-		$acf_fields = isset( $_POST['wc_team_payroll_acf_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_acf_fields'] ) : array();
+	private function render_statuses_repeater( $checkout_fields ) {
+		// Get WooCommerce default statuses
+		$wc_statuses = array();
+		if ( function_exists( 'wc_get_order_statuses' ) ) {
+			$wc_statuses = wc_get_order_statuses();
+		}
 		
-		// Save styling settings
-		$styling_settings = isset( $_POST['wc_team_payroll_styling'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_styling'] ) : array();
+		// Get custom statuses from settings
+		$custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+		
+		// Combine default and custom statuses
+		$all_statuses = array();
+		
+		// Add WooCommerce default statuses
+		if ( ! empty( $wc_statuses ) && is_array( $wc_statuses ) ) {
+			foreach ( $wc_statuses as $status_key => $status_label ) {
+				// Remove 'wc-' prefix from status key
+				$clean_key = str_replace( 'wc-', '', $status_key );
+				$all_statuses[ $clean_key ] = array(
+					'label' => $status_label,
+					'name' => $clean_key,
+					'is_default' => true,
+					'in_bulk_actions' => 1, // Default statuses are always in bulk actions
+				);
+			}
+		}
+		
+		// Add custom statuses
+		if ( is_array( $custom_statuses ) && ! empty( $custom_statuses ) ) {
+			foreach ( $custom_statuses as $status_key => $status_data ) {
+				if ( is_array( $status_data ) && isset( $status_data['name'] ) && ! empty( $status_data['name'] ) ) {
+					$all_statuses[ $status_key ] = array(
+						'label' => isset( $status_data['label'] ) ? $status_data['label'] : $status_data['name'],
+						'name' => $status_data['name'],
+						'is_default' => false,
+						'in_bulk_actions' => isset( $status_data['in_bulk_actions'] ) ? $status_data['in_bulk_actions'] : 1,
+					);
+				}
+			}
+		}
+		
+		foreach ( $all_statuses as $status_key => $status_data ) :
+			$is_default = isset( $status_data['is_default'] ) ? $status_data['is_default'] : false;
+			$in_bulk_actions = isset( $status_data['in_bulk_actions'] ) ? $status_data['in_bulk_actions'] : 0;
+			?>
+			<div class="wc-tp-status-item" style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin-bottom: 15px; position: relative;">
+				<?php if ( $is_default ) : ?>
+					<div style="background-color: #e7f3ff; border-left: 4px solid #0073aa; padding: 10px; margin-bottom: 10px; border-radius: 3px;">
+						ℹ️ This is a default WooCommerce status.
+					</div>
+				<?php endif; ?>
+
+				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+					<div style="flex: 1;">
+						<div style="margin-bottom: 12px;">
+							<label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;">Status Label</label>
+							<input type="text" class="wc-tp-status-label-input" name="wc_team_payroll_checkout_fields[custom_statuses][<?php echo esc_attr( $status_key ); ?>][label]" value="<?php echo esc_attr( $status_data['label'] ); ?>" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" <?php echo $is_default ? 'readonly' : ''; ?> />
+							<p class="description" style="margin: 5px 0 0 0; font-size: 12px;">Display name for this status</p>
+						</div>
+
+						<div style="margin-bottom: 12px;">
+							<label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;">Status Name</label>
+							<input type="text" class="wc-tp-status-name-input" name="wc_team_payroll_checkout_fields[custom_statuses][<?php echo esc_attr( $status_key ); ?>][name]" value="<?php echo esc_attr( $status_data['name'] ); ?>" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 100%; max-width: 300px;" <?php echo $is_default ? 'readonly' : ''; ?> />
+							<p class="description" style="margin: 5px 0 0 0; font-size: 12px;">Unique identifier for this status (e.g., processing, completed)</p>
+						</div>
+					</div>
+
+					<div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+						<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; white-space: nowrap;">
+							<input type="checkbox" name="wc_team_payroll_checkout_fields[custom_statuses][<?php echo esc_attr( $status_key ); ?>][in_bulk_actions]" value="1" <?php checked( $in_bulk_actions, 1 ); ?> />
+							<span>Include in Bulk Actions</span>
+						</label>
+						
+						<?php if ( ! $is_default ) : ?>
+							<button type="button" class="wc-tp-status-remove" data-status="<?php echo esc_attr( $status_key ); ?>" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 600;">
+								Remove
+							</button>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<input type="hidden" name="wc_team_payroll_checkout_fields[custom_statuses][<?php echo esc_attr( $status_key ); ?>][is_default]" value="<?php echo $is_default ? '1' : '0'; ?>" />
+				<input type="hidden" name="wc_team_payroll_checkout_fields[custom_statuses][<?php echo esc_attr( $status_key ); ?>][status_key]" value="<?php echo esc_attr( $status_key ); ?>" />
+			</div>
+			<?php
+		endforeach;
+	}
+
+	/**
+	 * Normalize CSS variable values
+	 * Converts --variable-name or var(--variable-name) to var(--variable-name)
+	 * Leaves hex colors and other values unchanged
+	 */
+	private function normalize_css_value( $value ) {
+		if ( empty( $value ) ) {
+			return $value;
+		}
+
+		$value = trim( $value );
+
+		// If it starts with --, convert to var(--...)
+		if ( strpos( $value, '--' ) === 0 ) {
+			return 'var(' . $value . ')';
+		}
+
+		// If it's already var(...), return as is
+		if ( strpos( $value, 'var(' ) === 0 ) {
+			return $value;
+		}
+
+		// Otherwise return as is (hex color, rgb, etc.)
+		return $value;
+	}
+
+	private function save_settings() {
+		// Get existing settings and merge with new ones (don't overwrite)
+		$existing_settings = get_option( 'wc_team_payroll_settings', array() );
+		$new_settings = isset( $_POST['wc_team_payroll_settings'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_settings'] ) : array();
+		$settings = array_merge( $existing_settings, $new_settings );
+		
+		// Get existing checkout_fields and merge with new ones
+		$existing_checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$checkout_fields = $existing_checkout_fields;
+		
+		if ( isset( $_POST['wc_team_payroll_checkout_fields'] ) && is_array( $_POST['wc_team_payroll_checkout_fields'] ) ) {
+			foreach ( $_POST['wc_team_payroll_checkout_fields'] as $key => $value ) {
+				if ( $key === 'custom_statuses' ) {
+					// Handle nested custom_statuses array - merge with existing to preserve is_default flag
+					$existing_custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+					$checkout_fields['custom_statuses'] = $existing_custom_statuses; // Start with existing
+					
+					if ( is_array( $value ) ) {
+						foreach ( $value as $status_key => $status_data ) {
+							if ( is_array( $status_data ) ) {
+								$checkout_fields['custom_statuses'][ sanitize_text_field( $status_key ) ] = array(
+									'label' => isset( $status_data['label'] ) ? sanitize_text_field( $status_data['label'] ) : '',
+									'name' => isset( $status_data['name'] ) ? sanitize_text_field( $status_data['name'] ) : '',
+									'is_default' => isset( $status_data['is_default'] ) ? (int) $status_data['is_default'] : 0,
+									'in_bulk_actions' => isset( $status_data['in_bulk_actions'] ) ? 1 : 0,
+								);
+							}
+						}
+					}
+				} else if ( $key === 'agent_user_roles' && is_array( $value ) ) {
+					// Handle agent_user_roles array
+					$checkout_fields['agent_user_roles'] = array_map( 'sanitize_text_field', $value );
+				} else {
+					// Handle simple fields
+					$checkout_fields[ $key ] = sanitize_text_field( $value );
+				}
+			}
+		}
+		
+		// Get existing ACF fields and merge with new ones
+		$existing_acf_fields = get_option( 'wc_team_payroll_acf_fields', array() );
+		$new_acf_fields = isset( $_POST['wc_team_payroll_acf_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_acf_fields'] ) : array();
+		$acf_fields = array_merge( $existing_acf_fields, $new_acf_fields );
+		
+		// Get existing styling settings and merge with new ones
+		$existing_styling_settings = get_option( 'wc_team_payroll_styling', array() );
+		$new_styling_settings = isset( $_POST['wc_team_payroll_styling'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_styling'] ) : array();
+		$styling_settings = array_merge( $existing_styling_settings, $new_styling_settings );
+		
+		// Normalize CSS variable values in styling settings (convert --var to var(--var))
+		$color_fields = array(
+			'primary_color',
+			'secondary_color',
+			'text_color',
+			'heading_color',
+			'background_color',
+			'card_background_color',
+			'border_color',
+			'header_background',
+			'header_border_color',
+			'link_color',
+			'link_hover_color',
+			'button_background',
+			'button_text_color',
+		);
+		
+		foreach ( $color_fields as $field ) {
+			if ( isset( $styling_settings[ $field ] ) ) {
+				$styling_settings[ $field ] = $this->normalize_css_value( $styling_settings[ $field ] );
+			}
+		}
+
+		// Normalize font family CSS variables
+		if ( isset( $styling_settings['custom_font_family'] ) ) {
+			$styling_settings['custom_font_family'] = $this->normalize_css_value( $styling_settings['custom_font_family'] );
+		}
+
+		// Normalize font size CSS variables
+		if ( isset( $styling_settings['base_font_size_unit'] ) && $styling_settings['base_font_size_unit'] === 'var' ) {
+			if ( isset( $styling_settings['base_font_size'] ) ) {
+				$styling_settings['base_font_size'] = $this->normalize_css_value( $styling_settings['base_font_size'] );
+			}
+		}
+
+		if ( isset( $styling_settings['heading_font_size_unit'] ) && $styling_settings['heading_font_size_unit'] === 'var' ) {
+			if ( isset( $styling_settings['heading_font_size'] ) ) {
+				$styling_settings['heading_font_size'] = $this->normalize_css_value( $styling_settings['heading_font_size'] );
+			}
+		}
 
 		update_option( 'wc_team_payroll_settings', $settings );
 		update_option( 'wc_team_payroll_checkout_fields', $checkout_fields );

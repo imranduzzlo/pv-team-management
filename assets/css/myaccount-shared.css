@@ -1,0 +1,822 @@
+/* ============================================================================
+   MY ACCOUNT SHARED STYLING - WooCommerce Team Payroll
+   SHARED COMPONENTS FOR ALL MY ACCOUNT PAGES
+   ============================================================================ */
+
+/* Clean styling without debug borders */
+.pv-page-wrapper {
+	padding: 20px 0 !important;
+	background: #fff !important;
+}
+
+/* ============================================================================
+   PROFESSIONAL EMPLOYEE HEADER - 2 COLUMN LAYOUT (SHARED)
+   ============================================================================ */
+
+.wc-tp-employee-header-new {
+	margin-bottom: 40px;
+	padding: 30px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+	border: 1px solid #f0f0f0;
+}
+
+.header-main-grid {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 30px;
+	align-items: flex-start;
+}
+
+.header-left-column {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+}
+
+.profile-picture-container {
+	width: 120px;
+	height: 120px;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #fff;
+	border: 3px solid #0073aa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.profile-picture {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.profile-picture-placeholder {
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 50px;
+	color: #fff;
+	font-weight: 700;
+}
+
+.profile-picture-placeholder .initials {
+	font-size: 50px;
+	color: #fff;
+	font-weight: 700;
+}
+
+.header-right-column {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.header-row-1 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 15px;
+}
+
+.profile-name {
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 24px;
+	font-weight: 700;
+	color: #212529;
+	line-height: 1;
+	flex: 1;
+}
+
+.profile-role {
+	display: inline-block;
+	padding: 6px 12px;
+	background: rgba(0, 115, 170, 0.1);
+	color: #0073aa;
+	font-weight: 600;
+	font-size: 13px;
+	border-radius: 4px;
+	margin: 0;
+	white-space: nowrap;
+}
+
+.header-row-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+	padding: 15px 0;
+	border-top: 1px solid #f0f0f0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.info-column-left {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.info-column-right {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.info-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	color: #495057;
+}
+
+.info-item i {
+	font-size: 18px;
+	color: #0073aa;
+	width: 18px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.info-value {
+	cursor: pointer;
+	transition: color 0.2s ease;
+}
+
+.info-value:hover {
+	color: #0073aa;
+}
+
+.info-value.status-active {
+	color: #28a745;
+	font-weight: 600;
+}
+
+.info-value.status-inactive {
+	color: #dc3545;
+	font-weight: 600;
+}
+
+.copy-notification {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: #28a745;
+	color: #fff;
+	padding: 12px 20px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	font-size: 14px;
+	font-weight: 600;
+	z-index: 9999;
+	animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s;
+}
+
+@keyframes slideIn {
+	from {
+		transform: translateX(400px);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideOut {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(400px);
+		opacity: 0;
+	}
+}
+
+.social-icons-row {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin-top: 2px;
+}
+
+.social-icon {
+	width: auto;
+	height: auto;
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #0073aa;
+	text-decoration: none;
+	transition: color 0.3s ease;
+	font-size: 18px;
+	padding: 0;
+}
+
+.social-icon i {
+	font-size: 18px;
+}
+
+.social-icon:hover {
+	color: #28a745;
+}
+
+.social-icon.facebook:hover {
+	color: #1877f2;
+}
+
+.social-icon.whatsapp:hover {
+	color: #25d366;
+}
+
+.social-icon.instagram:hover {
+	color: #e4405f;
+}
+
+.social-icon.linkedin:hover {
+	color: #0a66c2;
+}
+
+.header-row-3 {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.profile-bio {
+	margin: 0;
+	font-size: 14px;
+	color: #495057;
+	line-height: 1.6;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - HEADER
+   ============================================================================ */
+
+@media (max-width: 620px) {
+	.header-main-grid {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+	
+	.header-left-column {
+		justify-content: flex-start;
+	}
+	
+	.header-row-1 {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	
+	.profile-role {
+		align-self: flex-start;
+	}
+}
+
+@media (max-width: 768px) {
+	.wc-tp-employee-header-new {
+		padding: 20px;
+		margin-bottom: 30px;
+	}
+	
+	.header-main-grid {
+		grid-template-columns: 1fr;
+		gap: 15px;
+	}
+	
+	.header-left-column {
+		justify-content: center;
+	}
+	
+	.profile-picture-container {
+		width: 100px;
+		height: 100px;
+		border-width: 3px;
+	}
+	
+	.profile-picture-placeholder .initials {
+		font-size: 40px;
+	}
+	
+	.profile-name {
+		font-size: 20px;
+	}
+	
+	.profile-role {
+		padding: 5px 10px;
+		font-size: 12px;
+	}
+	
+	.header-row-2 {
+		grid-template-columns: 1fr;
+		gap: 15px;
+		padding: 12px 0;
+	}
+	
+	.info-item {
+		font-size: 13px;
+	}
+	
+	.info-item i {
+		font-size: 16px;
+		width: 16px;
+	}
+	
+	.social-icons-row {
+		gap: 10px;
+	}
+	
+	.social-icon i {
+		font-size: 16px;
+	}
+	
+	.header-row-3 {
+		padding-top: 8px;
+	}
+	
+	.profile-bio {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 480px) {
+	.wc-tp-employee-header-new {
+		padding: 15px;
+	}
+	
+	.profile-picture-container {
+		width: 80px;
+		height: 80px;
+		border-width: 2px;
+	}
+	
+	.profile-picture-placeholder .initials {
+		font-size: 32px;
+	}
+	
+	.profile-name {
+		font-size: 18px;
+	}
+	
+	.profile-role {
+		padding: 4px 8px;
+		font-size: 11px;
+	}
+	
+	.header-row-2 {
+		gap: 12px;
+		padding: 10px 0;
+	}
+	
+	.info-item {
+		font-size: 12px;
+	}
+	
+	.info-item i {
+		font-size: 14px;
+		width: 14px;
+	}
+	
+	.social-icons-row {
+		gap: 8px;
+	}
+	
+	.social-icon i {
+		font-size: 16px;
+	}
+	
+	.header-row-3 {
+		padding-top: 6px;
+	}
+	
+	.profile-bio {
+		font-size: 12px;
+	}
+}
+
+/* ============================================================================
+   SECTION HEADERS WITH CONTROLS (SHARED)
+   ============================================================================ */
+
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.section-header h3 {
+	margin: 0 !important;
+	padding: 0;
+	font-size: 18px;
+	color: #495057;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	position: relative;
+	padding-bottom: 15px;
+	flex: 1;
+	min-width: 200px;
+}
+
+.section-header h3::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 34px;
+	height: 3px;
+	background: #0073aa;
+}
+
+/* ============================================================================
+   COMMON WRAPPER CLASSES - REUSABLE ACROSS ALL PAGES/SECTIONS
+   ============================================================================ */
+
+/* Common Card Wrapper */
+.pv-card {
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 20px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+	transition: all 0.2s ease;
+}
+
+.pv-card:hover {
+	box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+/* Common Summary/Grid Container */
+.pv-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 20px;
+}
+
+/* ============================================================================
+   SECTION HEADING PATTERN (SHARED) - Used by all section containers
+   ============================================================================ */
+
+.pv-section-wrapper {
+	margin-bottom: 40px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.pv-section-wrapper h3 {
+	margin: 0 !important;
+	padding: 0 0 10px 0 !important;
+	font-size: 18px !important;
+	color: #495057 !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	border-bottom: 1px solid #e9ecef !important;
+	position: relative !important;
+}
+
+.pv-section-wrapper h3::after {
+	content: '' !important;
+	position: absolute !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	width: 34px !important;
+	height: 3px !important;
+	background: #0073aa !important;
+}
+
+.table-controls {
+	display: flex;
+	gap: 15px;
+	align-items: center;
+	flex-wrap: wrap;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.search-control {
+	position: relative;
+	flex: 1;
+	min-width: 200px;
+}
+
+.search-control input {
+	padding: 8px 35px 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	font-size: 14px;
+	width: 100%;
+}
+
+.search-control i {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #6c757d;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.search-control i.ph-times {
+	cursor: pointer;
+}
+
+.per-page-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #6c757d;
+	margin: 0;
+}
+
+.per-page-control label {
+	margin: 0;
+	padding: 0;
+}
+
+.per-page-control select {
+	padding: 6px 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.view-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #6c757d;
+	margin: 0;
+}
+
+.view-control label {
+	margin: 0;
+	padding: 0;
+}
+
+.view-control select {
+	padding: 6px 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+/* ============================================================================
+   TABLE STYLING (SHARED) - Common table wrapper
+   ============================================================================ */
+
+.table-container {
+	overflow-x: auto;
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	margin: 0 !important;
+	padding: 0 !important;
+	-webkit-overflow-scrolling: touch;
+	width: 100%;
+}
+
+.pv-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+	border: none;
+	table-layout: auto;
+}
+
+.pv-table thead tr {
+	background: #f8f9fa;
+	border: none;
+	border-radius: 5px !important;
+}
+
+.pv-table th {
+	padding: 14px 12px !important;
+	text-align: left;
+	border: none;
+	border-bottom: 1px solid #e9ecef !important;
+	font-weight: 600;
+	color: #495057;
+	font-size: 14px;
+	position: relative;
+	white-space: nowrap;
+	vertical-align: middle;
+	min-width: max-content;
+}
+
+.pv-table th.sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: background-color 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+}
+
+.pv-table th.sortable:hover {
+	background: #e9ecef;
+}
+
+.sort-icon {
+	margin-left: 0;
+	font-size: 12px;
+	color: #6c757d;
+	transition: color 0.2s ease;
+	flex-shrink: 0;
+	display: inline-block;
+}
+
+.pv-table th.sortable:hover .sort-icon {
+	color: #495057;
+}
+
+.pv-table td {
+	padding: 12px 12px !important;
+	text-align: left;
+	border: none;
+	border-bottom: 1px solid #e9ecef;
+	vertical-align: top;
+	background: transparent;
+	white-space: nowrap;
+}
+
+.pv-table tbody tr {
+	border-radius: 5px !important;
+}
+
+.pv-table tbody tr:hover {
+	background: #f8f9fa;
+}
+
+/* ============================================================================
+   PAGINATION (SHARED)
+   ============================================================================ */
+
+.pagination-container {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.pagination-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.pagination-info {
+	color: #6c757d;
+	font-size: 14px;
+}
+
+.pagination-controls {
+	display: flex;
+	gap: 5px;
+	align-items: center;
+}
+
+.page-btn {
+	padding: 8px 12px;
+	border: 1px solid #0073aa;
+	background: transparent;
+	color: #0073aa;
+	cursor: pointer;
+	border-radius: 4px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	min-width: 40px;
+	text-align: center;
+	display: inline-block;
+	text-decoration: none;
+}
+
+.page-btn i {
+	color: #0073aa;
+}
+
+.page-btn:hover {
+	background: rgba(0, 115, 170, 0.1);
+	border-color: #0073aa;
+}
+
+.page-btn.current-page {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+}
+
+.page-btn.current-page i {
+	color: #fff;
+}
+
+.page-btn.prev-btn,
+.page-btn.next-btn {
+	padding: 8px 10px;
+}
+
+.page-ellipsis {
+	padding: 8px 4px;
+	color: #6c757d;
+	font-size: 14px;
+}
+
+/* ============================================================================
+   NO RESULTS STYLING (SHARED)
+   ============================================================================ */
+
+.no-results {
+	text-align: center;
+	padding: 40px 20px;
+}
+
+.no-results-message {
+	color: #6c757d;
+	text-align: center;
+}
+
+.no-results-message i {
+	font-size: 48px;
+	color: #dee2e6;
+	margin-bottom: 15px;
+	display: block;
+}
+
+.no-results-message p {
+	margin: 0;
+	font-size: 16px;
+}
+
+/* ============================================================================
+   TABLE WRAPPER (SHARED)
+   ============================================================================ */
+
+.table-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 10px;
+	padding: 20px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-wrapper > * {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+/* ============================================================================
+   BUTTON DISABLED STATE (SHARED)
+   ============================================================================ */
+
+.wc-tp-button-disabled {
+	opacity: 0.5 !important;
+	cursor: not-allowed !important;
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+	pointer-events: none !important;
+}
+
+.wc-tp-button-disabled:hover {
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+}
+
+button[type="submit"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+	pointer-events: none;
+}
+
+button[type="submit"]:disabled:hover {
+	background-color: #ccc !important;
+	border-color: #999 !important;
+	color: #666 !important;
+}

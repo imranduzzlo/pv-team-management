@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.0.40
+ * Version: 1.0.39
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -202,6 +202,106 @@ add_action( 'plugins_loaded', function() {
 
 	// Initialize Salary Automation System
 	WC_Team_Payroll_Salary_Automation::init();
+
+	// Register custom order statuses with WooCommerce
+	add_action( 'init', function() {
+		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+		
+		if ( ! empty( $custom_statuses ) ) {
+			foreach ( $custom_statuses as $status_key => $status_data ) {
+				if ( is_array( $status_data ) && isset( $status_data['name'] ) && ! empty( $status_data['name'] ) ) {
+					$status_name = $status_data['name'];
+					$status_label = isset( $status_data['label'] ) ? $status_data['label'] : $status_name;
+					
+					// Register the status with WordPress
+					register_post_status( 'wc-' . $status_name, array(
+						'label'                     => $status_label,
+						'public'                    => true,
+						'exclude_from_search'       => false,
+						'show_in_admin_all_list'    => true,
+						'show_in_admin_status_list' => true,
+						'label_count'               => _n_noop( $status_label . ' <span class="count">(%s)</span>', $status_label . ' <span class="count">(%s)</span>' ),
+					) );
+				}
+			}
+		}
+	}, 5 );
+
+	// Add custom statuses to WooCommerce order statuses dropdown - PROPER METHOD
+	add_filter( 'wc_order_statuses', function( $order_statuses ) {
+		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+		
+		if ( ! empty( $custom_statuses ) ) {
+			foreach ( $custom_statuses as $status_key => $status_data ) {
+				if ( is_array( $status_data ) && isset( $status_data['name'] ) && ! empty( $status_data['name'] ) ) {
+					$status_name = $status_data['name'];
+					$status_label = isset( $status_data['label'] ) ? $status_data['label'] : $status_name;
+					
+					// Add to WooCommerce order statuses
+					$order_statuses[ 'wc-' . $status_name ] = _x( $status_label, 'Order status', 'wc-team-payroll' );
+				}
+			}
+		}
+		
+		return $order_statuses;
+	} );
+
+	// Add custom statuses to bulk actions - ONLY if checked
+	add_filter( 'bulk_actions-edit-shop_order', function( $actions ) {
+		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+		
+		if ( ! empty( $custom_statuses ) ) {
+			foreach ( $custom_statuses as $status_key => $status_data ) {
+				// ONLY add if in_bulk_actions is checked
+				if ( is_array( $status_data ) && isset( $status_data['in_bulk_actions'] ) && $status_data['in_bulk_actions'] ) {
+					if ( isset( $status_data['name'] ) && ! empty( $status_data['name'] ) ) {
+						$status_name = $status_data['name'];
+						$status_label = isset( $status_data['label'] ) ? $status_data['label'] : $status_name;
+						$actions[ 'mark_' . $status_name ] = sprintf( __( 'Change status to %s', 'wc-team-payroll' ), $status_label );
+					}
+				}
+			}
+		}
+		
+		return $actions;
+	} );
+
+	// Handle bulk action for custom statuses
+	add_action( 'handle_bulk_actions-edit-shop_order', function( $redirect_url, $action, $post_ids ) {
+		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$custom_statuses = isset( $checkout_fields['custom_statuses'] ) && is_array( $checkout_fields['custom_statuses'] ) ? $checkout_fields['custom_statuses'] : array();
+		
+		// Check if this is a custom status action
+		if ( strpos( $action, 'mark_' ) === 0 ) {
+			$status_name = substr( $action, 5 ); // Remove 'mark_' prefix
+			
+			// Verify this is a valid custom status
+			$is_valid_status = false;
+			foreach ( $custom_statuses as $status_data ) {
+				if ( is_array( $status_data ) && isset( $status_data['name'] ) && $status_data['name'] === $status_name ) {
+					$is_valid_status = true;
+					break;
+				}
+			}
+			
+			if ( $is_valid_status ) {
+				foreach ( $post_ids as $post_id ) {
+					$order = wc_get_order( $post_id );
+					if ( $order ) {
+						$order->set_status( $status_name );
+						$order->save();
+					}
+				}
+				
+				$redirect_url = add_query_arg( 'bulk_action', $action, $redirect_url );
+			}
+		}
+		
+		return $redirect_url;
+	}, 10, 3 );
 
 	// Add AJAX handlers for My Account
 	add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( 'WC_Team_Payroll_MyAccount', 'ajax_get_orders' ) );
