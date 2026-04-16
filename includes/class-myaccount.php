@@ -38,6 +38,8 @@ class WC_Team_Payroll_MyAccount {
 
 		// Register AJAX handlers
 		add_action( 'wp_ajax_wc_tp_get_earnings_data', array( __CLASS__, 'ajax_get_earnings_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( __CLASS__, 'ajax_get_orders' ) );
+		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ) );
 
 		// Enqueue assets
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
@@ -1140,12 +1142,15 @@ class WC_Team_Payroll_MyAccount {
 								<label for="status-filter"><?php esc_html_e( 'Status:', 'wc-team-payroll' ); ?></label>
 								<select id="status-filter">
 									<option value="all"><?php esc_html_e( 'All Status', 'wc-team-payroll' ); ?></option>
-									<option value="completed"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></option>
-									<option value="processing"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></option>
-									<option value="pending"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></option>
-									<option value="on-hold"><?php esc_html_e( 'On Hold', 'wc-team-payroll' ); ?></option>
-									<option value="cancelled"><?php esc_html_e( 'Cancelled', 'wc-team-payroll' ); ?></option>
-									<option value="refunded"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></option>
+									<?php
+									// Get all WooCommerce order statuses dynamically
+									$order_statuses = wc_get_order_statuses();
+									foreach ( $order_statuses as $status_key => $status_label ) {
+										// Remove 'wc-' prefix from status key for cleaner values
+										$clean_status = str_replace( 'wc-', '', $status_key );
+										echo '<option value="' . esc_attr( $clean_status ) . '">' . esc_html( $status_label ) . '</option>';
+									}
+									?>
 								</select>
 							</div>
 							<div class="filter-control pv-date-filter-wrapper">
@@ -1360,12 +1365,24 @@ class WC_Team_Payroll_MyAccount {
 						.append($('<span class="amount-total"></span>').html(order.total));
 					
 					// Commission
-					const commissionCell = $('<td></td>').attr('data-sort-value', order.commission_amount)
-						.append($('<span class="amount-commission"></span>').html(order.commission));
+					const commissionCell = $('<td></td>').attr('data-sort-value', order.commission_amount);
+					if (order.has_commission) {
+						commissionCell.append($('<span class="amount-commission"></span>').html(order.commission));
+					} else {
+						commissionCell.append($('<span class="amount-commission no-commission"></span>')
+							.html('<?php esc_html_e( 'N/A', 'wc-team-payroll' ); ?>')
+							.attr('title', '<?php esc_attr_e( 'Commission not calculated for this status', 'wc-team-payroll' ); ?>'));
+					}
 					
 					// My Earning
-					const earningCell = $('<td></td>').attr('data-sort-value', order.earning_amount)
-						.append($('<span class="amount-earning"></span>').html(order.earning));
+					const earningCell = $('<td></td>').attr('data-sort-value', order.earning_amount);
+					if (order.has_commission) {
+						earningCell.append($('<span class="amount-earning"></span>').html(order.earning));
+					} else {
+						earningCell.append($('<span class="amount-earning no-commission"></span>')
+							.html('<?php esc_html_e( 'N/A', 'wc-team-payroll' ); ?>')
+							.attr('title', '<?php esc_attr_e( 'Earnings not available for this status', 'wc-team-payroll' ); ?>'));
+					}
 					
 					// Status
 					const statusCell = $('<td></td>')
@@ -3101,10 +3118,10 @@ class WC_Team_Payroll_MyAccount {
 		$page = isset( $_POST['page'] ) ? intval( $_POST['page'] ) : 1;
 		$per_page = isset( $_POST['per_page'] ) ? intval( $_POST['per_page'] ) : 25;
 
-		// Get orders
+		// Get orders - include all statuses
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => 'any', // Get orders with any status
 		);
 
 		if ( $date_from ) {
@@ -3124,11 +3141,7 @@ class WC_Team_Payroll_MyAccount {
 			$processor_id = $order->get_meta( '_processor_user_id' );
 			$commission_data = $order->get_meta( '_commission_data' );
 
-			if ( ! $commission_data ) {
-				continue;
-			}
-
-			// Check if user is involved in this order
+			// Check if user is involved in this order (even without commission data)
 			$user_role = null;
 			if ( intval( $agent_id ) === intval( $user_id ) ) {
 				$user_role = 'agent';
@@ -3136,6 +3149,7 @@ class WC_Team_Payroll_MyAccount {
 				$user_role = 'processor';
 			}
 
+			// Skip if user is not involved in this order at all
 			if ( ! $user_role ) {
 				continue;
 			}
@@ -3170,9 +3184,20 @@ class WC_Team_Payroll_MyAccount {
 				}
 			}
 
-			$my_earning = $user_role === 'agent' ? $commission_data['agent_earnings'] : $commission_data['processor_earnings'];
-			$total_commission += $commission_data['total_commission'];
-			$my_total_earnings += $my_earning;
+			// Handle commission data - only for completed/processing orders
+			$order_status = $order->get_status();
+			$has_commission = $commission_data && in_array( $order_status, array( 'completed', 'processing' ) );
+			
+			if ( $has_commission ) {
+				$my_earning = $user_role === 'agent' ? $commission_data['agent_earnings'] : $commission_data['processor_earnings'];
+				$order_commission = $commission_data['total_commission'];
+				$total_commission += $order_commission;
+				$my_total_earnings += $my_earning;
+			} else {
+				// No commission for non-completed/processing orders
+				$my_earning = 0;
+				$order_commission = 0;
+			}
 
 			$filtered_orders[] = array(
 				'order_id' => $order->get_id(),
@@ -3183,7 +3208,7 @@ class WC_Team_Payroll_MyAccount {
 				'my_role' => $user_role,
 				'my_role_label' => $user_role === 'agent' ? __( 'Agent', 'wc-team-payroll' ) : __( 'Processor', 'wc-team-payroll' ),
 				'total' => wp_kses_post( wc_price( $order->get_total() ) ),
-				'commission' => wp_kses_post( wc_price( $commission_data['total_commission'] ) ),
+				'commission' => wp_kses_post( wc_price( $order_commission ) ),
 				'earning' => wp_kses_post( wc_price( $my_earning ) ),
 				'status' => $order->get_status(),
 				'status_label' => wc_get_order_status_name( $order->get_status() ),
@@ -3191,6 +3216,7 @@ class WC_Team_Payroll_MyAccount {
 				'total_raw' => $order->get_total(),
 				'earning_raw' => $my_earning,
 				'date_raw' => $order->get_date_created()->getTimestamp(),
+				'has_commission' => $has_commission,
 			);
 		}
 

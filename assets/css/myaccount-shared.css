@@ -1148,3 +1148,17 @@ button[type="submit"]:disabled:hover {
 	border-color: #999 !important;
 	color: #666 !important;
 }
+/* ============================================================================
+   NO COMMISSION STYLING
+   ============================================================================ */
+
+/* Styling for orders without commission data */
+.no-commission {
+	color: #6c757d !important;
+	font-style: italic;
+	font-weight: 400 !important;
+}
+
+.no-commission:hover {
+	color: #495057 !important;
+}
