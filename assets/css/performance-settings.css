@@ -1,0 +1,1545 @@
+/**
+ * Performance Settings Admin Styles
+ * WooCommerce Team Payroll
+ * @since 1.0.52
+ */
+
+/* Main Wrapper */
+.wc-tp-performance-settings-wrapper {
+	max-width: 1400px;
+	margin: 20px 0;
+}
+
+.wc-tp-performance-settings-wrapper h2 {
+	margin-bottom: 10px;
+}
+
+.wc-tp-performance-settings-wrapper > .description {
+	margin-bottom: 30px;
+	font-size: 14px;
+	color: #646970;
+}
+
+/* Navigation Tabs */
+.wc-tp-perf-nav-tabs {
+	display: flex;
+	gap: 10px;
+	margin: 30px 0 20px;
+	border-bottom: 2px solid #dcdcde;
+	flex-wrap: wrap;
+}
+
+.wc-tp-perf-nav-tab {
+	background: transparent;
+	border: none;
+	padding: 12px 20px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	color: #50575e;
+	border-bottom: 3px solid transparent;
+	margin-bottom: -2px;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wc-tp-perf-nav-tab:hover {
+	color: #2271b1;
+	background: #f6f7f7;
+}
+
+.wc-tp-perf-nav-tab.active {
+	color: #2271b1;
+	border-bottom-color: #2271b1;
+	background: #f6f7f7;
+}
+
+.wc-tp-perf-nav-tab .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+/* Sections */
+.wc-tp-perf-section {
+	display: none;
+	padding: 30px 0;
+	animation: fadeIn 0.3s ease;
+}
+
+.wc-tp-perf-section.active {
+	display: block;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.wc-tp-perf-section h3 {
+	font-size: 20px;
+	margin: 0 0 10px;
+	color: #1d2327;
+}
+
+.wc-tp-perf-section > .description {
+	margin-bottom: 25px;
+	color: #646970;
+}
+
+/* Cards */
+.wc-tp-perf-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.wc-tp-perf-card h4 {
+	margin: 0 0 15px;
+	font-size: 16px;
+	color: #1d2327;
+}
+
+.wc-tp-perf-card .description {
+	margin-bottom: 15px;
+	color: #646970;
+}
+
+/* Role Selector */
+.wc-tp-role-selector-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.wc-tp-role-selector-wrapper label {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-role-selector {
+	max-width: 400px;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+}
+
+.wc-tp-role-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.wc-tp-role-actions .button {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Empty State */
+.wc-tp-empty-state {
+	text-align: center;
+	padding: 60px 20px;
+	color: #646970;
+}
+
+.wc-tp-empty-state .dashicons {
+	font-size: 64px;
+	width: 64px;
+	height: 64px;
+	opacity: 0.3;
+	margin-bottom: 15px;
+}
+
+.wc-tp-empty-state p {
+	font-size: 16px;
+	margin: 0;
+}
+
+/* Role Configuration Form */
+.wc-tp-role-config-form {
+	margin-top: 20px;
+}
+
+.wc-tp-role-config-form h4 {
+	background: #f0f0f1;
+	padding: 12px 15px;
+	margin: 0 -20px 20px;
+	border-radius: 4px 4px 0 0;
+	font-size: 15px;
+	color: #1d2327;
+}
+
+.wc-tp-factor-config {
+	margin-bottom: 30px;
+	padding: 20px;
+	background: #f6f7f7;
+	border-radius: 4px;
+}
+
+.wc-tp-factor-config h5 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-factor-config .description {
+	margin-bottom: 15px;
+	font-size: 13px;
+	color: #646970;
+}
+
+.wc-tp-ranges-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.wc-tp-add-range {
+	align-self: flex-start;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Range Row */
+.wc-tp-range-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.wc-tp-range-row label {
+	font-size: 13px;
+	color: #50575e;
+	min-width: 60px;
+}
+
+.wc-tp-range-row input[type="number"] {
+	width: 120px;
+	padding: 6px 10px;
+	font-size: 13px;
+}
+
+.wc-tp-range-row .wc-tp-remove-range {
+	margin-left: auto;
+	color: #d63638;
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 3px;
+	transition: background 0.2s ease;
+}
+
+.wc-tp-range-row .wc-tp-remove-range:hover {
+	background: #f0f0f1;
+}
+
+/* Save Wrapper */
+.wc-tp-perf-save-wrapper {
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	border-top: 1px solid #c3c4c7;
+	padding: 20px;
+	margin: 30px -20px -20px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+	z-index: 10;
+}
+
+.wc-tp-perf-save-wrapper .button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wc-tp-perf-save-wrapper .button-primary {
+	padding: 8px 20px;
+	height: auto;
+	font-size: 14px;
+}
+
+.wc-tp-perf-save-wrapper .button-link-delete {
+	margin-left: auto;
+	color: #d63638;
+}
+
+.wc-tp-perf-save-wrapper .button-link-delete:hover {
+	color: #d63638;
+	background: #f0f0f1;
+}
+
+/* Loading State */
+.wc-tp-loading {
+	text-align: center;
+	padding: 40px;
+	color: #646970;
+}
+
+.wc-tp-loading .spinner {
+	float: none;
+	margin: 0 auto 15px;
+	display: block;
+}
+
+/* Success/Error Messages */
+.wc-tp-message {
+	padding: 12px 15px;
+	margin: 15px 0;
+	border-left: 4px solid;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.wc-tp-message.success {
+	background: #edfaef;
+	border-color: #00a32a;
+	color: #00a32a;
+}
+
+.wc-tp-message.error {
+	background: #fcf0f1;
+	border-color: #d63638;
+	color: #d63638;
+}
+
+.wc-tp-message .dashicons {
+	flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+	.wc-tp-perf-nav-tabs {
+		flex-direction: column;
+		gap: 0;
+		border-bottom: none;
+	}
+
+	.wc-tp-perf-nav-tab {
+		border-bottom: 1px solid #dcdcde;
+		border-left: 3px solid transparent;
+		margin-bottom: 0;
+		padding: 15px;
+	}
+
+	.wc-tp-perf-nav-tab.active {
+		border-left-color: #2271b1;
+		border-bottom-color: #dcdcde;
+	}
+
+	.wc-tp-role-selector {
+		max-width: 100%;
+	}
+
+	.wc-tp-range-row {
+		flex-wrap: wrap;
+	}
+
+	.wc-tp-range-row input[type="number"] {
+		width: 100px;
+	}
+
+	.wc-tp-perf-save-wrapper {
+		flex-wrap: wrap;
+	}
+
+	.wc-tp-perf-save-wrapper .button-link-delete {
+		margin-left: 0;
+		width: 100%;
+	}
+}
+
+/* Coming Soon State */
+.wc-tp-perf-card.coming-soon {
+	text-align: center;
+	padding: 60px 20px;
+	background: #f6f7f7;
+	border-style: dashed;
+}
+
+.wc-tp-perf-card.coming-soon h4 {
+	color: #646970;
+	font-size: 18px;
+}
+
+.wc-tp-perf-card.coming-soon p {
+	color: #787c82;
+	margin: 10px 0 0;
+}
+
+
+/* Range Row Enhancements */
+.wc-tp-range-currency {
+	color: #50575e;
+	font-weight: 500;
+	margin-right: 2px;
+}
+
+.wc-tp-factor-info {
+	font-size: 12px;
+	color: #646970;
+	font-weight: 400;
+	margin-left: 8px;
+}
+
+/* Preview Section */
+.wc-tp-preview-section {
+	background: #f0f6fc;
+	border: 1px solid #c3d7ee;
+}
+
+.wc-tp-preview-inputs {
+	display: flex;
+	gap: 15px;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+}
+
+.wc-tp-preview-input-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wc-tp-preview-input-group label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-preview-input-group input {
+	width: 140px;
+	padding: 6px 10px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+}
+
+.wc-tp-calculate-preview {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+}
+
+.wc-tp-preview-result {
+	background: #fff;
+	border: 1px solid #c3d7ee;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+.wc-tp-preview-breakdown h6 {
+	margin: 0 0 15px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 2px solid #c3d7ee;
+	padding-bottom: 8px;
+}
+
+.wc-tp-preview-item {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.wc-tp-preview-item:last-child {
+	border-bottom: none;
+}
+
+.wc-tp-preview-item .label {
+	font-size: 13px;
+	color: #50575e;
+}
+
+.wc-tp-preview-item .value {
+	font-size: 14px;
+	font-weight: 600;
+	color: #2271b1;
+}
+
+.wc-tp-preview-total {
+	background: #f0f6fc;
+	margin: 10px -20px -20px;
+	padding: 15px 20px !important;
+	border-top: 2px solid #2271b1 !important;
+}
+
+.wc-tp-preview-total .label {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-preview-total .value {
+	font-size: 18px;
+	color: #2271b1;
+}
+
+/* Range Row Validation */
+.wc-tp-range-row.error {
+	border-color: #d63638;
+	background: #fcf0f1;
+}
+
+.wc-tp-range-row.error input {
+	border-color: #d63638;
+}
+
+/* Responsive Adjustments for Preview */
+@media (max-width: 782px) {
+	.wc-tp-preview-inputs {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wc-tp-preview-input-group input {
+		width: 100%;
+	}
+
+	.wc-tp-calculate-preview {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+
+/* ============================================================================
+   GOALS & TARGETS STYLING
+   ============================================================================ */
+
+/* Goal Configuration Cards */
+.wc-tp-goal-config {
+	margin-bottom: 30px;
+	padding: 20px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	border-left: 4px solid #2271b1;
+}
+
+.wc-tp-goal-config h5 {
+	margin: 0 0 8px;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wc-tp-goal-config h5 .dashicons {
+	color: #2271b1;
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.wc-tp-goal-config .description {
+	margin-bottom: 15px;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Goal Inputs */
+.wc-tp-goal-inputs {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 20px;
+	margin-top: 15px;
+}
+
+.wc-tp-goal-input-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	background: #fff;
+	padding: 15px;
+	border-radius: 4px;
+	border: 1px solid #c3c4c7;
+	position: relative;
+}
+
+.wc-tp-goal-input-group label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-goal-input {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+}
+
+.wc-tp-input-with-icon {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.wc-tp-currency-icon {
+	position: absolute;
+	left: 12px;
+	color: #646970;
+	font-weight: 600;
+	pointer-events: none;
+}
+
+.wc-tp-input-with-icon .wc-tp-goal-input {
+	padding-left: 28px;
+}
+
+/* Goal Badges */
+.wc-tp-goal-badge {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	align-self: flex-start;
+}
+
+.wc-tp-badge-minimum {
+	background: #fff3cd;
+	color: #856404;
+	border: 1px solid #ffeaa7;
+}
+
+.wc-tp-badge-target {
+	background: #d1ecf1;
+	color: #0c5460;
+	border: 1px solid #bee5eb;
+}
+
+.wc-tp-badge-stretch {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+/* Goal Preview Section */
+.wc-tp-goal-preview-section {
+	background: #f0f6fc;
+	border-left-color: #0073aa;
+}
+
+.wc-tp-goal-preview-inputs {
+	display: flex;
+	gap: 15px;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+}
+
+.wc-tp-goal-preview-result {
+	background: #fff;
+	border: 1px solid #c3d7ee;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+.wc-tp-goal-preview-item {
+	margin-bottom: 20px;
+}
+
+.wc-tp-goal-preview-item:last-child {
+	margin-bottom: 0;
+}
+
+.wc-tp-goal-preview-item h6 {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+/* Goal Progress Bar */
+.wc-tp-goal-progress-bar {
+	width: 100%;
+	height: 24px;
+	background: #e9ecef;
+	border-radius: 12px;
+	overflow: hidden;
+	position: relative;
+	margin-bottom: 8px;
+}
+
+.wc-tp-goal-progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #2271b1 0%, #0073aa 100%);
+	border-radius: 12px;
+	transition: width 0.5s ease;
+	position: relative;
+}
+
+.wc-tp-goal-progress-fill::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+	animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+.wc-tp-goal-progress-labels {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 13px;
+}
+
+.wc-tp-goal-current {
+	font-weight: 600;
+	color: #2271b1;
+}
+
+.wc-tp-goal-target {
+	color: #646970;
+}
+
+.wc-tp-goal-percentage {
+	font-weight: 600;
+	color: #1d2327;
+	background: #f0f6fc;
+	padding: 2px 8px;
+	border-radius: 3px;
+}
+
+/* Role Goals Form */
+.wc-tp-role-goals-form {
+	margin-top: 20px;
+}
+
+.wc-tp-role-goals-form h4 {
+	background: #f0f0f1;
+	padding: 12px 15px;
+	margin: 0 -20px 20px;
+	border-radius: 4px 4px 0 0;
+	font-size: 15px;
+	color: #1d2327;
+}
+
+.wc-tp-role-goals-form > .description {
+	margin-bottom: 20px;
+	padding: 12px;
+	background: #fff;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+}
+
+/* Global Goals Settings */
+.wc-tp-goals-setting {
+	max-width: 300px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+	.wc-tp-goal-inputs {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-goal-preview-inputs {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wc-tp-preview-input-group input {
+		width: 100%;
+	}
+
+	.wc-tp-preview-goals {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+/* Goal Progress Colors Based on Achievement */
+.wc-tp-goal-progress-fill[style*="width: 100%"],
+.wc-tp-goal-progress-fill[style*="width: 9"],
+.wc-tp-goal-progress-fill[style*="width: 8"] {
+	background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.wc-tp-goal-progress-fill[style*="width: 7"],
+.wc-tp-goal-progress-fill[style*="width: 6"],
+.wc-tp-goal-progress-fill[style*="width: 5"] {
+	background: linear-gradient(90deg, #ffc107 0%, #ffb300 100%);
+}
+
+.wc-tp-goal-progress-fill[style*="width: 4"],
+.wc-tp-goal-progress-fill[style*="width: 3"],
+.wc-tp-goal-progress-fill[style*="width: 2"],
+.wc-tp-goal-progress-fill[style*="width: 1"],
+.wc-tp-goal-progress-fill[style*="width: 0"] {
+	background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+}
+
+
+/* ============================================================================
+   ACHIEVEMENTS STYLING
+   ============================================================================ */
+
+/* Achievement Category */
+.wc-tp-achievement-category {
+	margin-bottom: 40px;
+	padding: 25px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	border-left: 4px solid #2271b1;
+}
+
+.wc-tp-achievement-category h5 {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wc-tp-achievement-category h5 .dashicons {
+	color: #2271b1;
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+.wc-tp-achievement-category .description {
+	margin-bottom: 20px;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Achievement Tiers Grid */
+.wc-tp-achievement-tiers {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 20px;
+	margin-top: 15px;
+}
+
+/* Achievement Card */
+.wc-tp-achievement-card {
+	background: #fff;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wc-tp-achievement-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Achievement Header */
+.wc-tp-achievement-header {
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 2px solid;
+}
+
+.wc-tp-tier-bronze .wc-tp-achievement-header {
+	background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%);
+	border-bottom-color: #a0522d;
+}
+
+.wc-tp-tier-silver .wc-tp-achievement-header {
+	background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%);
+	border-bottom-color: #909090;
+}
+
+.wc-tp-tier-gold .wc-tp-achievement-header {
+	background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+	border-bottom-color: #ff9800;
+}
+
+.wc-tp-achievement-badge-icon {
+	width: 40px;
+	height: 40px;
+	background: rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wc-tp-achievement-badge-icon .dashicons {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: #fff;
+}
+
+.wc-tp-tier-label {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	color: #fff;
+	background: rgba(0, 0, 0, 0.2);
+	padding: 4px 10px;
+	border-radius: 12px;
+}
+
+/* Achievement Body */
+.wc-tp-achievement-body {
+	padding: 20px;
+}
+
+.wc-tp-achievement-field {
+	margin-bottom: 15px;
+}
+
+.wc-tp-achievement-field:last-child {
+	margin-bottom: 0;
+}
+
+.wc-tp-achievement-field label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #1d2327;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wc-tp-achievement-input,
+.wc-tp-achievement-textarea,
+.wc-tp-achievement-select {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	transition: border-color 0.2s ease;
+}
+
+.wc-tp-achievement-input:focus,
+.wc-tp-achievement-textarea:focus,
+.wc-tp-achievement-select:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wc-tp-achievement-textarea {
+	resize: vertical;
+	min-height: 60px;
+}
+
+.wc-tp-threshold-input {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.wc-tp-threshold-prefix {
+	position: absolute;
+	left: 12px;
+	color: #646970;
+	font-weight: 600;
+	pointer-events: none;
+}
+
+.wc-tp-threshold-input .wc-tp-achievement-input {
+	padding-left: 28px;
+}
+
+/* Achievement Preview Section */
+.wc-tp-achievement-preview-section {
+	margin-top: 30px;
+	padding: 25px;
+	background: #f0f6fc;
+	border-radius: 4px;
+	border-left: 4px solid #0073aa;
+}
+
+.wc-tp-achievement-preview-section h5 {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wc-tp-achievement-preview-section h5 .dashicons {
+	color: #0073aa;
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+.wc-tp-achievement-preview-section .description {
+	margin-bottom: 20px;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Achievement Preview Grid */
+.wc-tp-achievement-preview-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+}
+
+/* Achievement Badge (Preview) */
+.wc-tp-achievement-badge {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 15px;
+	background: #fff;
+	border-radius: 8px;
+	border: 2px solid;
+	transition: transform 0.2s ease;
+}
+
+.wc-tp-achievement-badge:hover {
+	transform: scale(1.05);
+}
+
+.wc-tp-badge-bronze {
+	border-color: #cd7f32;
+}
+
+.wc-tp-badge-silver {
+	border-color: #c0c0c0;
+}
+
+.wc-tp-badge-gold {
+	border-color: #ffd700;
+}
+
+.wc-tp-badge-icon {
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.wc-tp-badge-bronze .wc-tp-badge-icon {
+	background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%);
+}
+
+.wc-tp-badge-silver .wc-tp-badge-icon {
+	background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%);
+}
+
+.wc-tp-badge-gold .wc-tp-badge-icon {
+	background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+}
+
+.wc-tp-badge-icon .dashicons {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: #fff;
+}
+
+.wc-tp-badge-info h6 {
+	margin: 0 0 4px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-badge-info p {
+	margin: 0;
+	font-size: 12px;
+	color: #646970;
+}
+
+/* Locked Badge */
+.wc-tp-badge-locked {
+	opacity: 0.5;
+	filter: grayscale(100%);
+}
+
+.wc-tp-badge-locked .wc-tp-badge-icon {
+	background: #8c8f94;
+}
+
+/* Earned Badge Animation */
+.wc-tp-badge-earned {
+	animation: badgeEarned 0.5s ease;
+}
+
+@keyframes badgeEarned {
+	0% {
+		transform: scale(0.8);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Role Achievements Form */
+.wc-tp-role-achievements-form {
+	margin-top: 20px;
+}
+
+.wc-tp-role-achievements-form h4 {
+	background: #f0f0f1;
+	padding: 12px 15px;
+	margin: 0 -20px 20px;
+	border-radius: 4px 4px 0 0;
+	font-size: 15px;
+	color: #1d2327;
+}
+
+.wc-tp-role-achievements-form > .description {
+	margin-bottom: 20px;
+	padding: 12px;
+	background: #fff;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+}
+
+/* Global Achievements Settings */
+.wc-tp-achievements-setting {
+	max-width: 300px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+	.wc-tp-achievement-tiers {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-achievement-preview-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Achievement Card Shine Effect */
+.wc-tp-achievement-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+	transition: left 0.5s ease;
+}
+
+.wc-tp-achievement-card:hover::before {
+	left: 100%;
+}
+
+/* Tier-specific text colors */
+.wc-tp-tier-bronze .wc-tp-achievement-field label {
+	color: #8b4513;
+}
+
+.wc-tp-tier-silver .wc-tp-achievement-field label {
+	color: #696969;
+}
+
+.wc-tp-tier-gold .wc-tp-achievement-field label {
+	color: #b8860b;
+}
+
+
+/* ============================================================================
+   BASELINES & BENCHMARKS STYLING
+   ============================================================================ */
+
+/* Baseline Options */
+.wc-tp-baseline-option {
+	display: none;
+}
+
+.wc-tp-baseline-setting {
+	max-width: 300px;
+}
+
+/* Baseline Preview Card */
+.wc-tp-baseline-preview-card {
+	background: #f0f6fc;
+	border-left: 4px solid #0073aa;
+}
+
+.wc-tp-baseline-preview-section {
+	margin-top: 15px;
+}
+
+.wc-tp-baseline-input-section {
+	background: #fff;
+	padding: 20px;
+	border-radius: 4px;
+	margin-bottom: 20px;
+}
+
+.wc-tp-baseline-input-section h5 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-baseline-input-section .description {
+	margin-bottom: 15px;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Baseline Data Inputs */
+.wc-tp-baseline-data-inputs {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 15px;
+	margin-bottom: 20px;
+}
+
+.wc-tp-baseline-data-column {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wc-tp-baseline-data-column label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-baseline-sample {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 13px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-family: 'Courier New', monospace;
+}
+
+.wc-tp-baseline-sample:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wc-tp-baseline-data-column .description {
+	font-size: 11px;
+	color: #646970;
+	margin: 0;
+}
+
+/* Baseline Result Section */
+.wc-tp-baseline-result-section {
+	background: #fff;
+	padding: 20px;
+	border-radius: 4px;
+	border: 1px solid #c3d7ee;
+}
+
+.wc-tp-baseline-result-section h5 {
+	margin: 0 0 15px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 2px solid #2271b1;
+	padding-bottom: 8px;
+}
+
+/* Baseline Results Grid */
+.wc-tp-baseline-results {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+}
+
+.wc-tp-baseline-result-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 15px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	border-left: 4px solid #2271b1;
+}
+
+.wc-tp-baseline-result-icon {
+	width: 50px;
+	height: 50px;
+	background: linear-gradient(135deg, #2271b1 0%, #0073aa 100%);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.wc-tp-baseline-result-icon .dashicons {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: #fff;
+}
+
+.wc-tp-baseline-result-content {
+	flex: 1;
+}
+
+.wc-tp-baseline-result-content h6 {
+	margin: 0 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wc-tp-baseline-value {
+	margin: 0 0 4px;
+	font-size: 24px;
+	font-weight: 700;
+	color: #2271b1;
+	line-height: 1;
+}
+
+.wc-tp-baseline-method {
+	margin: 0;
+	font-size: 11px;
+	color: #646970;
+	font-style: italic;
+}
+
+/* Calculate Button */
+#wc-tp-calculate-baseline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 20px;
+	font-size: 14px;
+}
+
+/* Baseline Comparison Indicators */
+.wc-tp-baseline-comparison {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.wc-tp-baseline-comparison.positive {
+	background: #d4edda;
+	color: #155724;
+}
+
+.wc-tp-baseline-comparison.negative {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.wc-tp-baseline-comparison.neutral {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.wc-tp-baseline-comparison .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+
+/* Trend Indicators */
+.wc-tp-trend-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.wc-tp-trend-indicator.up {
+	color: #28a745;
+}
+
+.wc-tp-trend-indicator.down {
+	color: #dc3545;
+}
+
+.wc-tp-trend-indicator.stable {
+	color: #6c757d;
+}
+
+.wc-tp-trend-indicator .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+	.wc-tp-baseline-data-inputs {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-tp-baseline-results {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Baseline History Table */
+.wc-tp-baseline-history-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 15px;
+}
+
+.wc-tp-baseline-history-table th,
+.wc-tp-baseline-history-table td {
+	padding: 10px;
+	text-align: left;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.wc-tp-baseline-history-table th {
+	background: #f6f7f7;
+	font-size: 12px;
+	font-weight: 600;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wc-tp-baseline-history-table td {
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.wc-tp-baseline-history-table tr:last-child td {
+	border-bottom: none;
+}
+
+/* Baseline Info Box */
+.wc-tp-baseline-info-box {
+	background: #fff;
+	border-left: 4px solid #0073aa;
+	padding: 15px;
+	margin: 15px 0;
+	border-radius: 4px;
+}
+
+.wc-tp-baseline-info-box h6 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.wc-tp-baseline-info-box h6 .dashicons {
+	color: #0073aa;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.wc-tp-baseline-info-box p {
+	margin: 0;
+	font-size: 13px;
+	color: #646970;
+	line-height: 1.6;
+}
+
+/* Baseline Method Cards */
+.wc-tp-baseline-method-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 15px;
+	margin: 20px 0;
+}
+
+.wc-tp-baseline-method-card {
+	background: #fff;
+	border: 2px solid #e9ecef;
+	border-radius: 4px;
+	padding: 15px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.wc-tp-baseline-method-card:hover {
+	border-color: #2271b1;
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.1);
+}
+
+.wc-tp-baseline-method-card.selected {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.wc-tp-baseline-method-card h6 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-baseline-method-card p {
+	margin: 0;
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.5;
+}

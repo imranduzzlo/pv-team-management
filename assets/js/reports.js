@@ -8,16 +8,16 @@ jQuery(document).ready(function($) {
 
 	// Master filter state
 	let masterFilters = {
-		dateRange: 'this_month',
+		dateRange: 'this-month',
 		customStartDate: null,
 		customEndDate: null,
 		orderStatus: 'all',
-		role: 'all',
-		commissionRange: 'all',
-		timePeriod: 'monthly',
-		sortBy: 'date',
-		sortOrder: 'desc'
+		role: 'all'
 	};
+
+	// Track last custom dates for restoration
+	let lastCustomDateFrom = '';
+	let lastCustomDateTo = '';
 
 	// Table state management
 	let tableState = {
@@ -41,6 +41,9 @@ jQuery(document).ready(function($) {
 	let autoRefreshInterval = null;
 	const AUTO_REFRESH_ENABLED = true;
 	const AUTO_REFRESH_DELAY = 30000; // 30 seconds
+	
+	// Track if filters have changed to control animations
+	let filtersChanged = false;
 
 	// Initialize reports on page load
 	initializeReports();
@@ -52,7 +55,8 @@ jQuery(document).ready(function($) {
 		// Load filters from localStorage
 		loadFilterState();
 
-		// Load initial data
+		// Load initial data (no animations on first load)
+		filtersChanged = false;
 		loadAllReportData();
 
 		// Bind filter events
@@ -81,16 +85,14 @@ jQuery(document).ready(function($) {
 				$('#reports-date-range').val(masterFilters.dateRange);
 				$('#reports-order-status').val(masterFilters.orderStatus);
 				$('#reports-role').val(masterFilters.role);
-				$('#reports-commission-range').val(masterFilters.commissionRange);
-				$('#reports-time-period').val(masterFilters.timePeriod);
-				$('#reports-sort-by').val(masterFilters.sortBy);
-				$('#reports-sort-order').val(masterFilters.sortOrder);
 
 				// Show custom date inputs if needed
 				if (masterFilters.dateRange === 'custom') {
-					$('#reports-custom-date-range, #reports-custom-date-range-end').show();
+					$('#reports-custom-date-range').show();
 					$('#reports-start-date').val(masterFilters.customStartDate);
 					$('#reports-end-date').val(masterFilters.customEndDate);
+					lastCustomDateFrom = masterFilters.customStartDate;
+					lastCustomDateTo = masterFilters.customEndDate;
 				}
 			} catch (e) {
 				console.log('Could not load saved filters');
@@ -109,8 +111,9 @@ jQuery(document).ready(function($) {
 	 * Setup auto-refresh
 	 */
 	function setupAutoRefresh() {
-		// Refresh data every 30 seconds
+		// Refresh data every 30 seconds (silent refresh - no animations)
 		autoRefreshInterval = setInterval(function() {
+			filtersChanged = false; // Silent refresh
 			loadAllReportData();
 		}, AUTO_REFRESH_DELAY);
 	}
@@ -177,7 +180,35 @@ jQuery(document).ready(function($) {
 	 * Load drill-down data
 	 */
 	function loadDrillDownData(cardType, modal) {
-		// Simulate drill-down data based on card type
+		// Fetch real data from the current dashboard data
+		const filters = getCurrentFilters();
+		
+		// Get the current KPI values from the page
+		const kpiCards = {
+			my_earnings: {
+				value: $('[data-card-type="my_earnings"] .reports-kpi-value').html() || '$0.00',
+				commission: $('[data-card-type="my_commission"] .reports-kpi-value').html() || '$0.00',
+				salary: $('[data-card-type="my_salary"] .reports-kpi-value').html() || '$0.00'
+			},
+			my_salary: {
+				value: $('[data-card-type="my_salary"] .reports-kpi-value').html() || '$0.00'
+			},
+			my_commission: {
+				value: $('[data-card-type="my_commission"] .reports-kpi-value').html() || '$0.00',
+				orders: parseInt($('[data-card-type="my_commission"] .reports-kpi-change').text()) || 0
+			},
+			my_orders: {
+				value: parseInt($('[data-card-type="my_orders"] .reports-kpi-value').text()) || 0
+			},
+			my_average_order_value: {
+				value: $('[data-card-type="my_average_order_value"] .reports-kpi-value').html() || '$0.00',
+				avgCommission: $('[data-card-type="my_average_order_value"] .reports-kpi-change').html() || '$0.00'
+			},
+			my_performance_score: {
+				value: parseFloat($('[data-card-type="my_performance_score"] .reports-kpi-value').text()) || 0
+			}
+		};
+
 		let content = '';
 
 		switch (cardType) {
@@ -188,33 +219,66 @@ jQuery(document).ready(function($) {
 							<h4>Earnings Breakdown</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
+									<span class="breakdown-label">Total Earnings</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
+								</div>
+								<div class="breakdown-item">
 									<span class="breakdown-label">Commission Earned</span>
-									<span class="breakdown-value">$${(Math.random() * 5000).toFixed(2)}</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.commission}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Salary Portion</span>
-									<span class="breakdown-value">$${(Math.random() * 3000).toFixed(2)}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Bonuses</span>
-									<span class="breakdown-value">$${(Math.random() * 1000).toFixed(2)}</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.salary}</span>
 								</div>
 							</div>
 						</div>
 						<div class="drill-down-section">
-							<h4>Top Earning Days</h4>
-							<div class="top-items">
-								<div class="top-item">
-									<span class="item-date">Mar 15, 2024</span>
-									<span class="item-amount">$450.00</span>
+							<h4>Earnings Summary</h4>
+							<div class="breakdown-items">
+								<div class="breakdown-item">
+									<span class="breakdown-label">Period</span>
+									<span class="breakdown-value">$${filters.dateRange || 'Current Period'}</span>
 								</div>
-								<div class="top-item">
-									<span class="item-date">Mar 12, 2024</span>
-									<span class="item-amount">$380.00</span>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Status Filter</span>
+									<span class="breakdown-value">$${filters.orderStatus || 'All'}</span>
 								</div>
-								<div class="top-item">
-									<span class="item-date">Mar 08, 2024</span>
-									<span class="item-amount">$320.00</span>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Role Filter</span>
+									<span class="breakdown-value">$${filters.role || 'All'}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+				break;
+
+			case 'my_salary':
+				content = `
+					<div class="drill-down-content">
+						<div class="drill-down-section">
+							<h4>Salary Details</h4>
+							<div class="breakdown-items">
+								<div class="breakdown-item">
+									<span class="breakdown-label">Total Salary</span>
+									<span class="breakdown-value">${kpiCards.my_salary.value}</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Salary Type</span>
+									<span class="breakdown-value">$${$('[data-card-type="my_salary"] .reports-kpi-change').text() || 'N/A'}</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Period</span>
+									<span class="breakdown-value">$${filters.dateRange || 'Current Period'}</span>
+								</div>
+							</div>
+						</div>
+						<div class="drill-down-section">
+							<h4>Salary Information</h4>
+							<div class="breakdown-items">
+								<div class="breakdown-item">
+									<span class="breakdown-label">Note</span>
+									<span class="breakdown-value">Salary is fixed/base compensation and is not affected by order status or role filters</span>
 								</div>
 							</div>
 						</div>
@@ -230,28 +294,32 @@ jQuery(document).ready(function($) {
 							<div class="breakdown-items">
 								<div class="breakdown-item">
 									<span class="breakdown-label">Total Commission</span>
-									<span class="breakdown-value">$${(Math.random() * 5000).toFixed(2)}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Commission Rate</span>
-									<span class="breakdown-value">${(Math.random() * 15).toFixed(1)}%</span>
+									<span class="breakdown-value">${kpiCards.my_commission.value}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Orders Counted</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 50)}</span>
+									<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Avg Commission per Order</span>
+									<span class="breakdown-value">Calculated from total</span>
 								</div>
 							</div>
 						</div>
 						<div class="drill-down-section">
-							<h4>Commission by Role</h4>
+							<h4>Commission Filters Applied</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
-									<span class="breakdown-label">Agent Commission</span>
-									<span class="breakdown-value">$${(Math.random() * 3000).toFixed(2)}</span>
+									<span class="breakdown-label">Date Range</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Processor Commission</span>
-									<span class="breakdown-value">$${(Math.random() * 2000).toFixed(2)}</span>
+									<span class="breakdown-label">Order Status</span>
+									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Role</span>
+									<span class="breakdown-value">${filters.role || 'All'}</span>
 								</div>
 							</div>
 						</div>
@@ -267,32 +335,32 @@ jQuery(document).ready(function($) {
 							<div class="breakdown-items">
 								<div class="breakdown-item">
 									<span class="breakdown-label">Total Orders</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 100)}</span>
+									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Completed Orders</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 80)}</span>
+									<span class="breakdown-label">Period</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Processing Orders</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 20)}</span>
+									<span class="breakdown-label">Status Filter</span>
+									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
 								</div>
 							</div>
 						</div>
 						<div class="drill-down-section">
-							<h4>Order Status Distribution</h4>
+							<h4>Order Filters Applied</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
-									<span class="breakdown-label">Completed</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 80)}</span>
+									<span class="breakdown-label">Date Range</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Pending</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 10)}</span>
+									<span class="breakdown-label">Order Status</span>
+									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Refunded</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 5)}</span>
+									<span class="breakdown-label">Role</span>
+									<span class="breakdown-value">${filters.role || 'All'}</span>
 								</div>
 							</div>
 						</div>
@@ -311,29 +379,29 @@ jQuery(document).ready(function($) {
 									<span class="breakdown-value">$${(Math.random() * 500).toFixed(2)}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Highest Order</span>
-									<span class="breakdown-value">$${(Math.random() * 2000 + 500).toFixed(2)}</span>
+									<span class="breakdown-label">Average Commission</span>
+									<span class="breakdown-value">${kpiCards.my_average_order_value.avgCommission}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Lowest Order</span>
-									<span class="breakdown-value">$${(Math.random() * 100).toFixed(2)}</span>
+									<span class="breakdown-label">Total Orders</span>
+									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
 								</div>
 							</div>
 						</div>
 						<div class="drill-down-section">
-							<h4>Order Value Distribution</h4>
+							<h4>AOV Filters Applied</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
-									<span class="breakdown-label">$0 - $100</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 30)}</span>
+									<span class="breakdown-label">Date Range</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">$100 - $500</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 40)}</span>
+									<span class="breakdown-label">Order Status</span>
+									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">$500+</span>
-									<span class="breakdown-value">${Math.floor(Math.random() * 20)}</span>
+									<span class="breakdown-label">Role</span>
+									<span class="breakdown-value">${filters.role || 'All'}</span>
 								</div>
 							</div>
 						</div>
@@ -348,33 +416,37 @@ jQuery(document).ready(function($) {
 							<h4>Performance Score Breakdown</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
-									<span class="breakdown-label">Base Score</span>
-									<span class="breakdown-value">5.0</span>
+									<span class="breakdown-label">Current Score</span>
+									<span class="breakdown-value">${kpiCards.my_performance_score.value}/10</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Order Bonus</span>
-									<span class="breakdown-value">+${(Math.random() * 2).toFixed(1)}</span>
+									<span class="breakdown-label">Total Orders</span>
+									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Earnings Bonus</span>
-									<span class="breakdown-value">+${(Math.random() * 2).toFixed(1)}</span>
+									<span class="breakdown-label">Total Earnings</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">AOV Bonus</span>
-									<span class="breakdown-value">+${(Math.random() * 1).toFixed(1)}</span>
+									<span class="breakdown-label">Average Order Value</span>
+									<span class="breakdown-value">${kpiCards.my_average_order_value.value}</span>
 								</div>
 							</div>
 						</div>
 						<div class="drill-down-section">
-							<h4>Performance Rating</h4>
+							<h4>Performance Calculation</h4>
 							<div class="breakdown-items">
 								<div class="breakdown-item">
-									<span class="breakdown-label">Current Rating</span>
-									<span class="breakdown-value">Excellent</span>
+									<span class="breakdown-label">Calculation Method</span>
+									<span class="breakdown-value">Role-based configuration</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Trend</span>
-									<span class="breakdown-value"><i class="ph ph-trend-up"></i> Improving</span>
+									<span class="breakdown-label">Filters Applied</span>
+									<span class="breakdown-value">Date Range, Order Status, Role</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Period</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 							</div>
 						</div>
@@ -455,19 +527,148 @@ jQuery(document).ready(function($) {
 	 * Bind filter change events
 	 */
 	function bindFilterEvents() {
-		// Date range change
+		// Unbind existing events to prevent duplicates
+		$('#reports-date-range, #reports-apply-filters, #reports-clear-filters').off();
+		
+		// Date range click - show dropdown when custom is selected
+		$('#reports-date-range').on('click', function() {
+			const preset = $(this).val();
+			const customDateDropdown = $('#reports-custom-date-range');
+			const dateFrom = $('#reports-start-date');
+			const dateTo = $('#reports-end-date');
+			
+			if (preset === 'custom') {
+				// Restore previously selected custom dates if available
+				if (lastCustomDateFrom) {
+					dateFrom.val(lastCustomDateFrom);
+				}
+				if (lastCustomDateTo) {
+					dateTo.val(lastCustomDateTo);
+				}
+				customDateDropdown.show();
+			}
+		});
+
+		// Date range change - handle preset selection
 		$('#reports-date-range').on('change', function() {
-			const value = $(this).val();
-			if (value === 'custom') {
-				$('#reports-custom-date-range, #reports-custom-date-range-end').show();
+			const preset = $(this).val();
+			const customDateDropdown = $('#reports-custom-date-range');
+			const dateFrom = $('#reports-start-date');
+			const dateTo = $('#reports-end-date');
+			
+			if (preset === 'custom') {
+				// Restore previously selected custom dates if available
+				if (lastCustomDateFrom) {
+					dateFrom.val(lastCustomDateFrom);
+				}
+				if (lastCustomDateTo) {
+					dateTo.val(lastCustomDateTo);
+				}
+				customDateDropdown.show();
 			} else {
-				$('#reports-custom-date-range, #reports-custom-date-range-end').hide();
-				masterFilters.dateRange = value;
+				customDateDropdown.hide();
+				
+				// Store current custom dates before switching preset
+				lastCustomDateFrom = dateFrom.val();
+				lastCustomDateTo = dateTo.val();
+				
+				// Calculate date ranges based on preset
+				const today = new Date();
+				let startDate, endDate;
+				
+				switch (preset) {
+					case 'all-time':
+						dateFrom.val('');
+						dateTo.val('');
+						break;
+					case 'today':
+						startDate = new Date(today);
+						endDate = new Date(today);
+						break;
+					case 'this-week':
+						startDate = new Date(today.setDate(today.getDate() - today.getDay()));
+						endDate = new Date();
+						break;
+					case 'this-month':
+						startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+						endDate = new Date();
+						break;
+					case 'this-year':
+						startDate = new Date(today.getFullYear(), 0, 1);
+						endDate = new Date();
+						break;
+					case 'last-week':
+						const lastWeekEnd = new Date(today.setDate(today.getDate() - today.getDay() - 1));
+						const lastWeekStart = new Date(lastWeekEnd.setDate(lastWeekEnd.getDate() - 6));
+						startDate = lastWeekStart;
+						endDate = new Date(today.setDate(today.getDate() - today.getDay() - 1));
+						break;
+					case 'last-month':
+						const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+						startDate = lastMonth;
+						endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+						break;
+					case 'last-year':
+						startDate = new Date(today.getFullYear() - 1, 0, 1);
+						endDate = new Date(today.getFullYear() - 1, 11, 31);
+						break;
+					case 'last-6-months':
+						startDate = new Date(today.getFullYear(), today.getMonth() - 6, 1);
+						endDate = new Date();
+						break;
+				}
+				
+				if (startDate && endDate) {
+					dateFrom.val(startDate.toISOString().split('T')[0]);
+					dateTo.val(endDate.toISOString().split('T')[0]);
+				}
+				
+				// Auto-apply the filter
+				filtersChanged = true;
+				updateMasterFilters();
+				saveFilterState();
+				loadAllReportData();
+				updateFilterSummary();
+			}
+		});
+
+		// Custom date inputs - auto-filter when changed
+		$('#reports-start-date, #reports-end-date').on('change', function() {
+			lastCustomDateFrom = $('#reports-start-date').val();
+			lastCustomDateTo = $('#reports-end-date').val();
+			filtersChanged = true;
+			updateMasterFilters();
+			saveFilterState();
+			loadAllReportData();
+			updateFilterSummary();
+		});
+
+		// Toggle between date presets and custom date inputs
+		$('#reports-toggle-date-options').on('click', function() {
+			const select = $('#reports-date-range');
+			const customDateDropdown = $('#reports-custom-date-range');
+			
+			// Toggle the select visibility
+			select.toggle();
+			
+			// Update button text
+			if (select.is(':visible')) {
+				$(this).text('Show Custom');
+			} else {
+				$(this).text('Show Presets');
+			}
+		});
+
+		// Close dropdown when clicking outside
+		$(document).on('click', function(e) {
+			if (!$(e.target).closest('.pv-date-filter-wrapper').length) {
+				$('#reports-custom-date-range').hide();
 			}
 		});
 
 		// Apply filters button
 		$('#reports-apply-filters').on('click', function() {
+			filtersChanged = true; // Mark that filters changed
 			updateMasterFilters();
 			saveFilterState();
 			loadAllReportData();
@@ -476,6 +677,7 @@ jQuery(document).ready(function($) {
 
 		// Clear filters button
 		$('#reports-clear-filters').on('click', function() {
+			filtersChanged = true; // Mark that filters changed
 			resetFilters();
 			saveFilterState();
 			loadAllReportData();
@@ -500,10 +702,6 @@ jQuery(document).ready(function($) {
 
 		masterFilters.orderStatus = $('#reports-order-status').val();
 		masterFilters.role = $('#reports-role').val();
-		masterFilters.commissionRange = $('#reports-commission-range').val();
-		masterFilters.timePeriod = $('#reports-time-period').val();
-		masterFilters.sortBy = $('#reports-sort-by').val();
-		masterFilters.sortOrder = $('#reports-sort-order').val();
 	}
 
 	/**
@@ -511,26 +709,18 @@ jQuery(document).ready(function($) {
 	 */
 	function resetFilters() {
 		masterFilters = {
-			dateRange: 'this_month',
+			dateRange: 'this-month',
 			customStartDate: null,
 			customEndDate: null,
 			orderStatus: 'all',
-			role: 'all',
-			commissionRange: 'all',
-			timePeriod: 'monthly',
-			sortBy: 'date',
-			sortOrder: 'desc'
+			role: 'all'
 		};
 
 		// Reset form inputs
-		$('#reports-date-range').val('this_month');
+		$('#reports-date-range').val('this-month');
 		$('#reports-order-status').val('all');
 		$('#reports-role').val('all');
-		$('#reports-commission-range').val('all');
-		$('#reports-time-period').val('monthly');
-		$('#reports-sort-by').val('date');
-		$('#reports-sort-order').val('desc');
-		$('#reports-custom-date-range, #reports-custom-date-range-end').hide();
+		$('#reports-custom-date-range').hide();
 		$('#reports-filter-summary').hide();
 
 		// Update clear button state
@@ -561,17 +751,14 @@ jQuery(document).ready(function($) {
 	function updateFilterSummary() {
 		const activeFilters = [];
 
-		if (masterFilters.dateRange !== 'this_month') {
-			activeFilters.push(masterFilters.dateRange.replace(/_/g, ' '));
+		if (masterFilters.dateRange !== 'this-month') {
+			activeFilters.push(masterFilters.dateRange.replace(/-/g, ' '));
 		}
 		if (masterFilters.orderStatus !== 'all') {
 			activeFilters.push('Status: ' + masterFilters.orderStatus);
 		}
 		if (masterFilters.role !== 'all') {
 			activeFilters.push('Role: ' + masterFilters.role);
-		}
-		if (masterFilters.commissionRange !== 'all') {
-			activeFilters.push('Commission: ' + masterFilters.commissionRange);
 		}
 
 		if (activeFilters.length > 0) {
@@ -609,10 +796,15 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
-					// Fade out old content
-					$('#reports-kpi-container').fadeOut(200, function() {
-						$(this).html(response.data.html).fadeIn(300);
-					});
+					if (filtersChanged) {
+						// Fade out old content, then fade in new content
+						$('#reports-kpi-container').fadeOut(200, function() {
+							$(this).html(response.data.html).fadeIn(300);
+						});
+					} else {
+						// Silent update (auto-refresh)
+						$('#reports-kpi-container').html(response.data.html);
+					}
 				}
 			},
 			error: function() {
@@ -635,10 +827,15 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
-					// Fade out old content
-					$('#reports-charts-container').fadeOut(200, function() {
-						$(this).html(response.data.html).fadeIn(300);
-					});
+					if (filtersChanged) {
+						// Fade out old content, then fade in new content
+						$('#reports-charts-container').fadeOut(200, function() {
+							$(this).html(response.data.html).fadeIn(300);
+						});
+					} else {
+						// Silent update (auto-refresh)
+						$('#reports-charts-container').html(response.data.html);
+					}
 				}
 			},
 			error: function() {
@@ -661,10 +858,15 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
-					// Fade out old content
-					$('#reports-metrics-container').fadeOut(200, function() {
-						$(this).html(response.data.html).fadeIn(300);
-					});
+					if (filtersChanged) {
+						// Fade out old content, then fade in new content
+						$('#reports-metrics-container').fadeOut(200, function() {
+							$(this).html(response.data.html).fadeIn(300);
+						});
+					} else {
+						// Silent update (auto-refresh)
+						$('#reports-metrics-container').html(response.data.html);
+					}
 				}
 			},
 			error: function() {
@@ -687,14 +889,23 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
-					// Fade out old content
-					$('#reports-tables-container').fadeOut(200, function() {
-						$(this).html(response.data.html).fadeIn(300);
+					if (filtersChanged) {
+						// Fade out old content, then fade in new content
+						$('#reports-tables-container').fadeOut(200, function() {
+							$(this).html(response.data.html).fadeIn(300);
+							// Bind table events after content loads
+							bindTableEvents();
+							// Initialize pagination for all tables
+							initializeTablePagination();
+						});
+					} else {
+						// Silent update (auto-refresh)
+						$('#reports-tables-container').html(response.data.html);
 						// Bind table events after content loads
 						bindTableEvents();
 						// Initialize pagination for all tables
 						initializeTablePagination();
-					});
+					}
 				}
 			},
 			error: function() {
@@ -717,10 +928,15 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
-					// Fade out old content
-					$('#reports-goals-container').fadeOut(200, function() {
-						$(this).html(response.data.html).fadeIn(300);
-					});
+					if (filtersChanged) {
+						// Fade out old content, then fade in new content
+						$('#reports-goals-container').fadeOut(200, function() {
+							$(this).html(response.data.html).fadeIn(300);
+						});
+					} else {
+						// Silent update (auto-refresh)
+						$('#reports-goals-container').html(response.data.html);
+					}
 				}
 			},
 			error: function() {
@@ -950,3 +1166,18 @@ jQuery(document).ready(function($) {
 		});
 	}
 });
+
+	/**
+	 * Helper: Get current filters
+	 */
+	function getCurrentFilters() {
+		const dateRangeSelect = $('#reports-date-range').val();
+		const orderStatus = $('#reports-order-status').val();
+		const role = $('#reports-role').val();
+		
+		return {
+			dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
+			orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
+			role: role && role !== 'all' ? role.toUpperCase() : 'All'
+		};
+	}

@@ -1161,31 +1161,34 @@ class WC_Team_Payroll_MyAccount {
 							</div>
 							<div class="filter-control pv-date-filter-wrapper">
 								<label for="orders-date-preset"><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
-								<select id="orders-date-preset">
-									<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
-									<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
-									<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
-									<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-									<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
-									<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
-									<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
-									<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
-									<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
-									<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
-								</select>
-								<div class="pv-custom-date-dropdown" id="orders-custom-date-range" style="display: none;">
-									<div class="pv-custom-date-content">
-										<div class="pv-date-input-group">
-											<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
-											<input type="date" id="date-from" />
-										</div>
-										<div class="pv-date-input-group">
-											<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
-											<input type="date" id="date-to" />
-										</div>
-										<div class="pv-date-actions">
-											<button type="button" class="pv-date-apply" id="apply-custom-dates"><?php esc_html_e( 'Apply', 'wc-team-payroll' ); ?></button>
-											<button type="button" class="pv-date-cancel" id="cancel-custom-dates"><?php esc_html_e( 'Cancel', 'wc-team-payroll' ); ?></button>
+								<div class="pv-date-filter-container">
+									<select id="orders-date-preset">
+										<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+										<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+										<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+										<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+										<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+										<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+										<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+										<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+										<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+										<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+									</select>
+									<div class="pv-custom-date-dropdown" id="orders-custom-date-range" style="display: none;">
+										<div class="pv-custom-date-content">
+											<div class="pv-date-input-group">
+												<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
+												<input type="date" id="date-from" />
+											</div>
+											<div class="pv-date-input-group">
+												<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+												<input type="date" id="date-to" />
+											</div>
+											<div class="pv-date-actions">
+												<button type="button" class="pv-date-toggle" id="toggle-date-options" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;">
+													<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>
+												</button>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -1278,6 +1281,8 @@ class WC_Team_Payroll_MyAccount {
 				let roleFilter = 'all';
 				let statusFilter = 'all';
 				let allRows = [];
+				let lastCustomDateFrom = '';
+				let lastCustomDateTo = '';
 
 				// Load orders data on page load
 				loadOrdersData();
@@ -1626,16 +1631,41 @@ class WC_Team_Payroll_MyAccount {
 				});
 
 				$('#date-from').on('change', function() {
+					// Store the custom dates for later restoration
+					lastCustomDateFrom = $(this).val();
 					currentPage = 1;
 					loadOrdersData();
 				});
 
 				$('#date-to').on('change', function() {
+					// Store the custom dates for later restoration
+					lastCustomDateTo = $(this).val();
 					currentPage = 1;
 					loadOrdersData();
 				});
 
-				// Date preset functionality
+				// Date preset functionality - using click instead of change to handle repeated clicks
+				$('#orders-date-preset').on('click', function() {
+					const preset = $(this).val();
+					const customDateDropdown = $('#orders-custom-date-range');
+					const dateFrom = $('#date-from');
+					const dateTo = $('#date-to');
+					
+					if (preset === 'custom') {
+						// Restore previously selected custom dates if available
+						if (lastCustomDateFrom) {
+							dateFrom.val(lastCustomDateFrom);
+						}
+						if (lastCustomDateTo) {
+							dateTo.val(lastCustomDateTo);
+						}
+						// Position dropdown based on viewport space
+						positionCustomDateDropdown();
+						customDateDropdown.show();
+					}
+				});
+
+				// Handle change event for all presets (including custom)
 				$('#orders-date-preset').on('change', function() {
 					const preset = $(this).val();
 					const customDateDropdown = $('#orders-custom-date-range');
@@ -1643,11 +1673,22 @@ class WC_Team_Payroll_MyAccount {
 					const dateTo = $('#date-to');
 					
 					if (preset === 'custom') {
+						// Restore previously selected custom dates if available
+						if (lastCustomDateFrom) {
+							dateFrom.val(lastCustomDateFrom);
+						}
+						if (lastCustomDateTo) {
+							dateTo.val(lastCustomDateTo);
+						}
 						// Position dropdown based on viewport space
 						positionCustomDateDropdown();
 						customDateDropdown.show();
 					} else {
 						customDateDropdown.hide();
+						
+						// Store current custom dates before switching preset
+						lastCustomDateFrom = dateFrom.val();
+						lastCustomDateTo = dateTo.val();
 						
 						// Calculate date ranges based on preset
 						const today = new Date();
@@ -1727,27 +1768,26 @@ class WC_Team_Payroll_MyAccount {
 					}
 				}
 
-				// Apply custom dates
-				$('#apply-custom-dates').on('click', function() {
-					$('#orders-custom-date-range').hide();
-					currentPage = 1;
-					loadOrdersData();
-				});
-
-				// Cancel custom dates
-				$('#cancel-custom-dates').on('click', function() {
-					$('#orders-date-preset').val('all-time');
-					$('#orders-custom-date-range').hide();
-					$('#date-from').val('');
-					$('#date-to').val('');
-					currentPage = 1;
-					loadOrdersData();
-				});
-
 				// Close dropdown when clicking outside
 				$(document).on('click', function(e) {
 					if (!$(e.target).closest('.pv-date-filter-wrapper').length) {
 						$('#orders-custom-date-range').hide();
+					}
+				});
+
+				// Toggle between date presets and custom date inputs
+				$('#toggle-date-options').on('click', function() {
+					const select = $('#orders-date-preset');
+					const customDateDropdown = $('#orders-custom-date-range');
+					
+					// Toggle the select visibility
+					select.toggle();
+					
+					// Update button text
+					if (select.is(':visible')) {
+						$(this).text('<?php esc_html_e( 'Show Custom', 'wc-team-payroll' ); ?>');
+					} else {
+						$(this).text('<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>');
 					}
 				});
 
@@ -1808,31 +1848,39 @@ class WC_Team_Payroll_MyAccount {
 				
 				<div class="reports-filter-controls">
 					<!-- Date Range Filter -->
-					<div class="reports-filter-group">
+					<div class="reports-filter-group pv-date-filter-wrapper">
 						<label for="reports-date-range"><?php esc_html_e( 'Date Range', 'wc-team-payroll' ); ?></label>
-						<select id="reports-date-range">
-							<option value="all_time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
-							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
-							<option value="this_week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
-							<option value="this_month" selected><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
-							<option value="last_month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
-							<option value="this_quarter"><?php esc_html_e( 'This Quarter', 'wc-team-payroll' ); ?></option>
-							<option value="last_quarter"><?php esc_html_e( 'Last Quarter', 'wc-team-payroll' ); ?></option>
-							<option value="this_year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
-							<option value="last_year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
-							<option value="custom"><?php esc_html_e( 'Custom Range', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Custom Date Range (Hidden by default) -->
-					<div class="reports-filter-group" id="reports-custom-date-range" style="display: none;">
-						<label for="reports-start-date"><?php esc_html_e( 'Start Date', 'wc-team-payroll' ); ?></label>
-						<input type="date" id="reports-start-date" />
-					</div>
-
-					<div class="reports-filter-group" id="reports-custom-date-range-end" style="display: none;">
-						<label for="reports-end-date"><?php esc_html_e( 'End Date', 'wc-team-payroll' ); ?></label>
-						<input type="date" id="reports-end-date" />
+						<div class="pv-date-filter-container">
+							<select id="reports-date-range">
+								<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+								<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+								<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+								<option value="this-month" selected><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+								<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+								<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+								<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+								<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+								<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+								<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+							</select>
+							<div class="pv-custom-date-dropdown" id="reports-custom-date-range" style="display: none;">
+								<div class="pv-custom-date-content">
+									<div class="pv-date-input-group">
+										<label for="reports-start-date"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
+										<input type="date" id="reports-start-date" />
+									</div>
+									<div class="pv-date-input-group">
+										<label for="reports-end-date"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+										<input type="date" id="reports-end-date" />
+									</div>
+									<div class="pv-date-actions">
+										<button type="button" class="pv-date-toggle" id="reports-toggle-date-options" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;">
+											<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<!-- Order Status Filter -->
@@ -1856,49 +1904,6 @@ class WC_Team_Payroll_MyAccount {
 							<option value="all"><?php esc_html_e( 'All Roles', 'wc-team-payroll' ); ?></option>
 							<option value="agent"><?php esc_html_e( 'Agent Only', 'wc-team-payroll' ); ?></option>
 							<option value="processor"><?php esc_html_e( 'Processor Only', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Commission Range Filter -->
-					<div class="reports-filter-group">
-						<label for="reports-commission-range"><?php esc_html_e( 'Commission Range', 'wc-team-payroll' ); ?></label>
-						<select id="reports-commission-range">
-							<option value="all"><?php esc_html_e( 'All Amounts', 'wc-team-payroll' ); ?></option>
-							<option value="0-100"><?php esc_html_e( '$0 - $100', 'wc-team-payroll' ); ?></option>
-							<option value="100-500"><?php esc_html_e( '$100 - $500', 'wc-team-payroll' ); ?></option>
-							<option value="500-1000"><?php esc_html_e( '$500 - $1,000', 'wc-team-payroll' ); ?></option>
-							<option value="1000+"><?php esc_html_e( '$1,000+', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Time Period Filter -->
-					<div class="reports-filter-group">
-						<label for="reports-time-period"><?php esc_html_e( 'Time Period', 'wc-team-payroll' ); ?></label>
-						<select id="reports-time-period">
-							<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
-							<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
-							<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
-							<option value="quarterly"><?php esc_html_e( 'Quarterly', 'wc-team-payroll' ); ?></option>
-							<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Sort By Filter -->
-					<div class="reports-filter-group">
-						<label for="reports-sort-by"><?php esc_html_e( 'Sort By', 'wc-team-payroll' ); ?></label>
-						<select id="reports-sort-by">
-							<option value="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></option>
-							<option value="amount"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></option>
-							<option value="orders"><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></option>
-						</select>
-					</div>
-
-					<!-- Sort Order Filter -->
-					<div class="reports-filter-group">
-						<label for="reports-sort-order"><?php esc_html_e( 'Order', 'wc-team-payroll' ); ?></label>
-						<select id="reports-sort-order">
-							<option value="desc" selected><?php esc_html_e( 'Descending', 'wc-team-payroll' ); ?></option>
-							<option value="asc"><?php esc_html_e( 'Ascending', 'wc-team-payroll' ); ?></option>
 						</select>
 					</div>
 				</div>
@@ -3786,6 +3791,28 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 		</div>
 
+		<div class="reports-kpi-card" data-card-type="my_salary">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-briefcase"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'My Salary', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $salary_for_period ) ); ?></p>
+			<div class="reports-kpi-change neutral">
+				<i class="ph ph-info"></i>
+				<?php 
+					if ( $is_fixed_salary ) {
+						esc_html_e( 'Fixed', 'wc-team-payroll' );
+					} elseif ( $is_combined_salary ) {
+						esc_html_e( 'Combined', 'wc-team-payroll' );
+					} else {
+						esc_html_e( 'Commission', 'wc-team-payroll' );
+					}
+				?>
+			</div>
+		</div>
+
 		<div class="reports-kpi-card" data-card-type="my_commission">
 			<div class="reports-kpi-header">
 				<div class="reports-kpi-icon">
@@ -3835,7 +3862,7 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 			<p class="reports-kpi-label"><?php esc_html_e( 'Performance Score', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo esc_html( self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value ) ); ?>/10</p>
+			<p class="reports-kpi-value"><?php echo esc_html( self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id ) ); ?>/10</p>
 			<div class="reports-kpi-change neutral">
 				<i class="ph ph-smiley"></i>
 				<?php esc_html_e( 'excellent', 'wc-team-payroll' ); ?>
@@ -5216,34 +5243,94 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
-	 * Helper: Calculate performance score
+	 * Helper: Calculate performance score using role-based configuration
 	 */
-	private static function calculate_performance_score( $orders, $earnings, $avg_order_value ) {
-		$score = 5; // Base score
+	private static function calculate_performance_score( $orders, $earnings, $avg_order_value, $user_id = null ) {
+		// Get performance configuration
+		$performance_config = get_option( 'wc_tp_performance_config', array() );
+		
+		// Get base score (default to 5 if not configured)
+		$base_score = isset( $performance_config['base_score'] ) ? floatval( $performance_config['base_score'] ) : 5;
+		$score = $base_score;
 
-		// Orders factor (max +2)
-		if ( $orders >= 50 ) {
-			$score += 2;
-		} elseif ( $orders >= 30 ) {
-			$score += 1.5;
-		} elseif ( $orders >= 10 ) {
-			$score += 1;
+		// Get user's WordPress roles
+		$user_role = null;
+		if ( $user_id ) {
+			$user = get_user_by( 'id', $user_id );
+			if ( $user && isset( $user->roles ) && is_array( $user->roles ) ) {
+				// Get the first role that has performance config
+				foreach ( $user->roles as $role ) {
+					if ( isset( $performance_config['roles'][ $role ] ) ) {
+						$user_role = $role;
+						break;
+					}
+				}
+			}
 		}
 
-		// Earnings factor (max +2)
-		if ( $earnings >= 5000 ) {
-			$score += 2;
-		} elseif ( $earnings >= 2000 ) {
-			$score += 1.5;
-		} elseif ( $earnings >= 500 ) {
-			$score += 1;
+		// If no role found or no user_id provided, use default calculation
+		if ( ! $user_role || ! isset( $performance_config['roles'][ $user_role ] ) ) {
+			// Fallback to default calculation
+			// Orders factor (max +2)
+			if ( $orders >= 50 ) {
+				$score += 2;
+			} elseif ( $orders >= 30 ) {
+				$score += 1.5;
+			} elseif ( $orders >= 10 ) {
+				$score += 1;
+			}
+
+			// Earnings factor (max +2)
+			if ( $earnings >= 5000 ) {
+				$score += 2;
+			} elseif ( $earnings >= 2000 ) {
+				$score += 1.5;
+			} elseif ( $earnings >= 500 ) {
+				$score += 1;
+			}
+
+			// Average order value factor (max +1)
+			if ( $avg_order_value >= 500 ) {
+				$score += 1;
+			} elseif ( $avg_order_value >= 200 ) {
+				$score += 0.5;
+			}
+
+			// Cap at 10
+			return min( $score, 10 );
 		}
 
-		// Average order value factor (max +1)
-		if ( $avg_order_value >= 500 ) {
-			$score += 1;
-		} elseif ( $avg_order_value >= 200 ) {
-			$score += 0.5;
+		// Get role-specific configuration
+		$role_config = $performance_config['roles'][ $user_role ];
+
+		// Apply earnings ranges
+		if ( isset( $role_config['earnings_ranges'] ) && is_array( $role_config['earnings_ranges'] ) ) {
+			foreach ( $role_config['earnings_ranges'] as $range ) {
+				if ( $earnings >= $range['min'] && $earnings <= $range['max'] ) {
+					$score += floatval( $range['points'] );
+					break;
+				}
+			}
+		}
+
+		// Apply orders ranges
+		if ( isset( $role_config['orders_ranges'] ) && is_array( $role_config['orders_ranges'] ) ) {
+			foreach ( $role_config['orders_ranges'] as $range ) {
+				if ( $orders >= $range['min'] && $orders <= $range['max'] ) {
+					$score += floatval( $range['points'] );
+					break;
+				}
+			}
+		}
+
+		// Apply average order value ranges
+		if ( isset( $role_config['aov_ranges'] ) && is_array( $role_config['aov_ranges'] ) ) {
+			foreach ( $role_config['aov_ranges'] as $range ) {
+				if ( $avg_order_value >= $range['min'] && $avg_order_value <= $range['max'] ) {
+					$score += floatval( $range['points'] );
+					break;
+				}
+			}
 		}
 
 		// Cap at 10

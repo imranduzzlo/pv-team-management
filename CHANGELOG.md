@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.52] - 2026-04-17
+### Performance Score & KPI Modal Enhancements
+- **FEATURE**: Performance Score now uses role-based configuration from Performance Settings
+- **FEATURE**: Performance Score calculation reads from `wc_tp_performance_config` option with role-specific scoring ranges
+- **FEATURE**: Dynamic scoring based on user's WordPress role (shop_employee, shop_manager, etc.)
+- **FEATURE**: Configurable base score and role-specific factors for earnings, orders, and AOV
+- **ENHANCEMENT**: All 6 KPI card modals now display real data instead of random/hardcoded values
+- **ENHANCEMENT**: Added "My Salary" KPI modal with salary details and type information
+- **ENHANCEMENT**: KPI modals show current filter state (Date Range, Order Status, Role)
+- **ENHANCEMENT**: Currency formatting now uses WooCommerce currency settings (symbol, position, decimals)
+- **ENHANCEMENT**: Modal data extracted directly from KPI cards preserving WooCommerce formatting
+- **FIX**: Performance Score calculation fallback to default ranges when no role config exists
+- **FIX**: Removed hardcoded USD currency formatting in favor of WooCommerce settings
+- **TECHNICAL**: Updated `calculate_performance_score()` method to accept user_id and retrieve role-based config
+- **TECHNICAL**: Updated `loadDrillDownData()` in reports.js to use real KPI values
+- **TECHNICAL**: Added helper function `getCurrentFilters()` to display active filters in modals
+
 ## [1.0.51] - 2026-04-16
 ### Enterprise Reports System - Complete Implementation
 - **STEP 1**: Master Filter System with date range (preset + custom), order status, role, commission range, time period, sort options, and filter summary

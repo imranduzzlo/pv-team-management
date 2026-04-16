@@ -36,6 +36,7 @@ class WC_Team_Payroll_Settings {
 				<a href="?page=wc-team-payroll-settings&tab=general" class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">General</a>
 				<a href="?page=wc-team-payroll-settings&tab=commission" class="nav-tab <?php echo $current_tab === 'commission' ? 'nav-tab-active' : ''; ?>">Commission</a>
 				<a href="?page=wc-team-payroll-settings&tab=styling" class="nav-tab <?php echo $current_tab === 'styling' ? 'nav-tab-active' : ''; ?>">Frontend Styling</a>
+				<a href="?page=wc-team-payroll-settings&tab=performance" class="nav-tab <?php echo $current_tab === 'performance' ? 'nav-tab-active' : ''; ?>">Reports & Performance</a>
 				<a href="?page=wc-team-payroll-settings&tab=roles" class="nav-tab <?php echo $current_tab === 'roles' ? 'nav-tab-active' : ''; ?>">User Roles</a>
 				<a href="?page=wc-team-payroll-settings&tab=woocommerce" class="nav-tab <?php echo $current_tab === 'woocommerce' ? 'nav-tab-active' : ''; ?>">WooCommerce</a>
 				<a href="?page=wc-team-payroll-settings&tab=debug" class="nav-tab <?php echo $current_tab === 'debug' ? 'nav-tab-active' : ''; ?>">Debug</a>
@@ -745,6 +746,17 @@ class WC_Team_Payroll_Settings {
 							});
 						});
 					</script>
+				<?php endif; ?>
+
+				<?php if ( $current_tab === 'performance' ) : ?>
+					<?php
+					// Render performance settings tab
+					if ( class_exists( 'WC_Team_Payroll_Performance_Settings' ) ) {
+						WC_Team_Payroll_Performance_Settings::render_performance_tab();
+					} else {
+						echo '<div class="notice notice-error"><p>' . esc_html__( 'Performance settings class not loaded.', 'wc-team-payroll' ) . '</p></div>';
+					}
+					?>
 				<?php endif; ?>
 
 				<?php submit_button(); ?>
