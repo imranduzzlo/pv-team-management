@@ -447,10 +447,10 @@ class WC_Team_Payroll_Settings {
 					<p>Configure the field name used on products to store commission rates.</p>
 					<table class="form-table">
 						<tr>
-							<th><label for="commission_field_name">Product Commission Field Name</label></th>
+							<th><label for="commission_field_name">Commission Rate Field Name</label></th>
 							<td>
 								<input type="text" id="commission_field_name" name="wc_team_payroll_acf_fields[commission_field_name]" value="<?php echo esc_attr( isset( $acf_fields['commission_field_name'] ) ? $acf_fields['commission_field_name'] : 'team_commission' ); ?>" />
-								<p class="description">The field name on products for commission rate (e.g., team_commission). This can be created using ACF (Advanced Custom Fields), custom meta fields, or any product field editor.</p>
+								<p class="description">The meta field name used to store commission rates on products. This plugin will look for this field name on each product to calculate commissions. Default: 'team_commission'. You can change this if you want to use a different field name for your commission rates.</p>
 							</td>
 						</tr>
 						<tr>
@@ -1300,7 +1300,7 @@ class WC_Team_Payroll_Settings {
 			}
 		}
 		
-		// Get existing ACF fields and merge with new ones
+		// Get existing custom fields settings and merge with new ones
 		$existing_acf_fields = get_option( 'wc_team_payroll_acf_fields', array() );
 		$new_acf_fields = array();
 		
