@@ -391,6 +391,187 @@ class WC_Team_Payroll_Settings {
 					<textarea id="custom_css" name="wc_team_payroll_styling[custom_css]" rows="12" style="width: 100%; font-family: 'Courier New', monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;"><?php echo esc_textarea( isset( $styling_settings['custom_css'] ) ? $styling_settings['custom_css'] : '' ); ?></textarea>
 					<p class="description">Example: <code>.my-class { color: #333; }</code> - Auto-closing braces will be added when needed.</p>
 
+					<!-- Preview Button (Only for Styling Tab) -->
+					<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+						<button type="button" id="wc-tp-preview-btn" class="button button-secondary" style="padding: 12px 20px; font-size: 14px; border-radius: 4px;">
+							👁️ Live Preview
+						</button>
+						<p class="description" style="margin-top: 10px;">Preview your styling changes in real-time without saving.</p>
+					</div>
+
+					<!-- Live Preview Modal (Only for Styling Tab) -->
+					<div id="wc-tp-preview-modal" style="display: none; position: fixed; top: 0; right: 0; width: 450px; height: 100vh; background: white; z-index: 10000; overflow-y: auto; box-shadow: -2px 0 10px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
+						<!-- Offcanvas Header -->
+						<div style="background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001;">
+							<h2 style="margin: 0; font-size: 18px; font-weight: 600;">Live Preview</h2>
+							<button type="button" id="wc-tp-preview-close" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+						</div>
+
+						<!-- Offcanvas Content -->
+						<div style="padding: 20px; background: #f9f9f9; min-height: 100vh;">
+								<!-- Employee Header Preview -->
+								<div id="wc-tp-preview-header" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+									<div style="display: flex; align-items: center; gap: 15px;">
+										<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">JD</div>
+										<div>
+											<h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 600;">John Doe</h3>
+											<p style="margin: 0; font-size: 14px; color: #666;">Employee</p>
+										</div>
+									</div>
+								</div>
+
+								<!-- Cards Preview -->
+								<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+									<div id="wc-tp-preview-card-1" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+										<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Total Earnings</h3>
+										<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 50,000</p>
+									</div>
+									<div id="wc-tp-preview-card-2" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+										<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">This Month</h3>
+										<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 5,000</p>
+									</div>
+									<div id="wc-tp-preview-card-3" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+										<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Last Paid</h3>
+										<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 2,500</p>
+									</div>
+								</div>
+
+								<!-- Table Preview -->
+								<div id="wc-tp-preview-table" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+									<table style="width: 100%; border-collapse: collapse;">
+										<thead>
+											<tr style="background: #f5f5f5; border-bottom: 2px solid #0073aa;">
+												<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Date</th>
+												<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Amount</th>
+												<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Status</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr style="border-bottom: 1px solid #eee;">
+												<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-15</td>
+												<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
+												<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
+											</tr>
+											<tr style="border-bottom: 1px solid #eee;">
+												<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-08</td>
+												<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
+												<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+
+								<p style="margin-top: 20px; font-size: 12px; color: #999; text-align: center;">Changes are reflected in real-time. No save needed to see preview.</p>
+						</div>
+					</div>
+
+					<script>
+						jQuery(document).ready(function($) {
+							// Live Preview Functionality (Only for Styling Tab)
+							const previewBtn = $('#wc-tp-preview-btn');
+							const previewModal = $('#wc-tp-preview-modal');
+							const previewClose = $('#wc-tp-preview-close');
+							const form = $('#wc-tp-settings-form');
+
+							// Open preview offcanvas
+							previewBtn.on('click', function(e) {
+								e.preventDefault();
+								previewModal.css('transform', 'translateX(0)').fadeIn(300);
+								updatePreview();
+							});
+
+							// Close preview offcanvas
+							previewClose.on('click', function(e) {
+								e.preventDefault();
+								previewModal.css('transform', 'translateX(100%)').fadeOut(300);
+							});
+
+							// Update preview in real-time
+							form.on('change', 'input, select, textarea', function() {
+								updatePreview();
+							});
+
+							// Update preview function
+							function updatePreview() {
+								// Get current styling values
+								const primaryColor = $('input[name="wc_team_payroll_styling[primary_color]"]').val() || '#0073aa';
+								const textColor = $('input[name="wc_team_payroll_styling[text_color]"]').val() || '#333';
+								const backgroundColor = $('input[name="wc_team_payroll_styling[background_color]"]').val() || '#fff';
+								const cardBgColor = $('input[name="wc_team_payroll_styling[card_background_color]"]').val() || '#fff';
+								const fontFamily = $('select[name="wc_team_payroll_styling[font_family]"]').val() || 'inherit';
+								const baseFontSize = $('input[name="wc_team_payroll_styling[base_font_size]"]').val() || '14';
+								const cardBorderRadius = $('input[name="wc_team_payroll_styling[card_border_radius]"]').val() || '8';
+								const shadowIntensity = $('input[name="wc_team_payroll_styling[shadow_intensity]"]').val() || '0.1';
+
+								// Update header
+								$('#wc-tp-preview-header').css({
+									'background-color': backgroundColor,
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+									'color': textColor
+								});
+
+								// Update header profile circle
+								$('#wc-tp-preview-header div[style*="border-radius: 50%"]').css({
+									'background': `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`
+								});
+
+								// Update cards
+								$('[id^="wc-tp-preview-card-"]').css({
+									'background-color': cardBgColor,
+									'border-radius': cardBorderRadius + 'px',
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+									'color': textColor,
+									'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
+								});
+
+								// Update card headings
+								$('[id^="wc-tp-preview-card-"] h3').css({
+									'color': textColor,
+									'border-bottom-color': primaryColor,
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily
+								});
+
+								// Update card values
+								$('[id^="wc-tp-preview-card-"] p').css({
+									'color': primaryColor,
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+									'font-size': (parseInt(baseFontSize) + 10) + 'px'
+								});
+
+								// Update table
+								$('#wc-tp-preview-table').css({
+									'background-color': cardBgColor,
+									'border-radius': cardBorderRadius + 'px',
+									'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
+								});
+
+								// Update table header
+								$('#wc-tp-preview-table thead tr').css({
+									'background-color': backgroundColor,
+									'border-bottom-color': primaryColor
+								});
+
+								$('#wc-tp-preview-table thead th').css({
+									'color': textColor,
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+									'font-size': baseFontSize + 'px'
+								});
+
+								// Update table body
+								$('#wc-tp-preview-table tbody td').css({
+									'color': textColor,
+									'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
+									'font-size': baseFontSize + 'px'
+								});
+
+								// Update table body amount cells
+								$('#wc-tp-preview-table tbody td:nth-child(2)').css({
+									'color': primaryColor
+								});
+							}
+						});
+					</script>
+
 				<?php endif; ?>
 
 				<?php if ( $current_tab === 'roles' ) : ?>
@@ -567,78 +748,7 @@ class WC_Team_Payroll_Settings {
 				<?php endif; ?>
 
 				<?php submit_button(); ?>
-				
-				<!-- Preview Button -->
-				<button type="button" id="wc-tp-preview-btn" class="button button-secondary" style="position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; font-size: 14px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 999;">
-					👁️ Live Preview
-				</button>
 			</form>
-		</div>
-
-		<!-- Live Preview Offcanvas (Right Side) -->
-		<div id="wc-tp-preview-modal" style="display: none; position: fixed; top: 0; right: 0; width: 450px; height: 100vh; background: white; z-index: 10000; overflow-y: auto; box-shadow: -2px 0 10px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
-			<!-- Offcanvas Header -->
-			<div style="background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001;">
-				<h2 style="margin: 0; font-size: 18px; font-weight: 600;">Live Preview</h2>
-				<button type="button" id="wc-tp-preview-close" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
-			</div>
-
-			<!-- Offcanvas Content -->
-			<div style="padding: 20px; background: #f9f9f9; min-height: 100vh;">
-					<!-- Employee Header Preview -->
-					<div id="wc-tp-preview-header" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-						<div style="display: flex; align-items: center; gap: 15px;">
-							<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0073aa 0%, #005a87 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">JD</div>
-							<div>
-								<h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 600;">John Doe</h3>
-								<p style="margin: 0; font-size: 14px; color: #666;">Employee</p>
-							</div>
-						</div>
-					</div>
-
-					<!-- Cards Preview -->
-					<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-						<div id="wc-tp-preview-card-1" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Total Earnings</h3>
-							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 50,000</p>
-						</div>
-						<div id="wc-tp-preview-card-2" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">This Month</h3>
-							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 5,000</p>
-						</div>
-						<div id="wc-tp-preview-card-3" style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-							<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 8px;">Last Paid</h3>
-							<p style="margin: 0; font-size: 24px; font-weight: bold; color: #0073aa;">৳ 2,500</p>
-						</div>
-					</div>
-
-					<!-- Table Preview -->
-					<div id="wc-tp-preview-table" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-						<table style="width: 100%; border-collapse: collapse;">
-							<thead>
-								<tr style="background: #f5f5f5; border-bottom: 2px solid #0073aa;">
-									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Date</th>
-									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Amount</th>
-									<th style="padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 13px;">Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr style="border-bottom: 1px solid #eee;">
-									<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-15</td>
-									<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
-									<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
-								</tr>
-								<tr style="border-bottom: 1px solid #eee;">
-									<td style="padding: 12px; color: #666; font-size: 13px;">2026-04-08</td>
-									<td style="padding: 12px; color: #0073aa; font-weight: 600; font-size: 13px;">৳ 2,500</td>
-									<td style="padding: 12px;"><span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">Paid</span></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-
-					<p style="margin-top: 20px; font-size: 12px; color: #999; text-align: center;">Changes are reflected in real-time. No save needed to see preview.</p>
-			</div>
 		</div>
 
 		<script>
@@ -695,108 +805,6 @@ class WC_Team_Payroll_Settings {
 						}
 					}
 				});
-
-				// Live Preview Functionality
-				const previewBtn = $('#wc-tp-preview-btn');
-				const previewModal = $('#wc-tp-preview-modal');
-				const previewClose = $('#wc-tp-preview-close');
-
-				// Open preview offcanvas
-				previewBtn.on('click', function(e) {
-					e.preventDefault();
-					previewModal.css('transform', 'translateX(0)').fadeIn(300);
-					updatePreview();
-				});
-
-				// Close preview offcanvas
-				previewClose.on('click', function(e) {
-					e.preventDefault();
-					previewModal.css('transform', 'translateX(100%)').fadeOut(300);
-				});
-
-				// Update preview in real-time
-				form.on('change', 'input, select, textarea', function() {
-					updatePreview();
-				});
-
-				// Update preview function
-				function updatePreview() {
-					// Get current styling values
-					const primaryColor = $('input[name="wc_team_payroll_styling[primary_color]"]').val() || '#0073aa';
-					const textColor = $('input[name="wc_team_payroll_styling[text_color]"]').val() || '#333';
-					const backgroundColor = $('input[name="wc_team_payroll_styling[background_color]"]').val() || '#fff';
-					const cardBgColor = $('input[name="wc_team_payroll_styling[card_background_color]"]').val() || '#fff';
-					const fontFamily = $('select[name="wc_team_payroll_styling[font_family]"]').val() || 'inherit';
-					const baseFontSize = $('input[name="wc_team_payroll_styling[base_font_size]"]').val() || '14';
-					const cardBorderRadius = $('input[name="wc_team_payroll_styling[card_border_radius]"]').val() || '8';
-					const shadowIntensity = $('input[name="wc_team_payroll_styling[shadow_intensity]"]').val() || '0.1';
-
-					// Update header
-					$('#wc-tp-preview-header').css({
-						'background-color': backgroundColor,
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
-						'color': textColor
-					});
-
-					// Update header profile circle
-					$('#wc-tp-preview-header div[style*="border-radius: 50%"]').css({
-						'background': `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)`
-					});
-
-					// Update cards
-					$('[id^="wc-tp-preview-card-"]').css({
-						'background-color': cardBgColor,
-						'border-radius': cardBorderRadius + 'px',
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
-						'color': textColor,
-						'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
-					});
-
-					// Update card headings
-					$('[id^="wc-tp-preview-card-"] h3').css({
-						'color': textColor,
-						'border-bottom-color': primaryColor,
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily
-					});
-
-					// Update card values
-					$('[id^="wc-tp-preview-card-"] p').css({
-						'color': primaryColor,
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
-						'font-size': (parseInt(baseFontSize) + 10) + 'px'
-					});
-
-					// Update table
-					$('#wc-tp-preview-table').css({
-						'background-color': cardBgColor,
-						'border-radius': cardBorderRadius + 'px',
-						'box-shadow': `0 1px 3px rgba(0,0,0,${shadowIntensity})`
-					});
-
-					// Update table header
-					$('#wc-tp-preview-table thead tr').css({
-						'background-color': backgroundColor,
-						'border-bottom-color': primaryColor
-					});
-
-					$('#wc-tp-preview-table thead th').css({
-						'color': textColor,
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
-						'font-size': baseFontSize + 'px'
-					});
-
-					// Update table body
-					$('#wc-tp-preview-table tbody td').css({
-						'color': textColor,
-						'font-family': fontFamily === 'inherit' ? 'inherit' : fontFamily,
-						'font-size': baseFontSize + 'px'
-					});
-
-					// Update table body amount cells
-					$('#wc-tp-preview-table tbody td:nth-child(2)').css({
-						'color': primaryColor
-					});
-				}
 
 				// Custom CSS Auto-Closing Braces
 				const customCssTextarea = $('#custom_css');
