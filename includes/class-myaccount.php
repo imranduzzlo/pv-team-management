@@ -1148,7 +1148,7 @@ class WC_Team_Payroll_MyAccount {
 									<option value="refunded"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></option>
 								</select>
 							</div>
-							<div class="filter-control">
+							<div class="filter-control pv-date-filter-wrapper">
 								<label for="orders-date-preset"><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
 								<select id="orders-date-preset">
 									<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
@@ -1162,11 +1162,22 @@ class WC_Team_Payroll_MyAccount {
 									<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
 									<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
 								</select>
-							</div>
-							<div class="filter-control pv-custom-date-range" id="orders-custom-date-range" style="display: none;">
-								<input type="date" id="date-from" />
-								<span class="date-separator"><?php esc_html_e( 'to', 'wc-team-payroll' ); ?></span>
-								<input type="date" id="date-to" />
+								<div class="pv-custom-date-dropdown" id="orders-custom-date-range" style="display: none;">
+									<div class="pv-custom-date-content">
+										<div class="pv-date-input-group">
+											<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
+											<input type="date" id="date-from" />
+										</div>
+										<div class="pv-date-input-group">
+											<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+											<input type="date" id="date-to" />
+										</div>
+										<div class="pv-date-actions">
+											<button type="button" class="pv-date-apply" id="apply-custom-dates"><?php esc_html_e( 'Apply', 'wc-team-payroll' ); ?></button>
+											<button type="button" class="pv-date-cancel" id="cancel-custom-dates"><?php esc_html_e( 'Cancel', 'wc-team-payroll' ); ?></button>
+										</div>
+									</div>
+								</div>
 							</div>
 							<div class="per-page-control">
 								<label for="orders-per-page"><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
@@ -1534,6 +1545,7 @@ class WC_Team_Payroll_MyAccount {
 					$('#status-filter').val('all');
 					$('#orders-date-preset').val('all-time');
 					$('#orders-custom-date-range').hide();
+					$('.pv-date-filter-wrapper').removeClass('dropdown-above');
 					$('#date-from').val('');
 					$('#date-to').val('');
 					$('#orders-per-page').val('25');
@@ -1576,14 +1588,16 @@ class WC_Team_Payroll_MyAccount {
 				// Date preset functionality
 				$('#orders-date-preset').on('change', function() {
 					const preset = $(this).val();
-					const customDateRange = $('#orders-custom-date-range');
+					const customDateDropdown = $('#orders-custom-date-range');
 					const dateFrom = $('#date-from');
 					const dateTo = $('#date-to');
 					
 					if (preset === 'custom') {
-						customDateRange.show();
+						// Position dropdown based on viewport space
+						positionCustomDateDropdown();
+						customDateDropdown.show();
 					} else {
-						customDateRange.hide();
+						customDateDropdown.hide();
 						
 						// Calculate date ranges based on preset
 						const today = new Date();
@@ -1635,10 +1649,63 @@ class WC_Team_Payroll_MyAccount {
 							dateFrom.val(startDate.toISOString().split('T')[0]);
 							dateTo.val(endDate.toISOString().split('T')[0]);
 						}
+						
+						currentPage = 1;
+						loadOrdersData();
 					}
+				});
+
+				// Position custom date dropdown based on viewport space
+				function positionCustomDateDropdown() {
+					const wrapper = $('.pv-date-filter-wrapper');
+					const dropdown = $('#orders-custom-date-range');
+					const wrapperOffset = wrapper.offset();
+					const wrapperHeight = wrapper.outerHeight();
+					const dropdownHeight = 200; // Approximate height
+					const windowHeight = $(window).height();
+					const scrollTop = $(window).scrollTop();
 					
+					// Check if there's enough space below
+					const spaceBelow = windowHeight - (wrapperOffset.top - scrollTop + wrapperHeight);
+					
+					if (spaceBelow < dropdownHeight && wrapperOffset.top - scrollTop > dropdownHeight) {
+						// Show above if not enough space below and enough space above
+						wrapper.addClass('dropdown-above');
+					} else {
+						// Show below by default
+						wrapper.removeClass('dropdown-above');
+					}
+				}
+
+				// Apply custom dates
+				$('#apply-custom-dates').on('click', function() {
+					$('#orders-custom-date-range').hide();
 					currentPage = 1;
 					loadOrdersData();
+				});
+
+				// Cancel custom dates
+				$('#cancel-custom-dates').on('click', function() {
+					$('#orders-date-preset').val('all-time');
+					$('#orders-custom-date-range').hide();
+					$('#date-from').val('');
+					$('#date-to').val('');
+					currentPage = 1;
+					loadOrdersData();
+				});
+
+				// Close dropdown when clicking outside
+				$(document).on('click', function(e) {
+					if (!$(e.target).closest('.pv-date-filter-wrapper').length) {
+						$('#orders-custom-date-range').hide();
+					}
+				});
+
+				// Reposition on window resize
+				$(window).on('resize', function() {
+					if ($('#orders-custom-date-range').is(':visible')) {
+						positionCustomDateDropdown();
+					}
 				});
 
 				$(document).on('click', '.page-btn[data-page]', function(e) {
@@ -2131,6 +2198,51 @@ class WC_Team_Payroll_MyAccount {
 				.pv-table-controls .date-separator {
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
+				}
+				
+				.pv-table-controls .pv-custom-date-dropdown {
+					background: {$card_background} !important;
+					border: 1px solid {$border_color} !important;
+				}
+				
+				.pv-table-controls .pv-date-input-group input[type=\"date\"] {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+					background: {$background_color} !important;
+				}
+				
+				.pv-table-controls .pv-date-input-group input[type=\"date\"]:focus {
+					border-color: {$primary_color} !important;
+					outline: none !important;
+					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
+				}
+				
+				.pv-table-controls .pv-date-input-group label {
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.pv-table-controls .pv-date-apply {
+					background: {$button_background} !important;
+					color: {$button_text_color} !important;
+					font-family: {$font_family} !important;
+					border-radius: {$button_border_radius}px !important;
+				}
+				
+				.pv-table-controls .pv-date-apply:hover {
+					background: {$button_hover_background} !important;
+				}
+				
+				.pv-table-controls .pv-date-cancel {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+					border-radius: {$button_border_radius}px !important;
+				}
+				
+				.pv-table-controls .pv-date-cancel:hover {
+					background: rgba(" . implode(',', sscanf($border_color, "#%02x%02x%02x")) . ", 0.1) !important;
 				}
 				
 				/* Pagination */
