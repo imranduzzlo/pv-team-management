@@ -1959,6 +1959,61 @@ class WC_Team_Payroll_MyAccount {
 					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
 				}
 				
+				/* Filter Controls */
+				.filter-control select,
+				.filter-control input[type=\"date\"] {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.filter-control select:focus,
+				.filter-control input[type=\"date\"]:focus {
+					border-color: {$primary_color} !important;
+					outline: none !important;
+					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
+				}
+				
+				.filter-group input,
+				.filter-group select {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.filter-group input:focus,
+				.filter-group select:focus {
+					border-color: {$primary_color} !important;
+					outline: none !important;
+					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
+				}
+				
+				.filter-button {
+					background: {$button_background} !important;
+					color: {$button_text_color} !important;
+					font-family: {$font_family} !important;
+					border-radius: {$button_border_radius}px !important;
+				}
+				
+				.filter-button:hover {
+					background: {$button_hover_background} !important;
+				}
+				
+				.btn-clear-filters {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.btn-clear-filters:hover {
+					background-color: rgba(" . implode(',', sscanf($border_color, "#%02x%02x%02x")) . ", 0.1) !important;
+				}
+				
+				.report-filters {
+					border: 1px solid {$border_color} !important;
+					background: {$card_background} !important;
+				}
+				
 				.per-page-control select,
 				.view-control select {
 					border: 1px solid {$border_color} !important;

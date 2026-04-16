@@ -513,7 +513,7 @@
 .search-control {
 	position: relative;
 	flex: 1;
-	min-width: 200px;
+	min-width: 100%;
 }
 
 .search-control input {
@@ -536,6 +536,139 @@
 
 .search-control i.ph-times {
 	cursor: pointer;
+}
+
+.filter-control select {
+	padding: 8px 35px 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	font-size: 14px;
+	width: 100%;
+}
+
+/* ============================================================================
+   COMPREHENSIVE FILTER CONTROLS (SHARED)
+   ============================================================================ */
+
+/* Filter Controls */
+.filter-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.filter-control label {
+	font-size: 13px;
+	font-weight: 600;
+	white-space: nowrap;
+	color: #6c757d;
+}
+
+.filter-control select,
+.filter-control input[type="date"] {
+	padding: 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 13px;
+	background-color: white;
+	cursor: pointer;
+	color: #495057;
+}
+
+.filter-control input[type="date"] {
+	cursor: text;
+}
+
+.filter-control select:focus,
+.filter-control input[type="date"]:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Filter Groups (for reports and complex filters) */
+.filter-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.filter-group label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.filter-group input,
+.filter-group select {
+	padding: 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #495057;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Filter Buttons */
+.filter-button,
+.btn-clear-filters {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+	border: none;
+}
+
+.filter-button {
+	background: #0073aa;
+	color: #fff;
+	padding: 8px 20px;
+}
+
+.filter-button:hover {
+	background: #005a87;
+}
+
+.filter-button:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+.btn-clear-filters {
+	background: transparent;
+	color: #6c757d;
+	border: 1px solid #dee2e6;
+}
+
+.btn-clear-filters:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Report Filters Container */
+.report-filters {
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 30px;
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+	align-items: flex-end;
 }
 
 .per-page-control {

@@ -271,51 +271,6 @@
 	background-color: rgba(52, 152, 219, 0.1);
 }
 
-/* Filter controls */
-.filter-control {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.filter-control label {
-	font-size: 13px;
-	font-weight: 600;
-	white-space: nowrap;
-}
-
-.filter-control select,
-.filter-control input[type="date"] {
-	padding: 8px 12px;
-	border: 1px solid;
-	border-radius: 4px;
-	font-size: 13px;
-	background-color: white;
-	cursor: pointer;
-}
-
-.filter-control input[type="date"] {
-	cursor: text;
-}
-
-/* Clear filters button */
-.btn-clear-filters {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 8px 12px;
-	border-radius: 4px;
-	font-size: 13px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	white-space: nowrap;
-}
-
-.btn-clear-filters:hover {
-	background-color: rgba(0, 0, 0, 0.05);
-}
-
 /* Responsive table */
 @media (max-width: 768px) {
 	.wc-team-payroll-orders .woocommerce-table--orders {
