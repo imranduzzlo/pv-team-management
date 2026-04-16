@@ -1571,8 +1571,35 @@ class WC_Team_Payroll_MyAccount {
 					searchTerm = '';
 					currentPage = 1;
 					perPage = 25;
+					updateClearButtonState();
 					loadOrdersData();
 				});
+
+				// Function to update clear button state based on filter changes
+				function updateClearButtonState() {
+					const $clearBtn = $('#clear-filters-btn');
+					const hasActiveFilters = 
+						$('#orders-search').val() !== '' ||
+						$('#role-filter').val() !== 'all' ||
+						$('#status-filter').val() !== 'all' ||
+						$('#orders-date-preset').val() !== 'all-time' ||
+						$('#date-from').val() !== '' ||
+						$('#date-to').val() !== '';
+					
+					if (hasActiveFilters) {
+						$clearBtn.addClass('filters-active');
+					} else {
+						$clearBtn.removeClass('filters-active');
+					}
+				}
+
+				// Monitor filter changes to update clear button state
+				$('#orders-search, #role-filter, #status-filter, #orders-date-preset, #date-from, #date-to').on('change input', function() {
+					updateClearButtonState();
+				});
+
+				// Initialize clear button state
+				updateClearButtonState();
 
 				$('#orders-per-page').on('change', function() {
 					perPage = parseInt($(this).val());
@@ -2178,13 +2205,46 @@ class WC_Team_Payroll_MyAccount {
 				}
 				
 				.pv-table-controls .btn-clear-filters {
-					border: 1px solid {$border_color} !important;
+					background: rgba(233, 236, 239, 0.1) !important;
+					border: 1px solid rgba(233, 236, 239, 0.3) !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
+					outline: none !important;
+					transition: all 0.2s ease !important;
+				}
+				
+				.pv-table-controls .btn-clear-filters .ph {
+					color: {$primary_color} !important;
 				}
 				
 				.pv-table-controls .btn-clear-filters:hover {
 					background-color: rgba(" . implode(',', sscanf($border_color, "#%02x%02x%02x")) . ", 0.1) !important;
+				}
+				
+				/* Clear button active state (when filters are changed) */
+				.pv-table-controls .btn-clear-filters.filters-active {
+					background: {$button_background} !important;
+					color: {$button_text_color} !important;
+					border-color: {$button_background} !important;
+				}
+				
+				.pv-table-controls .btn-clear-filters.filters-active .ph {
+					color: {$button_text_color} !important;
+				}
+				
+				.pv-table-controls .btn-clear-filters.filters-active:hover {
+					background: {$button_hover_background} !important;
+					border-color: {$button_hover_background} !important;
+				}
+				
+				.pv-table-controls .btn-clear-filters:focus {
+					outline: none !important;
+					box-shadow: none !important;
+				}
+				
+				/* Global .ph icon styling */
+				.pv-page-wrapper .ph {
+					color: {$primary_color} !important;
 				}
 				
 				.pv-filter-container,

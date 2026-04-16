@@ -9,6 +9,11 @@
 	background: #fff !important;
 }
 
+/* Global .ph icon styling */
+.pv-page-wrapper .ph {
+	color: #0073aa !important;
+}
+
 /* ============================================================================
    PROFESSIONAL EMPLOYEE HEADER - 2 COLUMN LAYOUT (SHARED)
    ============================================================================ */
@@ -631,6 +636,7 @@
 	transition: all 0.2s ease;
 	white-space: nowrap;
 	border: none;
+	outline: none;
 }
 
 .pv-table-controls .filter-button {
@@ -649,13 +655,38 @@
 }
 
 .pv-table-controls .btn-clear-filters {
-	background: transparent;
-	color: #6c757d;
-	border: 1px solid #dee2e6;
+	background: rgba(233, 236, 239, 0.1);
+	color: #495057;
+	border: 1px solid rgba(233, 236, 239, 0.3);
+}
+
+.pv-table-controls .btn-clear-filters .ph {
+	color: #0073aa;
 }
 
 .pv-table-controls .btn-clear-filters:hover {
-	background-color: rgba(0, 0, 0, 0.05);
+	background-color: rgba(233, 236, 239, 0.2);
+}
+
+.pv-table-controls .btn-clear-filters:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+/* Clear button active state (when filters are changed) */
+.pv-table-controls .btn-clear-filters.filters-active {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+}
+
+.pv-table-controls .btn-clear-filters.filters-active .ph {
+	color: #fff;
+}
+
+.pv-table-controls .btn-clear-filters.filters-active:hover {
+	background: #005a87;
+	border-color: #005a87;
 }
 
 /* Per Page and View Controls */
@@ -728,7 +759,7 @@
 .pv-table-controls .pv-date-filter-wrapper {
 	position: relative;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	gap: 5px;
 }
 
