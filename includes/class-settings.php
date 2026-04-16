@@ -1302,7 +1302,20 @@ class WC_Team_Payroll_Settings {
 		
 		// Get existing ACF fields and merge with new ones
 		$existing_acf_fields = get_option( 'wc_team_payroll_acf_fields', array() );
-		$new_acf_fields = isset( $_POST['wc_team_payroll_acf_fields'] ) ? array_map( 'sanitize_text_field', $_POST['wc_team_payroll_acf_fields'] ) : array();
+		$new_acf_fields = array();
+		
+		if ( isset( $_POST['wc_team_payroll_acf_fields'] ) ) {
+			foreach ( $_POST['wc_team_payroll_acf_fields'] as $key => $value ) {
+				if ( is_array( $value ) ) {
+					// Handle arrays (like commission_calculation_statuses checkboxes)
+					$new_acf_fields[ $key ] = array_map( 'sanitize_text_field', $value );
+				} else {
+					// Handle single values
+					$new_acf_fields[ $key ] = sanitize_text_field( $value );
+				}
+			}
+		}
+		
 		$acf_fields = array_merge( $existing_acf_fields, $new_acf_fields );
 		
 		// Get existing styling settings and merge with new ones
