@@ -212,7 +212,7 @@ class WC_Team_Payroll_MyAccount {
 					<h3><?php esc_html_e( 'Salary Change History', 'wc-team-payroll' ); ?></h3>
 					<div class="table-wrapper">
 						<div class="section-header">
-							<div class="table-controls">
+							<div class="pv-table-controls table-controls">
 								<div class="search-control">
 									<input type="text" id="salary-history-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
 									<i class="ph ph-magnifying-glass"></i>
@@ -598,7 +598,7 @@ class WC_Team_Payroll_MyAccount {
 				<h3><?php esc_html_e( 'Monthly Earnings History', 'wc-team-payroll' ); ?></h3>
 				<div class="table-wrapper">
 					<div class="section-header">
-						<div class="table-controls">
+						<div class="pv-table-controls table-controls">
 							<div class="search-control">
 								<input type="text" id="earnings-search" placeholder="<?php esc_attr_e( 'Search history...', 'wc-team-payroll' ); ?>" />
 								<i class="ph ph-magnifying-glass"></i>
@@ -1123,7 +1123,7 @@ class WC_Team_Payroll_MyAccount {
 				<h3><?php esc_html_e( 'Orders List', 'wc-team-payroll' ); ?></h3>
 				<div class="table-wrapper">
 					<div class="section-header">
-						<div class="table-controls">
+						<div class="pv-table-controls table-controls">
 							<div class="search-control">
 								<input type="text" id="orders-search" placeholder="<?php esc_attr_e( 'Search orders...', 'wc-team-payroll' ); ?>" />
 								<i class="ph ph-magnifying-glass"></i>
@@ -1149,11 +1149,23 @@ class WC_Team_Payroll_MyAccount {
 								</select>
 							</div>
 							<div class="filter-control">
-								<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
-								<input type="date" id="date-from" />
+								<label for="orders-date-preset"><?php esc_html_e( 'Date Range:', 'wc-team-payroll' ); ?></label>
+								<select id="orders-date-preset">
+									<option value="all-time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+									<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+									<option value="this-week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+									<option value="this-month"><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+									<option value="this-year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+									<option value="last-week"><?php esc_html_e( 'Last Week', 'wc-team-payroll' ); ?></option>
+									<option value="last-month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+									<option value="last-year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+									<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
+									<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
+								</select>
 							</div>
-							<div class="filter-control">
-								<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+							<div class="filter-control pv-custom-date-range" id="orders-custom-date-range" style="display: none;">
+								<input type="date" id="date-from" />
+								<span class="date-separator"><?php esc_html_e( 'to', 'wc-team-payroll' ); ?></span>
 								<input type="date" id="date-to" />
 							</div>
 							<div class="per-page-control">
@@ -1520,6 +1532,8 @@ class WC_Team_Payroll_MyAccount {
 					$('#orders-search').val('');
 					$('#role-filter').val('all');
 					$('#status-filter').val('all');
+					$('#orders-date-preset').val('all-time');
+					$('#orders-custom-date-range').hide();
 					$('#date-from').val('');
 					$('#date-to').val('');
 					$('#orders-per-page').val('25');
@@ -1555,6 +1569,74 @@ class WC_Team_Payroll_MyAccount {
 				});
 
 				$('#date-to').on('change', function() {
+					currentPage = 1;
+					loadOrdersData();
+				});
+
+				// Date preset functionality
+				$('#orders-date-preset').on('change', function() {
+					const preset = $(this).val();
+					const customDateRange = $('#orders-custom-date-range');
+					const dateFrom = $('#date-from');
+					const dateTo = $('#date-to');
+					
+					if (preset === 'custom') {
+						customDateRange.show();
+					} else {
+						customDateRange.hide();
+						
+						// Calculate date ranges based on preset
+						const today = new Date();
+						let startDate, endDate;
+						
+						switch (preset) {
+							case 'all-time':
+								dateFrom.val('');
+								dateTo.val('');
+								break;
+							case 'today':
+								startDate = new Date(today);
+								endDate = new Date(today);
+								break;
+							case 'this-week':
+								startDate = new Date(today.setDate(today.getDate() - today.getDay()));
+								endDate = new Date();
+								break;
+							case 'this-month':
+								startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+								endDate = new Date();
+								break;
+							case 'this-year':
+								startDate = new Date(today.getFullYear(), 0, 1);
+								endDate = new Date();
+								break;
+							case 'last-week':
+								const lastWeekEnd = new Date(today.setDate(today.getDate() - today.getDay() - 1));
+								const lastWeekStart = new Date(lastWeekEnd.setDate(lastWeekEnd.getDate() - 6));
+								startDate = lastWeekStart;
+								endDate = new Date(today.setDate(today.getDate() - today.getDay() - 1));
+								break;
+							case 'last-month':
+								const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+								startDate = lastMonth;
+								endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+								break;
+							case 'last-year':
+								startDate = new Date(today.getFullYear() - 1, 0, 1);
+								endDate = new Date(today.getFullYear() - 1, 11, 31);
+								break;
+							case 'last-6-months':
+								startDate = new Date(today.getFullYear(), today.getMonth() - 6, 1);
+								endDate = new Date();
+								break;
+						}
+						
+						if (startDate && endDate) {
+							dateFrom.val(startDate.toISOString().split('T')[0]);
+							dateTo.val(endDate.toISOString().split('T')[0]);
+						}
+					}
+					
 					currentPage = 1;
 					loadOrdersData();
 				});
@@ -1947,76 +2029,106 @@ class WC_Team_Payroll_MyAccount {
 				}
 				
 				/* Search and Controls */
-				.search-control input {
+				.pv-table-controls .search-control input {
 					border: 1px solid {$border_color} !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
-				.search-control input:focus {
+				.pv-table-controls .search-control input:focus {
 					border-color: {$primary_color} !important;
 					outline: none !important;
 					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
 				}
 				
 				/* Filter Controls */
-				.filter-control select,
-				.filter-control input[type=\"date\"] {
+				.pv-table-controls .filter-control select,
+				.pv-table-controls .filter-control input[type=\"date\"] {
 					border: 1px solid {$border_color} !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
-				.filter-control select:focus,
-				.filter-control input[type=\"date\"]:focus {
+				.pv-table-controls .filter-control select:focus,
+				.pv-table-controls .filter-control input[type=\"date\"]:focus {
 					border-color: {$primary_color} !important;
 					outline: none !important;
 					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
 				}
 				
-				.filter-group input,
-				.filter-group select {
+				.pv-table-controls .filter-group input,
+				.pv-table-controls .filter-group select,
+				.pv-filter-container .filter-group input,
+				.pv-filter-container .filter-group select,
+				.report-filters .filter-group input,
+				.report-filters .filter-group select {
 					border: 1px solid {$border_color} !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
-				.filter-group input:focus,
-				.filter-group select:focus {
+				.pv-table-controls .filter-group input:focus,
+				.pv-table-controls .filter-group select:focus,
+				.pv-filter-container .filter-group input:focus,
+				.pv-filter-container .filter-group select:focus,
+				.report-filters .filter-group input:focus,
+				.report-filters .filter-group select:focus {
 					border-color: {$primary_color} !important;
 					outline: none !important;
 					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
 				}
 				
-				.filter-button {
+				.pv-table-controls .filter-button,
+				.pv-filter-container .filter-button,
+				.report-filters .filter-button {
 					background: {$button_background} !important;
 					color: {$button_text_color} !important;
 					font-family: {$font_family} !important;
 					border-radius: {$button_border_radius}px !important;
 				}
 				
-				.filter-button:hover {
+				.pv-table-controls .filter-button:hover,
+				.pv-filter-container .filter-button:hover,
+				.report-filters .filter-button:hover {
 					background: {$button_hover_background} !important;
 				}
 				
-				.btn-clear-filters {
+				.pv-table-controls .btn-clear-filters {
 					border: 1px solid {$border_color} !important;
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}
 				
-				.btn-clear-filters:hover {
+				.pv-table-controls .btn-clear-filters:hover {
 					background-color: rgba(" . implode(',', sscanf($border_color, "#%02x%02x%02x")) . ", 0.1) !important;
 				}
 				
+				.pv-filter-container,
 				.report-filters {
 					border: 1px solid {$border_color} !important;
 					background: {$card_background} !important;
 				}
 				
-				.per-page-control select,
-				.view-control select {
+				.pv-table-controls .per-page-control select,
+				.pv-table-controls .view-control select {
 					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.pv-table-controls .pv-custom-date-range input[type=\"date\"] {
+					border: 1px solid {$border_color} !important;
+					color: {$text_color} !important;
+					font-family: {$font_family} !important;
+				}
+				
+				.pv-table-controls .pv-custom-date-range input[type=\"date\"]:focus {
+					border-color: {$primary_color} !important;
+					outline: none !important;
+					box-shadow: 0 0 0 2px rgba(" . implode(',', sscanf($primary_color, "#%02x%02x%02x")) . ", 0.2) !important;
+				}
+				
+				.pv-table-controls .date-separator {
 					color: {$text_color} !important;
 					font-family: {$font_family} !important;
 				}

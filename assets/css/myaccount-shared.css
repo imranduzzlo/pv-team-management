@@ -501,7 +501,7 @@
 	background: #0073aa !important;
 }
 
-.table-controls {
+.pv-table-controls {
 	display: flex;
 	gap: 15px;
 	align-items: center;
@@ -510,13 +510,13 @@
 	padding: 0 !important;
 }
 
-.search-control {
+.pv-table-controls .search-control {
 	position: relative;
 	flex: 1;
 	min-width: 100%;
 }
 
-.search-control input {
+.pv-table-controls .search-control input {
 	padding: 8px 35px 8px 12px;
 	border: 1px solid #dee2e6;
 	border-radius: 6px;
@@ -524,7 +524,7 @@
 	width: 100%;
 }
 
-.search-control i {
+.pv-table-controls .search-control i {
 	position: absolute;
 	right: 10px;
 	top: 50%;
@@ -534,7 +534,7 @@
 	cursor: pointer;
 }
 
-.search-control i.ph-times {
+.pv-table-controls .search-control i.ph-times {
 	cursor: pointer;
 }
 
@@ -551,21 +551,21 @@
    ============================================================================ */
 
 /* Filter Controls */
-.filter-control {
+.pv-table-controls .filter-control {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
 
-.filter-control label {
+.pv-table-controls .filter-control label {
 	font-size: 13px;
 	font-weight: 600;
 	white-space: nowrap;
 	color: #6c757d;
 }
 
-.filter-control select,
-.filter-control input[type="date"] {
+.pv-table-controls .filter-control select,
+.pv-table-controls .filter-control input[type="date"] {
 	padding: 8px 12px;
 	border: 1px solid #dee2e6;
 	border-radius: 4px;
@@ -575,25 +575,25 @@
 	color: #495057;
 }
 
-.filter-control input[type="date"] {
+.pv-table-controls .filter-control input[type="date"] {
 	cursor: text;
 }
 
-.filter-control select:focus,
-.filter-control input[type="date"]:focus {
+.pv-table-controls .filter-control select:focus,
+.pv-table-controls .filter-control input[type="date"]:focus {
 	outline: none;
 	border-color: #0073aa;
 	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
 
 /* Filter Groups (for reports and complex filters) */
-.filter-group {
+.pv-table-controls .filter-group {
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
 }
 
-.filter-group label {
+.pv-table-controls .filter-group label {
 	font-size: 12px;
 	font-weight: 600;
 	color: #6c757d;
@@ -601,8 +601,8 @@
 	letter-spacing: 0.5px;
 }
 
-.filter-group input,
-.filter-group select {
+.pv-table-controls .filter-group input,
+.pv-table-controls .filter-group select {
 	padding: 8px 12px;
 	border: 1px solid #dee2e6;
 	border-radius: 4px;
@@ -610,16 +610,16 @@
 	color: #495057;
 }
 
-.filter-group input:focus,
-.filter-group select:focus {
+.pv-table-controls .filter-group input:focus,
+.pv-table-controls .filter-group select:focus {
 	outline: none;
 	border-color: #0073aa;
 	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
 
 /* Filter Buttons */
-.filter-button,
-.btn-clear-filters {
+.pv-table-controls .filter-button,
+.pv-table-controls .btn-clear-filters {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -633,32 +633,99 @@
 	border: none;
 }
 
-.filter-button {
+.pv-table-controls .filter-button {
 	background: #0073aa;
 	color: #fff;
 	padding: 8px 20px;
 }
 
-.filter-button:hover {
+.pv-table-controls .filter-button:hover {
 	background: #005a87;
 }
 
-.filter-button:disabled {
+.pv-table-controls .filter-button:disabled {
 	background: #ccc;
 	cursor: not-allowed;
 }
 
-.btn-clear-filters {
+.pv-table-controls .btn-clear-filters {
 	background: transparent;
 	color: #6c757d;
 	border: 1px solid #dee2e6;
 }
 
-.btn-clear-filters:hover {
+.pv-table-controls .btn-clear-filters:hover {
 	background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Report Filters Container */
+/* Per Page and View Controls */
+.pv-table-controls .per-page-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #6c757d;
+	margin: 0;
+}
+
+.pv-table-controls .per-page-control label {
+	margin: 0;
+	padding: 0;
+}
+
+.pv-table-controls .per-page-control select {
+	padding: 6px 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.pv-table-controls .view-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #6c757d;
+	margin: 0;
+}
+
+.pv-table-controls .view-control label {
+	margin: 0;
+	padding: 0;
+}
+
+.pv-table-controls .view-control select {
+	padding: 6px 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+/* Custom Date Range */
+.pv-table-controls .pv-custom-date-range {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pv-table-controls .pv-custom-date-range input[type="date"] {
+	padding: 8px 12px;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	font-size: 13px;
+	background-color: white;
+	cursor: text;
+	color: #495057;
+}
+
+.pv-table-controls .date-separator {
+	color: #6c757d;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+/* Report Filters Container (can be used independently or within pv-table-controls) */
+.pv-filter-container,
 .report-filters {
 	background: #f8f9fa;
 	border: 1px solid #e9ecef;
@@ -671,46 +738,52 @@
 	align-items: flex-end;
 }
 
-.per-page-control {
+/* Standalone filter controls (not within pv-table-controls) */
+.pv-filter-container .filter-control,
+.report-filters .filter-control {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 14px;
-	color: #6c757d;
-	margin: 0;
 }
 
-.per-page-control label {
-	margin: 0;
-	padding: 0;
-}
-
-.per-page-control select {
-	padding: 6px 8px;
-	border: 1px solid #dee2e6;
-	border-radius: 4px;
-	font-size: 14px;
-}
-
-.view-control {
+.pv-filter-container .filter-group,
+.report-filters .filter-group {
 	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 14px;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.pv-filter-container .filter-group label,
+.report-filters .filter-group label {
+	font-size: 12px;
+	font-weight: 600;
 	color: #6c757d;
-	margin: 0;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
-.view-control label {
-	margin: 0;
-	padding: 0;
-}
-
-.view-control select {
-	padding: 6px 8px;
+.pv-filter-container .filter-group input,
+.pv-filter-container .filter-group select,
+.report-filters .filter-group input,
+.report-filters .filter-group select {
+	padding: 8px 12px;
 	border: 1px solid #dee2e6;
 	border-radius: 4px;
 	font-size: 14px;
+	color: #495057;
+}
+
+.pv-filter-container .filter-button,
+.report-filters .filter-button {
+	background: #0073aa;
+	color: #fff;
+	padding: 8px 20px;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
 }
 
 /* ============================================================================
