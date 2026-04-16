@@ -8,7 +8,8 @@ jQuery(document).ready(function($) {
 	'use strict';
 
 	// Navigation tabs
-	$('.wc-tp-perf-nav-tab').on('click', function() {
+	$('.wc-tp-perf-nav-tab').on('click', function(e) {
+		e.preventDefault(); // Prevent form submission
 		const section = $(this).data('section');
 		
 		// Update active tab
@@ -194,42 +195,227 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-	// Save all configurations
-	$('#wc-tp-save-performance').on('click', function() {
-		const button = $(this);
-		button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 8px 0 0;"></span>Saving...');
+	// Unified save handler for all sections
+	function setupUnifiedSaveHandler() {
+		$('#wc-tp-save-performance').off('click').on('click', function() {
+			const button = $(this);
+			button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 8px 0 0;"></span>Saving...');
 
-		// Collect all configuration data
-		const config = collectConfigurationData();
+			console.log('Save button clicked');
 
-		$.ajax({
+			// Get active section
+			const activeSection = $('.wc-tp-perf-nav-tab.active').data('section');
+			console.log('Active section:', activeSection);
+			
+			// Collect data based on active section
+			let savePromises = [];
+			
+			// Always save performance scoring config if there's data
+			try {
+				const config = collectConfigurationData();
+				console.log('Performance config collected:', config);
+				if (config.base_score || Object.keys(config.roles).length > 0) {
+					savePromises.push(savePerformanceConfig(config));
+				}
+			} catch (e) {
+				console.error('Error collecting performance config:', e);
+			}
+			
+			// Save section-specific data
+			switch (activeSection) {
+				case 'goals':
+					try {
+						const goalsConfig = collectGoalsConfigurationData();
+						console.log('Goals config collected:', goalsConfig);
+						if (goalsConfig && Object.keys(goalsConfig).length > 0) {
+							savePromises.push(saveGoalsConfig(goalsConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting goals config:', e);
+					}
+					break;
+				case 'achievements':
+					try {
+						const achievementsConfig = collectAchievementsConfigurationData();
+						console.log('Achievements config collected:', achievementsConfig);
+						if (achievementsConfig && Object.keys(achievementsConfig).length > 0) {
+							savePromises.push(saveAchievementsConfig(achievementsConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting achievements config:', e);
+					}
+					break;
+				case 'baselines':
+					try {
+						const baselinesConfig = collectBaselinesConfigurationData();
+						console.log('Baselines config collected:', baselinesConfig);
+						if (baselinesConfig && Object.keys(baselinesConfig).length > 0) {
+							savePromises.push(saveBaselinesConfig(baselinesConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting baselines config:', e);
+					}
+					break;
+			}
+			
+			console.log('Total save promises:', savePromises.length);
+			
+			if (savePromises.length === 0) {
+				showMessage('warning', 'No configuration data to save');
+				button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
+				return;
+			}
+			
+			// Execute all saves
+			Promise.all(savePromises).then(function(results) {
+				console.log('Save results:', results);
+				let hasError = false;
+				let errorMessages = [];
+				
+				results.forEach(function(result) {
+					if (!result.success) {
+						hasError = true;
+						errorMessages.push(result.message);
+					}
+				});
+				
+				if (!hasError) {
+					showMessage('success', 'All configurations saved successfully!');
+					// Reset the main form's unsaved changes flag
+					if (typeof window.wcTpResetUnsavedChanges === 'function') {
+						window.wcTpResetUnsavedChanges();
+						console.log('Unsaved changes flag reset successfully');
+					} else {
+						console.warn('wcTpResetUnsavedChanges function not found - attempting fallback');
+						// Fallback: Try to reset the unsaved changes manually
+						try {
+							const warningDiv = $('#wc-tp-unsaved-warning');
+							if (warningDiv.length) {
+								warningDiv.fadeOut(300);
+								console.log('Fallback: Warning div hidden');
+							}
+							
+							// Try to reset the hasChanges flag if we can access it
+							if (window.parent && window.parent.hasChanges !== undefined) {
+								window.parent.hasChanges = false;
+								console.log('Fallback: Parent hasChanges reset');
+							}
+						} catch (e) {
+							console.error('Fallback reset failed:', e);
+						}
+					}
+				} else {
+					errorMessages.forEach(function(message) {
+						showMessage('error', message);
+					});
+				}
+			}).catch(function(error) {
+				console.error('Promise.all error:', error);
+				showMessage('error', 'Error saving configurations');
+			}).finally(function() {
+				button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
+			});
+		});
+	}
+
+	// Individual save functions
+	function savePerformanceConfig(config) {
+		return $.ajax({
 			url: wcTpPerformance.ajax_url,
 			type: 'POST',
 			data: {
 				action: 'wc_tp_save_performance_config',
 				nonce: wcTpPerformance.nonce,
 				config: config
-			},
-			success: function(response) {
-				if (response.success) {
-					showMessage('success', wcTpPerformance.strings.save_success);
-				} else {
-					showMessage('error', response.data.message || wcTpPerformance.strings.save_error);
-				}
-			},
-			error: function() {
-				showMessage('error', wcTpPerformance.strings.save_error);
-			},
-			complete: function() {
-				button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
 			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'Performance config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving performance config' };
+		});
+	}
+
+	function saveGoalsConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_goals_config',
+				nonce: wcTpPerformance.nonce,
+				config: config
+			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'Goals config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving goals config' };
+		});
+	}
+
+	function saveAchievementsConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_achievements_config',
+				nonce: wcTpPerformance.nonce,
+				config: config
+			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'Achievements config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving achievements config' };
+		});
+	}
+
+	function saveBaselinesConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_baselines_config',
+				nonce: wcTpPerformance.nonce,
+				config: config
+			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'Baselines config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving baselines config' };
+		});
+	}
+
+	// Initialize unified save handler
+	setupUnifiedSaveHandler();
+
+	// Debug: Check if wcTpResetUnsavedChanges function exists
+	$(document).ready(function() {
+		console.log('Performance Settings JS loaded');
+		console.log('wcTpResetUnsavedChanges function available:', typeof window.wcTpResetUnsavedChanges === 'function');
+		
+		// Test the function after a short delay to ensure settings page JS is loaded
+		setTimeout(function() {
+			console.log('wcTpResetUnsavedChanges function available (delayed check):', typeof window.wcTpResetUnsavedChanges === 'function');
+		}, 1000);
+
+		// Ensure performance settings changes are tracked by main form
+		$('.wc-tp-performance-settings-wrapper').on('change', 'input, select, textarea', function() {
+			console.log('Performance setting changed:', $(this).attr('name') || $(this).attr('id'));
+			// Trigger change on main form to ensure unsaved changes detection
+			$('#wc-tp-settings-form').trigger('wc-tp-performance-change');
 		});
 
-		// Also save goals configuration if on goals tab
-		const activeSection = $('.wc-tp-perf-nav-tab.active').data('section');
-		if (activeSection === 'goals') {
-			saveGoalsConfiguration();
-		}
+		// Listen for our custom event on the main form
+		$('#wc-tp-settings-form').on('wc-tp-performance-change', function() {
+			console.log('Performance change detected on main form');
+			// Manually trigger the unsaved changes detection
+			if (typeof window.wcTpCheckUnsavedChanges === 'function') {
+				const state = window.wcTpCheckUnsavedChanges();
+				console.log('Current unsaved changes state:', state);
+				if (!state.hasChanges) {
+					// Force show the warning if it's not already shown
+					$('#wc-tp-unsaved-warning').fadeIn(300);
+				}
+			}
+		});
 	});
 
 	// Save goals configuration
@@ -268,12 +454,27 @@ jQuery(document).ready(function($) {
 		const currentRole = $('.wc-tp-role-config-form').data('role');
 		
 		if (currentRole) {
+			// Collect data for the currently active role
 			config.roles[currentRole] = {
 				earnings_ranges: collectRanges('earnings'),
 				orders_ranges: collectRanges('orders'),
 				aov_ranges: collectRanges('aov')
 			};
 		}
+
+		// Also collect any other role configurations that might be stored in hidden inputs
+		// This ensures we don't lose previously configured roles when saving
+		$('.wc-tp-stored-role-config').each(function() {
+			const role = $(this).data('role');
+			const configData = $(this).val();
+			if (role && configData && role !== currentRole) {
+				try {
+					config.roles[role] = JSON.parse(configData);
+				} catch (e) {
+					console.log('Error parsing stored config for role:', role);
+				}
+			}
+		});
 
 		return config;
 	}
@@ -772,55 +973,23 @@ jQuery(document).ready(function($) {
 		return config;
 	}
 
-	// Update main save button to handle achievements
-	const originalSaveHandler = $('#wc-tp-save-performance').data('events') ? $('#wc-tp-save-performance').data('events').click : null;
-	$('#wc-tp-save-performance').off('click').on('click', function() {
-		const button = $(this);
-		button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 8px 0 0;"></span>Saving...');
-
-		const activeSection = $('.wc-tp-perf-nav-tab.active').data('section');
-		
-		// Save based on active section
-		if (activeSection === 'scoring') {
-			const config = collectConfigurationData();
-			$.ajax({
-				url: wcTpPerformance.ajax_url,
-				type: 'POST',
-				data: {
-					action: 'wc_tp_save_performance_config',
-					nonce: wcTpPerformance.nonce,
-					config: config
-				},
-				success: function(response) {
-					if (response.success) {
-						showMessage('success', wcTpPerformance.strings.save_success);
-					} else {
-						showMessage('error', response.data.message || wcTpPerformance.strings.save_error);
-					}
-				},
-				error: function() {
-					showMessage('error', wcTpPerformance.strings.save_error);
-				},
-				complete: function() {
-					button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-				}
-			});
-		} else if (activeSection === 'goals') {
-			saveGoalsConfiguration();
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-		} else if (activeSection === 'achievements') {
-			saveAchievementsConfiguration();
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-		} else {
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-			showMessage('error', 'This section is not yet implemented');
-		}
-	});
-
-
 	// ============================================================================
 	// BASELINES & BENCHMARKS FUNCTIONALITY
 	// ============================================================================
+
+	// Collect baselines configuration data
+	function collectBaselinesConfigurationData() {
+		const config = {
+			method: $('#baseline_method').val(),
+			periods: parseInt($('#baseline_periods').val()) || 3,
+			percentile: parseInt($('#baseline_percentile').val()) || 75,
+			sample_earnings: $('#sample_earnings').val(),
+			sample_orders: $('#sample_orders').val(),
+			sample_aov: $('#sample_aov').val()
+		};
+		
+		return config;
+	}
 
 	// Show/hide baseline options based on method
 	$('#baseline_method').on('change', function() {
@@ -952,49 +1121,4 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-	// Update main save button to handle baselines
-	$('#wc-tp-save-performance').off('click').on('click', function() {
-		const button = $(this);
-		button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 8px 0 0;"></span>Saving...');
 
-		const activeSection = $('.wc-tp-perf-nav-tab.active').data('section');
-		
-		// Save based on active section
-		if (activeSection === 'scoring') {
-			const config = collectConfigurationData();
-			$.ajax({
-				url: wcTpPerformance.ajax_url,
-				type: 'POST',
-				data: {
-					action: 'wc_tp_save_performance_config',
-					nonce: wcTpPerformance.nonce,
-					config: config
-				},
-				success: function(response) {
-					if (response.success) {
-						showMessage('success', wcTpPerformance.strings.save_success);
-					} else {
-						showMessage('error', response.data.message || wcTpPerformance.strings.save_error);
-					}
-				},
-				error: function() {
-					showMessage('error', wcTpPerformance.strings.save_error);
-				},
-				complete: function() {
-					button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-				}
-			});
-		} else if (activeSection === 'goals') {
-			saveGoalsConfiguration();
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-		} else if (activeSection === 'achievements') {
-			saveAchievementsConfiguration();
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-		} else if (activeSection === 'baselines') {
-			saveBaselinesConfiguration();
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-		} else {
-			button.prop('disabled', false).html('<span class="dashicons dashicons-saved"></span>Save All Configurations');
-			showMessage('error', 'This section is not yet implemented');
-		}
-	});

@@ -754,33 +754,16 @@
 	font-size: 13px;
 }
 
-/* Date Filter Wrapper with Floating Dropdown */
-.pv-table-controls .pv-date-filter-wrapper {
-	position: relative;
+/* Inline Custom Date Range (New Implementation) */
+.pv-table-controls .pv-custom-date-inline {
 	display: flex;
-	flex-direction: row;
-	gap: 5px;
-}
-
-.pv-table-controls .pv-custom-date-dropdown {
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	z-index: 1000;
-	background: white;
-	border: 1px solid #dee2e6;
-	border-radius: 8px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	margin-top: 4px;
-	min-width: 280px;
-}
-
-.pv-table-controls .pv-custom-date-content {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+	align-items: center;
+	gap: 15px;
+	margin-top: 10px;
+	padding: 12px;
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 6px;
 }
 
 .pv-table-controls .pv-date-input-group {
@@ -804,76 +787,21 @@
 	background-color: white;
 	cursor: text;
 	color: #495057;
-	width: 100%;
+	min-width: 150px;
 }
 
-.pv-table-controls .pv-date-actions {
+.pv-table-controls .pv-date-input-group input[type="date"]:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Date Filter Wrapper with Inline Custom Dates */
+.pv-table-controls .pv-date-filter-wrapper {
+	position: relative;
 	display: flex;
-	gap: 8px;
-	justify-content: flex-end;
-	margin-top: 8px;
-}
-
-.pv-table-controls .pv-date-apply,
-.pv-table-controls .pv-date-cancel {
-	padding: 6px 12px;
-	border-radius: 4px;
-	font-size: 12px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	border: none;
-}
-
-.pv-table-controls .pv-date-apply {
-	background: #0073aa;
-	color: white;
-}
-
-.pv-table-controls .pv-date-apply:hover {
-	background: #005a87;
-}
-
-.pv-table-controls .pv-date-cancel {
-	background: transparent;
-	color: #6c757d;
-	border: 1px solid #dee2e6;
-}
-
-.pv-table-controls .pv-date-cancel:hover {
-	background: #f8f9fa;
-}
-
-/* Responsive positioning for mobile */
-@media (max-width: 768px) {
-	.pv-table-controls .pv-custom-date-dropdown {
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		right: auto;
-		width: 90%;
-		max-width: 320px;
-	}
-	
-	.pv-table-controls .pv-custom-date-dropdown::before {
-		content: '';
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.5);
-		z-index: -1;
-	}
-}
-
-/* Auto-positioning based on viewport space */
-.pv-table-controls .pv-date-filter-wrapper.dropdown-above .pv-custom-date-dropdown {
-	top: auto;
-	bottom: 100%;
-	margin-top: 0;
-	margin-bottom: 4px;
+	flex-direction: column;
+	gap: 5px;
 }
 
 /* Report Filters Container (can be used independently or within pv-table-controls) */

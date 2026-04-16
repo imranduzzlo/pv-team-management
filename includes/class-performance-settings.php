@@ -121,27 +121,27 @@ class WC_Team_Payroll_Performance_Settings {
 
 			<!-- Navigation Tabs -->
 			<div class="wc-tp-perf-nav-tabs">
-				<button class="wc-tp-perf-nav-tab active" data-section="scoring">
+				<button type="button" class="wc-tp-perf-nav-tab active" data-section="scoring">
 					<i class="dashicons dashicons-star-filled"></i>
 					<?php esc_html_e( 'Performance Scoring', 'wc-team-payroll' ); ?>
 				</button>
-				<button class="wc-tp-perf-nav-tab" data-section="goals">
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="goals">
 					<i class="dashicons dashicons-flag"></i>
 					<?php esc_html_e( 'Goals & Targets', 'wc-team-payroll' ); ?>
 				</button>
-				<button class="wc-tp-perf-nav-tab" data-section="achievements">
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="achievements">
 					<i class="dashicons dashicons-awards"></i>
 					<?php esc_html_e( 'Achievements', 'wc-team-payroll' ); ?>
 				</button>
-				<button class="wc-tp-perf-nav-tab" data-section="baselines">
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="baselines">
 					<i class="dashicons dashicons-chart-line"></i>
 					<?php esc_html_e( 'Baselines', 'wc-team-payroll' ); ?>
 				</button>
-				<button class="wc-tp-perf-nav-tab" data-section="calculation">
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="calculation">
 					<i class="dashicons dashicons-calculator"></i>
 					<?php esc_html_e( 'Calculation Engine', 'wc-team-payroll' ); ?>
 				</button>
-				<button class="wc-tp-perf-nav-tab" data-section="system">
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="system">
 					<i class="dashicons dashicons-admin-settings"></i>
 					<?php esc_html_e( 'System Config', 'wc-team-payroll' ); ?>
 				</button>

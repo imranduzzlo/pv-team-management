@@ -1174,21 +1174,14 @@ class WC_Team_Payroll_MyAccount {
 										<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
 										<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
 									</select>
-									<div class="pv-custom-date-dropdown" id="orders-custom-date-range" style="display: none;">
-										<div class="pv-custom-date-content">
-											<div class="pv-date-input-group">
-												<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
-												<input type="date" id="date-from" />
-											</div>
-											<div class="pv-date-input-group">
-												<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
-												<input type="date" id="date-to" />
-											</div>
-											<div class="pv-date-actions">
-												<button type="button" class="pv-date-toggle" id="toggle-date-options" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;">
-													<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>
-												</button>
-											</div>
+									<div class="pv-custom-date-inline" id="orders-custom-date-range" style="display: none;">
+										<div class="pv-date-input-group">
+											<label for="date-from"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
+											<input type="date" id="date-from" />
+										</div>
+										<div class="pv-date-input-group">
+											<label for="date-to"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+											<input type="date" id="date-to" />
 										</div>
 									</div>
 								</div>
@@ -1573,7 +1566,6 @@ class WC_Team_Payroll_MyAccount {
 					$('#status-filter').val('all');
 					$('#orders-date-preset').val('all-time');
 					$('#orders-custom-date-range').hide();
-					$('.pv-date-filter-wrapper').removeClass('dropdown-above');
 					$('#date-from').val('');
 					$('#date-to').val('');
 					$('#orders-per-page').val('25');
@@ -1647,7 +1639,7 @@ class WC_Team_Payroll_MyAccount {
 				// Date preset functionality - using click instead of change to handle repeated clicks
 				$('#orders-date-preset').on('click', function() {
 					const preset = $(this).val();
-					const customDateDropdown = $('#orders-custom-date-range');
+					const customDateInline = $('#orders-custom-date-range');
 					const dateFrom = $('#date-from');
 					const dateTo = $('#date-to');
 					
@@ -1659,16 +1651,14 @@ class WC_Team_Payroll_MyAccount {
 						if (lastCustomDateTo) {
 							dateTo.val(lastCustomDateTo);
 						}
-						// Position dropdown based on viewport space
-						positionCustomDateDropdown();
-						customDateDropdown.show();
+						customDateInline.show();
 					}
 				});
 
 				// Handle change event for all presets (including custom)
 				$('#orders-date-preset').on('change', function() {
 					const preset = $(this).val();
-					const customDateDropdown = $('#orders-custom-date-range');
+					const customDateInline = $('#orders-custom-date-range');
 					const dateFrom = $('#date-from');
 					const dateTo = $('#date-to');
 					
@@ -1680,11 +1670,9 @@ class WC_Team_Payroll_MyAccount {
 						if (lastCustomDateTo) {
 							dateTo.val(lastCustomDateTo);
 						}
-						// Position dropdown based on viewport space
-						positionCustomDateDropdown();
-						customDateDropdown.show();
+						customDateInline.show();
 					} else {
-						customDateDropdown.hide();
+						customDateInline.hide();
 						
 						// Store current custom dates before switching preset
 						lastCustomDateFrom = dateFrom.val();
@@ -1746,55 +1734,18 @@ class WC_Team_Payroll_MyAccount {
 					}
 				});
 
-				// Position custom date dropdown based on viewport space
-				function positionCustomDateDropdown() {
-					const wrapper = $('.pv-date-filter-wrapper');
-					const dropdown = $('#orders-custom-date-range');
-					const wrapperOffset = wrapper.offset();
-					const wrapperHeight = wrapper.outerHeight();
-					const dropdownHeight = 200; // Approximate height
-					const windowHeight = $(window).height();
-					const scrollTop = $(window).scrollTop();
-					
-					// Check if there's enough space below
-					const spaceBelow = windowHeight - (wrapperOffset.top - scrollTop + wrapperHeight);
-					
-					if (spaceBelow < dropdownHeight && wrapperOffset.top - scrollTop > dropdownHeight) {
-						// Show above if not enough space below and enough space above
-						wrapper.addClass('dropdown-above');
-					} else {
-						// Show below by default
-						wrapper.removeClass('dropdown-above');
-					}
-				}
+				// Custom date inputs - auto-filter when changed
+				$('#date-from, #date-to').on('change', function() {
+					lastCustomDateFrom = $('#date-from').val();
+					lastCustomDateTo = $('#date-to').val();
+					currentPage = 1;
+					loadOrdersData();
+				});
 
-				// Close dropdown when clicking outside
+				// Close inline date inputs when clicking outside (optional - can be removed if not needed)
 				$(document).on('click', function(e) {
 					if (!$(e.target).closest('.pv-date-filter-wrapper').length) {
-						$('#orders-custom-date-range').hide();
-					}
-				});
-
-				// Toggle between date presets and custom date inputs
-				$('#toggle-date-options').on('click', function() {
-					const select = $('#orders-date-preset');
-					const customDateDropdown = $('#orders-custom-date-range');
-					
-					// Toggle the select visibility
-					select.toggle();
-					
-					// Update button text
-					if (select.is(':visible')) {
-						$(this).text('<?php esc_html_e( 'Show Custom', 'wc-team-payroll' ); ?>');
-					} else {
-						$(this).text('<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>');
-					}
-				});
-
-				// Reposition on window resize
-				$(window).on('resize', function() {
-					if ($('#orders-custom-date-range').is(':visible')) {
-						positionCustomDateDropdown();
+						// Optional: could hide inline dates here, but usually they stay visible
 					}
 				});
 
@@ -1863,21 +1814,14 @@ class WC_Team_Payroll_MyAccount {
 								<option value="last-6-months"><?php esc_html_e( 'Last 6 Months', 'wc-team-payroll' ); ?></option>
 								<option value="custom"><?php esc_html_e( 'Custom', 'wc-team-payroll' ); ?></option>
 							</select>
-							<div class="pv-custom-date-dropdown" id="reports-custom-date-range" style="display: none;">
-								<div class="pv-custom-date-content">
-									<div class="pv-date-input-group">
-										<label for="reports-start-date"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
-										<input type="date" id="reports-start-date" />
-									</div>
-									<div class="pv-date-input-group">
-										<label for="reports-end-date"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
-										<input type="date" id="reports-end-date" />
-									</div>
-									<div class="pv-date-actions">
-										<button type="button" class="pv-date-toggle" id="reports-toggle-date-options" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;">
-											<?php esc_html_e( 'Show Presets', 'wc-team-payroll' ); ?>
-										</button>
-									</div>
+							<div class="pv-custom-date-inline" id="reports-custom-date-range" style="display: none;">
+								<div class="pv-date-input-group">
+									<label for="reports-start-date"><?php esc_html_e( 'From:', 'wc-team-payroll' ); ?></label>
+									<input type="date" id="reports-start-date" />
+								</div>
+								<div class="pv-date-input-group">
+									<label for="reports-end-date"><?php esc_html_e( 'To:', 'wc-team-payroll' ); ?></label>
+									<input type="date" id="reports-end-date" />
 								</div>
 							</div>
 						</div>
@@ -3692,17 +3636,23 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get user earnings data
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
-
-		// Filter orders by role and status if needed
-		$filtered_orders = $earnings_data['orders'];
+		// Get filter values
 		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
 		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
-		$commission_range = isset( $filters['commissionRange'] ) ? $filters['commissionRange'] : 'all';
 
-		// Apply role filter
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			// Convert single status to array for WooCommerce query
+			$order_statuses = array( $status_filter );
+		}
+
+		// Get user earnings data with status filtering
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+
+		// Filter orders by role if needed
+		$filtered_orders = $earnings_data['orders'];
 		if ( $role_filter !== 'all' ) {
 			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
 				return $order['role'] === $role_filter;
@@ -3724,10 +3674,23 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
 
-		// Get previous period data for comparison
+		// Get previous period data for comparison (with same status filtering)
 		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
-		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
-		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
+		
+		// Apply same role filter to previous period data
+		$prev_filtered_orders = $prev_earnings_data['orders'];
+		if ( $role_filter !== 'all' ) {
+			$prev_filtered_orders = array_filter( $prev_filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+		
+		// Calculate previous period total earnings
+		$prev_total_earnings = 0;
+		foreach ( $prev_filtered_orders as $order_data ) {
+			$prev_total_earnings += $order_data['earnings'];
+		}
 
 		// Calculate change percentage
 		$earnings_change = 0;
@@ -3893,13 +3856,31 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get user earnings data
+		// Get filter values
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			$order_statuses = array( $status_filter );
+		}
+
+		// Get user earnings data with status filtering
 		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+
+		// Filter orders by role if needed
+		$filtered_orders = $earnings_data['orders'];
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
 
 		// Prepare data for charts
 		$time_period = isset( $filters['timePeriod'] ) ? $filters['timePeriod'] : 'monthly';
-		$chart_data = self::prepare_chart_data( $earnings_data['orders'], $time_period, $start_date, $end_date );
+		$chart_data = self::prepare_chart_data( $filtered_orders, $time_period, $start_date, $end_date );
 
 		// Get styling settings for chart colors
 		$styling_settings = get_option( 'wc_team_payroll_styling', array() );
@@ -4108,14 +4089,22 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get user earnings data
+		// Get filter values
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			$order_statuses = array( $status_filter );
+		}
+
+		// Get user earnings data with status filtering
 		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter by role if needed
-		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
 		$filtered_orders = $earnings_data['orders'];
-
 		if ( $role_filter !== 'all' ) {
 			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
 				return $order['role'] === $role_filter;
@@ -4148,12 +4137,25 @@ class WC_Team_Payroll_MyAccount {
 		$commission_rate = $total_order_value > 0 ? ( $total_commission / $total_order_value ) * 100 : 0;
 
 		// Calculate performance score
-		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value );
+		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id );
 
-		// Get previous period for growth calculation
+		// Get previous period for growth calculation (with same filtering)
 		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
-		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
-		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
+		
+		// Apply same role filter to previous period data
+		$prev_filtered_orders = $prev_earnings_data['orders'];
+		if ( $role_filter !== 'all' ) {
+			$prev_filtered_orders = array_filter( $prev_filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+		
+		// Calculate previous period total earnings
+		$prev_total_earnings = 0;
+		foreach ( $prev_filtered_orders as $order_data ) {
+			$prev_total_earnings += $order_data['earnings'];
+		}
 
 		// Calculate growth rate
 		$growth_rate = 0;
@@ -4287,23 +4289,22 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get user earnings data
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+		// Get filter values
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
 
-		// Filter orders by status and role
-		$filtered_orders = $earnings_data['orders'];
-		
-		// Apply order status filter
-		$order_status = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
-		if ( $order_status !== 'all' ) {
-			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $order_status ) {
-				return isset( $order['status'] ) && $order['status'] === $order_status;
-			});
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			$order_statuses = array( $status_filter );
 		}
 
-		// Apply role filter
-		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		// Get user earnings data with status filtering
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+
+		// Filter orders by role if needed
+		$filtered_orders = $earnings_data['orders'];
 		if ( $role_filter !== 'all' ) {
 			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
 				return $order['role'] === $role_filter;
@@ -4532,23 +4533,22 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get user earnings data
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+		// Get filter values
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
 
-		// Filter orders by status and role
-		$filtered_orders = $earnings_data['orders'];
-		
-		// Apply order status filter
-		$order_status = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
-		if ( $order_status !== 'all' ) {
-			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $order_status ) {
-				return isset( $order['status'] ) && $order['status'] === $order_status;
-			});
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			$order_statuses = array( $status_filter );
 		}
 
-		// Apply role filter
-		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		// Get user earnings data with status filtering
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+
+		// Filter orders by role if needed
+		$filtered_orders = $earnings_data['orders'];
 		if ( $role_filter !== 'all' ) {
 			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
 				return $order['role'] === $role_filter;
@@ -4571,12 +4571,25 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 
 		// Calculate performance score
-		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value );
+		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id );
 
-		// Get previous period for growth calculation
+		// Get previous period for growth calculation (with same filtering)
 		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
-		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
-		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
+		
+		// Apply same role filter to previous period data
+		$prev_filtered_orders = $prev_earnings_data['orders'];
+		if ( $role_filter !== 'all' ) {
+			$prev_filtered_orders = array_filter( $prev_filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+		
+		// Calculate previous period total earnings
+		$prev_total_earnings = 0;
+		foreach ( $prev_filtered_orders as $order_data ) {
+			$prev_total_earnings += $order_data['earnings'];
+		}
 
 		// Calculate growth rate
 		$growth_rate = 0;
@@ -4584,32 +4597,36 @@ class WC_Team_Payroll_MyAccount {
 			$growth_rate = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
 		}
 
+		// Get goal targets from Performance Settings or use defaults
+		$performance_config = get_option( 'wc_tp_performance_config', array() );
+		$goal_targets = isset( $performance_config['goal_targets'] ) ? $performance_config['goal_targets'] : array();
+		
 		// Define goals (can be customized per user or globally)
 		$goals = array(
 			'monthly_earnings' => array(
 				'label' => __( 'Monthly Earnings Target', 'wc-team-payroll' ),
-				'target' => 5000,
+				'target' => isset( $goal_targets['monthly_earnings'] ) ? floatval( $goal_targets['monthly_earnings'] ) : 5000,
 				'actual' => $total_earnings,
 				'icon' => 'ph-wallet',
 				'color' => '#0073aa'
 			),
 			'orders_processed' => array(
 				'label' => __( 'Orders to Process', 'wc-team-payroll' ),
-				'target' => 50,
+				'target' => isset( $goal_targets['orders_processed'] ) ? intval( $goal_targets['orders_processed'] ) : 50,
 				'actual' => $total_orders,
 				'icon' => 'ph-shopping-bag',
 				'color' => '#28a745'
 			),
 			'average_order_value' => array(
 				'label' => __( 'Average Order Value', 'wc-team-payroll' ),
-				'target' => 200,
+				'target' => isset( $goal_targets['average_order_value'] ) ? floatval( $goal_targets['average_order_value'] ) : 200,
 				'actual' => $avg_order_value,
 				'icon' => 'ph-chart-bar',
 				'color' => '#ffc107'
 			),
 			'performance_score' => array(
 				'label' => __( 'Performance Score', 'wc-team-payroll' ),
-				'target' => 8,
+				'target' => isset( $goal_targets['performance_score'] ) ? floatval( $goal_targets['performance_score'] ) : 8,
 				'actual' => $performance_score,
 				'icon' => 'ph-star',
 				'color' => '#dc3545'
@@ -4639,7 +4656,7 @@ class WC_Team_Payroll_MyAccount {
 								<i class="ph <?php echo esc_attr( $goal['icon'] ); ?>"></i>
 							</div>
 							<div class="goal-title">
-								<h4><?php echo esc_html( $goal['label'] ); ?></h4>
+								<h4 class="goal-label"><?php echo esc_html( $goal['label'] ); ?></h4>
 								<?php if ( $achieved ) : ?>
 									<span class="achievement-badge">
 										<i class="ph ph-check-circle"></i>
@@ -4651,7 +4668,7 @@ class WC_Team_Payroll_MyAccount {
 
 						<div class="goal-progress">
 							<div class="progress-bar-container">
-								<div class="progress-bar" style="width: <?php echo esc_attr( $percentage ); ?>%; background-color: <?php echo esc_attr( $goal['color'] ); ?>;"></div>
+								<div class="progress-bar goal-progress-fill" style="width: <?php echo esc_attr( $percentage ); ?>%; background-color: <?php echo esc_attr( $goal['color'] ); ?>;"></div>
 							</div>
 							<div class="progress-text">
 								<span class="progress-percentage"><?php echo esc_html( number_format( $percentage, 0 ) ); ?>%</span>
@@ -4661,7 +4678,7 @@ class WC_Team_Payroll_MyAccount {
 						<div class="goal-stats">
 							<div class="stat-item">
 								<span class="stat-label"><?php esc_html_e( 'Actual', 'wc-team-payroll' ); ?></span>
-								<span class="stat-value">
+								<span class="stat-value goal-actual">
 									<?php 
 									if ( $goal_key === 'average_order_value' || $goal_key === 'monthly_earnings' ) {
 										echo wp_kses_post( wc_price( $goal['actual'] ) );
@@ -4674,7 +4691,7 @@ class WC_Team_Payroll_MyAccount {
 							<div class="stat-divider">•</div>
 							<div class="stat-item">
 								<span class="stat-label"><?php esc_html_e( 'Target', 'wc-team-payroll' ); ?></span>
-								<span class="stat-value">
+								<span class="stat-value goal-target">
 									<?php 
 									if ( $goal_key === 'average_order_value' || $goal_key === 'monthly_earnings' ) {
 										echo wp_kses_post( wc_price( $goal['target'] ) );

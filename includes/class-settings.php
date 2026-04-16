@@ -800,6 +800,22 @@ class WC_Team_Payroll_Settings {
 					warningDiv.fadeOut(300);
 				});
 
+				// Global function to reset unsaved changes (for AJAX saves)
+				window.wcTpResetUnsavedChanges = function() {
+					console.log('wcTpResetUnsavedChanges called');
+					hasChanges = false;
+					warningDiv.fadeOut(300);
+					console.log('Unsaved changes reset: hasChanges =', hasChanges);
+				};
+
+				// Global function to check unsaved changes state (for debugging)
+				window.wcTpCheckUnsavedChanges = function() {
+					return {
+						hasChanges: hasChanges,
+						warningVisible: warningDiv.is(':visible')
+					};
+				};
+
 				// Show browser warning when leaving page with unsaved changes
 				$(window).on('beforeunload', function() {
 					if (hasChanges) {

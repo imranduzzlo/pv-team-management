@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.53] - 2026-04-17
+### Performance Settings Save Functionality Fix
+- **FIX**: Fixed Performance Settings save functionality not properly persisting data
+- **FIX**: Resolved unsaved changes warning not clearing after successful AJAX saves
+- **FIX**: Enhanced AJAX response handling with proper promise management
+- **FIX**: Added fallback mechanism for unsaved changes reset when main function unavailable
+- **ENHANCEMENT**: Improved error handling and user feedback during save operations
+- **ENHANCEMENT**: Added comprehensive debugging and logging for save process
+- **ENHANCEMENT**: Better integration between performance settings and main form change detection
+- **TECHNICAL**: Updated all AJAX save functions to return standardized response format
+- **TECHNICAL**: Added `wcTpCheckUnsavedChanges()` debug function for troubleshooting
+- **TECHNICAL**: Enhanced Promise.all handling with better error reporting and validation
+
 ## [1.0.52] - 2026-04-17
 ### Performance Score & KPI Modal Enhancements
 - **FEATURE**: Performance Score now uses role-based configuration from Performance Settings

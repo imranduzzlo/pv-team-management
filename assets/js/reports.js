@@ -376,7 +376,7 @@ jQuery(document).ready(function($) {
 							<div class="breakdown-items">
 								<div class="breakdown-item">
 									<span class="breakdown-label">Average Order Value</span>
-									<span class="breakdown-value">$${(Math.random() * 500).toFixed(2)}</span>
+									<span class="breakdown-value">${kpiCards.my_average_order_value.value}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Average Commission</span>
@@ -483,7 +483,7 @@ jQuery(document).ready(function($) {
 										<div class="progress-fill" style="width: ${Math.random() * 100}%"></div>
 									</div>
 									<div class="progress-info">
-										<span class="progress-actual">Actual: $${(Math.random() * 5000).toFixed(2)}</span>
+										<span class="progress-actual">Actual: Loading...</span>
 										<span class="progress-target">Target: $5,000</span>
 									</div>
 								</div>
@@ -493,15 +493,15 @@ jQuery(document).ready(function($) {
 								<div class="history-items">
 									<div class="history-item">
 										<span class="history-period">This Month</span>
-										<span class="history-value">$${(Math.random() * 5000).toFixed(2)}</span>
+										<span class="history-value">Loading...</span>
 									</div>
 									<div class="history-item">
 										<span class="history-period">Last Month</span>
-										<span class="history-value">$${(Math.random() * 5000).toFixed(2)}</span>
+										<span class="history-value">Loading...</span>
 									</div>
 									<div class="history-item">
 										<span class="history-period">2 Months Ago</span>
-										<span class="history-value">$${(Math.random() * 5000).toFixed(2)}</span>
+										<span class="history-value">Loading...</span>
 									</div>
 								</div>
 							</div>
@@ -530,10 +530,10 @@ jQuery(document).ready(function($) {
 		// Unbind existing events to prevent duplicates
 		$('#reports-date-range, #reports-apply-filters, #reports-clear-filters').off();
 		
-		// Date range click - show dropdown when custom is selected
+		// Date range click - show inline dates when custom is selected
 		$('#reports-date-range').on('click', function() {
 			const preset = $(this).val();
-			const customDateDropdown = $('#reports-custom-date-range');
+			const customDateInline = $('#reports-custom-date-range');
 			const dateFrom = $('#reports-start-date');
 			const dateTo = $('#reports-end-date');
 			
@@ -545,14 +545,14 @@ jQuery(document).ready(function($) {
 				if (lastCustomDateTo) {
 					dateTo.val(lastCustomDateTo);
 				}
-				customDateDropdown.show();
+				customDateInline.show();
 			}
 		});
 
 		// Date range change - handle preset selection
 		$('#reports-date-range').on('change', function() {
 			const preset = $(this).val();
-			const customDateDropdown = $('#reports-custom-date-range');
+			const customDateInline = $('#reports-custom-date-range');
 			const dateFrom = $('#reports-start-date');
 			const dateTo = $('#reports-end-date');
 			
@@ -564,9 +564,9 @@ jQuery(document).ready(function($) {
 				if (lastCustomDateTo) {
 					dateTo.val(lastCustomDateTo);
 				}
-				customDateDropdown.show();
+				customDateInline.show();
 			} else {
-				customDateDropdown.hide();
+				customDateInline.hide();
 				
 				// Store current custom dates before switching preset
 				lastCustomDateFrom = dateFrom.val();
@@ -643,26 +643,10 @@ jQuery(document).ready(function($) {
 			updateFilterSummary();
 		});
 
-		// Toggle between date presets and custom date inputs
-		$('#reports-toggle-date-options').on('click', function() {
-			const select = $('#reports-date-range');
-			const customDateDropdown = $('#reports-custom-date-range');
-			
-			// Toggle the select visibility
-			select.toggle();
-			
-			// Update button text
-			if (select.is(':visible')) {
-				$(this).text('Show Custom');
-			} else {
-				$(this).text('Show Presets');
-			}
-		});
-
-		// Close dropdown when clicking outside
+		// Close inline date inputs when clicking outside (optional)
 		$(document).on('click', function(e) {
 			if (!$(e.target).closest('.pv-date-filter-wrapper').length) {
-				$('#reports-custom-date-range').hide();
+				// Optional: could hide inline dates here, but usually they stay visible
 			}
 		});
 
