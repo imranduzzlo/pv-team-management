@@ -1329,7 +1329,7 @@ class WC_Team_Payroll_MyAccount {
 					// My Role
 					const roleCell = $('<td></td>')
 						.append($('<span class="role-badge role-' + order.my_role + '"></span>')
-							.append($('<i class="ph ' + (order.my_role === 'agent' ? 'ph-user-tie' : 'ph-gear') + '"></i>'))
+							.append($('<i class="ph ' + (order.my_role === 'agent' ? 'ph-user-check' : 'ph-gear') + '"></i>'))
 							.append(' ' + order.my_role_label));
 					
 					// Order Total

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.43] - 2026-04-16
+### Code Cleanup & Version Update
+- **CLEANUP**: Removed commented duplicate orders code that was causing confusion
+- **FIX**: Table header layout issue resolved (headers now display horizontally)
+- **UPDATE**: Version bumped to 1.0.43 for fresh release
+- **MAINTENANCE**: Code cleanup and optimization
+
 ## [1.0.39] - 2026-04-14
 ### Salary System Enhancements & Debug Tools
 - **NEW**: Salary Debug & Testing Tools for immediate testing without waiting for cron jobs

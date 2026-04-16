@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Team Payroll & Commission System 1.0.0\n"
+"Project-Id-Version: WooCommerce Team Payroll & Commission System 1.0.43\n"
 "Report-Msgid-Bugs-To: https://example.com\n"
 "POT-Creation-Date: 2024-01-15 10:00:00+0000\n"
 "MIME-Version: 1.0\n"
