@@ -453,6 +453,36 @@ class WC_Team_Payroll_Settings {
 								<p class="description">The field name on products for commission rate (e.g., team_commission). This can be created using ACF (Advanced Custom Fields), custom meta fields, or any product field editor.</p>
 							</td>
 						</tr>
+						<tr>
+							<th><label for="commission_calculation_statuses">Commission Calculation Statuses</label></th>
+							<td>
+								<?php
+								// Get all WooCommerce order statuses
+								$all_statuses = wc_get_order_statuses();
+								$saved_statuses = isset( $acf_fields['commission_calculation_statuses'] ) ? $acf_fields['commission_calculation_statuses'] : array( 'completed', 'processing' );
+								
+								// Ensure saved_statuses is an array
+								if ( ! is_array( $saved_statuses ) ) {
+									$saved_statuses = array( 'completed', 'processing' );
+								}
+								?>
+								<div class="wc-tp-commission-statuses">
+									<?php foreach ( $all_statuses as $status_key => $status_label ) : 
+										// Remove 'wc-' prefix from status key for cleaner values
+										$clean_status = str_replace( 'wc-', '', $status_key );
+									?>
+										<label class="wc-tp-status-checkbox">
+											<input type="checkbox" 
+												   name="wc_team_payroll_acf_fields[commission_calculation_statuses][]" 
+												   value="<?php echo esc_attr( $clean_status ); ?>"
+												   <?php checked( in_array( $clean_status, $saved_statuses ) ); ?> />
+											<?php echo esc_html( $status_label ); ?>
+										</label>
+									<?php endforeach; ?>
+								</div>
+								<p class="description">Select which order statuses should trigger commission calculation for employees. Only orders with these statuses will show commission and earnings data.</p>
+							</td>
+						</tr>
 					</table>
 
 					<h3>Order Statuses</h3>
@@ -890,6 +920,39 @@ class WC_Team_Payroll_Settings {
 				margin-bottom: 10px;
 				font-size: 12px;
 				color: #856404;
+			}
+			
+			/* Commission Statuses Checkboxes */
+			.wc-tp-commission-statuses {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 10px;
+				margin: 10px 0;
+			}
+			.wc-tp-status-checkbox {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 8px 12px;
+				background: #f9f9f9;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.wc-tp-status-checkbox:hover {
+				background: #f0f0f0;
+				border-color: #0073aa;
+			}
+			.wc-tp-status-checkbox input[type="checkbox"] {
+				margin: 0;
+				cursor: pointer;
+			}
+			.wc-tp-status-checkbox:has(input[type="checkbox"]:checked) {
+				background: #e8f5e9;
+				border-color: #4caf50;
+				font-weight: 600;
+				color: #2e7d32;
 			}
 		</style>
 

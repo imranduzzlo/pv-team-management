@@ -2682,9 +2682,10 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get all commission earnings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses,
 		);
 
 		$orders = wc_get_orders( $args );
@@ -2799,9 +2800,10 @@ class WC_Team_Payroll_MyAccount {
 	 * Helper: Get user commission for a period
 	 */
 	private static function get_user_commission_for_period( $user_id, $start_date, $end_date ) {
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses,
 			'date_created' => '>=' . $start_date,
 		);
 
@@ -2887,9 +2889,10 @@ class WC_Team_Payroll_MyAccount {
 	 * Helper: Get user orders count for a period
 	 */
 	private static function get_user_orders_count_for_period( $user_id, $start_date, $end_date ) {
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses,
 		);
 
 		$orders = wc_get_orders( $args );
@@ -3184,9 +3187,10 @@ class WC_Team_Payroll_MyAccount {
 				}
 			}
 
-			// Handle commission data - only for completed/processing orders
+			// Handle commission data - only for configured commission statuses
 			$order_status = $order->get_status();
-			$has_commission = $commission_data && in_array( $order_status, array( 'completed', 'processing' ) );
+			$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+			$has_commission = $commission_data && in_array( $order_status, $commission_statuses );
 			
 			if ( $has_commission ) {
 				$my_earning = $user_role === 'agent' ? $commission_data['agent_earnings'] : $commission_data['processor_earnings'];
@@ -3462,9 +3466,10 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		$total_commission = 0;
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses,
 		);
 		$orders = wc_get_orders( $args );
 		foreach ( $orders as $order ) {

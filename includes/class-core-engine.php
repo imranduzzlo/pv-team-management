@@ -6,8 +6,14 @@
 class WC_Team_Payroll_Core_Engine {
 
 	public function __construct() {
-		add_action( 'woocommerce_order_status_completed', array( $this, 'calculate_order_commission' ) );
-		add_action( 'woocommerce_order_status_processing', array( $this, 'calculate_order_commission' ) );
+		// Get commission calculation statuses from settings
+		$commission_statuses = self::get_commission_calculation_statuses();
+		
+		// Add hooks for each commission status
+		foreach ( $commission_statuses as $status ) {
+			add_action( 'woocommerce_order_status_' . $status, array( $this, 'calculate_order_commission' ) );
+		}
+		
 		add_action( 'woocommerce_order_item_added', array( $this, 'on_order_updated' ), 10, 3 );
 		add_action( 'woocommerce_order_item_changed', array( $this, 'on_order_updated' ), 10, 3 );
 		add_action( 'woocommerce_order_item_removed', array( $this, 'on_order_updated' ), 10, 2 );
@@ -197,6 +203,21 @@ class WC_Team_Payroll_Core_Engine {
 	}
 
 	/**
+	 * Get commission calculation statuses from settings
+	 */
+	public static function get_commission_calculation_statuses() {
+		$acf_fields = get_option( 'wc_team_payroll_acf_fields', array() );
+		$statuses = isset( $acf_fields['commission_calculation_statuses'] ) ? $acf_fields['commission_calculation_statuses'] : array( 'completed', 'processing' );
+		
+		// Ensure it's an array and has default values
+		if ( ! is_array( $statuses ) || empty( $statuses ) ) {
+			$statuses = array( 'completed', 'processing' );
+		}
+		
+		return $statuses;
+	}
+
+	/**
 	 * Handle order updates
 	 */
 	public function on_order_updated( $order_id ) {
@@ -205,7 +226,8 @@ class WC_Team_Payroll_Core_Engine {
 			return;
 		}
 
-		if ( ! in_array( $order->get_status(), array( 'completed', 'processing' ) ) ) {
+		$commission_statuses = self::get_commission_calculation_statuses();
+		if ( ! in_array( $order->get_status(), $commission_statuses ) ) {
 			return;
 		}
 
