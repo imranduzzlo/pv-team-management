@@ -40,6 +40,12 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'wp_ajax_wc_tp_get_earnings_data', array( __CLASS__, 'ajax_get_earnings_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_myaccount_orders', array( __CLASS__, 'ajax_get_orders' ) );
 		add_action( 'wp_ajax_wc_tp_get_order_details', array( __CLASS__, 'ajax_get_order_details' ) );
+		add_action( 'wp_ajax_wc_tp_get_filtered_dashboard_data', array( __CLASS__, 'ajax_get_filtered_dashboard_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_filtered_analytics_data', array( __CLASS__, 'ajax_get_filtered_analytics_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_filtered_performance_data', array( __CLASS__, 'ajax_get_filtered_performance_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_filtered_table_data', array( __CLASS__, 'ajax_get_filtered_table_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_filtered_goals_data', array( __CLASS__, 'ajax_get_filtered_goals_data' ) );
+		add_action( 'wp_ajax_wc_tp_export_filtered_report', array( __CLASS__, 'ajax_export_filtered_report' ) );
 
 		// Enqueue assets
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
@@ -1787,7 +1793,7 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
-	 * Reports content
+	 * Reports content - Enterprise Personal Performance Reports
 	 */
 	public static function reports_content() {
 		$user_id = get_current_user_id();
@@ -1795,35 +1801,195 @@ class WC_Team_Payroll_MyAccount {
 		<div class="pv-page-wrapper wc-team-payroll-reports">
 			<!-- Employee Header -->
 			<?php echo self::get_employee_header( $user_id ); ?>
-			
-			<div class="reports-grid">
-				<div class="report-card">
-					<h4><?php esc_html_e( 'Monthly Summary', 'wc-team-payroll' ); ?></h4>
-					<p><?php esc_html_e( 'View your monthly earnings and performance.', 'wc-team-payroll' ); ?></p>
+
+			<!-- STEP 1: MASTER FILTER SYSTEM -->
+			<div class="reports-filter-section">
+				<h3 class="reports-filter-title"><?php esc_html_e( 'Filter Your Reports', 'wc-team-payroll' ); ?></h3>
+				
+				<div class="reports-filter-controls">
+					<!-- Date Range Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-date-range"><?php esc_html_e( 'Date Range', 'wc-team-payroll' ); ?></label>
+						<select id="reports-date-range">
+							<option value="all_time"><?php esc_html_e( 'All Time', 'wc-team-payroll' ); ?></option>
+							<option value="today"><?php esc_html_e( 'Today', 'wc-team-payroll' ); ?></option>
+							<option value="this_week"><?php esc_html_e( 'This Week', 'wc-team-payroll' ); ?></option>
+							<option value="this_month" selected><?php esc_html_e( 'This Month', 'wc-team-payroll' ); ?></option>
+							<option value="last_month"><?php esc_html_e( 'Last Month', 'wc-team-payroll' ); ?></option>
+							<option value="this_quarter"><?php esc_html_e( 'This Quarter', 'wc-team-payroll' ); ?></option>
+							<option value="last_quarter"><?php esc_html_e( 'Last Quarter', 'wc-team-payroll' ); ?></option>
+							<option value="this_year"><?php esc_html_e( 'This Year', 'wc-team-payroll' ); ?></option>
+							<option value="last_year"><?php esc_html_e( 'Last Year', 'wc-team-payroll' ); ?></option>
+							<option value="custom"><?php esc_html_e( 'Custom Range', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Custom Date Range (Hidden by default) -->
+					<div class="reports-filter-group" id="reports-custom-date-range" style="display: none;">
+						<label for="reports-start-date"><?php esc_html_e( 'Start Date', 'wc-team-payroll' ); ?></label>
+						<input type="date" id="reports-start-date" />
+					</div>
+
+					<div class="reports-filter-group" id="reports-custom-date-range-end" style="display: none;">
+						<label for="reports-end-date"><?php esc_html_e( 'End Date', 'wc-team-payroll' ); ?></label>
+						<input type="date" id="reports-end-date" />
+					</div>
+
+					<!-- Order Status Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-order-status"><?php esc_html_e( 'Order Status', 'wc-team-payroll' ); ?></label>
+						<select id="reports-order-status">
+							<option value="all"><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
+							<?php
+							$statuses = wc_get_order_statuses();
+							foreach ( $statuses as $status_key => $status_label ) {
+								echo '<option value="' . esc_attr( $status_key ) . '">' . esc_html( $status_label ) . '</option>';
+							}
+							?>
+						</select>
+					</div>
+
+					<!-- Role Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-role"><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></label>
+						<select id="reports-role">
+							<option value="all"><?php esc_html_e( 'All Roles', 'wc-team-payroll' ); ?></option>
+							<option value="agent"><?php esc_html_e( 'Agent Only', 'wc-team-payroll' ); ?></option>
+							<option value="processor"><?php esc_html_e( 'Processor Only', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Commission Range Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-commission-range"><?php esc_html_e( 'Commission Range', 'wc-team-payroll' ); ?></label>
+						<select id="reports-commission-range">
+							<option value="all"><?php esc_html_e( 'All Amounts', 'wc-team-payroll' ); ?></option>
+							<option value="0-100"><?php esc_html_e( '$0 - $100', 'wc-team-payroll' ); ?></option>
+							<option value="100-500"><?php esc_html_e( '$100 - $500', 'wc-team-payroll' ); ?></option>
+							<option value="500-1000"><?php esc_html_e( '$500 - $1,000', 'wc-team-payroll' ); ?></option>
+							<option value="1000+"><?php esc_html_e( '$1,000+', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Time Period Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-time-period"><?php esc_html_e( 'Time Period', 'wc-team-payroll' ); ?></label>
+						<select id="reports-time-period">
+							<option value="daily"><?php esc_html_e( 'Daily', 'wc-team-payroll' ); ?></option>
+							<option value="weekly"><?php esc_html_e( 'Weekly', 'wc-team-payroll' ); ?></option>
+							<option value="monthly" selected><?php esc_html_e( 'Monthly', 'wc-team-payroll' ); ?></option>
+							<option value="quarterly"><?php esc_html_e( 'Quarterly', 'wc-team-payroll' ); ?></option>
+							<option value="yearly"><?php esc_html_e( 'Yearly', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Sort By Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-sort-by"><?php esc_html_e( 'Sort By', 'wc-team-payroll' ); ?></label>
+						<select id="reports-sort-by">
+							<option value="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></option>
+							<option value="amount"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></option>
+							<option value="orders"><?php esc_html_e( 'Orders', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Sort Order Filter -->
+					<div class="reports-filter-group">
+						<label for="reports-sort-order"><?php esc_html_e( 'Order', 'wc-team-payroll' ); ?></label>
+						<select id="reports-sort-order">
+							<option value="desc" selected><?php esc_html_e( 'Descending', 'wc-team-payroll' ); ?></option>
+							<option value="asc"><?php esc_html_e( 'Ascending', 'wc-team-payroll' ); ?></option>
+						</select>
+					</div>
 				</div>
-				<div class="report-card">
-					<h4><?php esc_html_e( 'Commission Breakdown', 'wc-team-payroll' ); ?></h4>
-					<p><?php esc_html_e( 'Detailed breakdown of your commissions.', 'wc-team-payroll' ); ?></p>
+
+				<!-- Filter Actions -->
+				<div class="reports-filter-actions">
+					<button class="reports-filter-btn" id="reports-apply-filters"><?php esc_html_e( 'Apply Filters', 'wc-team-payroll' ); ?></button>
+					<button class="reports-clear-filters-btn" id="reports-clear-filters"><?php esc_html_e( 'Clear Filters', 'wc-team-payroll' ); ?></button>
 				</div>
-				<div class="report-card">
-					<h4><?php esc_html_e( 'Performance Analytics', 'wc-team-payroll' ); ?></h4>
-					<p><?php esc_html_e( 'Track your performance over time.', 'wc-team-payroll' ); ?></p>
-				</div>
-				<div class="report-card">
-					<h4><?php esc_html_e( 'Payment History', 'wc-team-payroll' ); ?></h4>
-					<p><?php esc_html_e( 'View all your payment records.', 'wc-team-payroll' ); ?></p>
+
+				<!-- Filter Summary -->
+				<div class="reports-filter-summary" id="reports-filter-summary" style="display: none;">
+					<?php esc_html_e( 'Active Filters:', 'wc-team-payroll' ); ?> <strong id="reports-active-filters-text"></strong>
 				</div>
 			</div>
-			
-			<!-- Debug Info -->
-			<div style="margin-top: 30px; padding: 15px; background: #f0f0f1; border-radius: 5px; font-size: 12px; color: #666;">
-				<strong>Debug Info:</strong><br>
-				User ID: <?php echo esc_html( $user_id ); ?><br>
-				VB User ID: <?php echo esc_html( $vb_user_id ?: 'Not Set' ); ?><br>
-				CSS Version: <?php echo esc_html( WC_TEAM_PAYROLL_VERSION ); ?><br>
-				CSS File: <?php echo esc_html( WC_TEAM_PAYROLL_URL . 'assets/css/myaccount.css' ); ?>
+
+			<!-- STEP 2: KPI DASHBOARD (Will be populated by AJAX) -->
+			<div class="reports-kpi-section">
+				<div class="reports-kpi-grid" id="reports-kpi-container">
+					<div class="reports-loading">
+						<i class="ph ph-spinner"></i>
+						<p><?php esc_html_e( 'Loading your performance metrics...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 3: ANALYTICS CHARTS (Will be populated by AJAX) -->
+			<div class="reports-analytics-section">
+				<div class="reports-charts-grid" id="reports-charts-container">
+					<div class="reports-loading">
+						<i class="ph ph-spinner"></i>
+						<p><?php esc_html_e( 'Loading your analytics charts...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 4: PERFORMANCE METRICS (Will be populated by AJAX) -->
+			<div class="reports-metrics-section">
+				<h3><?php esc_html_e( 'Performance Metrics', 'wc-team-payroll' ); ?></h3>
+				<div class="reports-metrics-grid" id="reports-metrics-container">
+					<div class="reports-loading">
+						<i class="ph ph-spinner"></i>
+						<p><?php esc_html_e( 'Loading your metrics...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 5: DATA TABLES (Will be populated by AJAX) -->
+			<div class="reports-tables-section">
+				<div id="reports-tables-container">
+					<div class="reports-loading">
+						<i class="ph ph-spinner"></i>
+						<p><?php esc_html_e( 'Loading your data tables...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 6: GOALS & ACHIEVEMENTS (Will be populated by AJAX) -->
+			<div class="reports-goals-section-wrapper">
+				<div id="reports-goals-container">
+					<div class="reports-loading">
+						<i class="ph ph-spinner"></i>
+						<p><?php esc_html_e( 'Loading your goals and achievements...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+
+			<!-- STEP 7: EXPORT SECTION -->
+			<div class="reports-export-section">
+				<p class="reports-export-label"><?php esc_html_e( 'Export Filtered Data:', 'wc-team-payroll' ); ?></p>
+				<button class="reports-export-btn" id="reports-export-csv">
+					<i class="ph ph-file-csv"></i>
+					<?php esc_html_e( 'CSV', 'wc-team-payroll' ); ?>
+				</button>
+				<button class="reports-export-btn" id="reports-export-pdf">
+					<i class="ph ph-file-pdf"></i>
+					<?php esc_html_e( 'PDF', 'wc-team-payroll' ); ?>
+				</button>
+				<button class="reports-export-btn" id="reports-print-report">
+					<i class="ph ph-printer"></i>
+					<?php esc_html_e( 'Print', 'wc-team-payroll' ); ?>
+				</button>
 			</div>
 		</div>
+
+		<style>
+			@keyframes spin {
+				from { transform: rotate(0deg); }
+				to { transform: rotate(360deg); }
+			}
+		</style>
 		<?php
 	}
 
@@ -2535,6 +2701,34 @@ class WC_Team_Payroll_MyAccount {
 					});
 				});
 			' );
+
+			// Enqueue Reports JavaScript
+			wp_enqueue_script(
+				'wc-team-payroll-reports',
+				WC_TEAM_PAYROLL_URL . 'assets/js/reports.js',
+				array( 'jquery' ),
+				WC_TEAM_PAYROLL_VERSION,
+				true
+			);
+
+			// Enqueue Chart.js for analytics charts
+			wp_enqueue_script(
+				'chart-js',
+				'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
+				array(),
+				'3.9.1',
+				true
+			);
+
+			// Localize reports script with AJAX data
+			wp_localize_script(
+				'wc-team-payroll-reports',
+				'wc_tp_reports',
+				array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' )
+				)
+			);
 		}
 	}
 
@@ -3475,6 +3669,1681 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
+	 * AJAX: Get filtered dashboard KPI data
+	 */
+	public static function ajax_get_filtered_dashboard_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Filter orders by role and status if needed
+		$filtered_orders = $earnings_data['orders'];
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+		$commission_range = isset( $filters['commissionRange'] ) ? $filters['commissionRange'] : 'all';
+
+		// Apply role filter
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Calculate KPI metrics from filtered data
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = count( $filtered_orders );
+		$total_order_value = 0;
+
+		foreach ( $filtered_orders as $order_data ) {
+			$total_earnings += $order_data['earnings'];
+			$total_commission += $order_data['commission'];
+			$total_order_value += $order_data['total'];
+		}
+
+		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
+		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
+
+		// Get previous period data for comparison
+		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
+		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+
+		// Calculate change percentage
+		$earnings_change = 0;
+		if ( $prev_total_earnings > 0 ) {
+			$earnings_change = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
+		}
+
+		// Determine change direction
+		$change_class = 'neutral';
+		$change_icon = 'ph-minus';
+		if ( $earnings_change > 0 ) {
+			$change_class = 'positive';
+			$change_icon = 'ph-trend-up';
+		} elseif ( $earnings_change < 0 ) {
+			$change_class = 'negative';
+			$change_icon = 'ph-trend-down';
+		}
+
+		// Get salary information
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		$salary_amount = floatval( get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0 );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
+
+		// Calculate salary for period
+		$salary_for_period = 0;
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			// Simple calculation - in real scenario would need more complex logic
+			$days_in_period = ( strtotime( $date_range['end'] ) - strtotime( $date_range['start'] ) ) / 86400 + 1;
+			if ( $salary_frequency === 'daily' ) {
+				$salary_for_period = $salary_amount * $days_in_period;
+			} elseif ( $salary_frequency === 'weekly' ) {
+				$salary_for_period = $salary_amount * ( $days_in_period / 7 );
+			} elseif ( $salary_frequency === 'monthly' ) {
+				$salary_for_period = $salary_amount;
+			}
+		}
+
+		// Generate KPI HTML
+		ob_start();
+		?>
+		<div class="reports-kpi-card" data-card-type="my_earnings">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-wallet"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $total_earnings + $salary_for_period ) ); ?></p>
+			<div class="reports-kpi-change <?php echo esc_attr( $change_class ); ?>">
+				<i class="ph <?php echo esc_attr( $change_icon ); ?>"></i>
+				<?php 
+					if ( $earnings_change > 0 ) {
+						echo '+' . number_format( $earnings_change, 1 ) . '%';
+					} elseif ( $earnings_change < 0 ) {
+						echo number_format( $earnings_change, 1 ) . '%';
+					} else {
+						esc_html_e( 'No change', 'wc-team-payroll' );
+					}
+				?>
+			</div>
+		</div>
+
+		<div class="reports-kpi-card" data-card-type="my_commission">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-percent"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'My Commission', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $total_commission ) ); ?></p>
+			<div class="reports-kpi-change neutral">
+				<i class="ph ph-chart-line-up"></i>
+				<?php echo esc_html( $total_orders ); ?> <?php esc_html_e( 'orders', 'wc-team-payroll' ); ?>
+			</div>
+		</div>
+
+		<div class="reports-kpi-card" data-card-type="my_orders">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-shopping-bag"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'Orders Processed', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo esc_html( $total_orders ); ?></p>
+			<div class="reports-kpi-change neutral">
+				<i class="ph ph-list"></i>
+				<?php esc_html_e( 'in period', 'wc-team-payroll' ); ?>
+			</div>
+		</div>
+
+		<div class="reports-kpi-card" data-card-type="my_average_order_value">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-chart-bar"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'Avg Order Value', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $avg_order_value ) ); ?></p>
+			<div class="reports-kpi-change neutral">
+				<i class="ph ph-calculator"></i>
+				<?php echo wp_kses_post( wc_price( $avg_commission ) ); ?> <?php esc_html_e( 'avg', 'wc-team-payroll' ); ?>
+			</div>
+		</div>
+
+		<div class="reports-kpi-card" data-card-type="my_performance_score">
+			<div class="reports-kpi-header">
+				<div class="reports-kpi-icon">
+					<i class="ph ph-star"></i>
+				</div>
+			</div>
+			<p class="reports-kpi-label"><?php esc_html_e( 'Performance Score', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-value"><?php echo esc_html( self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value ) ); ?>/10</p>
+			<div class="reports-kpi-change neutral">
+				<i class="ph ph-smiley"></i>
+				<?php esc_html_e( 'excellent', 'wc-team-payroll' ); ?>
+			</div>
+		</div>
+		<?php
+		$html = ob_get_clean();
+
+		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Get filtered analytics data
+	 */
+	public static function ajax_get_filtered_analytics_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Prepare data for charts
+		$time_period = isset( $filters['timePeriod'] ) ? $filters['timePeriod'] : 'monthly';
+		$chart_data = self::prepare_chart_data( $earnings_data['orders'], $time_period, $start_date, $end_date );
+
+		// Get styling settings for chart colors
+		$styling_settings = get_option( 'wc_team_payroll_styling', array() );
+		$primary_color = isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa';
+		$secondary_color = isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745';
+
+		// Generate chart HTML and JavaScript
+		ob_start();
+		?>
+		<div class="reports-chart-container">
+			<h3 class="reports-chart-title"><?php esc_html_e( 'My Earnings Trend', 'wc-team-payroll' ); ?></h3>
+			<div class="reports-chart-canvas">
+				<canvas id="earnings-trend-chart"></canvas>
+			</div>
+		</div>
+
+		<div class="reports-chart-container">
+			<h3 class="reports-chart-title"><?php esc_html_e( 'My Commission Breakdown', 'wc-team-payroll' ); ?></h3>
+			<div class="reports-chart-canvas">
+				<canvas id="commission-breakdown-chart"></canvas>
+			</div>
+		</div>
+
+		<script>
+			jQuery(document).ready(function($) {
+				// Earnings Trend Chart (Line Chart)
+				var earningsTrendCtx = document.getElementById('earnings-trend-chart');
+				if (earningsTrendCtx) {
+					new Chart(earningsTrendCtx, {
+						type: 'line',
+						data: {
+							labels: <?php echo wp_json_encode( $chart_data['labels'] ); ?>,
+							datasets: [
+								{
+									label: '<?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?>',
+									data: <?php echo wp_json_encode( $chart_data['earnings'] ); ?>,
+									borderColor: '<?php echo esc_attr( $primary_color ); ?>',
+									backgroundColor: 'rgba(0, 115, 170, 0.1)',
+									borderWidth: 2,
+									fill: true,
+									tension: 0.4,
+									pointRadius: 4,
+									pointBackgroundColor: '<?php echo esc_attr( $primary_color ); ?>',
+									pointBorderColor: '#fff',
+									pointBorderWidth: 2,
+									pointHoverRadius: 6
+								},
+								{
+									label: '<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>',
+									data: <?php echo wp_json_encode( $chart_data['commission'] ); ?>,
+									borderColor: '<?php echo esc_attr( $secondary_color ); ?>',
+									backgroundColor: 'rgba(40, 167, 69, 0.1)',
+									borderWidth: 2,
+									fill: true,
+									tension: 0.4,
+									pointRadius: 4,
+									pointBackgroundColor: '<?php echo esc_attr( $secondary_color ); ?>',
+									pointBorderColor: '#fff',
+									pointBorderWidth: 2,
+									pointHoverRadius: 6
+								}
+							]
+						},
+						options: {
+							responsive: true,
+							maintainAspectRatio: true,
+							plugins: {
+								legend: {
+									display: true,
+									position: 'top',
+									labels: {
+										font: { size: 12, weight: '600' },
+										color: '#495057',
+										padding: 15,
+										usePointStyle: true
+									}
+								},
+								tooltip: {
+									backgroundColor: 'rgba(0, 0, 0, 0.8)',
+									padding: 12,
+									titleFont: { size: 13, weight: '600' },
+									bodyFont: { size: 12 },
+									borderColor: '#e9ecef',
+									borderWidth: 1,
+									callbacks: {
+										label: function(context) {
+											var label = context.dataset.label || '';
+											if (label) {
+												label += ': ';
+											}
+											label += '$' + parseFloat(context.parsed.y).toFixed(2);
+											return label;
+										}
+									}
+								}
+							},
+							scales: {
+								y: {
+									beginAtZero: true,
+									ticks: {
+										callback: function(value) {
+											return '$' + value.toFixed(0);
+										},
+										font: { size: 11 },
+										color: '#6c757d'
+									},
+									grid: {
+										color: 'rgba(0, 0, 0, 0.05)',
+										drawBorder: false
+									}
+								},
+								x: {
+									ticks: {
+										font: { size: 11 },
+										color: '#6c757d'
+									},
+									grid: {
+										display: false,
+										drawBorder: false
+									}
+								}
+							}
+						}
+					});
+				}
+
+				// Commission Breakdown Chart (Pie Chart)
+				var commissionBreakdownCtx = document.getElementById('commission-breakdown-chart');
+				if (commissionBreakdownCtx) {
+					new Chart(commissionBreakdownCtx, {
+						type: 'doughnut',
+						data: {
+							labels: <?php echo wp_json_encode( $chart_data['breakdown_labels'] ); ?>,
+							datasets: [{
+								data: <?php echo wp_json_encode( $chart_data['breakdown_data'] ); ?>,
+								backgroundColor: [
+													'<?php echo esc_attr( $primary_color ); ?>',
+													'<?php echo esc_attr( $secondary_color ); ?>',
+													'#ffc107',
+													'#17a2b8',
+													'#6c757d'
+												],
+												borderColor: '#fff',
+												borderWidth: 2
+											}]
+										},
+										options: {
+											responsive: true,
+											maintainAspectRatio: true,
+											plugins: {
+												legend: {
+													display: true,
+													position: 'bottom',
+													labels: {
+														font: { size: 12, weight: '600' },
+														color: '#495057',
+														padding: 15,
+														usePointStyle: true
+													}
+												},
+												tooltip: {
+													backgroundColor: 'rgba(0, 0, 0, 0.8)',
+													padding: 12,
+													titleFont: { size: 13, weight: '600' },
+													bodyFont: { size: 12 },
+													borderColor: '#e9ecef',
+													borderWidth: 1,
+													callbacks: {
+														label: function(context) {
+															var label = context.label || '';
+															var value = context.parsed || 0;
+															var total = context.dataset.data.reduce((a, b) => a + b, 0);
+															var percentage = ((value / total) * 100).toFixed(1);
+															return label + ': $' + value.toFixed(2) + ' (' + percentage + '%)';
+														}
+													}
+												}
+											}
+										}
+									});
+				}
+			});
+		</script>
+		<?php
+		$html = ob_get_clean();
+
+		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Get filtered performance metrics
+	 */
+	public static function ajax_get_filtered_performance_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Filter by role if needed
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$filtered_orders = $earnings_data['orders'];
+
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Calculate metrics
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = count( $filtered_orders );
+		$total_order_value = 0;
+		$highest_order = 0;
+		$lowest_order = PHP_INT_MAX;
+
+		foreach ( $filtered_orders as $order_data ) {
+			$total_earnings += $order_data['earnings'];
+			$total_commission += $order_data['commission'];
+			$total_order_value += $order_data['total'];
+			
+			if ( $order_data['total'] > $highest_order ) {
+				$highest_order = $order_data['total'];
+			}
+			if ( $order_data['total'] < $lowest_order ) {
+				$lowest_order = $order_data['total'];
+			}
+		}
+
+		$avg_per_order = $total_orders > 0 ? $total_earnings / $total_orders : 0;
+		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
+		$commission_rate = $total_order_value > 0 ? ( $total_commission / $total_order_value ) * 100 : 0;
+
+		// Calculate performance score
+		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value );
+
+		// Get previous period for growth calculation
+		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
+		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+
+		// Calculate growth rate
+		$growth_rate = 0;
+		if ( $prev_total_earnings > 0 ) {
+			$growth_rate = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
+		}
+
+		// Generate metrics HTML
+		ob_start();
+		?>
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Total Orders', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo esc_html( $total_orders ); ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-shopping-bag"></i>
+				<?php esc_html_e( 'orders processed', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-wallet"></i>
+				<?php esc_html_e( 'total earned', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Avg per Order', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $avg_per_order ) ); ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-chart-bar"></i>
+				<?php esc_html_e( 'average earnings', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Avg Order Value', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $avg_order_value ) ); ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-calculator"></i>
+				<?php esc_html_e( 'average order', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Commission Rate', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo esc_html( number_format( $commission_rate, 2 ) ); ?>%</p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-percent"></i>
+				<?php esc_html_e( 'of order value', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Performance Score', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo esc_html( number_format( $performance_score, 1 ) ); ?>/10</p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-star"></i>
+				<?php 
+					if ( $performance_score >= 8 ) {
+						esc_html_e( 'excellent', 'wc-team-payroll' );
+					} elseif ( $performance_score >= 6 ) {
+						esc_html_e( 'good', 'wc-team-payroll' );
+					} elseif ( $performance_score >= 4 ) {
+						esc_html_e( 'average', 'wc-team-payroll' );
+					} else {
+						esc_html_e( 'needs improvement', 'wc-team-payroll' );
+					}
+				?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Growth Rate', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value <?php echo $growth_rate >= 0 ? 'positive' : 'negative'; ?>">
+				<?php 
+					if ( $growth_rate > 0 ) {
+						echo '+' . esc_html( number_format( $growth_rate, 1 ) );
+					} else {
+						echo esc_html( number_format( $growth_rate, 1 ) );
+					}
+				?>%
+			</p>
+			<p class="reports-metric-detail">
+				<i class="ph <?php echo $growth_rate >= 0 ? 'ph-trend-up' : 'ph-trend-down'; ?>"></i>
+				<?php esc_html_e( 'vs previous period', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Highest Order', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo $highest_order !== 0 ? wp_kses_post( wc_price( $highest_order ) ) : '—'; ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-arrow-up"></i>
+				<?php esc_html_e( 'peak order value', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+
+		<div class="reports-metric-box">
+			<p class="reports-metric-label"><?php esc_html_e( 'Lowest Order', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo $lowest_order !== PHP_INT_MAX ? wp_kses_post( wc_price( $lowest_order ) ) : '—'; ?></p>
+			<p class="reports-metric-detail">
+				<i class="ph ph-arrow-down"></i>
+				<?php esc_html_e( 'minimum order value', 'wc-team-payroll' ); ?>
+			</p>
+		</div>
+		<?php
+		$html = ob_get_clean();
+
+		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Get filtered table data
+	 */
+	public static function ajax_get_filtered_table_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Filter orders by status and role
+		$filtered_orders = $earnings_data['orders'];
+		
+		// Apply order status filter
+		$order_status = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+		if ( $order_status !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $order_status ) {
+				return isset( $order['status'] ) && $order['status'] === $order_status;
+			});
+		}
+
+		// Apply role filter
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Apply commission range filter
+		$commission_range = isset( $filters['commissionRange'] ) ? $filters['commissionRange'] : 'all';
+		if ( $commission_range !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $commission_range ) {
+				$commission = $order['earnings'];
+				switch ( $commission_range ) {
+					case '0-100':
+						return $commission >= 0 && $commission <= 100;
+					case '100-500':
+						return $commission > 100 && $commission <= 500;
+					case '500-1000':
+						return $commission > 500 && $commission <= 1000;
+					case '1000+':
+						return $commission > 1000;
+					default:
+						return true;
+				}
+			});
+		}
+
+		// Re-index array after filtering
+		$filtered_orders = array_values( $filtered_orders );
+
+		// Generate table HTML
+		ob_start();
+		?>
+		<!-- COMMISSION HISTORY TABLE -->
+		<div class="reports-table-wrapper">
+			<h3 class="reports-table-title">
+				<i class="ph ph-wallet"></i>
+				<?php esc_html_e( 'My Commission History', 'wc-team-payroll' ); ?>
+			</h3>
+			
+			<div class="reports-table-controls">
+				<div class="reports-table-search">
+					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search by Order ID...', 'wc-team-payroll' ); ?>" data-table="commission-table" />
+					<i class="ph ph-magnifying-glass"></i>
+				</div>
+				<div class="reports-table-per-page">
+					<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+					<select class="table-per-page-select" data-table="commission-table">
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+					</select>
+					<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+				</div>
+			</div>
+
+			<div class="reports-table-container">
+				<table class="reports-table" id="commission-table">
+					<thead>
+						<tr>
+							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="order_id"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="total"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="earnings"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="role"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php if ( ! empty( $filtered_orders ) ) : ?>
+							<?php foreach ( $filtered_orders as $order ) : ?>
+								<tr>
+									<td><?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?></td>
+									<td><strong>#<?php echo esc_html( $order['order_id'] ); ?></strong></td>
+									<td><?php echo wp_kses_post( wc_price( $order['total'] ) ); ?></td>
+									<td><strong><?php echo wp_kses_post( wc_price( $order['earnings'] ) ); ?></strong></td>
+									<td>
+										<span class="role-badge role-<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
+											<?php echo esc_html( ucfirst( $order['role'] ) ); ?>
+										</span>
+									</td>
+									<td>
+										<?php 
+										$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+										$status_label = wc_get_order_status_name( 'wc-' . $status );
+										?>
+										<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
+											<?php echo esc_html( $status_label ); ?>
+										</span>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<tr>
+								<td colspan="6" class="reports-no-data">
+									<i class="ph ph-inbox"></i>
+									<p><?php esc_html_e( 'No commission data found for the selected filters', 'wc-team-payroll' ); ?></p>
+								</td>
+							</tr>
+						<?php endif; ?>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="reports-pagination" data-table="commission-table">
+				<div class="reports-pagination-info">
+					<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> <span class="pagination-start">1</span> <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> <span class="pagination-end">10</span> <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> <span class="pagination-total"><?php echo esc_html( count( $filtered_orders ) ); ?></span> <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>
+				</div>
+				<div class="reports-pagination-controls">
+					<!-- Pagination buttons will be generated by JavaScript -->
+				</div>
+			</div>
+		</div>
+
+		<!-- ORDER PROCESSING TABLE -->
+		<div class="reports-table-wrapper">
+			<h3 class="reports-table-title">
+				<i class="ph ph-shopping-bag"></i>
+				<?php esc_html_e( 'My Order Processing', 'wc-team-payroll' ); ?>
+			</h3>
+			
+			<div class="reports-table-controls">
+				<div class="reports-table-search">
+					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search by Order ID...', 'wc-team-payroll' ); ?>" data-table="orders-table" />
+					<i class="ph ph-magnifying-glass"></i>
+				</div>
+				<div class="reports-table-per-page">
+					<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+					<select class="table-per-page-select" data-table="orders-table">
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+					</select>
+					<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+				</div>
+			</div>
+
+			<div class="reports-table-container">
+				<table class="reports-table" id="orders-table">
+					<thead>
+						<tr>
+							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="order_id"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="total"><?php esc_html_e( 'Order Value', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="role"><?php esc_html_e( 'Your Role', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php if ( ! empty( $filtered_orders ) ) : ?>
+							<?php foreach ( $filtered_orders as $order ) : ?>
+								<tr>
+									<td><?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?></td>
+									<td><strong>#<?php echo esc_html( $order['order_id'] ); ?></strong></td>
+									<td><?php echo wp_kses_post( wc_price( $order['total'] ) ); ?></td>
+									<td>
+										<span class="role-badge role-<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
+											<?php echo esc_html( ucfirst( $order['role'] ) ); ?>
+										</span>
+									</td>
+									<td>
+										<?php 
+										$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+										$status_label = wc_get_order_status_name( 'wc-' . $status );
+										?>
+										<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
+											<?php echo esc_html( $status_label ); ?>
+										</span>
+									</td>
+									<td>
+										<?php 
+										// Check if this order status calculates commission
+										$commission_statuses = get_option( 'wc_team_payroll_commission_calculation_statuses', array( 'completed', 'processing' ) );
+										if ( in_array( $status, $commission_statuses, true ) ) {
+											echo wp_kses_post( wc_price( $order['earnings'] ) );
+										} else {
+											echo '<span class="commission-na">N/A</span>';
+										}
+										?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<tr>
+								<td colspan="6" class="reports-no-data">
+									<i class="ph ph-inbox"></i>
+									<p><?php esc_html_e( 'No orders found for the selected filters', 'wc-team-payroll' ); ?></p>
+								</td>
+							</tr>
+						<?php endif; ?>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="reports-pagination" data-table="orders-table">
+				<div class="reports-pagination-info">
+					<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> <span class="pagination-start">1</span> <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> <span class="pagination-end">10</span> <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> <span class="pagination-total"><?php echo esc_html( count( $filtered_orders ) ); ?></span> <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>
+				</div>
+				<div class="reports-pagination-controls">
+					<!-- Pagination buttons will be generated by JavaScript -->
+				</div>
+			</div>
+		</div>
+		<?php
+		$html = ob_get_clean();
+
+		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Get filtered goal tracking data
+	 */
+	public static function ajax_get_filtered_goals_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Filter orders by status and role
+		$filtered_orders = $earnings_data['orders'];
+		
+		// Apply order status filter
+		$order_status = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+		if ( $order_status !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $order_status ) {
+				return isset( $order['status'] ) && $order['status'] === $order_status;
+			});
+		}
+
+		// Apply role filter
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Calculate metrics
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = count( $filtered_orders );
+		$total_order_value = 0;
+
+		foreach ( $filtered_orders as $order_data ) {
+			$total_earnings += $order_data['earnings'];
+			$total_commission += $order_data['commission'];
+			$total_order_value += $order_data['total'];
+		}
+
+		$avg_per_order = $total_orders > 0 ? $total_earnings / $total_orders : 0;
+		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
+
+		// Calculate performance score
+		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value );
+
+		// Get previous period for growth calculation
+		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'] );
+		$prev_total_earnings = $prev_earnings_data['total_earnings'];
+
+		// Calculate growth rate
+		$growth_rate = 0;
+		if ( $prev_total_earnings > 0 ) {
+			$growth_rate = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
+		}
+
+		// Define goals (can be customized per user or globally)
+		$goals = array(
+			'monthly_earnings' => array(
+				'label' => __( 'Monthly Earnings Target', 'wc-team-payroll' ),
+				'target' => 5000,
+				'actual' => $total_earnings,
+				'icon' => 'ph-wallet',
+				'color' => '#0073aa'
+			),
+			'orders_processed' => array(
+				'label' => __( 'Orders to Process', 'wc-team-payroll' ),
+				'target' => 50,
+				'actual' => $total_orders,
+				'icon' => 'ph-shopping-bag',
+				'color' => '#28a745'
+			),
+			'average_order_value' => array(
+				'label' => __( 'Average Order Value', 'wc-team-payroll' ),
+				'target' => 200,
+				'actual' => $avg_order_value,
+				'icon' => 'ph-chart-bar',
+				'color' => '#ffc107'
+			),
+			'performance_score' => array(
+				'label' => __( 'Performance Score', 'wc-team-payroll' ),
+				'target' => 8,
+				'actual' => $performance_score,
+				'icon' => 'ph-star',
+				'color' => '#dc3545'
+			)
+		);
+
+		// Generate goals HTML
+		ob_start();
+		?>
+		<div class="reports-goals-section">
+			<h3 class="reports-section-title">
+				<i class="ph ph-target"></i>
+				<?php esc_html_e( 'Goals & Achievements', 'wc-team-payroll' ); ?>
+			</h3>
+
+			<!-- Goals Grid -->
+			<div class="reports-goals-grid">
+				<?php foreach ( $goals as $goal_key => $goal ) : ?>
+					<?php 
+					$percentage = $goal['target'] > 0 ? min( ( $goal['actual'] / $goal['target'] ) * 100, 100 ) : 0;
+					$achieved = $goal['actual'] >= $goal['target'];
+					$achievement_class = $achieved ? 'achieved' : '';
+					?>
+					<div class="reports-goal-card <?php echo esc_attr( $achievement_class ); ?>" data-goal-type="<?php echo esc_attr( $goal_key ); ?>">
+						<div class="goal-header">
+							<div class="goal-icon" style="background-color: <?php echo esc_attr( $goal['color'] ); ?>20; color: <?php echo esc_attr( $goal['color'] ); ?>;">
+								<i class="ph <?php echo esc_attr( $goal['icon'] ); ?>"></i>
+							</div>
+							<div class="goal-title">
+								<h4><?php echo esc_html( $goal['label'] ); ?></h4>
+								<?php if ( $achieved ) : ?>
+									<span class="achievement-badge">
+										<i class="ph ph-check-circle"></i>
+										<?php esc_html_e( 'Achieved!', 'wc-team-payroll' ); ?>
+									</span>
+								<?php endif; ?>
+							</div>
+						</div>
+
+						<div class="goal-progress">
+							<div class="progress-bar-container">
+								<div class="progress-bar" style="width: <?php echo esc_attr( $percentage ); ?>%; background-color: <?php echo esc_attr( $goal['color'] ); ?>;"></div>
+							</div>
+							<div class="progress-text">
+								<span class="progress-percentage"><?php echo esc_html( number_format( $percentage, 0 ) ); ?>%</span>
+							</div>
+						</div>
+
+						<div class="goal-stats">
+							<div class="stat-item">
+								<span class="stat-label"><?php esc_html_e( 'Actual', 'wc-team-payroll' ); ?></span>
+								<span class="stat-value">
+									<?php 
+									if ( $goal_key === 'average_order_value' || $goal_key === 'monthly_earnings' ) {
+										echo wp_kses_post( wc_price( $goal['actual'] ) );
+									} else {
+										echo esc_html( number_format( $goal['actual'], 1 ) );
+									}
+									?>
+								</span>
+							</div>
+							<div class="stat-divider">•</div>
+							<div class="stat-item">
+								<span class="stat-label"><?php esc_html_e( 'Target', 'wc-team-payroll' ); ?></span>
+								<span class="stat-value">
+									<?php 
+									if ( $goal_key === 'average_order_value' || $goal_key === 'monthly_earnings' ) {
+										echo wp_kses_post( wc_price( $goal['target'] ) );
+									} else {
+										echo esc_html( number_format( $goal['target'], 1 ) );
+									}
+									?>
+								</span>
+							</div>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<!-- Performance Summary -->
+			<div class="reports-performance-summary">
+				<h4><?php esc_html_e( 'Performance Summary', 'wc-team-payroll' ); ?></h4>
+				
+				<div class="summary-grid">
+					<div class="summary-item">
+						<div class="summary-label"><?php esc_html_e( 'Overall Score', 'wc-team-payroll' ); ?></div>
+						<div class="summary-value">
+							<span class="score-badge score-<?php echo $performance_score >= 8 ? 'excellent' : ( $performance_score >= 6 ? 'good' : ( $performance_score >= 4 ? 'average' : 'poor' ) ); ?>">
+								<?php echo esc_html( number_format( $performance_score, 1 ) ); ?>/10
+							</span>
+						</div>
+					</div>
+
+					<div class="summary-item">
+						<div class="summary-label"><?php esc_html_e( 'Growth Rate', 'wc-team-payroll' ); ?></div>
+						<div class="summary-value">
+							<span class="growth-badge <?php echo $growth_rate >= 0 ? 'positive' : 'negative'; ?>">
+								<i class="ph <?php echo $growth_rate >= 0 ? 'ph-trend-up' : 'ph-trend-down'; ?>"></i>
+								<?php 
+									if ( $growth_rate > 0 ) {
+										echo '+' . esc_html( number_format( $growth_rate, 1 ) );
+									} else {
+										echo esc_html( number_format( $growth_rate, 1 ) );
+									}
+								?>%
+							</span>
+						</div>
+					</div>
+
+					<div class="summary-item">
+						<div class="summary-label"><?php esc_html_e( 'Goals Achieved', 'wc-team-payroll' ); ?></div>
+						<div class="summary-value">
+							<?php 
+							$achieved_count = 0;
+							foreach ( $goals as $goal ) {
+								if ( $goal['actual'] >= $goal['target'] ) {
+									$achieved_count++;
+								}
+							}
+							?>
+							<span class="achievement-count"><?php echo esc_html( $achieved_count ); ?>/<?php echo esc_html( count( $goals ) ); ?></span>
+						</div>
+					</div>
+
+					<div class="summary-item">
+						<div class="summary-label"><?php esc_html_e( 'Completion Rate', 'wc-team-payroll' ); ?></div>
+						<div class="summary-value">
+							<?php 
+							$completion_rate = count( $goals ) > 0 ? ( $achieved_count / count( $goals ) ) * 100 : 0;
+							?>
+							<span class="completion-rate"><?php echo esc_html( number_format( $completion_rate, 0 ) ); ?>%</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Achievements -->
+			<div class="reports-achievements">
+				<h4><?php esc_html_e( 'Recent Achievements', 'wc-team-payroll' ); ?></h4>
+				
+				<div class="achievements-list">
+					<?php 
+					$achievements = array();
+					
+					// Check for achievements
+					if ( $total_orders >= 10 ) {
+						$achievements[] = array(
+							'icon' => 'ph-shopping-bag',
+							'title' => __( 'Order Master', 'wc-team-payroll' ),
+							'description' => __( 'Processed 10+ orders', 'wc-team-payroll' )
+						);
+					}
+					
+					if ( $total_earnings >= 1000 ) {
+						$achievements[] = array(
+							'icon' => 'ph-money',
+							'title' => __( 'Earnings Milestone', 'wc-team-payroll' ),
+							'description' => __( 'Earned $1,000+', 'wc-team-payroll' )
+						);
+					}
+					
+					if ( $performance_score >= 8 ) {
+						$achievements[] = array(
+							'icon' => 'ph-star',
+							'title' => __( 'Top Performer', 'wc-team-payroll' ),
+							'description' => __( 'Achieved excellent performance score', 'wc-team-payroll' )
+						);
+					}
+					
+					if ( $growth_rate > 20 ) {
+						$achievements[] = array(
+							'icon' => 'ph-rocket',
+							'title' => __( 'Growth Rocket', 'wc-team-payroll' ),
+							'description' => __( '20%+ growth vs previous period', 'wc-team-payroll' )
+						);
+					}
+					
+					if ( $avg_order_value > 300 ) {
+						$achievements[] = array(
+							'icon' => 'ph-chart-line',
+							'title' => __( 'High Value Specialist', 'wc-team-payroll' ),
+							'description' => __( 'Average order value $300+', 'wc-team-payroll' )
+						);
+					}
+					
+					if ( empty( $achievements ) ) {
+						$achievements[] = array(
+							'icon' => 'ph-target',
+							'title' => __( 'Keep Going!', 'wc-team-payroll' ),
+							'description' => __( 'Work towards your goals to unlock achievements', 'wc-team-payroll' )
+						);
+					}
+					?>
+					
+					<?php foreach ( $achievements as $achievement ) : ?>
+						<div class="achievement-item">
+							<div class="achievement-icon">
+								<i class="ph <?php echo esc_attr( $achievement['icon'] ); ?>"></i>
+							</div>
+							<div class="achievement-content">
+								<h5><?php echo esc_html( $achievement['title'] ); ?></h5>
+								<p><?php echo esc_html( $achievement['description'] ); ?></p>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+		$html = ob_get_clean();
+
+		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Export filtered report data
+	 */
+	public static function ajax_export_filtered_report() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters and format from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		$format = isset( $_POST['format'] ) ? sanitize_text_field( $_POST['format'] ) : 'csv';
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get user earnings data
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
+
+		// Filter orders by status and role
+		$filtered_orders = $earnings_data['orders'];
+		
+		// Apply order status filter
+		$order_status = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+		if ( $order_status !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $order_status ) {
+				return isset( $order['status'] ) && $order['status'] === $order_status;
+			});
+		}
+
+		// Apply role filter
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Apply commission range filter
+		$commission_range = isset( $filters['commissionRange'] ) ? $filters['commissionRange'] : 'all';
+		if ( $commission_range !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $commission_range ) {
+				$commission = $order['earnings'];
+				switch ( $commission_range ) {
+					case '0-100':
+						return $commission >= 0 && $commission <= 100;
+					case '100-500':
+						return $commission > 100 && $commission <= 500;
+					case '500-1000':
+						return $commission > 500 && $commission <= 1000;
+					case '1000+':
+						return $commission > 1000;
+					default:
+						return true;
+				}
+			});
+		}
+
+		// Get user info
+		$user = get_userdata( $user_id );
+		$user_name = $user->display_name;
+
+		// Generate export based on format
+		if ( $format === 'csv' ) {
+			self::export_to_csv( $filtered_orders, $user_name, $start_date, $end_date );
+		} elseif ( $format === 'pdf' ) {
+			self::export_to_pdf( $filtered_orders, $user_name, $start_date, $end_date, $earnings_data );
+		} elseif ( $format === 'excel' ) {
+			self::export_to_excel( $filtered_orders, $user_name, $start_date, $end_date, $earnings_data );
+		}
+
+		wp_send_json_error( __( 'Invalid export format', 'wc-team-payroll' ) );
+	}
+
+	/**
+	 * Export data to CSV
+	 */
+	private static function export_to_csv( $orders, $user_name, $start_date, $end_date ) {
+		// Set headers for CSV download
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="reports_' . sanitize_file_name( $user_name ) . '_' . date( 'Y-m-d' ) . '.csv"' );
+
+		// Create output stream
+		$output = fopen( 'php://output', 'w' );
+
+		// Add BOM for UTF-8
+		fprintf( $output, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+
+		// Write header row
+		fputcsv( $output, array(
+			__( 'Date', 'wc-team-payroll' ),
+			__( 'Order ID', 'wc-team-payroll' ),
+			__( 'Order Value', 'wc-team-payroll' ),
+			__( 'Commission', 'wc-team-payroll' ),
+			__( 'Role', 'wc-team-payroll' ),
+			__( 'Status', 'wc-team-payroll' )
+		) );
+
+		// Write data rows
+		foreach ( $orders as $order ) {
+			$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+			$status_label = wc_get_order_status_name( 'wc-' . $status );
+
+			fputcsv( $output, array(
+				date( 'Y-m-d', strtotime( $order['date'] ) ),
+				$order['order_id'],
+				wc_format_decimal( $order['total'], 2 ),
+				wc_format_decimal( $order['earnings'], 2 ),
+				ucfirst( $order['role'] ),
+				$status_label
+			) );
+		}
+
+		fclose( $output );
+		exit;
+	}
+
+	/**
+	 * Export data to PDF
+	 */
+	private static function export_to_pdf( $orders, $user_name, $start_date, $end_date, $earnings_data ) {
+		// Calculate totals
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = count( $orders );
+
+		foreach ( $orders as $order ) {
+			$total_earnings += $order['earnings'];
+			$total_commission += $order['commission'];
+		}
+
+		// Generate PDF content
+		$pdf_content = "
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset='UTF-8'>
+			<title>Performance Report</title>
+			<style>
+				body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+				h1 { color: #0073aa; border-bottom: 2px solid #0073aa; padding-bottom: 10px; }
+				h2 { color: #495057; margin-top: 20px; font-size: 16px; }
+				table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+				th { background: #f8f9fa; padding: 10px; text-align: left; border: 1px solid #dee2e6; font-weight: bold; }
+				td { padding: 10px; border: 1px solid #dee2e6; }
+				.summary { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+				.summary-item { display: inline-block; margin-right: 30px; }
+				.summary-label { font-weight: bold; color: #6c757d; }
+				.summary-value { font-size: 18px; color: #0073aa; font-weight: bold; }
+				.footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #6c757d; }
+			</style>
+		</head>
+		<body>
+			<h1>Performance Report</h1>
+			<p><strong>Employee:</strong> " . esc_html( $user_name ) . "</p>
+			<p><strong>Period:</strong> " . esc_html( date( 'M d, Y', strtotime( $start_date ) ) ) . " - " . esc_html( date( 'M d, Y', strtotime( $end_date ) ) ) . "</p>
+			<p><strong>Generated:</strong> " . esc_html( date( 'M d, Y H:i:s' ) ) . "</p>
+
+			<div class='summary'>
+				<div class='summary-item'>
+					<div class='summary-label'>Total Orders</div>
+					<div class='summary-value'>" . esc_html( $total_orders ) . "</div>
+				</div>
+				<div class='summary-item'>
+					<div class='summary-label'>Total Earnings</div>
+					<div class='summary-value'>" . wc_price( $total_earnings ) . "</div>
+				</div>
+				<div class='summary-item'>
+					<div class='summary-label'>Total Commission</div>
+					<div class='summary-value'>" . wc_price( $total_commission ) . "</div>
+				</div>
+			</div>
+
+			<h2>Commission History</h2>
+			<table>
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Order ID</th>
+						<th>Order Value</th>
+						<th>Commission</th>
+						<th>Role</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>";
+
+		foreach ( $orders as $order ) {
+			$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+			$status_label = wc_get_order_status_name( 'wc-' . $status );
+
+			$pdf_content .= "
+					<tr>
+						<td>" . esc_html( date( 'M d, Y', strtotime( $order['date'] ) ) ) . "</td>
+						<td>#" . esc_html( $order['order_id'] ) . "</td>
+						<td>" . wc_price( $order['total'] ) . "</td>
+						<td>" . wc_price( $order['earnings'] ) . "</td>
+						<td>" . esc_html( ucfirst( $order['role'] ) ) . "</td>
+						<td>" . esc_html( $status_label ) . "</td>
+					</tr>";
+		}
+
+		$pdf_content .= "
+				</tbody>
+			</table>
+
+			<div class='footer'>
+				<p>This report was automatically generated by WooCommerce Team Payroll.</p>
+				<p>For questions or discrepancies, please contact your administrator.</p>
+			</div>
+		</body>
+		</html>";
+
+		// Output PDF
+		header( 'Content-Type: application/pdf' );
+		header( 'Content-Disposition: attachment; filename="reports_' . sanitize_file_name( $user_name ) . '_' . date( 'Y-m-d' ) . '.pdf"' );
+
+		// Use simple HTML to PDF conversion (requires external library in production)
+		echo wp_kses_post( $pdf_content );
+		exit;
+	}
+
+	/**
+	 * Export data to Excel
+	 */
+	private static function export_to_excel( $orders, $user_name, $start_date, $end_date, $earnings_data ) {
+		// Calculate totals
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = count( $orders );
+
+		foreach ( $orders as $order ) {
+			$total_earnings += $order['earnings'];
+			$total_commission += $order['commission'];
+		}
+
+		// Generate Excel XML
+		$excel_content = '<?xml version="1.0" encoding="UTF-8"?>
+		<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+		 xmlns:o="urn:schemas-microsoft-com:office:office"
+		 xmlns:x="urn:schemas-microsoft-com:office:excel"
+		 xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+		 xmlns:html="http://www.w3.org/TR/REC-html40">
+		 <Styles>
+		  <Style ss:ID="Header">
+		   <Interior ss:Color="#0073aa" ss:Pattern="Solid"/>
+		   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+		  </Style>
+		  <Style ss:ID="Summary">
+		   <Interior ss:Color="#f8f9fa" ss:Pattern="Solid"/>
+		   <Font ss:Bold="1"/>
+		  </Style>
+		 </Styles>
+		 <Worksheet ss:Name="Performance Report">
+		  <Table>
+		   <Row>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="String">Performance Report</Data></Cell>
+		   </Row>
+		   <Row>
+		    <Cell><Data ss:Type="String">Employee:</Data></Cell>
+		    <Cell><Data ss:Type="String">' . esc_html( $user_name ) . '</Data></Cell>
+		   </Row>
+		   <Row>
+		    <Cell><Data ss:Type="String">Period:</Data></Cell>
+		    <Cell><Data ss:Type="String">' . esc_html( date( 'M d, Y', strtotime( $start_date ) ) ) . ' - ' . esc_html( date( 'M d, Y', strtotime( $end_date ) ) ) . '</Data></Cell>
+		   </Row>
+		   <Row>
+		    <Cell><Data ss:Type="String">Generated:</Data></Cell>
+		    <Cell><Data ss:Type="String">' . esc_html( date( 'M d, Y H:i:s' ) ) . '</Data></Cell>
+		   </Row>
+		   <Row/>
+		   <Row>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="String">Total Orders</Data></Cell>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="Number">' . esc_html( $total_orders ) . '</Data></Cell>
+		   </Row>
+		   <Row>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="String">Total Earnings</Data></Cell>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="Number">' . esc_html( wc_format_decimal( $total_earnings, 2 ) ) . '</Data></Cell>
+		   </Row>
+		   <Row>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="String">Total Commission</Data></Cell>
+		    <Cell ss:StyleID="Summary"><Data ss:Type="Number">' . esc_html( wc_format_decimal( $total_commission, 2 ) ) . '</Data></Cell>
+		   </Row>
+		   <Row/>
+		   <Row>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Date</Data></Cell>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Order ID</Data></Cell>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Order Value</Data></Cell>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Commission</Data></Cell>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Role</Data></Cell>
+		    <Cell ss:StyleID="Header"><Data ss:Type="String">Status</Data></Cell>
+		   </Row>';
+
+		foreach ( $orders as $order ) {
+			$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+			$status_label = wc_get_order_status_name( 'wc-' . $status );
+
+			$excel_content .= '
+		   <Row>
+		    <Cell><Data ss:Type="String">' . esc_html( date( 'M d, Y', strtotime( $order['date'] ) ) ) . '</Data></Cell>
+		    <Cell><Data ss:Type="String">#' . esc_html( $order['order_id'] ) . '</Data></Cell>
+		    <Cell><Data ss:Type="Number">' . esc_html( wc_format_decimal( $order['total'], 2 ) ) . '</Data></Cell>
+		    <Cell><Data ss:Type="Number">' . esc_html( wc_format_decimal( $order['earnings'], 2 ) ) . '</Data></Cell>
+		    <Cell><Data ss:Type="String">' . esc_html( ucfirst( $order['role'] ) ) . '</Data></Cell>
+		    <Cell><Data ss:Type="String">' . esc_html( $status_label ) . '</Data></Cell>
+		   </Row>';
+		}
+
+		$excel_content .= '
+		  </Table>
+		 </Worksheet>
+		</Workbook>';
+
+		// Output Excel
+		header( 'Content-Type: application/vnd.ms-excel; charset=UTF-8' );
+		header( 'Content-Disposition: attachment; filename="reports_' . sanitize_file_name( $user_name ) . '_' . date( 'Y-m-d' ) . '.xls"' );
+
+		echo wp_kses_post( $excel_content );
+		exit;
+	}
+
+	/**
+	 * Helper: Get date range from filter
+	 */
+	private static function get_date_range_from_filter( $filters ) {
+		$date_range = isset( $filters['dateRange'] ) ? $filters['dateRange'] : 'this_month';
+		$today = date( 'Y-m-d' );
+		$now = new DateTime();
+
+		switch ( $date_range ) {
+			case 'today':
+				$start = $today;
+				$end = $today;
+				$label = __( 'Today', 'wc-team-payroll' );
+				break;
+			case 'this_week':
+				$start = $now->modify( 'Monday this week' )->format( 'Y-m-d' );
+				$end = $today;
+				$label = __( 'This Week', 'wc-team-payroll' );
+				break;
+			case 'this_month':
+				$start = date( 'Y-m-01' );
+				$end = $today;
+				$label = __( 'This Month', 'wc-team-payroll' );
+				break;
+			case 'last_month':
+				$start = date( 'Y-m-01', strtotime( 'last month' ) );
+				$end = date( 'Y-m-t', strtotime( 'last month' ) );
+				$label = __( 'Last Month', 'wc-team-payroll' );
+				break;
+			case 'this_quarter':
+				$quarter = ceil( date( 'n' ) / 3 );
+				$start = date( 'Y-' . ( ( $quarter - 1 ) * 3 + 1 ) . '-01' );
+				$end = $today;
+				$label = __( 'This Quarter', 'wc-team-payroll' );
+				break;
+			case 'last_quarter':
+				$quarter = ceil( date( 'n' ) / 3 ) - 1;
+				if ( $quarter < 1 ) {
+					$quarter = 4;
+					$year = date( 'Y' ) - 1;
+				} else {
+					$year = date( 'Y' );
+				}
+				$start = date( 'Y-' . ( ( $quarter - 1 ) * 3 + 1 ) . '-01', strtotime( $year . '-01-01' ) );
+				$end = date( 'Y-' . ( $quarter * 3 ) . '-t', strtotime( $year . '-01-01' ) );
+				$label = __( 'Last Quarter', 'wc-team-payroll' );
+				break;
+			case 'this_year':
+				$start = date( 'Y-01-01' );
+				$end = $today;
+				$label = __( 'This Year', 'wc-team-payroll' );
+				break;
+			case 'last_year':
+				$start = date( 'Y-01-01', strtotime( 'last year' ) );
+				$end = date( 'Y-12-31', strtotime( 'last year' ) );
+				$label = __( 'Last Year', 'wc-team-payroll' );
+				break;
+			case 'custom':
+				$start = isset( $filters['customStartDate'] ) ? $filters['customStartDate'] : date( 'Y-m-01' );
+				$end = isset( $filters['customEndDate'] ) ? $filters['customEndDate'] : $today;
+				$label = __( 'Custom Range', 'wc-team-payroll' );
+				break;
+			default:
+				$start = date( 'Y-m-01' );
+				$end = $today;
+				$label = __( 'All Time', 'wc-team-payroll' );
+		}
+
+		return array(
+			'start' => $start,
+			'end' => $end,
+			'label' => $label
+		);
+	}
+
+	/**
+	 * Helper: Get previous period date range for comparison
+	 */
+	private static function get_previous_period_range( $start_date, $end_date ) {
+		$start_timestamp = strtotime( $start_date );
+		$end_timestamp = strtotime( $end_date );
+		$period_days = ( $end_timestamp - $start_timestamp ) / 86400;
+
+		$prev_end_timestamp = $start_timestamp - 86400;
+		$prev_start_timestamp = $prev_end_timestamp - ( $period_days * 86400 );
+
+		return array(
+			'start' => date( 'Y-m-d', $prev_start_timestamp ),
+			'end' => date( 'Y-m-d', $prev_end_timestamp )
+		);
+	}
+
+	/**
+	 * Helper: Calculate performance score
+	 */
+	private static function calculate_performance_score( $orders, $earnings, $avg_order_value ) {
+		$score = 5; // Base score
+
+		// Orders factor (max +2)
+		if ( $orders >= 50 ) {
+			$score += 2;
+		} elseif ( $orders >= 30 ) {
+			$score += 1.5;
+		} elseif ( $orders >= 10 ) {
+			$score += 1;
+		}
+
+		// Earnings factor (max +2)
+		if ( $earnings >= 5000 ) {
+			$score += 2;
+		} elseif ( $earnings >= 2000 ) {
+			$score += 1.5;
+		} elseif ( $earnings >= 500 ) {
+			$score += 1;
+		}
+
+		// Average order value factor (max +1)
+		if ( $avg_order_value >= 500 ) {
+			$score += 1;
+		} elseif ( $avg_order_value >= 200 ) {
+			$score += 0.5;
+		}
+
+		// Cap at 10
+		return min( $score, 10 );
+	}
+
+	/**
+	 * Helper: Prepare chart data from orders
+	 */
+	private static function prepare_chart_data( $orders, $time_period, $start_date, $end_date ) {
+		$chart_data = array(
+			'labels' => array(),
+			'earnings' => array(),
+			'commission' => array(),
+			'breakdown_labels' => array(),
+			'breakdown_data' => array()
+		);
+
+		// Group orders by time period
+		$grouped_data = array();
+
+		foreach ( $orders as $order ) {
+			$order_date = strtotime( $order['date'] );
+			$period_key = self::get_period_key( $order['date'], $time_period );
+
+			if ( ! isset( $grouped_data[ $period_key ] ) ) {
+				$grouped_data[ $period_key ] = array(
+					'earnings' => 0,
+					'commission' => 0,
+					'orders' => 0,
+					'date' => $order['date']
+				);
+			}
+
+			$grouped_data[ $period_key ]['earnings'] += $order['earnings'];
+			$grouped_data[ $period_key ]['commission'] += $order['commission'];
+			$grouped_data[ $period_key ]['orders'] += 1;
+		}
+
+		// Sort by date
+		ksort( $grouped_data );
+
+		// Build chart labels and data
+		foreach ( $grouped_data as $period_key => $data ) {
+			$chart_data['labels'][] = self::format_period_label( $data['date'], $time_period );
+			$chart_data['earnings'][] = round( $data['earnings'], 2 );
+			$chart_data['commission'][] = round( $data['commission'], 2 );
+		}
+
+		// Prepare breakdown data (by role or status)
+		$agent_earnings = 0;
+		$processor_earnings = 0;
+
+		foreach ( $orders as $order ) {
+			if ( $order['role'] === 'agent' ) {
+				$agent_earnings += $order['earnings'];
+			} else {
+				$processor_earnings += $order['earnings'];
+			}
+		}
+
+		$chart_data['breakdown_labels'] = array(
+			__( 'Agent Earnings', 'wc-team-payroll' ),
+			__( 'Processor Earnings', 'wc-team-payroll' )
+		);
+
+		$chart_data['breakdown_data'] = array(
+			round( $agent_earnings, 2 ),
+			round( $processor_earnings, 2 )
+		);
+
+		return $chart_data;
+	}
+
+	/**
+	 * Helper: Format period label for display
+	 */
+	private static function format_period_label( $date, $time_period ) {
+		$date_obj = new DateTime( $date );
+
+		switch ( $time_period ) {
+			case 'daily':
+				return $date_obj->format( 'M j' );
+			case 'weekly':
+				$week = $date_obj->format( 'W' );
+				return 'W' . $week;
+			case 'monthly':
+				return $date_obj->format( 'M Y' );
+			case 'quarterly':
+				$month = (int) $date_obj->format( 'm' );
+				$quarter = ceil( $month / 3 );
+				return 'Q' . $quarter . ' ' . $date_obj->format( 'Y' );
+			case 'yearly':
+				return $date_obj->format( 'Y' );
+			default:
+				return $date_obj->format( 'M j, Y' );
+		}
+	}
+
+	/**
 	 * AJAX: Get earnings data for My Earnings page
 	 */
 	public static function ajax_get_earnings_data() {
@@ -3626,5 +5495,429 @@ class WC_Team_Payroll_MyAccount {
 			'view_type' => $view_type,
 			'view_label' => $view_label,
 		) );
+	}
+
+	/**
+	 * AJAX: Get filtered reports data
+	 */
+	public static function ajax_get_filtered_reports_data() {
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filter parameters
+		$date_range = isset( $_POST['date_range'] ) ? sanitize_text_field( $_POST['date_range'] ) : 'this_month';
+		$custom_start = isset( $_POST['custom_start'] ) ? sanitize_text_field( $_POST['custom_start'] ) : '';
+		$custom_end = isset( $_POST['custom_end'] ) ? sanitize_text_field( $_POST['custom_end'] ) : '';
+		$order_status = isset( $_POST['order_status'] ) ? sanitize_text_field( $_POST['order_status'] ) : 'all';
+		$role_filter = isset( $_POST['role_filter'] ) ? sanitize_text_field( $_POST['role_filter'] ) : 'all';
+		$commission_range = isset( $_POST['commission_range'] ) ? sanitize_text_field( $_POST['commission_range'] ) : 'all';
+		$time_period = isset( $_POST['time_period'] ) ? sanitize_text_field( $_POST['time_period'] ) : 'monthly';
+		$section = isset( $_POST['section'] ) ? sanitize_text_field( $_POST['section'] ) : 'dashboard';
+
+		// Calculate date range
+		$dates = self::calculate_date_range( $date_range, $custom_start, $custom_end );
+		$start_date = $dates['start'];
+		$end_date = $dates['end'];
+
+		// Get filtered data based on section
+		$data = array();
+
+		if ( 'dashboard' === $section ) {
+			$data = self::get_filtered_dashboard_data( $user_id, $start_date, $end_date, $order_status, $role_filter );
+		} elseif ( 'analytics' === $section ) {
+			$data = self::get_filtered_analytics_data( $user_id, $start_date, $end_date, $order_status, $role_filter, $time_period );
+		} elseif ( 'metrics' === $section ) {
+			$data = self::get_filtered_metrics_data( $user_id, $start_date, $end_date, $order_status, $role_filter );
+		} elseif ( 'commission_table' === $section ) {
+			$data = self::get_filtered_commission_table( $user_id, $start_date, $end_date, $order_status, $role_filter );
+		} elseif ( 'payment_table' === $section ) {
+			$data = self::get_filtered_payment_table( $user_id, $start_date, $end_date );
+		}
+
+		wp_send_json_success( $data );
+	}
+
+	/**
+	 * Calculate date range based on filter selection
+	 */
+	private static function calculate_date_range( $date_range, $custom_start = '', $custom_end = '' ) {
+		$today = new DateTime();
+		$start = clone $today;
+		$end = clone $today;
+
+		switch ( $date_range ) {
+			case 'today':
+				break;
+			case 'this_week':
+				$start->modify( 'monday this week' );
+				break;
+			case 'this_month':
+				$start->modify( 'first day of this month' );
+				break;
+			case 'last_month':
+				$start->modify( 'first day of last month' );
+				$end->modify( 'last day of last month' );
+				break;
+			case 'this_quarter':
+				$month = (int) $today->format( 'm' );
+				$quarter_start_month = ( floor( ( $month - 1 ) / 3 ) * 3 ) + 1;
+				$start->setDate( (int) $today->format( 'Y' ), $quarter_start_month, 1 );
+				break;
+			case 'this_year':
+				$start->setDate( (int) $today->format( 'Y' ), 1, 1 );
+				break;
+			case 'all_time':
+				$start->setDate( 2000, 1, 1 );
+				break;
+			case 'custom':
+				if ( $custom_start ) {
+					$start = DateTime::createFromFormat( 'Y-m-d', $custom_start );
+				}
+				if ( $custom_end ) {
+					$end = DateTime::createFromFormat( 'Y-m-d', $custom_end );
+				}
+				break;
+		}
+
+		return array(
+			'start' => $start->format( 'Y-m-d' ),
+			'end'   => $end->format( 'Y-m-d' ),
+		);
+	}
+
+	/**
+	 * Get filtered dashboard KPI data
+	 */
+	private static function get_filtered_dashboard_data( $user_id, $start_date, $end_date, $order_status, $role_filter ) {
+		$engine = new WC_Team_Payroll_Core_Engine();
+
+		// Get orders in date range
+		$args = array(
+			'limit'  => -1,
+			'status' => 'all' === $order_status ? array( 'completed', 'processing', 'refunded' ) : array( $order_status ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+
+		$orders = wc_get_orders( $args );
+
+		$total_earnings = 0;
+		$total_commission = 0;
+		$total_orders = 0;
+		$total_salary = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			// Check role filter
+			$user_role = null;
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$user_role = 'agent';
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$user_role = 'processor';
+			}
+
+			if ( ! $user_role ) {
+				continue;
+			}
+
+			if ( 'all' !== $role_filter && $role_filter !== $user_role ) {
+				continue;
+			}
+
+			$total_orders++;
+
+			if ( 'agent' === $user_role ) {
+				$total_earnings += $commission_data['agent_earnings'];
+				$total_commission += $commission_data['agent_earnings'];
+			} else {
+				$total_earnings += $commission_data['processor_earnings'];
+				$total_commission += $commission_data['processor_earnings'];
+			}
+		}
+
+		// Get salary info
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		$salary_amount = floatval( get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0 );
+
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			// Calculate salary for period
+			$days_in_period = ( strtotime( $end_date ) - strtotime( $start_date ) ) / 86400 + 1;
+			$total_salary = $salary_amount * $days_in_period / 30; // Approximate monthly calculation
+		}
+
+		$total_earnings += $total_salary;
+
+		return array(
+			'total_earnings'    => wc_price( $total_earnings ),
+			'total_commission'  => wc_price( $total_commission ),
+			'total_orders'      => $total_orders,
+			'total_salary'      => wc_price( $total_salary ),
+			'avg_order_value'   => $total_orders > 0 ? wc_price( $total_earnings / $total_orders ) : wc_price( 0 ),
+		);
+	}
+
+	/**
+	 * Get filtered analytics data for charts
+	 */
+	private static function get_filtered_analytics_data( $user_id, $start_date, $end_date, $order_status, $role_filter, $time_period ) {
+		// Get orders in date range
+		$args = array(
+			'limit'  => -1,
+			'status' => 'all' === $order_status ? array( 'completed', 'processing', 'refunded' ) : array( $order_status ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+
+		$orders = wc_get_orders( $args );
+
+		$earnings_by_period = array();
+		$commission_by_role = array( 'agent' => 0, 'processor' => 0 );
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			$order_date = $order->get_date_created()->format( 'Y-m-d' );
+			$period_key = self::get_period_key( $order_date, $time_period );
+
+			// Check role
+			$user_role = null;
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$user_role = 'agent';
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$user_role = 'processor';
+			}
+
+			if ( ! $user_role ) {
+				continue;
+			}
+
+			if ( 'all' !== $role_filter && $role_filter !== $user_role ) {
+				continue;
+			}
+
+			if ( ! isset( $earnings_by_period[ $period_key ] ) ) {
+				$earnings_by_period[ $period_key ] = 0;
+			}
+
+			if ( 'agent' === $user_role ) {
+				$earnings_by_period[ $period_key ] += $commission_data['agent_earnings'];
+				$commission_by_role['agent'] += $commission_data['agent_earnings'];
+			} else {
+				$earnings_by_period[ $period_key ] += $commission_data['processor_earnings'];
+				$commission_by_role['processor'] += $commission_data['processor_earnings'];
+			}
+		}
+
+		return array(
+			'earnings_by_period' => $earnings_by_period,
+			'commission_by_role' => $commission_by_role,
+		);
+	}
+
+	/**
+	 * Get filtered metrics data
+	 */
+	private static function get_filtered_metrics_data( $user_id, $start_date, $end_date, $order_status, $role_filter ) {
+		$args = array(
+			'limit'  => -1,
+			'status' => 'all' === $order_status ? array( 'completed', 'processing', 'refunded' ) : array( $order_status ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+
+		$orders = wc_get_orders( $args );
+
+		$total_orders = 0;
+		$total_commission = 0;
+		$total_order_value = 0;
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			$user_role = null;
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$user_role = 'agent';
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$user_role = 'processor';
+			}
+
+			if ( ! $user_role ) {
+				continue;
+			}
+
+			if ( 'all' !== $role_filter && $role_filter !== $user_role ) {
+				continue;
+			}
+
+			$total_orders++;
+			$total_order_value += $order->get_total();
+
+			if ( 'agent' === $user_role ) {
+				$total_commission += $commission_data['agent_earnings'];
+			} else {
+				$total_commission += $commission_data['processor_earnings'];
+			}
+		}
+
+		return array(
+			'total_orders'      => $total_orders,
+			'total_commission'  => wc_price( $total_commission ),
+			'avg_commission'    => $total_orders > 0 ? wc_price( $total_commission / $total_orders ) : wc_price( 0 ),
+			'total_order_value' => wc_price( $total_order_value ),
+			'avg_order_value'   => $total_orders > 0 ? wc_price( $total_order_value / $total_orders ) : wc_price( 0 ),
+		);
+	}
+
+	/**
+	 * Get filtered commission table data
+	 */
+	private static function get_filtered_commission_table( $user_id, $start_date, $end_date, $order_status, $role_filter ) {
+		$args = array(
+			'limit'  => -1,
+			'status' => 'all' === $order_status ? array( 'completed', 'processing', 'refunded' ) : array( $order_status ),
+			'date_query' => array(
+				array(
+					'after'     => $start_date,
+					'before'    => $end_date,
+					'inclusive' => true,
+				),
+			),
+		);
+
+		$orders = wc_get_orders( $args );
+		$rows = array();
+
+		foreach ( $orders as $order ) {
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			if ( ! $commission_data ) {
+				continue;
+			}
+
+			$user_role = null;
+			$user_earnings = 0;
+
+			if ( intval( $agent_id ) === intval( $user_id ) ) {
+				$user_role = 'agent';
+				$user_earnings = $commission_data['agent_earnings'];
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$user_role = 'processor';
+				$user_earnings = $commission_data['processor_earnings'];
+			}
+
+			if ( ! $user_role ) {
+				continue;
+			}
+
+			if ( 'all' !== $role_filter && $role_filter !== $user_role ) {
+				continue;
+			}
+
+			$rows[] = array(
+				'order_id'    => $order->get_id(),
+				'date'        => $order->get_date_created()->format( 'Y-m-d' ),
+				'total'       => $order->get_total(),
+				'commission'  => $commission_data['total_commission'],
+				'earnings'    => $user_earnings,
+				'role'        => $user_role,
+				'status'      => $order->get_status(),
+			);
+		}
+
+		return array( 'rows' => $rows );
+	}
+
+	/**
+	 * Get filtered payment table data
+	 */
+	private static function get_filtered_payment_table( $user_id, $start_date, $end_date ) {
+		$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+		if ( ! is_array( $payments ) ) {
+			$payments = array();
+		}
+
+		$rows = array();
+		$start_timestamp = strtotime( $start_date );
+		$end_timestamp = strtotime( $end_date ) + 86400; // Add 1 day to include end date
+
+		foreach ( $payments as $payment ) {
+			$payment_date = strtotime( $payment['date'] );
+
+			if ( $payment_date >= $start_timestamp && $payment_date <= $end_timestamp ) {
+				$rows[] = array(
+					'date'    => $payment['date'],
+					'amount'  => $payment['amount'],
+					'method'  => isset( $payment['method'] ) ? $payment['method'] : 'Unknown',
+					'status'  => isset( $payment['status'] ) ? $payment['status'] : 'Completed',
+				);
+			}
+		}
+
+		return array( 'rows' => $rows );
+	}
+
+	/**
+	 * Get period key for grouping data
+	 */
+	private static function get_period_key( $date, $period ) {
+		$date_obj = DateTime::createFromFormat( 'Y-m-d', $date );
+
+		switch ( $period ) {
+			case 'daily':
+				return $date;
+			case 'weekly':
+				return $date_obj->format( 'Y-W' );
+			case 'monthly':
+				return $date_obj->format( 'Y-m' );
+			case 'quarterly':
+				$month = (int) $date_obj->format( 'm' );
+				$quarter = ceil( $month / 3 );
+				return $date_obj->format( 'Y' ) . '-Q' . $quarter;
+			case 'yearly':
+				return $date_obj->format( 'Y' );
+			default:
+				return $date;
+		}
 	}
 }
