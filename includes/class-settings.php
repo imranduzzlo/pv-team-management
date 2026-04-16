@@ -1281,10 +1281,23 @@ class WC_Team_Payroll_Settings {
 					if ( is_array( $value ) ) {
 						foreach ( $value as $status_key => $status_data ) {
 							if ( is_array( $status_data ) ) {
-								$checkout_fields['custom_statuses'][ sanitize_text_field( $status_key ) ] = array(
+								$sanitized_key = sanitize_text_field( $status_key );
+								
+								// Preserve existing is_default flag if status already exists
+								$existing_is_default = isset( $existing_custom_statuses[ $sanitized_key ]['is_default'] ) 
+									? $existing_custom_statuses[ $sanitized_key ]['is_default'] 
+									: 0;
+								
+								// Only use form data for is_default if it's a new status (starts with 'new_')
+								$is_default_value = $existing_is_default;
+								if ( strpos( $status_key, 'new_' ) === 0 ) {
+									$is_default_value = isset( $status_data['is_default'] ) ? (int) $status_data['is_default'] : 0;
+								}
+								
+								$checkout_fields['custom_statuses'][ $sanitized_key ] = array(
 									'label' => isset( $status_data['label'] ) ? sanitize_text_field( $status_data['label'] ) : '',
 									'name' => isset( $status_data['name'] ) ? sanitize_text_field( $status_data['name'] ) : '',
-									'is_default' => isset( $status_data['is_default'] ) ? (int) $status_data['is_default'] : 0,
+									'is_default' => $is_default_value,
 									'in_bulk_actions' => isset( $status_data['in_bulk_actions'] ) ? 1 : 0,
 								);
 							}
