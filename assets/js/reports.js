@@ -180,25 +180,30 @@ jQuery(document).ready(function($) {
 	 * Load drill-down data
 	 */
 	function loadDrillDownData(cardType, modal) {
-		// Fetch real data from the current dashboard data
-		const filters = getCurrentFilters();
+		// Add small delay to ensure KPI cards are fully loaded
+		setTimeout(function() {
+			// Fetch real data from the current dashboard data
+			const filters = getCurrentFilters();
 		
-		// Get the current KPI values from the page
+		// Get the current KPI values from the page using .text() to get clean text
 		const kpiCards = {
 			my_earnings: {
-				value: $('[data-card-type="my_earnings"] .reports-kpi-value').html() || '$0.00',
-				commission: $('[data-card-type="my_commission"] .reports-kpi-value').html() || '$0.00',
-				salary: $('[data-card-type="my_salary"] .reports-kpi-value').html() || '$0.00'
+				value: $('[data-card-type="my_earnings"] .reports-kpi-value').text().trim() || '$0.00',
+				commission: $('[data-card-type="my_commission"] .reports-kpi-value').text().trim() || '$0.00',
+				salary: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
+				change: $('[data-card-type="my_earnings"] .reports-kpi-change').text().trim() || '0 orders'
 			},
 			my_salary: {
-				value: $('[data-card-type="my_salary"] .reports-kpi-value').html() || '$0.00'
+				value: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
+				type: $('[data-card-type="my_salary"] .reports-kpi-change').text().trim() || 'N/A'
 			},
 			my_commission: {
-				value: $('[data-card-type="my_commission"] .reports-kpi-value').html() || '$0.00',
-				orders: parseInt($('[data-card-type="my_commission"] .reports-kpi-change').text()) || 0
+				value: $('[data-card-type="my_commission"] .reports-kpi-value').text().trim() || '$0.00',
+				orders: $('[data-card-type="my_commission"] .reports-kpi-change').text().trim() || '0 orders'
 			},
 			my_performance_score: {
-				value: parseFloat($('[data-card-type="my_performance_score"] .reports-kpi-value').text()) || 0
+				value: $('[data-card-type="my_performance_score"] .reports-kpi-value').text().trim() || '0/10',
+				rating: $('[data-card-type="my_performance_score"] .reports-kpi-change').text().trim() || 'N/A'
 			}
 		};
 
@@ -370,10 +375,12 @@ jQuery(document).ready(function($) {
 				break;
 
 			default:
-				content = '<p>No details available</p>';
+				content = '<div class="drill-down-content"><p>No details available</p></div>';
 		}
 
+		// Replace loading with actual content
 		modal.find('.reports-modal-body').html(content);
+		}, 150); // Small delay to ensure DOM is ready
 	}
 
 	/**

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.84] - 2026-04-18
+### Reports Page - KPI Modal Fix
+- **FIX**: KPI card modals now load content properly instead of showing infinite loading
+- **ROOT CAUSE**: JavaScript was using `.html()` which returned HTML tags, and no timeout for DOM readiness
+- **SOLUTION**: Changed to `.text().trim()` to get clean text values from KPI cards
+- **SOLUTION**: Added 150ms timeout to ensure KPI cards are fully loaded before reading values
+- **ENHANCEMENT**: Added more data fields to modals (orders processed, rating, etc.)
+- **RESULT**: Modals now display content immediately with correct data from KPI cards
+
 ## [1.0.83] - 2026-04-18
 ### My Orders Page - Dynamic Status Cards
 - **FEATURE**: Status cards now dynamically generated from all WooCommerce order statuses
