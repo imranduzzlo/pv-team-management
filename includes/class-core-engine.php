@@ -324,7 +324,8 @@ class WC_Team_Payroll_Core_Engine {
 				$attributed_value = isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0;
 			}
 
-			if ( $user_earnings > 0 || $attributed_value > 0 ) {
+			// Only include orders where user is agent or processor
+			if ( $role && ( $user_earnings > 0 || $attributed_value > 0 ) ) {
 				$total_earnings += $user_earnings;
 				$orders_data[] = array(
 					'order_id'  => $order->get_id(),
