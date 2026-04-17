@@ -1,28 +1,10 @@
 # Changelog
 
-## [1.0.61] - 2026-04-17
-### STABLE RELEASE - v1.0.55 with Error Fix
-- **RELEASE**: Stable version combining all v1.0.55 enhancements with error-free code
-- **FIX**: Removed orphaned code from `includes/class-performance-settings.php` (lines 1939-3088)
-- **FEATURE**: All Reports page enhancements from v1.0.55 are included and working
-- **FEATURE**: 4 KPI cards with 2-column grid layout
-- **FEATURE**: Total Earnings uses actual salary transactions
-- **FEATURE**: Commission KPI follows status filter
-- **FEATURE**: Performance Score uses attributed order values (Agent 70%, Processor 30%)
-- **FEATURE**: Enhanced Performance Settings with role-based configuration
-- **TECHNICAL**: All PHP files pass syntax validation
-- **TECHNICAL**: Backward compatible with old orders
-- **STATUS**: Production-ready, error-free, fully functional
-
-### What's Included:
-- ✅ Reports page redesign (4 KPI cards, 2-column layout)
-- ✅ Attributed order values for fair performance scoring
-- ✅ Actual salary transactions instead of estimates
-- ✅ Commission status filtering
-- ✅ Enhanced performance settings UI
-- ✅ All v1.0.55 features working correctly
-- ✅ No syntax errors
-- ✅ No activation errors
+## [1.0.56] - 2026-04-17
+### Bug Fix Release
+- **FIX**: Fixed critical syntax error in `class-performance-settings.php` caused by orphaned duplicate code
+- **FIX**: Removed 49 lines of duplicate code that was causing PHP parse error on line 1939
+- **TECHNICAL**: All PHP files now pass syntax validation without errors
 
 ## [1.0.55] - 2026-04-17
 ### Reports Page Enhancements & Performance Score Improvements
