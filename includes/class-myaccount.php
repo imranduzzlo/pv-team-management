@@ -3657,7 +3657,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get user earnings data with status filtering
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter orders by role if needed
 		$filtered_orders = $earnings_data['orders'];
@@ -3690,7 +3691,7 @@ class WC_Team_Payroll_MyAccount {
 
 		// Get previous period data for comparison (with same status filtering)
 		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
-		$prev_earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
+		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
 		
 		// Apply same role filter to previous period data
 		$prev_filtered_orders = $prev_earnings_data['orders'];
@@ -3840,7 +3841,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get user earnings data with status filtering
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter orders by role if needed
 		$filtered_orders = $earnings_data['orders'];
@@ -4072,7 +4074,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get user earnings data with status filtering
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter by role if needed
 		$filtered_orders = $earnings_data['orders'];
@@ -4277,7 +4280,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get user earnings data with status filtering
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter orders by role if needed
 		$filtered_orders = $earnings_data['orders'];
@@ -4520,7 +4524,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get user earnings data with status filtering
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
 		// Filter orders by role if needed
 		$filtered_orders = $earnings_data['orders'];
@@ -4843,7 +4848,8 @@ class WC_Team_Payroll_MyAccount {
 		$end_date = $date_range['end'];
 
 		// Get user earnings data
-		$earnings_data = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id, $start_date, $end_date );
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date );
 
 		// Filter orders by status and role
 		$filtered_orders = $earnings_data['orders'];
@@ -5689,6 +5695,8 @@ class WC_Team_Payroll_MyAccount {
 	 * Get filtered dashboard KPI data
 	 */
 	private static function get_filtered_dashboard_data( $user_id, $start_date, $end_date, $order_status, $role_filter ) {
+		$engine = new WC_Team_Payroll_Core_Engine();
+
 		// Get orders in date range
 		$args = array(
 			'limit'  => -1,

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.58] - 2026-04-17
+### Critical Bug Fix - Reverted Static Method Change
+- **FIX**: Reverted `get_user_earnings()` back to instance method (non-static) to resolve activation error
+- **FIX**: Changed condition from `if ( $role && ( $user_earnings > 0 || $attributed_value > 0 ) )` to `if ( $user_earnings > 0 || $attributed_value > 0 )`
+- **TECHNICAL**: The static method approach caused compatibility issues with existing codebase
+- **TECHNICAL**: Removed strict role check that was preventing orders from being included
+- **TECHNICAL**: All calls to `get_user_earnings()` now properly instantiate the class first
+- **ROOT CAUSE**: The combination of static method + strict role check was causing fatal errors on activation
+
 ## [1.0.57] - 2026-04-17
 ### Critical Bug Fix - Static Method Declaration
 - **FIX**: Changed `get_user_earnings()` from instance method to static method to resolve fatal error
