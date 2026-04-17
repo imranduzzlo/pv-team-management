@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.79] - 2026-04-18
+### Reports KPI Salary Calculation - Transaction-Based with Debug
+- **CHANGE**: Reports page KPI cards now use transaction-based salary calculation (same as My Earnings This Month)
+- **CHANGE**: Reads from `_wc_tp_salary_transactions` and filters by date range
+- **CHANGE**: Filters for transaction types containing 'transfer' (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+- **DEBUG**: Added debug data to AJAX response to troubleshoot salary calculation issues
+- **TECHNICAL**: Debug includes: salary_for_period, total_commission, total_earnings, salary flags, date range, transaction count
+
 ## [1.0.78] - 2026-04-18
 ### Salary Calculation Consistency Across All Pages
 - **FIX**: Fixed "This Month" card in My Earnings page not showing salary transactions
