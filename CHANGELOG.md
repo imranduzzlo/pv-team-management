@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.77] - 2026-04-18
+### My Earnings Page - Match Admin Employee Details Calculation
+- **ENHANCEMENT**: My Earnings page now uses the same earnings calculation as admin employee details page
+- **CHANGE**: Total Earnings now uses `_wc_tp_total_earnings` meta for salary (accumulated base salary) instead of looping through salary transactions
+- **CHANGE**: This Month calculation remains unchanged (uses `get_user_salary_for_period()` for current month salary + current month commission)
+- **CONSISTENCY**: Both Reports page KPI cards and My Earnings page now follow the same calculation method as admin employee details page
+- **RESULT**: Total Earnings card in My Earnings page now matches admin employee details page exactly
+
 ## [1.0.76] - 2026-04-18
 ### KPI Cards - Filter Salary by Date Range
 - **ENHANCEMENT**: Salary is now filtered by date range (only salary added within the filtered period)

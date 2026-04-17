@@ -5515,17 +5515,14 @@ class WC_Team_Payroll_MyAccount {
 			}
 		}
 
-		// Get total earnings
-		$total_salary = 0;
-		$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
-		if ( is_array( $transactions ) ) {
-			foreach ( $transactions as $transaction ) {
-				if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'salary' ) !== false ) {
-					$total_salary += floatval( $transaction['amount'] ?? 0 );
-				}
-			}
+		// Get total earnings (all time) - matches admin employee details page
+		// Use _wc_tp_total_earnings for salary (accumulated base salary)
+		$total_salary = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
+		if ( ! $total_salary ) {
+			$total_salary = 0;
 		}
 
+		// Get all commission from orders
 		$total_commission = 0;
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		$args = array(
