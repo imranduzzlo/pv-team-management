@@ -3627,7 +3627,10 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered dashboard KPI data
 	 */
 	public static function ajax_get_filtered_dashboard_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
@@ -3815,7 +3818,10 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered analytics data
 	 */
 	public static function ajax_get_filtered_analytics_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
@@ -4048,7 +4054,10 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered performance metrics
 	 */
 	public static function ajax_get_filtered_performance_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
@@ -4254,7 +4263,10 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered table data
 	 */
 	public static function ajax_get_filtered_table_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
@@ -4498,7 +4510,10 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered goal tracking data
 	 */
 	public static function ajax_get_filtered_goals_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {

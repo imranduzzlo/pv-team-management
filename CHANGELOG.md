@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.70] - 2026-04-18
+### Critical Bug Fixes - Performance Settings & AJAX Verification
+- **FIX**: Removed duplicate code block in Performance Settings class causing syntax errors
+- **FIX**: Fixed nonce verification in all Reports AJAX handlers - replaced check_ajax_referer() with wp_verify_nonce()
+- **FIX**: AJAX handlers now return proper error messages instead of dying silently on nonce failures
+- **ENHANCEMENT**: Proper error handling in KPI card AJAX endpoints prevents silent failures
+- **ENHANCEMENT**: All reports-related AJAX handlers now have consistent error response handling
+- **TECHNICAL**: Cleaned up orphaned duplicate calculate_baseline() code in class-performance-settings.php
+- **TECHNICAL**: Improved code organization and removed dead code blocks
+- **TECHNICAL**: Fixed ajax_get_filtered_dashboard_data(), ajax_get_filtered_analytics_data(), ajax_get_filtered_performance_data(), ajax_get_filtered_goals_data(), ajax_get_filtered_table_data() nonce verification
+
 ## [1.0.69] - 2026-04-18
 ### Critical Bug Fixes - KPI Cards Final Fix
 - **FIX**: Fixed KPI cards not displaying - reverted to jQuery serialization instead of JSON.stringify()
