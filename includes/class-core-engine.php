@@ -345,12 +345,12 @@ class WC_Team_Payroll_Core_Engine {
 	}
 
 	/**
-	 * Get total orders for a user
+	 * Get total orders for a user (all orders, not just commission calculation statuses)
 	 */
 	public function get_user_total_orders( $user_id ) {
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => 'any', // Get all orders regardless of status
 		);
 
 		$orders = wc_get_orders( $args );
@@ -371,9 +371,10 @@ class WC_Team_Payroll_Core_Engine {
 	/**
 	 * Get total earnings for a user (all time)
 	 * Includes commission + base salary (if applicable)
+	 * Commission only calculated for orders with commission calculation statuses
 	 */
 	public function get_user_total_earnings( $user_id ) {
-		// Get commission earnings from orders
+		// Get commission earnings from orders (only for commission calculation statuses)
 		$commission_earnings = $this->get_user_commission_earnings( $user_id );
 
 		// Get base salary earnings (from automatic salary system)
@@ -387,11 +388,15 @@ class WC_Team_Payroll_Core_Engine {
 
 	/**
 	 * Get commission earnings only (no base salary)
+	 * Only calculates commission for orders with commission calculation statuses
 	 */
 	public function get_user_commission_earnings( $user_id ) {
+		// Get commission calculation statuses from settings
+		$commission_statuses = self::get_commission_calculation_statuses();
+		
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses, // Only get orders with commission calculation statuses
 		);
 
 		$orders = wc_get_orders( $args );

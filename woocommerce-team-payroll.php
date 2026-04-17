@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.0.80
+ * Version: 1.0.81
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.0.80' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.0.81' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -1463,11 +1463,14 @@ add_action( 'plugins_loaded', function() {
 
 		// Get core engine for commission recalculation
 		$core_engine = new WC_Team_Payroll_Core_Engine();
+		
+		// Get commission calculation statuses from settings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 
-		// Get all orders
+		// Get ALL orders (not just specific statuses)
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'pending', 'cancelled', 'refunded' ),
+			'status' => 'any', // Get all orders regardless of status
 		);
 
 		$orders = wc_get_orders( $args );
@@ -1495,10 +1498,17 @@ add_action( 'plugins_loaded', function() {
 				continue;
 			}
 
-			// Recalculate commission based on current salary types
-			if ( $commission_data ) {
+			// Check if order status is in commission calculation statuses
+			$order_status = $order->get_status();
+			$has_commission = in_array( $order_status, $commission_statuses );
+
+			// Recalculate commission ONLY if order status is in commission calculation statuses
+			if ( $has_commission && $commission_data ) {
 				$recalculated_commission = $core_engine->calculate_commission( $order, $agent_id, $processor_id );
 				$commission_data = $recalculated_commission;
+			} elseif ( ! $has_commission ) {
+				// No commission for orders not in commission calculation statuses
+				$commission_data = null;
 			}
 
 			// Determine flag
@@ -1520,7 +1530,7 @@ add_action( 'plugins_loaded', function() {
 				continue;
 			}
 
-			// Calculate user earnings from recalculated commission
+			// Calculate user earnings from recalculated commission (only if has commission)
 			$user_earnings = 0;
 			if ( $commission_data ) {
 				if ( $user_role === 'agent' ) {
@@ -1574,6 +1584,7 @@ add_action( 'plugins_loaded', function() {
 				'flag'            => $flag,
 				'flag_label'      => $flag_label,
 				'date'            => $order->get_date_created()->format( 'Y-m-d' ),
+				'has_commission'  => $has_commission,
 			);
 		}
 

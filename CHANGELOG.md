@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.81] - 2026-04-18
+### Employee Details Page - Orders and Earnings Calculation Fix
+- **FIX**: Total orders now counts ALL orders (not just commission calculation statuses)
+- **FIX**: Orders table now shows ALL orders (not just specific statuses)
+- **FIX**: Total earnings calculation now follows Commission Calculation Statuses from settings
+- **CHANGE**: `get_user_total_orders()` now uses `'status' => 'any'` to count all orders
+- **CHANGE**: `get_user_commission_earnings()` now uses commission calculation statuses from settings
+- **CHANGE**: AJAX handler `wc_tp_get_employee_orders` now fetches all orders with `'status' => 'any'`
+- **CHANGE**: Commission calculation only applies to orders with commission calculation statuses
+- **ENHANCEMENT**: Added `has_commission` flag to order response data
+- **CONSISTENCY**: Employee details page now matches My Account orders page logic
+- **RESULT**: Total orders shows count of ALL orders, orders table displays ALL orders, total earnings only includes commission from configured statuses
+
 ## [1.0.80] - 2026-04-18
 ### Reports Date Range Filter - WordPress Timezone Fix
 - **FIX**: Fixed date range filter calculations using WordPress timezone correctly
