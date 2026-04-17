@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.60] - 2026-04-17
+### CRITICAL FIX - Syntax Error in Performance Settings
+- **FIX**: Removed orphaned code in `includes/class-performance-settings.php` that was causing fatal error
+- **ROOT CAUSE**: Lines 1939-3088 contained orphaned switch/case statements outside of any function
+- **TECHNICAL**: This orphaned code was causing "unexpected token 'if'" and "unexpected token 'case'" parse errors
+- **TECHNICAL**: Removed all orphaned code and properly closed the class
+- **NOTE**: This syntax error was preventing the plugin from activating since v1.0.55
+
 ## [1.0.59] - 2026-04-17
 ### Critical Bug Fix - Restored v1.0.54 Logic with Attributed Value Support
 - **FIX**: Restored EXACT v1.0.54 logic for `get_user_earnings()` method
