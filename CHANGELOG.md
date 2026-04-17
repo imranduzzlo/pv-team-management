@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.91] - 2026-04-18
+### Reports Page - Performance Score Modal Enhancement
+- **FEATURE**: Added Order Total (Attributed) to Performance Score breakdown
+- **FEATURE**: Added comprehensive "Calculation Details" section explaining performance scoring system
+- **ENHANCEMENT**: Explains how performance score is calculated (base score + earnings + orders + AOV)
+- **ENHANCEMENT**: Explains attribution system (Agent/Processor split based on configured percentages)
+- **ENHANCEMENT**: Includes example calculation showing how metrics convert to score points
+- **ENHANCEMENT**: Shows current period filters applied to the score calculation
+- **TECHNICAL**: Order Total reflects attributed value based on agent/processor split stored in order meta
+- **RESULT**: Users now understand exactly how their performance score is calculated with real data examples
+
+## [1.0.90] - 2026-04-18
+### Reports Page - Performance Score Modal Fix
+- **FIX**: Performance Score modal current score no longer shows duplicate "/10" (e.g., "5.2/10/10")
+- **ROOT CAUSE**: Performance score value extracted from KPI card already contained "/10", then template added another "/10"
+- **SOLUTION**: Strip "/10" suffix from extracted value using regex `.replace(/\/10$/, '')`
+- **RESULT**: Current Score now displays correctly as "5.2/10" instead of "5.2/10/10"
+
 ## [1.0.89] - 2026-04-18
 ### Reports Page - KPI Modal Breakdown Values Fix
 - **FIX**: KPI modal breakdown values no longer show incorrect `$` prefix for non-currency text

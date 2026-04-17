@@ -216,7 +216,8 @@ jQuery(document).ready(function($) {
 				orders: $('[data-card-type="my_commission"] .reports-kpi-change').text().trim() || '0 orders'
 			},
 			my_performance_score: {
-				value: $('[data-card-type="my_performance_score"] .reports-kpi-value').text().trim() || '0/10',
+				// Extract just the numeric score, removing any "/10" suffix
+				value: $('[data-card-type="my_performance_score"] .reports-kpi-value').text().trim().replace(/\/10$/, '') || '0',
 				rating: $('[data-card-type="my_performance_score"] .reports-kpi-change').text().trim() || 'N/A'
 			}
 		};
@@ -354,6 +355,10 @@ jQuery(document).ready(function($) {
 									<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
 								</div>
 								<div class="breakdown-item">
+									<span class="breakdown-label">Order Total (Attributed)</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
+								</div>
+								<div class="breakdown-item">
 									<span class="breakdown-label">Total Earnings</span>
 									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
 								</div>
@@ -381,6 +386,52 @@ jQuery(document).ready(function($) {
 								<div class="breakdown-item">
 									<span class="breakdown-label">Period</span>
 									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
+								</div>
+							</div>
+						</div>
+						<div class="drill-down-section">
+							<h4>Calculation Details</h4>
+							<div class="breakdown-items">
+								<div class="breakdown-item">
+									<span class="breakdown-label">How Performance Score Works</span>
+									<span class="breakdown-value">
+										Your performance score is calculated based on three key metrics:
+										<br><strong>1. Order Count:</strong> Number of orders processed
+										<br><strong>2. Total Earnings:</strong> Commission earned from orders
+										<br><strong>3. Average Order Value (AOV):</strong> Average value per order
+									</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Attribution System</span>
+									<span class="breakdown-value">
+										Orders are split between Agent and Processor based on configured percentages (typically 70% Agent / 30% Processor). Your attributed order value is your percentage share of the total order amount.
+									</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Score Calculation</span>
+									<span class="breakdown-value">
+										Base Score (5.0) + Points from Earnings Range + Points from Orders Range + Points from AOV Range = Final Score (capped at 10.0)
+									</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Example Calculation</span>
+									<span class="breakdown-value">
+										If you have: 15 orders, $1,500 earnings, $100 AOV
+										<br>• Base Score: 5.0 points
+										<br>• Earnings ($1,500): +2.5 points (from your role's earnings range)
+										<br>• Orders (15): +1.5 points (from your role's orders range)
+										<br>• AOV ($100): +1.0 point (from your role's AOV range)
+										<br><strong>Final Score: 10.0/10</strong>
+									</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Current Period Data</span>
+									<span class="breakdown-value">
+										Date Range: ${filters.dateRange || 'Current Period'}
+										<br>Status Filter: ${filters.orderStatus || 'All'}
+										<br>Role Filter: ${filters.role || 'All'}
+										<br>Your score reflects only orders matching these filters.
+									</span>
 								</div>
 							</div>
 						</div>
