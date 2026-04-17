@@ -691,7 +691,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_dashboard_data',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters
+				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
 				if (response.success) {
@@ -704,9 +704,13 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-kpi-container').html(response.data.html);
 					}
+				} else {
+					// Handle error response from server
+					$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading dashboard data') + '</p></div>');
 				}
 			},
-			error: function() {
+			error: function(xhr, status, error) {
+				console.error('Dashboard AJAX error:', error, xhr.responseText);
 				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data</p></div>');
 			}
 		});
@@ -722,7 +726,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_analytics_data',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters
+				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
 				if (response.success) {
@@ -735,9 +739,13 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-charts-container').html(response.data.html);
 					}
+				} else {
+					// Handle error response from server
+					$('#reports-charts-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading analytics data') + '</p></div>');
 				}
 			},
-			error: function() {
+			error: function(xhr, status, error) {
+				console.error('Analytics AJAX error:', error, xhr.responseText);
 				$('#reports-charts-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading analytics data</p></div>');
 			}
 		});
@@ -753,7 +761,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_performance_data',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters
+				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
 				if (response.success) {
@@ -766,9 +774,13 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-metrics-container').html(response.data.html);
 					}
+				} else {
+					// Handle error response from server
+					$('#reports-metrics-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading metrics') + '</p></div>');
 				}
 			},
-			error: function() {
+			error: function(xhr, status, error) {
+				console.error('Performance metrics AJAX error:', error, xhr.responseText);
 				$('#reports-metrics-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading metrics</p></div>');
 			}
 		});
@@ -784,7 +796,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_table_data',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters
+				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
 				if (response.success) {
@@ -805,6 +817,9 @@ jQuery(document).ready(function($) {
 						// Initialize pagination for all tables
 						initializeTablePagination();
 					}
+				} else {
+					// Handle error response from server
+					$('#reports-tables-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading tables') + '</p></div>');
 				}
 			},
 			error: function() {
@@ -823,7 +838,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_goals_data',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters
+				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
 				if (response.success) {
@@ -836,9 +851,13 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-goals-container').html(response.data.html);
 					}
+				} else {
+					// Handle error response from server
+					$('#reports-goals-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading goals') + '</p></div>');
 				}
 			},
-			error: function() {
+			error: function(xhr, status, error) {
+				console.error('Goals AJAX error:', error, xhr.responseText);
 				$('#reports-goals-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading goals</p></div>');
 			}
 		});
@@ -1053,14 +1072,20 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_export_filtered_report',
 				nonce: wc_tp_reports.nonce,
-				filters: masterFilters,
+				filters: JSON.stringify(masterFilters),
 				format: format
 			},
 			success: function(response) {
 				if (response.success) {
 					// Trigger download
 					window.location.href = response.data.download_url;
+				} else {
+					alert('Error exporting report: ' + (response.data || 'Unknown error'));
 				}
+			},
+			error: function(xhr, status, error) {
+				console.error('Export AJAX error:', error, xhr.responseText);
+				alert('Error exporting report');
 			}
 		});
 	}

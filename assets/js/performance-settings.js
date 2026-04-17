@@ -1587,11 +1587,6 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-});
-
-	// ============================================================================
-	// FORMULA TESTER
-	// ============================================================================
 
 	// Formula Tester - Calculate Score
 	$(document).on('click', '#wc-tp-test-formula', function() {
@@ -1714,3 +1709,5 @@ jQuery(document).ready(function($) {
 		// Show result
 		$('.wc-tp-formula-result').slideDown(300);
 	});
+
+});

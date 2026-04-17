@@ -3634,8 +3634,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
@@ -3822,8 +3825,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
@@ -4055,8 +4061,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
@@ -4261,8 +4270,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
@@ -4505,8 +4517,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
@@ -4838,8 +4853,11 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters and format from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters and format from request - parse JSON string
+		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+		if ( ! is_array( $filters ) ) {
+			$filters = array();
+		}
 		$format = isset( $_POST['format'] ) ? sanitize_text_field( $_POST['format'] ) : 'csv';
 
 		// Get date range

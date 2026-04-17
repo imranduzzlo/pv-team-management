@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.65] - 2026-04-17
+### Critical Bug Fixes - Reports KPI Cards
+- **FIX**: Fixed KPI cards not loading - showing fallback error message
+- **FIX**: Fixed AJAX filters serialization issue in reports page
+- **TECHNICAL**: Updated all AJAX calls to properly serialize filters as JSON strings
+- **TECHNICAL**: Updated all PHP AJAX handlers to parse JSON filters correctly
+- **ENHANCEMENT**: Added better error handling and console logging for debugging
+- **ENHANCEMENT**: Added error response display instead of generic fallback messages
+- **FILES UPDATED**: 
+  - `assets/js/reports.js` - 6 AJAX calls updated
+  - `includes/class-myaccount.php` - 6 AJAX handlers updated
+
 ## [1.0.64] - 2026-04-17
 ### Critical Bug Fixes
 - **FIX**: Fixed JavaScript syntax error in `performance-settings.js` preventing page functionality
