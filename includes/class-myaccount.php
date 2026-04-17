@@ -5172,7 +5172,9 @@ class WC_Team_Payroll_MyAccount {
 	 * Helper: Get date range from filter
 	 */
 	private static function get_date_range_from_filter( $filters ) {
-		$date_range = isset( $filters['dateRange'] ) ? $filters['dateRange'] : 'this_month';
+		$date_range = isset( $filters['dateRange'] ) ? $filters['dateRange'] : 'this-month';
+		// Convert hyphens to underscores for consistency (JavaScript sends hyphens)
+		$date_range = str_replace( '-', '_', $date_range );
 		$today = date( 'Y-m-d' );
 		$now = new DateTime();
 
@@ -5225,6 +5227,16 @@ class WC_Team_Payroll_MyAccount {
 				$end = date( 'Y-12-31', strtotime( 'last year' ) );
 				$label = __( 'Last Year', 'wc-team-payroll' );
 				break;
+			case 'last_6_months':
+				$start = date( 'Y-m-d', strtotime( '-6 months' ) );
+				$end = $today;
+				$label = __( 'Last 6 Months', 'wc-team-payroll' );
+				break;
+			case 'all_time':
+				$start = '2000-01-01'; // Far back date for "all time"
+				$end = $today;
+				$label = __( 'All Time', 'wc-team-payroll' );
+				break;
 			case 'custom':
 				$start = isset( $filters['customStartDate'] ) ? $filters['customStartDate'] : date( 'Y-m-01' );
 				$end = isset( $filters['customEndDate'] ) ? $filters['customEndDate'] : $today;
@@ -5233,7 +5245,7 @@ class WC_Team_Payroll_MyAccount {
 			default:
 				$start = date( 'Y-m-01' );
 				$end = $today;
-				$label = __( 'All Time', 'wc-team-payroll' );
+				$label = __( 'This Month', 'wc-team-payroll' );
 		}
 
 		return array(

@@ -1,15 +1,14 @@
 # Changelog
 
 ## [1.0.70] - 2026-04-18
-### Critical Bug Fixes - Performance Settings & AJAX Verification
-- **FIX**: Removed duplicate code block in Performance Settings class causing syntax errors
-- **FIX**: Fixed nonce verification in all Reports AJAX handlers - replaced check_ajax_referer() with wp_verify_nonce()
-- **FIX**: AJAX handlers now return proper error messages instead of dying silently on nonce failures
-- **ENHANCEMENT**: Proper error handling in KPI card AJAX endpoints prevents silent failures
-- **ENHANCEMENT**: All reports-related AJAX handlers now have consistent error response handling
-- **TECHNICAL**: Cleaned up orphaned duplicate calculate_baseline() code in class-performance-settings.php
-- **TECHNICAL**: Improved code organization and removed dead code blocks
-- **TECHNICAL**: Fixed ajax_get_filtered_dashboard_data(), ajax_get_filtered_analytics_data(), ajax_get_filtered_performance_data(), ajax_get_filtered_goals_data(), ajax_get_filtered_table_data() nonce verification
+### CRITICAL FIX - Date Range Filter Format Mismatch
+- **FIX**: Fixed KPI cards not loading - date range format mismatch between JavaScript and PHP
+- **ROOT CAUSE**: JavaScript was sending date ranges with hyphens (e.g., 'this-month') but PHP was expecting underscores (e.g., 'this_month')
+- **SOLUTION**: Added automatic conversion of hyphens to underscores in get_date_range_from_filter() function
+- **ENHANCEMENT**: Added support for 'last-6-months' and 'all-time' date ranges
+- **ENHANCEMENT**: Improved default date range handling to match JavaScript defaults
+- **TECHNICAL**: Updated get_date_range_from_filter() to normalize date range format
+- **RESULT**: KPI cards now load correctly with proper date filtering applied
 
 ## [1.0.69] - 2026-04-18
 ### Critical Bug Fixes - KPI Cards Final Fix
