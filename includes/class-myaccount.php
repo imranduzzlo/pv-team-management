@@ -3629,6 +3629,7 @@ class WC_Team_Payroll_MyAccount {
 
 	/**
 	 * AJAX: Get filtered dashboard KPI data
+	 * Updated: v1.0.78 - Salary from transactions filtered by date
 	 */
 	public static function ajax_get_filtered_dashboard_data() {
 		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
@@ -3835,7 +3836,18 @@ class WC_Team_Payroll_MyAccount {
 		<?php
 		$html = ob_get_clean();
 
-		wp_send_json_success( array( 'html' => $html ) );
+		wp_send_json_success( array( 
+			'html' => $html,
+			'debug' => array(
+				'salary_for_period' => $salary_for_period,
+				'total_commission' => $total_commission,
+				'total_earnings' => $total_earnings,
+				'is_fixed_salary' => $is_fixed_salary,
+				'is_combined_salary' => $is_combined_salary,
+				'start_date' => $start_date,
+				'end_date' => $end_date
+			)
+		) );
 	}
 
 	/**
