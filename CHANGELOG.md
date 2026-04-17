@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.76] - 2026-04-18
+### KPI Cards - Filter Salary by Date Range
+- **ENHANCEMENT**: Salary is now filtered by date range (only salary added within the filtered period)
+- **CHANGE**: Total Earnings = Commission from filtered orders + Salary from filtered period
+- **CHANGE**: My Salary card shows salary earned within the selected date range
+- **TECHNICAL**: Uses existing `_wc_tp_salary_transactions` meta which tracks salary additions with dates
+- **TECHNICAL**: Filters salary transactions where type contains 'salary' and date is within range
+- **RESULT**: All KPI cards now respect date range filters - more intuitive for period analysis
+
 ## [1.0.75] - 2026-04-18
 ### KPI Cards Earnings Calculation - Match Admin Employee Details
 - **ENHANCEMENT**: KPI cards now calculate Total Earnings the same way as admin employee details page

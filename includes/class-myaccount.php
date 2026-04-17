@@ -3690,14 +3690,13 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
 
-		// Get base salary earnings (from automatic salary system) - NOT filtered by date
-		$salary_earnings = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
-		if ( ! $salary_earnings ) {
-			$salary_earnings = 0;
-		}
+		// Get salary for the filtered period (from salary transactions within date range)
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
+		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date, $salary_amount, $salary_frequency );
 
-		// Total earnings = commission from filtered orders + all base salary
-		$total_earnings = $total_commission + $salary_earnings;
+		// Total earnings = commission from filtered orders + salary from filtered period
+		$total_earnings = $total_commission + $salary_for_period;
 
 		// Get previous period data for comparison (with same status filtering)
 		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
@@ -3770,7 +3769,7 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 			<p class="reports-kpi-label"><?php esc_html_e( 'My Salary', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $salary_earnings ) ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $salary_for_period ) ); ?></p>
 			<div class="reports-kpi-change neutral">
 				<i class="ph ph-info"></i>
 				<?php 
