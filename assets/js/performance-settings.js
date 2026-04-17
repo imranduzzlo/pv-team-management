@@ -1714,5 +1714,3 @@ jQuery(document).ready(function($) {
 		// Show result
 		$('.wc-tp-formula-result').slideDown(300);
 	});
-
-});
