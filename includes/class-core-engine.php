@@ -268,7 +268,7 @@ class WC_Team_Payroll_Core_Engine {
 	/**
 	 * Get user earnings for date range - FIXED DATE QUERY
 	 */
-	public function get_user_earnings( $user_id, $start_date = null, $end_date = null, $order_statuses = null ) {
+	public static function get_user_earnings( $user_id, $start_date = null, $end_date = null, $order_statuses = null ) {
 		if ( ! $start_date ) {
 			$start_date = date( 'Y-m-01' );
 		}

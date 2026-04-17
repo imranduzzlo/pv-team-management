@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.57] - 2026-04-17
+### Critical Bug Fix - Static Method Declaration
+- **FIX**: Changed `get_user_earnings()` from instance method to static method to resolve fatal error
+- **FIX**: Resolved "Critical error on this website" that occurred after plugin activation
+- **TECHNICAL**: Updated method signature from `public function` to `public static function` in `class-core-engine.php`
+- **TECHNICAL**: Updated all calls to `get_user_earnings()` to use static syntax `WC_Team_Payroll_Core_Engine::get_user_earnings()`
+- **TECHNICAL**: Removed unnecessary class instantiation in `class-myaccount.php` for better performance
+- **ROOT CAUSE**: Method was called statically in `class-shortcodes.php` and `class-ajax-handlers.php` but declared as instance method
+
 ## [1.0.56] - 2026-04-17
 ### Critical Bug Fix
 - **FIX**: Added role check in `get_user_earnings()` to prevent including orders where user is not agent/processor
