@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 
 	// Master filter state
 	let masterFilters = {
-		dateRange: 'this_month',
+		dateRange: 'this-month',
 		customStartDate: null,
 		customEndDate: null,
 		orderStatus: 'all',
@@ -492,7 +492,7 @@ jQuery(document).ready(function($) {
 				let startDate, endDate;
 				
 				switch (preset) {
-					case 'all_time':
+					case 'all-time':
 						dateFrom.val('');
 						dateTo.val('');
 						break;
@@ -500,34 +500,34 @@ jQuery(document).ready(function($) {
 						startDate = new Date(today);
 						endDate = new Date(today);
 						break;
-					case 'this_week':
+					case 'this-week':
 						startDate = new Date(today.setDate(today.getDate() - today.getDay()));
 						endDate = new Date();
 						break;
-					case 'this_month':
+					case 'this-month':
 						startDate = new Date(today.getFullYear(), today.getMonth(), 1);
 						endDate = new Date();
 						break;
-					case 'this_year':
+					case 'this-year':
 						startDate = new Date(today.getFullYear(), 0, 1);
 						endDate = new Date();
 						break;
-					case 'last_week':
+					case 'last-week':
 						const lastWeekEnd = new Date(today.setDate(today.getDate() - today.getDay() - 1));
 						const lastWeekStart = new Date(lastWeekEnd.setDate(lastWeekEnd.getDate() - 6));
 						startDate = lastWeekStart;
 						endDate = new Date(today.setDate(today.getDate() - today.getDay() - 1));
 						break;
-					case 'last_month':
+					case 'last-month':
 						const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 						startDate = lastMonth;
 						endDate = new Date(today.getFullYear(), today.getMonth(), 0);
 						break;
-					case 'last_year':
+					case 'last-year':
 						startDate = new Date(today.getFullYear() - 1, 0, 1);
 						endDate = new Date(today.getFullYear() - 1, 11, 31);
 						break;
-					case 'last_6_months':
+					case 'last-6-months':
 						startDate = new Date(today.getFullYear(), today.getMonth() - 6, 1);
 						endDate = new Date();
 						break;
@@ -608,7 +608,7 @@ jQuery(document).ready(function($) {
 	 */
 	function resetFilters() {
 		masterFilters = {
-			dateRange: 'this_month',
+			dateRange: 'this-month',
 			customStartDate: null,
 			customEndDate: null,
 			orderStatus: 'all',
@@ -616,7 +616,7 @@ jQuery(document).ready(function($) {
 		};
 
 		// Reset form inputs
-		$('#reports-date-range').val('this_month');
+		$('#reports-date-range').val('this-month');
 		$('#reports-order-status').val('all');
 		$('#reports-role').val('all');
 		$('#reports-custom-date-range').hide();
@@ -650,8 +650,8 @@ jQuery(document).ready(function($) {
 	function updateFilterSummary() {
 		const activeFilters = [];
 
-		if (masterFilters.dateRange !== 'this_month') {
-			activeFilters.push(masterFilters.dateRange.replace(/_/g, ' '));
+		if (masterFilters.dateRange !== 'this-month') {
+			activeFilters.push(masterFilters.dateRange.replace(/-/g, ' '));
 		}
 		if (masterFilters.orderStatus !== 'all') {
 			activeFilters.push('Status: ' + masterFilters.orderStatus);
@@ -685,18 +685,15 @@ jQuery(document).ready(function($) {
 	 * Load KPI dashboard data
 	 */
 	function loadDashboardData() {
-		console.log('Loading dashboard data with filters:', masterFilters);
-		
 		$.ajax({
 			url: wc_tp_reports.ajax_url,
 			type: 'POST',
 			data: {
 				action: 'wc_tp_get_filtered_dashboard_data',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters)
+				filters: masterFilters
 			},
 			success: function(response) {
-				console.log('Dashboard AJAX success response:', response);
 				if (response.success) {
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content
@@ -707,15 +704,10 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-kpi-container').html(response.data.html);
 					}
-				} else {
-					// Handle error response from server
-					console.error('Dashboard AJAX error response:', response);
-					$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading dashboard data') + '</p></div>');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Dashboard AJAX error:', error, xhr.status, xhr.responseText);
-				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data: ' + error + '</p></div>');
+			error: function() {
+				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data</p></div>');
 			}
 		});
 	}
@@ -730,7 +722,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_analytics_data',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters)
+				filters: masterFilters
 			},
 			success: function(response) {
 				if (response.success) {
@@ -743,13 +735,9 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-charts-container').html(response.data.html);
 					}
-				} else {
-					// Handle error response from server
-					$('#reports-charts-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading analytics data') + '</p></div>');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Analytics AJAX error:', error, xhr.responseText);
+			error: function() {
 				$('#reports-charts-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading analytics data</p></div>');
 			}
 		});
@@ -765,7 +753,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_performance_data',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters)
+				filters: masterFilters
 			},
 			success: function(response) {
 				if (response.success) {
@@ -778,13 +766,9 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-metrics-container').html(response.data.html);
 					}
-				} else {
-					// Handle error response from server
-					$('#reports-metrics-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading metrics') + '</p></div>');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Performance metrics AJAX error:', error, xhr.responseText);
+			error: function() {
 				$('#reports-metrics-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading metrics</p></div>');
 			}
 		});
@@ -800,7 +784,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_table_data',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters)
+				filters: masterFilters
 			},
 			success: function(response) {
 				if (response.success) {
@@ -821,9 +805,6 @@ jQuery(document).ready(function($) {
 						// Initialize pagination for all tables
 						initializeTablePagination();
 					}
-				} else {
-					// Handle error response from server
-					$('#reports-tables-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading tables') + '</p></div>');
 				}
 			},
 			error: function() {
@@ -842,7 +823,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_get_filtered_goals_data',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters)
+				filters: masterFilters
 			},
 			success: function(response) {
 				if (response.success) {
@@ -855,13 +836,9 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-goals-container').html(response.data.html);
 					}
-				} else {
-					// Handle error response from server
-					$('#reports-goals-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading goals') + '</p></div>');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.error('Goals AJAX error:', error, xhr.responseText);
+			error: function() {
 				$('#reports-goals-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading goals</p></div>');
 			}
 		});
@@ -1076,20 +1053,14 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'wc_tp_export_filtered_report',
 				nonce: wc_tp_reports.nonce,
-				filters: JSON.stringify(masterFilters),
+				filters: masterFilters,
 				format: format
 			},
 			success: function(response) {
 				if (response.success) {
 					// Trigger download
 					window.location.href = response.data.download_url;
-				} else {
-					alert('Error exporting report: ' + (response.data || 'Unknown error'));
 				}
-			},
-			error: function(xhr, status, error) {
-				console.error('Export AJAX error:', error, xhr.responseText);
-				alert('Error exporting report');
 			}
 		});
 	}

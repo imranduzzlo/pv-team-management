@@ -1,49 +1,13 @@
 # Changelog
 
-## [1.0.67] - 2026-04-17
-### Critical Bug Fixes - KPI Cards AJAX Nonce Verification
-- **FIX**: Fixed KPI cards showing empty error message - nonce verification was dying silently
-- **FIX**: Replaced check_ajax_referer() with wp_verify_nonce() for proper error handling
-- **FIX**: AJAX handlers now return meaningful error messages instead of dying silently
-- **ENHANCEMENT**: Improved filter parsing to handle both JSON strings and arrays
-- **TECHNICAL**: All AJAX handlers now use wp_verify_nonce() with proper error responses
-- **TECHNICAL**: Better error handling prevents silent failures in AJAX calls
-
-## [1.0.66] - 2026-04-17
-### Critical Bug Fixes - KPI Cards Date Range Filter
-- **FIX**: Fixed KPI cards showing error - date range filter mismatch between JavaScript and PHP
-- **FIX**: JavaScript was sending hyphens (this-month) but PHP expected underscores (this_month)
-- **FIX**: All date range values now use consistent underscore format
-- **ENHANCEMENT**: Added try-catch error handling to AJAX handlers
-- **ENHANCEMENT**: Added console logging for debugging AJAX calls
-- **TECHNICAL**: Updated all date range cases in reports.js to use underscores
-- **TECHNICAL**: Added error handling wrapper to ajax_get_filtered_dashboard_data()
-
-## [1.0.65] - 2026-04-17
-### Critical Bug Fixes - Reports KPI Cards
-- **FIX**: Fixed KPI cards not loading - showing fallback error message
-- **FIX**: Fixed AJAX filters serialization issue in reports page
-- **TECHNICAL**: Updated all AJAX calls to properly serialize filters as JSON strings
-- **TECHNICAL**: Updated all PHP AJAX handlers to parse JSON filters correctly
-- **ENHANCEMENT**: Added better error handling and console logging for debugging
-- **ENHANCEMENT**: Added error response display instead of generic fallback messages
-- **FILES UPDATED**: 
-  - `assets/js/reports.js` - 6 AJAX calls updated
-  - `includes/class-myaccount.php` - 6 AJAX handlers updated
-
-## [1.0.64] - 2026-04-17
-### Critical Bug Fixes
-- **FIX**: Fixed JavaScript syntax error in `performance-settings.js` preventing page functionality
-- **FIX**: Removed extra closing brace causing role selector and tab switching to fail
-- **FIX**: Performance settings page now fully functional with working AJAX calls
-- **TECHNICAL**: JavaScript file now has balanced braces (335 opening, 335 closing)
-- **TECHNICAL**: All JavaScript files pass syntax validation
-
-## [1.0.63] - 2026-04-17
-### Bug Fix Release
-- **FIX**: Fixed critical syntax error in `class-performance-settings.php` caused by orphaned duplicate code
-- **FIX**: Removed 49 lines of duplicate code that was causing PHP parse error on line 1939
-- **TECHNICAL**: All PHP files now pass syntax validation without errors
+## [1.0.68] - 2026-04-17
+### Critical Bug Fixes - KPI Cards Complete Fix
+- **FIX**: Fixed KPI cards AJAX nonce verification - replaced check_ajax_referer() with wp_verify_nonce()
+- **FIX**: AJAX handlers now return proper error messages instead of dying silently
+- **FIX**: Improved filter parsing to handle both JSON strings and arrays
+- **ENHANCEMENT**: Better error handling prevents silent failures in AJAX calls
+- **TECHNICAL**: All AJAX handlers updated with proper nonce verification
+- **TECHNICAL**: Consistent error response handling across all endpoints
 
 ## [1.0.55] - 2026-04-17
 ### Reports Page Enhancements & Performance Score Improvements
