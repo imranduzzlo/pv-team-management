@@ -3627,32 +3627,15 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered dashboard KPI data
 	 */
 	public static function ajax_get_filtered_dashboard_data() {
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
-		}
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request - jQuery serializes objects as nested keys
-		$filters = array();
-		if ( isset( $_POST['filters'] ) ) {
-			// jQuery serializes objects like: filters[dateRange]=this-month&filters[role]=all
-			// So we need to check for filters as an array
-			if ( is_array( $_POST['filters'] ) ) {
-				$filters = $_POST['filters'];
-			} else {
-				// If it's a string, try to parse it
-				parse_str( 'filters=' . $_POST['filters'], $parsed );
-				$filters = isset( $parsed['filters'] ) ? $parsed['filters'] : array();
-			}
-		}
-
-		// Debug log
-		error_log( 'Dashboard filters: ' . print_r( $filters, true ) );
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
