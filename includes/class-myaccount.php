@@ -3064,7 +3064,8 @@ class WC_Team_Payroll_MyAccount {
 
 			$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
 			if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
-				if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'salary' ) !== false ) {
+				// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+				if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
 					$total_salary += floatval( $transaction['amount'] ?? 0 );
 				}
 			}
@@ -3690,10 +3691,30 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
 
-		// Get salary for the filtered period (from salary transactions within date range)
-		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
-		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
-		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date, $salary_amount, $salary_frequency );
+		// Get salary for the filtered period (same approach as My Earnings page)
+		// Read directly from transactions and filter by date range
+		$salary_for_period = 0;
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+			if ( is_array( $transactions ) ) {
+				foreach ( $transactions as $transaction ) {
+					if ( ! isset( $transaction['date'] ) ) {
+						continue;
+					}
+					
+					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+					if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+							$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+						}
+					}
+				}
+			}
+		}
 
 		// Total earnings = commission from filtered orders + salary from filtered period
 		$total_earnings = $total_commission + $salary_for_period;
@@ -5499,9 +5520,25 @@ class WC_Team_Payroll_MyAccount {
 		$current_month_start = date( 'Y-m-01' );
 		$current_month_end = date( 'Y-m-t' );
 		
+		// Get current month salary from transactions (same approach as Total Earnings but date filtered)
 		$current_month_salary = 0;
 		if ( $is_fixed_salary || $is_combined_salary ) {
-			$current_month_salary = self::get_user_salary_for_period( $user_id, $current_month_start, $current_month_end, $salary_amount, $salary_frequency );
+			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+			if ( is_array( $transactions ) ) {
+				foreach ( $transactions as $transaction ) {
+					if ( ! isset( $transaction['date'] ) ) {
+						continue;
+					}
+					
+					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+					if ( $trans_date >= $current_month_start && $trans_date <= $current_month_end ) {
+						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+							$current_month_salary += floatval( $transaction['amount'] ?? 0 );
+						}
+					}
+				}
+			}
 		}
 		$current_month_commission = self::get_user_commission_for_period( $user_id, $current_month_start, $current_month_end );
 		$current_month_earnings = $current_month_salary + $current_month_commission;

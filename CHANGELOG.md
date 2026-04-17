@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.78] - 2026-04-18
+### Salary Calculation Consistency Across All Pages
+- **FIX**: Fixed "This Month" card in My Earnings page not showing salary transactions
+- **FIX**: Fixed Reports page KPI cards not showing salary with filters
+- **CHANGE**: Both My Earnings page and Reports page now use the same approach for salary calculation
+- **CHANGE**: Directly read from `_wc_tp_salary_transactions` and filter by date range instead of using helper function
+- **CHANGE**: Filter for transaction types containing 'transfer' (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+- **CONSISTENCY**: All three pages now use the same data source and approach:
+  - **My Earnings - Total Earnings**: All salary transactions (all time) + All commission (all time)
+  - **My Earnings - This Month**: Salary transactions (this month) + Commission (this month)
+  - **Reports - KPI Cards**: Salary transactions (filtered period) + Commission (filtered period)
+- **RESULT**: Salary now correctly displays in all KPI cards with proper date filtering
+
 ## [1.0.77] - 2026-04-18
 ### My Earnings Page - Match Admin Employee Details Calculation
 - **ENHANCEMENT**: My Earnings page now uses the same earnings calculation as admin employee details page
