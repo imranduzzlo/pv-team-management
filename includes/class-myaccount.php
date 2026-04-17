@@ -2669,10 +2669,22 @@ class WC_Team_Payroll_MyAccount {
 				'wc_tp_reports',
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' )
+					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),
+					'refresh_interval' => $this->get_refresh_interval()
 				)
 			);
 		}
+	}
+
+	/**
+	 * Get refresh interval from system config
+	 */
+	private function get_refresh_interval() {
+		$system_config = get_option( 'wc_tp_system_config', array() );
+		$refresh_interval = isset( $system_config['refresh_interval'] ) ? intval( $system_config['refresh_interval'] ) : 30;
+		
+		// Convert seconds to milliseconds for JavaScript
+		return $refresh_interval * 1000;
 	}
 
 	/**

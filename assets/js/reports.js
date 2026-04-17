@@ -39,8 +39,9 @@ jQuery(document).ready(function($) {
 
 	// Auto-refresh interval (in milliseconds)
 	let autoRefreshInterval = null;
-	const AUTO_REFRESH_ENABLED = true;
-	const AUTO_REFRESH_DELAY = 30000; // 30 seconds
+	// Get refresh interval from system config (passed from PHP, default 30 seconds)
+	const AUTO_REFRESH_DELAY = (typeof wc_tp_reports !== 'undefined' && wc_tp_reports.refresh_interval) ? wc_tp_reports.refresh_interval : 30000;
+	const AUTO_REFRESH_ENABLED = AUTO_REFRESH_DELAY > 0; // Disable if set to 0
 	
 	// Track if filters have changed to control animations
 	let filtersChanged = false;

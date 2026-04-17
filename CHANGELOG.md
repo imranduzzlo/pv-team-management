@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.88] - 2026-04-18
+### Reports Page - Dynamic Auto-Refresh Interval
+- **FEATURE**: Reports page auto-refresh interval now uses System Config setting from Performance Settings tab
+- **ENHANCEMENT**: Refresh interval is configurable in Performance Settings → System Config → Auto-Refresh Interval (0-300 seconds)
+- **ENHANCEMENT**: Setting value of 0 disables auto-refresh completely
+- **TECHNICAL**: Added `get_refresh_interval()` method to retrieve system config setting
+- **TECHNICAL**: Refresh interval passed to JavaScript via `wc_tp_reports` localized script object
+- **TECHNICAL**: JavaScript converts seconds to milliseconds for proper timing
+- **RESULT**: Reports page respects admin-configured refresh interval instead of hardcoded 30 seconds
+
 ## [1.0.87] - 2026-04-18
 ### Reports Page - KPI Modal Loading Fix
 - **FIX**: KPI card modals (Total Earnings, Commission, Salary, Performance Score) now load content properly instead of showing infinite loading
