@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 
 	// Master filter state
 	let masterFilters = {
-		dateRange: 'this-month',
+		dateRange: 'this_month',
 		customStartDate: null,
 		customEndDate: null,
 		orderStatus: 'all',
@@ -492,7 +492,7 @@ jQuery(document).ready(function($) {
 				let startDate, endDate;
 				
 				switch (preset) {
-					case 'all-time':
+					case 'all_time':
 						dateFrom.val('');
 						dateTo.val('');
 						break;
@@ -500,34 +500,34 @@ jQuery(document).ready(function($) {
 						startDate = new Date(today);
 						endDate = new Date(today);
 						break;
-					case 'this-week':
+					case 'this_week':
 						startDate = new Date(today.setDate(today.getDate() - today.getDay()));
 						endDate = new Date();
 						break;
-					case 'this-month':
+					case 'this_month':
 						startDate = new Date(today.getFullYear(), today.getMonth(), 1);
 						endDate = new Date();
 						break;
-					case 'this-year':
+					case 'this_year':
 						startDate = new Date(today.getFullYear(), 0, 1);
 						endDate = new Date();
 						break;
-					case 'last-week':
+					case 'last_week':
 						const lastWeekEnd = new Date(today.setDate(today.getDate() - today.getDay() - 1));
 						const lastWeekStart = new Date(lastWeekEnd.setDate(lastWeekEnd.getDate() - 6));
 						startDate = lastWeekStart;
 						endDate = new Date(today.setDate(today.getDate() - today.getDay() - 1));
 						break;
-					case 'last-month':
+					case 'last_month':
 						const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 						startDate = lastMonth;
 						endDate = new Date(today.getFullYear(), today.getMonth(), 0);
 						break;
-					case 'last-year':
+					case 'last_year':
 						startDate = new Date(today.getFullYear() - 1, 0, 1);
 						endDate = new Date(today.getFullYear() - 1, 11, 31);
 						break;
-					case 'last-6-months':
+					case 'last_6_months':
 						startDate = new Date(today.getFullYear(), today.getMonth() - 6, 1);
 						endDate = new Date();
 						break;
@@ -608,7 +608,7 @@ jQuery(document).ready(function($) {
 	 */
 	function resetFilters() {
 		masterFilters = {
-			dateRange: 'this-month',
+			dateRange: 'this_month',
 			customStartDate: null,
 			customEndDate: null,
 			orderStatus: 'all',
@@ -616,7 +616,7 @@ jQuery(document).ready(function($) {
 		};
 
 		// Reset form inputs
-		$('#reports-date-range').val('this-month');
+		$('#reports-date-range').val('this_month');
 		$('#reports-order-status').val('all');
 		$('#reports-role').val('all');
 		$('#reports-custom-date-range').hide();
@@ -650,8 +650,8 @@ jQuery(document).ready(function($) {
 	function updateFilterSummary() {
 		const activeFilters = [];
 
-		if (masterFilters.dateRange !== 'this-month') {
-			activeFilters.push(masterFilters.dateRange.replace(/-/g, ' '));
+		if (masterFilters.dateRange !== 'this_month') {
+			activeFilters.push(masterFilters.dateRange.replace(/_/g, ' '));
 		}
 		if (masterFilters.orderStatus !== 'all') {
 			activeFilters.push('Status: ' + masterFilters.orderStatus);
@@ -685,6 +685,8 @@ jQuery(document).ready(function($) {
 	 * Load KPI dashboard data
 	 */
 	function loadDashboardData() {
+		console.log('Loading dashboard data with filters:', masterFilters);
+		
 		$.ajax({
 			url: wc_tp_reports.ajax_url,
 			type: 'POST',
@@ -694,6 +696,7 @@ jQuery(document).ready(function($) {
 				filters: JSON.stringify(masterFilters)
 			},
 			success: function(response) {
+				console.log('Dashboard AJAX success response:', response);
 				if (response.success) {
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content
@@ -706,12 +709,13 @@ jQuery(document).ready(function($) {
 					}
 				} else {
 					// Handle error response from server
+					console.error('Dashboard AJAX error response:', response);
 					$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>' + (response.data || 'Error loading dashboard data') + '</p></div>');
 				}
 			},
 			error: function(xhr, status, error) {
-				console.error('Dashboard AJAX error:', error, xhr.responseText);
-				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data</p></div>');
+				console.error('Dashboard AJAX error:', error, xhr.status, xhr.responseText);
+				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data: ' + error + '</p></div>');
 			}
 		});
 	}

@@ -3627,116 +3627,117 @@ class WC_Team_Payroll_MyAccount {
 	 * AJAX: Get filtered dashboard KPI data
 	 */
 	public static function ajax_get_filtered_dashboard_data() {
-		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
+		try {
+			check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
-		$user_id = get_current_user_id();
-		if ( ! $user_id ) {
-			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
-		}
-
-		// Get filters from request - parse JSON string
-		$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
-		if ( ! is_array( $filters ) ) {
-			$filters = array();
-		}
-
-		// Get date range
-		$date_range = self::get_date_range_from_filter( $filters );
-		$start_date = $date_range['start'];
-		$end_date = $date_range['end'];
-
-		// Get filter values
-		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
-		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
-
-		// Get commission calculation statuses from settings
-		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
-
-		// Prepare order statuses for query based on filter
-		$order_statuses = $commission_statuses; // Default: all commission statuses
-		if ( $status_filter !== 'all' ) {
-			// If user selected a specific status, use only that status
-			$order_statuses = array( $status_filter );
-		}
-
-		// Get user earnings data with status filtering
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
-
-		// Filter orders by role if needed
-		$filtered_orders = $earnings_data['orders'];
-		if ( $role_filter !== 'all' ) {
-			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
-				return $order['role'] === $role_filter;
-			});
-		}
-
-		// Calculate KPI metrics from filtered data
-		$total_earnings = 0;
-		$total_commission = 0;
-		$total_orders = count( $filtered_orders );
-		$total_order_value = 0;
-		$attributed_order_total = 0; // Sum of attributed order values based on user's role
-
-		foreach ( $filtered_orders as $order_data ) {
-			$total_earnings += $order_data['earnings'];
-			$total_commission += $order_data['commission'];
-			$total_order_value += $order_data['total'];
-			
-			// Add attributed order value based on user's role in this order
-			if ( isset( $order_data['attributed_value'] ) ) {
-				$attributed_order_total += $order_data['attributed_value'];
+			$user_id = get_current_user_id();
+			if ( ! $user_id ) {
+				wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 			}
-		}
 
-		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
-		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
+			// Get filters from request - parse JSON string
+			$filters = isset( $_POST['filters'] ) ? json_decode( stripslashes( $_POST['filters'] ), true ) : array();
+			if ( ! is_array( $filters ) ) {
+				$filters = array();
+			}
 
-		// Get previous period data for comparison (with same status filtering)
-		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
-		$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
-		
-		// Apply same role filter to previous period data
-		$prev_filtered_orders = $prev_earnings_data['orders'];
-		if ( $role_filter !== 'all' ) {
-			$prev_filtered_orders = array_filter( $prev_filtered_orders, function( $order ) use ( $role_filter ) {
-				return $order['role'] === $role_filter;
-			});
-		}
-		
-		// Calculate previous period total earnings
-		$prev_total_earnings = 0;
-		foreach ( $prev_filtered_orders as $order_data ) {
-			$prev_total_earnings += $order_data['earnings'];
-		}
+			// Get date range
+			$date_range = self::get_date_range_from_filter( $filters );
+			$start_date = $date_range['start'];
+			$end_date = $date_range['end'];
 
-		// Calculate change percentage
-		$earnings_change = 0;
-		if ( $prev_total_earnings > 0 ) {
-			$earnings_change = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
-		}
+			// Get filter values
+			$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+			$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
 
-		// Determine change direction
-		$change_class = 'neutral';
-		$change_icon = 'ph-minus';
-		if ( $earnings_change > 0 ) {
-			$change_class = 'positive';
-			$change_icon = 'ph-trend-up';
-		} elseif ( $earnings_change < 0 ) {
-			$change_class = 'negative';
-			$change_icon = 'ph-trend-down';
-		}
+			// Get commission calculation statuses from settings
+			$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 
-		// Get actual salary transactions for the period (not calculated from salary amount)
-		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date );
+			// Prepare order statuses for query based on filter
+			$order_statuses = $commission_statuses; // Default: all commission statuses
+			if ( $status_filter !== 'all' ) {
+				// If user selected a specific status, use only that status
+				$order_statuses = array( $status_filter );
+			}
 
-		// Get salary type for display
-		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
-		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+			// Get user earnings data with status filtering
+			$engine = new WC_Team_Payroll_Core_Engine();
+			$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
 
-		// Generate KPI HTML
-		ob_start();
-		?>
+			// Filter orders by role if needed
+			$filtered_orders = $earnings_data['orders'];
+			if ( $role_filter !== 'all' ) {
+				$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+					return $order['role'] === $role_filter;
+				});
+			}
+
+			// Calculate KPI metrics from filtered data
+			$total_earnings = 0;
+			$total_commission = 0;
+			$total_orders = count( $filtered_orders );
+			$total_order_value = 0;
+			$attributed_order_total = 0; // Sum of attributed order values based on user's role
+
+			foreach ( $filtered_orders as $order_data ) {
+				$total_earnings += $order_data['earnings'];
+				$total_commission += $order_data['commission'];
+				$total_order_value += $order_data['total'];
+				
+				// Add attributed order value based on user's role in this order
+				if ( isset( $order_data['attributed_value'] ) ) {
+					$attributed_order_total += $order_data['attributed_value'];
+				}
+			}
+
+			$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
+			$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
+
+			// Get previous period data for comparison (with same status filtering)
+			$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
+			$prev_earnings_data = $engine->get_user_earnings( $user_id, $prev_date_range['start'], $prev_date_range['end'], $order_statuses );
+			
+			// Apply same role filter to previous period data
+			$prev_filtered_orders = $prev_earnings_data['orders'];
+			if ( $role_filter !== 'all' ) {
+				$prev_filtered_orders = array_filter( $prev_filtered_orders, function( $order ) use ( $role_filter ) {
+					return $order['role'] === $role_filter;
+				});
+			}
+			
+			// Calculate previous period total earnings
+			$prev_total_earnings = 0;
+			foreach ( $prev_filtered_orders as $order_data ) {
+				$prev_total_earnings += $order_data['earnings'];
+			}
+
+			// Calculate change percentage
+			$earnings_change = 0;
+			if ( $prev_total_earnings > 0 ) {
+				$earnings_change = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
+			}
+
+			// Determine change direction
+			$change_class = 'neutral';
+			$change_icon = 'ph-minus';
+			if ( $earnings_change > 0 ) {
+				$change_class = 'positive';
+				$change_icon = 'ph-trend-up';
+			} elseif ( $earnings_change < 0 ) {
+				$change_class = 'negative';
+				$change_icon = 'ph-trend-down';
+			}
+
+			// Get actual salary transactions for the period (not calculated from salary amount)
+			$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date );
+
+			// Get salary type for display
+			$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+
+			// Generate KPI HTML
+			ob_start();
+			?>
 		<div class="reports-kpi-card" data-card-type="my_earnings">
 			<div class="reports-kpi-header">
 				<div class="reports-kpi-icon">
@@ -3812,6 +3813,9 @@ class WC_Team_Payroll_MyAccount {
 		$html = ob_get_clean();
 
 		wp_send_json_success( array( 'html' => $html ) );
+		} catch ( Exception $e ) {
+			wp_send_json_error( 'Error: ' . $e->getMessage() );
+		}
 	}
 
 	/**
