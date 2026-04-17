@@ -45,6 +45,7 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'wp_ajax_wc_tp_get_filtered_performance_data', array( __CLASS__, 'ajax_get_filtered_performance_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_filtered_table_data', array( __CLASS__, 'ajax_get_filtered_table_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_filtered_goals_data', array( __CLASS__, 'ajax_get_filtered_goals_data' ) );
+		add_action( 'wp_ajax_wc_tp_get_attributed_order_total', array( __CLASS__, 'ajax_get_attributed_order_total' ) );
 		add_action( 'wp_ajax_wc_tp_export_filtered_report', array( __CLASS__, 'ajax_export_filtered_report' ) );
 
 		// Enqueue assets
@@ -4888,6 +4889,65 @@ class WC_Team_Payroll_MyAccount {
 		$html = ob_get_clean();
 
 		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * AJAX: Get attributed order total for performance modal
+	 */
+	public static function ajax_get_attributed_order_total() {
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
+		}
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
+		}
+
+		// Get filters from request
+		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+
+		// Get date range
+		$date_range = self::get_date_range_from_filter( $filters );
+		$start_date = $date_range['start'];
+		$end_date = $date_range['end'];
+
+		// Get filter values
+		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
+		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+
+		// Prepare order statuses for query
+		$order_statuses = null;
+		if ( $status_filter !== 'all' ) {
+			$order_statuses = array( $status_filter );
+		}
+
+		// Get user earnings data with status filtering
+		$engine = new WC_Team_Payroll_Core_Engine();
+		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+
+		// Filter orders by role if needed
+		$filtered_orders = $earnings_data['orders'];
+		if ( $role_filter !== 'all' ) {
+			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
+				return $order['role'] === $role_filter;
+			});
+		}
+
+		// Calculate attributed order total
+		$attributed_order_total = 0;
+		foreach ( $filtered_orders as $order_data ) {
+			// Add attributed order value from commission data
+			if ( isset( $order_data['attributed_value'] ) ) {
+				$attributed_order_total += $order_data['attributed_value'];
+			}
+		}
+
+		// Format as currency
+		$formatted_total = wc_price( $attributed_order_total );
+
+		wp_send_json_success( array( 'attributed_total' => $formatted_total ) );
 	}
 
 	/**

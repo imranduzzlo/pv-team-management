@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.92] - 2026-04-18
+### Reports Page - Performance Score Modal Order Total Fix
+- **FIX**: Order Total (Attributed) now shows actual attributed order value instead of duplicate earnings value
+- **FEATURE**: Added AJAX handler to fetch real attributed order total from commission data
+- **TECHNICAL**: New `ajax_get_attributed_order_total()` method calculates sum of attributed order values
+- **TECHNICAL**: Attributed order value comes from `agent_order_value` or `processor_order_value` in commission data
+- **TECHNICAL**: JavaScript fetches attributed total via AJAX when Performance Score modal opens
+- **RESULT**: Order Total (Attributed) and Total Earnings now show different, correct values
+
 ## [1.0.91] - 2026-04-18
 ### Reports Page - Performance Score Modal Enhancement
 - **FEATURE**: Added Order Total (Attributed) to Performance Score breakdown

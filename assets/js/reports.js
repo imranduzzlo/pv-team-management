@@ -181,31 +181,30 @@ jQuery(document).ready(function($) {
 	 * Load drill-down data
 	 */
 	function loadDrillDownData(cardType, modal) {
-		// Add small delay to ensure KPI cards are fully loaded
-		setTimeout(function() {
-			// Helper function to get current filters
-			function getCurrentFilters() {
-				const dateRangeSelect = $('#reports-date-range').val();
-				const orderStatus = $('#reports-order-status').val();
-				const role = $('#reports-role').val();
-				
-				return {
-					dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
-					orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
-					role: role && role !== 'all' ? role.toUpperCase() : 'All'
-				};
-			}
+		// Helper function to get current filters
+		function getCurrentFilters() {
+			const dateRangeSelect = $('#reports-date-range').val();
+			const orderStatus = $('#reports-order-status').val();
+			const role = $('#reports-role').val();
 			
-			// Fetch real data from the current dashboard data
-			const filters = getCurrentFilters();
+			return {
+				dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
+				orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
+				role: role && role !== 'all' ? role.toUpperCase() : 'All'
+			};
+		}
 		
+		// Fetch real data from the current dashboard data
+		const filters = getCurrentFilters();
+	
 		// Get the current KPI values from the page using .text() to get clean text
 		const kpiCards = {
 			my_earnings: {
 				value: $('[data-card-type="my_earnings"] .reports-kpi-value').text().trim() || '$0.00',
 				commission: $('[data-card-type="my_commission"] .reports-kpi-value').text().trim() || '$0.00',
 				salary: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
-				change: $('[data-card-type="my_earnings"] .reports-kpi-change').text().trim() || '0 orders'
+				change: $('[data-card-type="my_earnings"] .reports-kpi-change').text().trim() || '0 orders',
+				attributedTotal: '$0.00' // Will be calculated from commission data
 			},
 			my_salary: {
 				value: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
@@ -222,6 +221,35 @@ jQuery(document).ready(function($) {
 			}
 		};
 
+		// Fetch attributed order total via AJAX for performance score modal
+		if (cardType === 'my_performance_score') {
+			$.ajax({
+				url: wc_tp_reports.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'wc_tp_get_attributed_order_total',
+					nonce: wc_tp_reports.nonce,
+					filters: masterFilters
+				},
+				success: function(response) {
+					if (response.success) {
+						kpiCards.my_earnings.attributedTotal = response.data.attributed_total || '$0.00';
+					}
+					renderModalContent(cardType, kpiCards, filters, modal);
+				},
+				error: function() {
+					renderModalContent(cardType, kpiCards, filters, modal);
+				}
+			});
+		} else {
+			renderModalContent(cardType, kpiCards, filters, modal);
+		}
+	}
+
+	/**
+	 * Render modal content
+	 */
+	function renderModalContent(cardType, kpiCards, filters, modal) {
 		let content = '';
 
 		switch (cardType) {
@@ -356,7 +384,7 @@ jQuery(document).ready(function($) {
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Order Total (Attributed)</span>
-									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
+									<span class="breakdown-value">${kpiCards.my_earnings.attributedTotal}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Total Earnings</span>
@@ -445,7 +473,6 @@ jQuery(document).ready(function($) {
 
 		// Replace loading with actual content
 		modal.find('.reports-modal-body').html(content);
-		}, 150); // Small delay to ensure DOM is ready
 	}
 
 	/**
