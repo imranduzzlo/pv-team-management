@@ -92,8 +92,7 @@ class WC_Team_Payroll_Shortcodes {
 			return '<p>' . esc_html__( 'You do not have permission to view earnings', 'wc-team-payroll' ) . '</p>';
 		}
 
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings = $engine->get_user_earnings( $user_id );
+		$earnings = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id );
 
 		ob_start();
 		?>

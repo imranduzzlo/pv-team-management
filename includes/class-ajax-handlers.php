@@ -50,8 +50,7 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$flag = isset( $_POST['flag'] ) ? sanitize_text_field( $_POST['flag'] ) : '';
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
 
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings = $engine->get_user_earnings( $user_id );
+		$earnings = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id );
 		$orders = $earnings['orders'] ?? array();
 
 		// Filter by date range

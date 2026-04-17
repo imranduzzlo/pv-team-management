@@ -1936,5 +1936,4 @@ class WC_Team_Payroll_Performance_Settings {
 		// Employee is not assigned to this order
 		return 0;
 	}
-
 }
