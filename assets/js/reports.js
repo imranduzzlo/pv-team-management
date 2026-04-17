@@ -698,7 +698,6 @@ jQuery(document).ready(function($) {
 				console.log('AJAX Success - Full Response:', response);
 				console.log('Response success:', response.success);
 				console.log('Response data:', response.data);
-				console.log('DEBUG DATA:', response.data.debug);
 				
 				if (response.success) {
 					if (filtersChanged) {

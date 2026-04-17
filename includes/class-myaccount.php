@@ -3692,32 +3692,20 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
 
-		// Get salary for the filtered period (same approach as My Earnings page)
-		// Read directly from transactions and filter by date range
+		// Get salary for the filtered period
+		// Use _wc_tp_total_earnings for salary (accumulated base salary) - same as My Earnings page
 		$salary_for_period = 0;
 		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
 		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
 		
 		if ( $is_fixed_salary || $is_combined_salary ) {
-			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
-			if ( is_array( $transactions ) ) {
-				foreach ( $transactions as $transaction ) {
-					if ( ! isset( $transaction['date'] ) ) {
-						continue;
-					}
-					
-					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
-					if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
-						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
-						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
-							$salary_for_period += floatval( $transaction['amount'] ?? 0 );
-						}
-					}
-				}
+			$salary_for_period = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
+			if ( ! $salary_for_period ) {
+				$salary_for_period = 0;
 			}
 		}
 
-		// Total earnings = commission from filtered orders + salary from filtered period
+		// Total earnings = commission from filtered orders + salary (all time)
 		$total_earnings = $total_commission + $salary_for_period;
 
 		// Get previous period data for comparison (with same status filtering)
@@ -3836,18 +3824,7 @@ class WC_Team_Payroll_MyAccount {
 		<?php
 		$html = ob_get_clean();
 
-		wp_send_json_success( array( 
-			'html' => $html,
-			'debug' => array(
-				'salary_for_period' => $salary_for_period,
-				'total_commission' => $total_commission,
-				'total_earnings' => $total_earnings,
-				'is_fixed_salary' => $is_fixed_salary,
-				'is_combined_salary' => $is_combined_salary,
-				'start_date' => $start_date,
-				'end_date' => $end_date
-			)
-		) );
+		wp_send_json_success( array( 'html' => $html ) );
 	}
 
 	/**
