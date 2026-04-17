@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.80] - 2026-04-18
+### Reports Date Range Filter - WordPress Timezone Fix
+- **FIX**: Fixed date range filter calculations using WordPress timezone correctly
+- **ROOT CAUSE**: DateTime object was being modified multiple times causing incorrect date calculations
+- **SOLUTION**: Use `clone` keyword to create fresh DateTime instances for each date calculation
+- **ENHANCEMENT**: All date range options now correctly reflect their names:
+  - **Today**: Current day only
+  - **This Week**: Monday to Sunday of current week
+  - **Last Week**: Monday to Sunday of previous week
+  - **This Month**: First to last day of current month
+  - **Last Month**: First to last day of previous month
+  - **This Quarter**: First to last day of current quarter
+  - **Last Quarter**: First to last day of previous quarter
+  - **This Year**: January 1 to December 31 of current year
+  - **Last Year**: January 1 to December 31 of previous year
+  - **Last 6 Months**: 6 months ago to today
+  - **All Time**: 2000-01-01 to today
+- **TECHNICAL**: All date calculations now use WordPress timezone via `wp_timezone()` and `current_time()`
+- **RESULT**: Reports page date filters now work correctly with proper date ranges matching their labels
+
 ## [1.0.79] - 2026-04-18
 ### Reports KPI Salary Calculation - Transaction-Based with Debug
 - **CHANGE**: Reports page KPI cards now use transaction-based salary calculation (same as My Earnings This Month)

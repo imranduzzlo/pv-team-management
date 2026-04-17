@@ -695,11 +695,6 @@ jQuery(document).ready(function($) {
 				filters: masterFilters
 			},
 			success: function(response) {
-				console.log('AJAX Success - Full Response:', response);
-				console.log('Response success:', response.success);
-				console.log('Response data:', response.data);
-				console.log('DEBUG DATA:', response.data.debug);
-				
 				if (response.success) {
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content

@@ -3700,7 +3700,6 @@ class WC_Team_Payroll_MyAccount {
 		
 		if ( $is_fixed_salary || $is_combined_salary ) {
 			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
-			$debug_transactions = array();
 			if ( is_array( $transactions ) ) {
 				foreach ( $transactions as $transaction ) {
 					if ( ! isset( $transaction['date'] ) ) {
@@ -3708,18 +3707,6 @@ class WC_Team_Payroll_MyAccount {
 					}
 					
 					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
-					$trans_type = isset( $transaction['type'] ) ? $transaction['type'] : 'unknown';
-					$trans_amount = floatval( $transaction['amount'] ?? 0 );
-					
-					// Debug: Store transaction details
-					$debug_transactions[] = array(
-						'date' => $trans_date,
-						'type' => $trans_type,
-						'amount' => $trans_amount,
-						'date_match' => ($trans_date >= $start_date && $trans_date <= $end_date),
-						'type_match' => (strpos($trans_type, 'transfer') !== false)
-					);
-					
 					if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
 						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
 						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
@@ -3849,20 +3836,7 @@ class WC_Team_Payroll_MyAccount {
 		<?php
 		$html = ob_get_clean();
 
-		wp_send_json_success( array( 
-			'html' => $html,
-			'debug' => array(
-				'salary_for_period' => $salary_for_period,
-				'total_commission' => $total_commission,
-				'total_earnings' => $total_earnings,
-				'is_fixed_salary' => $is_fixed_salary,
-				'is_combined_salary' => $is_combined_salary,
-				'start_date' => $start_date,
-				'end_date' => $end_date,
-				'transactions_count' => is_array($transactions) ? count($transactions) : 0,
-				'transactions' => isset($debug_transactions) ? $debug_transactions : array()
-			)
-		) );
+		wp_send_json_success( array( 'html' => $html ) );
 	}
 
 	/**
@@ -5221,13 +5195,16 @@ class WC_Team_Payroll_MyAccount {
 
 	/**
 	 * Helper: Get date range from filter
+	 * Uses WordPress timezone for all date calculations
 	 */
 	private static function get_date_range_from_filter( $filters ) {
 		$date_range = isset( $filters['dateRange'] ) ? $filters['dateRange'] : 'this-month';
 		// Convert hyphens to underscores for consistency (JavaScript sends hyphens)
 		$date_range = str_replace( '-', '_', $date_range );
-		$today = date( 'Y-m-d' );
-		$now = new DateTime();
+		
+		// Use WordPress timezone for all date calculations
+		$today = current_time( 'Y-m-d' );
+		$timezone = wp_timezone();
 
 		switch ( $date_range ) {
 			case 'today':
@@ -5235,67 +5212,112 @@ class WC_Team_Payroll_MyAccount {
 				$end = $today;
 				$label = __( 'Today', 'wc-team-payroll' );
 				break;
+				
 			case 'this_week':
-				$start = $now->modify( 'Monday this week' )->format( 'Y-m-d' );
-				$end = $today;
+				// Monday to Sunday of current week
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( 'Monday this week' )->format( 'Y-m-d' );
+				$end = ( clone $now )->modify( 'Sunday this week' )->format( 'Y-m-d' );
 				$label = __( 'This Week', 'wc-team-payroll' );
 				break;
+				
+			case 'last_week':
+				// Monday to Sunday of previous week
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( 'Monday last week' )->format( 'Y-m-d' );
+				$end = ( clone $now )->modify( 'Sunday last week' )->format( 'Y-m-d' );
+				$label = __( 'Last Week', 'wc-team-payroll' );
+				break;
+				
 			case 'this_month':
-				$start = date( 'Y-m-01' );
-				$end = $today;
+				// First day to last day of current month
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( 'first day of this month' )->format( 'Y-m-d' );
+				$end = ( clone $now )->modify( 'last day of this month' )->format( 'Y-m-d' );
 				$label = __( 'This Month', 'wc-team-payroll' );
 				break;
+				
 			case 'last_month':
-				$start = date( 'Y-m-01', strtotime( 'last month' ) );
-				$end = date( 'Y-m-t', strtotime( 'last month' ) );
+				// First day to last day of previous month
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( 'first day of last month' )->format( 'Y-m-d' );
+				$end = ( clone $now )->modify( 'last day of last month' )->format( 'Y-m-d' );
 				$label = __( 'Last Month', 'wc-team-payroll' );
 				break;
+				
 			case 'this_quarter':
-				$quarter = ceil( date( 'n' ) / 3 );
-				$start = date( 'Y-' . ( ( $quarter - 1 ) * 3 + 1 ) . '-01' );
-				$end = $today;
+				// First day of current quarter to last day of current quarter
+				$current_month = (int) current_time( 'n' );
+				$quarter = ceil( $current_month / 3 );
+				$start_month = ( ( $quarter - 1 ) * 3 ) + 1;
+				$end_month = $quarter * 3;
+				$year = current_time( 'Y' );
+				$start = date( 'Y-m-d', strtotime( "$year-$start_month-01" ) );
+				$end = date( 'Y-m-t', strtotime( "$year-$end_month-01" ) );
 				$label = __( 'This Quarter', 'wc-team-payroll' );
 				break;
+				
 			case 'last_quarter':
-				$quarter = ceil( date( 'n' ) / 3 ) - 1;
+				// First day to last day of previous quarter
+				$current_month = (int) current_time( 'n' );
+				$quarter = ceil( $current_month / 3 ) - 1;
 				if ( $quarter < 1 ) {
 					$quarter = 4;
-					$year = date( 'Y' ) - 1;
+					$year = current_time( 'Y' ) - 1;
 				} else {
-					$year = date( 'Y' );
+					$year = current_time( 'Y' );
 				}
-				$start = date( 'Y-' . ( ( $quarter - 1 ) * 3 + 1 ) . '-01', strtotime( $year . '-01-01' ) );
-				$end = date( 'Y-' . ( $quarter * 3 ) . '-t', strtotime( $year . '-01-01' ) );
+				$start_month = ( ( $quarter - 1 ) * 3 ) + 1;
+				$end_month = $quarter * 3;
+				$start = date( 'Y-m-d', strtotime( "$year-$start_month-01" ) );
+				$end = date( 'Y-m-t', strtotime( "$year-$end_month-01" ) );
 				$label = __( 'Last Quarter', 'wc-team-payroll' );
 				break;
+				
 			case 'this_year':
-				$start = date( 'Y-01-01' );
-				$end = $today;
+				// January 1 to December 31 of current year
+				$year = current_time( 'Y' );
+				$start = "$year-01-01";
+				$end = "$year-12-31";
 				$label = __( 'This Year', 'wc-team-payroll' );
 				break;
+				
 			case 'last_year':
-				$start = date( 'Y-01-01', strtotime( 'last year' ) );
-				$end = date( 'Y-12-31', strtotime( 'last year' ) );
+				// January 1 to December 31 of previous year
+				$year = current_time( 'Y' ) - 1;
+				$start = "$year-01-01";
+				$end = "$year-12-31";
 				$label = __( 'Last Year', 'wc-team-payroll' );
 				break;
+				
 			case 'last_6_months':
-				$start = date( 'Y-m-d', strtotime( '-6 months' ) );
+				// 6 months ago to today
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( '-6 months' )->format( 'Y-m-d' );
 				$end = $today;
 				$label = __( 'Last 6 Months', 'wc-team-payroll' );
 				break;
+				
 			case 'all_time':
-				$start = '2000-01-01'; // Far back date for "all time"
+				// Far back date to today
+				$start = '2000-01-01';
 				$end = $today;
 				$label = __( 'All Time', 'wc-team-payroll' );
 				break;
+				
 			case 'custom':
-				$start = isset( $filters['customStartDate'] ) ? $filters['customStartDate'] : date( 'Y-m-01' );
+				// Custom date range from user input
+				$now = new DateTime( 'now', $timezone );
+				$start = isset( $filters['customStartDate'] ) ? $filters['customStartDate'] : ( clone $now )->modify( 'first day of this month' )->format( 'Y-m-d' );
 				$end = isset( $filters['customEndDate'] ) ? $filters['customEndDate'] : $today;
 				$label = __( 'Custom Range', 'wc-team-payroll' );
 				break;
+				
 			default:
-				$start = date( 'Y-m-01' );
-				$end = $today;
+				// Default to this month
+				$now = new DateTime( 'now', $timezone );
+				$start = ( clone $now )->modify( 'first day of this month' )->format( 'Y-m-d' );
+				$end = ( clone $now )->modify( 'last day of this month' )->format( 'Y-m-d' );
 				$label = __( 'This Month', 'wc-team-payroll' );
 		}
 
