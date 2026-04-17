@@ -3700,6 +3700,7 @@ class WC_Team_Payroll_MyAccount {
 		
 		if ( $is_fixed_salary || $is_combined_salary ) {
 			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+			$debug_transactions = array();
 			if ( is_array( $transactions ) ) {
 				foreach ( $transactions as $transaction ) {
 					if ( ! isset( $transaction['date'] ) ) {
@@ -3707,6 +3708,18 @@ class WC_Team_Payroll_MyAccount {
 					}
 					
 					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+					$trans_type = isset( $transaction['type'] ) ? $transaction['type'] : 'unknown';
+					$trans_amount = floatval( $transaction['amount'] ?? 0 );
+					
+					// Debug: Store transaction details
+					$debug_transactions[] = array(
+						'date' => $trans_date,
+						'type' => $trans_type,
+						'amount' => $trans_amount,
+						'date_match' => ($trans_date >= $start_date && $trans_date <= $end_date),
+						'type_match' => (strpos($trans_type, 'transfer') !== false)
+					);
+					
 					if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
 						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
 						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
@@ -3846,7 +3859,8 @@ class WC_Team_Payroll_MyAccount {
 				'is_combined_salary' => $is_combined_salary,
 				'start_date' => $start_date,
 				'end_date' => $end_date,
-				'transactions_count' => is_array($transactions) ? count($transactions) : 0
+				'transactions_count' => is_array($transactions) ? count($transactions) : 0,
+				'transactions' => isset($debug_transactions) ? $debug_transactions : array()
 			)
 		) );
 	}
