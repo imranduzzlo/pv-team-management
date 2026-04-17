@@ -751,8 +751,9 @@ class WC_Team_Payroll_Settings {
 				<?php if ( $current_tab === 'performance' ) : ?>
 					<?php
 					// Render performance settings tab
-					if ( class_exists( 'WC_Team_Payroll_Performance_Settings' ) ) {
-						WC_Team_Payroll_Performance_Settings::render_performance_tab();
+					global $wc_team_payroll_performance_settings;
+					if ( $wc_team_payroll_performance_settings && is_object( $wc_team_payroll_performance_settings ) ) {
+						$wc_team_payroll_performance_settings->render_performance_tab();
 					} else {
 						echo '<div class="notice notice-error"><p>' . esc_html__( 'Performance settings class not loaded.', 'wc-team-payroll' ) . '</p></div>';
 					}

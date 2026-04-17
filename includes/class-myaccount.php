@@ -1833,9 +1833,15 @@ class WC_Team_Payroll_MyAccount {
 						<select id="reports-order-status">
 							<option value="all"><?php esc_html_e( 'All Statuses', 'wc-team-payroll' ); ?></option>
 							<?php
-							$statuses = wc_get_order_statuses();
-							foreach ( $statuses as $status_key => $status_label ) {
-								echo '<option value="' . esc_attr( $status_key ) . '">' . esc_html( $status_label ) . '</option>';
+							// Get only commission calculation statuses from settings
+							$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+							$all_statuses = wc_get_order_statuses();
+							
+							foreach ( $all_statuses as $status_key => $status_label ) {
+								// Only show statuses that are configured for commission calculation
+								if ( in_array( $status_key, $commission_statuses ) ) {
+									echo '<option value="' . esc_attr( $status_key ) . '">' . esc_html( $status_label ) . '</option>';
+								}
 							}
 							?>
 						</select>
@@ -3640,10 +3646,13 @@ class WC_Team_Payroll_MyAccount {
 		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
 		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
 
-		// Prepare order statuses for query
-		$order_statuses = null;
+		// Get commission calculation statuses from settings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+
+		// Prepare order statuses for query based on filter
+		$order_statuses = $commission_statuses; // Default: all commission statuses
 		if ( $status_filter !== 'all' ) {
-			// Convert single status to array for WooCommerce query
+			// If user selected a specific status, use only that status
 			$order_statuses = array( $status_filter );
 		}
 
@@ -3664,11 +3673,17 @@ class WC_Team_Payroll_MyAccount {
 		$total_commission = 0;
 		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
+		$attributed_order_total = 0; // Sum of attributed order values based on user's role
 
 		foreach ( $filtered_orders as $order_data ) {
 			$total_earnings += $order_data['earnings'];
 			$total_commission += $order_data['commission'];
 			$total_order_value += $order_data['total'];
+			
+			// Add attributed order value based on user's role in this order
+			if ( isset( $order_data['attributed_value'] ) ) {
+				$attributed_order_total += $order_data['attributed_value'];
+			}
 		}
 
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
@@ -3709,25 +3724,12 @@ class WC_Team_Payroll_MyAccount {
 			$change_icon = 'ph-trend-down';
 		}
 
-		// Get salary information
+		// Get actual salary transactions for the period (not calculated from salary amount)
+		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date );
+
+		// Get salary type for display
 		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
 		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
-		$salary_amount = floatval( get_user_meta( $user_id, '_wc_tp_salary_amount', true ) ?: 0 );
-		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
-
-		// Calculate salary for period
-		$salary_for_period = 0;
-		if ( $is_fixed_salary || $is_combined_salary ) {
-			// Simple calculation - in real scenario would need more complex logic
-			$days_in_period = ( strtotime( $date_range['end'] ) - strtotime( $date_range['start'] ) ) / 86400 + 1;
-			if ( $salary_frequency === 'daily' ) {
-				$salary_for_period = $salary_amount * $days_in_period;
-			} elseif ( $salary_frequency === 'weekly' ) {
-				$salary_for_period = $salary_amount * ( $days_in_period / 7 );
-			} elseif ( $salary_frequency === 'monthly' ) {
-				$salary_for_period = $salary_amount;
-			}
-		}
 
 		// Generate KPI HTML
 		ob_start();
@@ -3738,7 +3740,7 @@ class WC_Team_Payroll_MyAccount {
 					<i class="ph ph-wallet"></i>
 				</div>
 			</div>
-			<p class="reports-kpi-label"><?php esc_html_e( 'My Earnings', 'wc-team-payroll' ); ?></p>
+			<p class="reports-kpi-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
 			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $total_earnings + $salary_for_period ) ); ?></p>
 			<div class="reports-kpi-change <?php echo esc_attr( $change_class ); ?>">
 				<i class="ph <?php echo esc_attr( $change_icon ); ?>"></i>
@@ -3748,7 +3750,7 @@ class WC_Team_Payroll_MyAccount {
 					} elseif ( $earnings_change < 0 ) {
 						echo number_format( $earnings_change, 1 ) . '%';
 					} else {
-						esc_html_e( 'No change', 'wc-team-payroll' );
+						echo number_format( $total_orders, 0 ) . ' ' . esc_html__( 'orders', 'wc-team-payroll' );
 					}
 				?>
 			</div>
@@ -3790,34 +3792,6 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 		</div>
 
-		<div class="reports-kpi-card" data-card-type="my_orders">
-			<div class="reports-kpi-header">
-				<div class="reports-kpi-icon">
-					<i class="ph ph-shopping-bag"></i>
-				</div>
-			</div>
-			<p class="reports-kpi-label"><?php esc_html_e( 'Orders Processed', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo esc_html( $total_orders ); ?></p>
-			<div class="reports-kpi-change neutral">
-				<i class="ph ph-list"></i>
-				<?php esc_html_e( 'in period', 'wc-team-payroll' ); ?>
-			</div>
-		</div>
-
-		<div class="reports-kpi-card" data-card-type="my_average_order_value">
-			<div class="reports-kpi-header">
-				<div class="reports-kpi-icon">
-					<i class="ph ph-chart-bar"></i>
-				</div>
-			</div>
-			<p class="reports-kpi-label"><?php esc_html_e( 'Avg Order Value', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $avg_order_value ) ); ?></p>
-			<div class="reports-kpi-change neutral">
-				<i class="ph ph-calculator"></i>
-				<?php echo wp_kses_post( wc_price( $avg_commission ) ); ?> <?php esc_html_e( 'avg', 'wc-team-payroll' ); ?>
-			</div>
-		</div>
-
 		<div class="reports-kpi-card" data-card-type="my_performance_score">
 			<div class="reports-kpi-header">
 				<div class="reports-kpi-icon">
@@ -3825,7 +3799,7 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 			<p class="reports-kpi-label"><?php esc_html_e( 'Performance Score', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo esc_html( self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id ) ); ?>/10</p>
+			<p class="reports-kpi-value"><?php echo esc_html( self::calculate_performance_score( $total_orders, $attributed_order_total, $avg_order_value, $user_id ) ); ?>/10</p>
 			<div class="reports-kpi-change neutral">
 				<i class="ph ph-smiley"></i>
 				<?php esc_html_e( 'excellent', 'wc-team-payroll' ); ?>
@@ -4116,6 +4090,7 @@ class WC_Team_Payroll_MyAccount {
 		$total_commission = 0;
 		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
+		$attributed_order_total = 0;
 		$highest_order = 0;
 		$lowest_order = PHP_INT_MAX;
 
@@ -4123,6 +4098,11 @@ class WC_Team_Payroll_MyAccount {
 			$total_earnings += $order_data['earnings'];
 			$total_commission += $order_data['commission'];
 			$total_order_value += $order_data['total'];
+			
+			// Add attributed order value
+			if ( isset( $order_data['attributed_value'] ) ) {
+				$attributed_order_total += $order_data['attributed_value'];
+			}
 			
 			if ( $order_data['total'] > $highest_order ) {
 				$highest_order = $order_data['total'];
@@ -4136,8 +4116,8 @@ class WC_Team_Payroll_MyAccount {
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$commission_rate = $total_order_value > 0 ? ( $total_commission / $total_order_value ) * 100 : 0;
 
-		// Calculate performance score
-		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id );
+		// Calculate performance score using attributed order total
+		$performance_score = self::calculate_performance_score( $total_orders, $attributed_order_total, $avg_order_value, $user_id );
 
 		// Get previous period for growth calculation (with same filtering)
 		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
@@ -4560,18 +4540,24 @@ class WC_Team_Payroll_MyAccount {
 		$total_commission = 0;
 		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
+		$attributed_order_total = 0;
 
 		foreach ( $filtered_orders as $order_data ) {
 			$total_earnings += $order_data['earnings'];
 			$total_commission += $order_data['commission'];
 			$total_order_value += $order_data['total'];
+			
+			// Add attributed order value
+			if ( isset( $order_data['attributed_value'] ) ) {
+				$attributed_order_total += $order_data['attributed_value'];
+			}
 		}
 
 		$avg_per_order = $total_orders > 0 ? $total_earnings / $total_orders : 0;
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 
-		// Calculate performance score
-		$performance_score = self::calculate_performance_score( $total_orders, $total_earnings, $avg_order_value, $user_id );
+		// Calculate performance score using attributed order total
+		$performance_score = self::calculate_performance_score( $total_orders, $attributed_order_total, $avg_order_value, $user_id );
 
 		// Get previous period for growth calculation (with same filtering)
 		$prev_date_range = self::get_previous_period_range( $start_date, $end_date );
@@ -5261,8 +5247,14 @@ class WC_Team_Payroll_MyAccount {
 
 	/**
 	 * Helper: Calculate performance score using role-based configuration
+	 * 
+	 * @param int $orders Number of orders
+	 * @param float $attributed_order_total Sum of attributed order values (based on agent/processor %)
+	 * @param float $avg_order_value Average order value
+	 * @param int $user_id User ID
+	 * @return float Performance score (0-10)
 	 */
-	private static function calculate_performance_score( $orders, $earnings, $avg_order_value, $user_id = null ) {
+	private static function calculate_performance_score( $orders, $attributed_order_total, $avg_order_value, $user_id = null ) {
 		// Get performance configuration
 		$performance_config = get_option( 'wc_tp_performance_config', array() );
 		
@@ -5275,8 +5267,11 @@ class WC_Team_Payroll_MyAccount {
 		if ( $user_id ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( $user && isset( $user->roles ) && is_array( $user->roles ) ) {
-				// Get configured employee roles
-				$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+				// Get configured employee roles from WooCommerce settings
+				$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+				$employee_roles = isset( $checkout_fields['agent_user_roles'] ) && is_array( $checkout_fields['agent_user_roles'] ) 
+					? $checkout_fields['agent_user_roles'] 
+					: array( 'shop_employee', 'shop_manager', 'administrator' );
 				
 				// Get the first role that is both an employee role AND has performance config
 				foreach ( $user->roles as $role ) {
@@ -5290,7 +5285,7 @@ class WC_Team_Payroll_MyAccount {
 
 		// If no role found or no user_id provided, use default calculation
 		if ( ! $user_role || ! isset( $performance_config['roles'][ $user_role ] ) ) {
-			// Fallback to default calculation
+			// Fallback to default calculation using attributed order total
 			// Orders factor (max +2)
 			if ( $orders >= 50 ) {
 				$score += 2;
@@ -5300,12 +5295,12 @@ class WC_Team_Payroll_MyAccount {
 				$score += 1;
 			}
 
-			// Earnings factor (max +2)
-			if ( $earnings >= 5000 ) {
+			// Attributed order total factor (max +2)
+			if ( $attributed_order_total >= 5000 ) {
 				$score += 2;
-			} elseif ( $earnings >= 2000 ) {
+			} elseif ( $attributed_order_total >= 2000 ) {
 				$score += 1.5;
-			} elseif ( $earnings >= 500 ) {
+			} elseif ( $attributed_order_total >= 500 ) {
 				$score += 1;
 			}
 
@@ -5323,10 +5318,10 @@ class WC_Team_Payroll_MyAccount {
 		// Get role-specific configuration
 		$role_config = $performance_config['roles'][ $user_role ];
 
-		// Apply earnings ranges
+		// Apply earnings ranges (using attributed order total)
 		if ( isset( $role_config['earnings_ranges'] ) && is_array( $role_config['earnings_ranges'] ) ) {
 			foreach ( $role_config['earnings_ranges'] as $range ) {
-				if ( $earnings >= $range['min'] && $earnings <= $range['max'] ) {
+				if ( $attributed_order_total >= $range['min'] && $attributed_order_total <= $range['max'] ) {
 					$score += floatval( $range['points'] );
 					break;
 				}

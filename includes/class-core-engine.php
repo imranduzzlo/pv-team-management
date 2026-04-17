@@ -57,6 +57,9 @@ class WC_Team_Payroll_Core_Engine {
 		$processor_percentage = isset( $settings['processor_percentage'] ) ? floatval( $settings['processor_percentage'] ) : 30;
 		$commission_field_name = isset( $settings['commission_field_name'] ) ? $settings['commission_field_name'] : 'team_commission';
 
+		// Get order total for attributed value calculation
+		$order_total = floatval( $order->get_total() );
+
 		$commission_data = array(
 			'order_id'       => $order->get_id(),
 			'agent_id'       => $agent_id,
@@ -65,6 +68,9 @@ class WC_Team_Payroll_Core_Engine {
 			'total_commission' => 0,
 			'agent_earnings' => 0,
 			'processor_earnings' => 0,
+			'agent_order_value' => ( $order_total * $agent_percentage ) / 100, // Agent's attributed order value
+			'processor_order_value' => ( $order_total * $processor_percentage ) / 100, // Processor's attributed order value
+			'order_total'    => $order_total, // Store full order total for reference
 			'calculated_at'  => current_time( 'mysql' ),
 		);
 
@@ -304,16 +310,21 @@ class WC_Team_Payroll_Core_Engine {
 
 			$user_earnings = 0;
 			$role = null;
+			$attributed_value = 0;
 
 			if ( intval( $agent_id ) === intval( $user_id ) ) {
 				$user_earnings = $commission_data['agent_earnings'];
 				$role = 'agent';
+				// Get agent's attributed order value (their % of order total)
+				$attributed_value = isset( $commission_data['agent_order_value'] ) ? $commission_data['agent_order_value'] : 0;
 			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
 				$user_earnings = $commission_data['processor_earnings'];
 				$role = 'processor';
+				// Get processor's attributed order value (their % of order total)
+				$attributed_value = isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0;
 			}
 
-			if ( $user_earnings > 0 ) {
+			if ( $user_earnings > 0 || $attributed_value > 0 ) {
 				$total_earnings += $user_earnings;
 				$orders_data[] = array(
 					'order_id'  => $order->get_id(),
@@ -322,6 +333,7 @@ class WC_Team_Payroll_Core_Engine {
 					'commission' => $commission_data['total_commission'],
 					'earnings'  => $user_earnings,
 					'role'      => $role,
+					'attributed_value' => $attributed_value, // User's attributed portion of order total
 				);
 			}
 		}

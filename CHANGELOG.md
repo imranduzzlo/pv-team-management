@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.55] - 2026-04-17
+### Reports Page Enhancements & Performance Score Improvements
+- **FEATURE**: Performance Score now uses attributed order values based on agent/processor commission split
+- **FEATURE**: Added `agent_order_value` and `processor_order_value` to commission data for accurate performance tracking
+- **FEATURE**: Performance score respects commission calculation statuses from settings
+- **ENHANCEMENT**: Total Earnings KPI now uses actual salary transactions instead of calculated estimates
+- **ENHANCEMENT**: Order status filter now only shows commission calculation statuses from settings
+- **ENHANCEMENT**: Commission KPI card follows selected filter status dynamically
+- **ENHANCEMENT**: Reports KPI grid changed to 2-column layout for better visual organization
+- **FIX**: Removed "Orders Processed" and "Avg Order Value" KPI cards as requested
+- **FIX**: Fixed KPI cards infinite loading issue caused by undefined salary type variables
+- **FIX**: Updated drill-down modals to work with remaining 4 KPI cards
+- **FIX**: Performance score now uses attributed order totals (agent 70%, processor 30%) for earnings ranges
+- **TECHNICAL**: Updated `calculate_commission()` to store attributed order values in commission_data
+- **TECHNICAL**: Enhanced `get_user_earnings()` to return attributed_value for each order
+- **TECHNICAL**: Updated `calculate_performance_score()` to use attributed_order_total parameter
+- **TECHNICAL**: All AJAX handlers now calculate and use attributed order totals
+- **UI**: KPI grid now displays 2 columns on desktop and mobile for cleaner layout
+- **UI**: Neutral change indicators now show meaningful data (order count) instead of "No change"
+
 ## [1.0.54] - 2026-04-17
 ### Performance Settings Employee Roles Integration
 - **FEATURE**: Performance Settings now respects Employee User Roles configuration

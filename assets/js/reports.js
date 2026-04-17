@@ -197,13 +197,6 @@ jQuery(document).ready(function($) {
 				value: $('[data-card-type="my_commission"] .reports-kpi-value').html() || '$0.00',
 				orders: parseInt($('[data-card-type="my_commission"] .reports-kpi-change').text()) || 0
 			},
-			my_orders: {
-				value: parseInt($('[data-card-type="my_orders"] .reports-kpi-value').text()) || 0
-			},
-			my_average_order_value: {
-				value: $('[data-card-type="my_average_order_value"] .reports-kpi-value').html() || '$0.00',
-				avgCommission: $('[data-card-type="my_average_order_value"] .reports-kpi-change').html() || '$0.00'
-			},
 			my_performance_score: {
 				value: parseFloat($('[data-card-type="my_performance_score"] .reports-kpi-value').text()) || 0
 			}
@@ -327,88 +320,6 @@ jQuery(document).ready(function($) {
 				`;
 				break;
 
-			case 'my_orders':
-				content = `
-					<div class="drill-down-content">
-						<div class="drill-down-section">
-							<h4>Order Statistics</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Total Orders</span>
-									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Period</span>
-									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Status Filter</span>
-									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
-								</div>
-							</div>
-						</div>
-						<div class="drill-down-section">
-							<h4>Order Filters Applied</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Date Range</span>
-									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Order Status</span>
-									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Role</span>
-									<span class="breakdown-value">${filters.role || 'All'}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				break;
-
-			case 'my_average_order_value':
-				content = `
-					<div class="drill-down-content">
-						<div class="drill-down-section">
-							<h4>Average Order Value Analysis</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Average Order Value</span>
-									<span class="breakdown-value">${kpiCards.my_average_order_value.value}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Average Commission</span>
-									<span class="breakdown-value">${kpiCards.my_average_order_value.avgCommission}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Total Orders</span>
-									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
-								</div>
-							</div>
-						</div>
-						<div class="drill-down-section">
-							<h4>AOV Filters Applied</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Date Range</span>
-									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Order Status</span>
-									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Role</span>
-									<span class="breakdown-value">${filters.role || 'All'}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				break;
-
 			case 'my_performance_score':
 				content = `
 					<div class="drill-down-content">
@@ -421,15 +332,15 @@ jQuery(document).ready(function($) {
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Total Orders</span>
-									<span class="breakdown-value">${kpiCards.my_orders.value}</span>
+									<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Total Earnings</span>
 									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
 								</div>
 								<div class="breakdown-item">
-									<span class="breakdown-label">Average Order Value</span>
-									<span class="breakdown-value">${kpiCards.my_average_order_value.value}</span>
+									<span class="breakdown-label">Commission Earned</span>
+									<span class="breakdown-value">${kpiCards.my_commission.value}</span>
 								</div>
 							</div>
 						</div>
@@ -438,7 +349,11 @@ jQuery(document).ready(function($) {
 							<div class="breakdown-items">
 								<div class="breakdown-item">
 									<span class="breakdown-label">Calculation Method</span>
-									<span class="breakdown-value">Role-based configuration</span>
+									<span class="breakdown-value">Role-based configuration from Performance Settings</span>
+								</div>
+								<div class="breakdown-item">
+									<span class="breakdown-label">Based On</span>
+									<span class="breakdown-value">Attributed order totals, order count, and AOV</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Filters Applied</span>

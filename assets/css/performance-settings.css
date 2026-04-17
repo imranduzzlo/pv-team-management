@@ -368,6 +368,19 @@
 		margin-left: 0;
 		width: 100%;
 	}
+
+	.wc-tp-date-range-inputs {
+		flex-direction: column !important;
+		gap: 10px !important;
+	}
+
+	.wc-tp-date-range-inputs > div {
+		width: 100%;
+	}
+
+	.wc-tp-date-range-inputs input[type="date"] {
+		width: 100%;
+	}
 }
 
 /* Coming Soon State */
@@ -388,6 +401,39 @@
 	margin: 10px 0 0;
 }
 
+/* Date Range Inputs */
+.wc-tp-date-range-inputs {
+	display: flex;
+	gap: 15px;
+	align-items: flex-end;
+	flex-wrap: wrap;
+}
+
+.wc-tp-date-range-inputs > div {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wc-tp-date-range-inputs label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-date-range-inputs input[type="date"] {
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	transition: border-color 0.2s ease;
+}
+
+.wc-tp-date-range-inputs input[type="date"]:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
 
 /* Range Row Enhancements */
 .wc-tp-range-currency {
@@ -1542,4 +1588,166 @@
 	font-size: 12px;
 	color: #646970;
 	line-height: 1.5;
+}
+
+/* ============================================================================
+   FORMULA TESTER STYLING
+   ============================================================================ */
+
+.wc-tp-formula-tester {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.wc-tp-formula-inputs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
+	align-items: flex-end;
+	padding: 20px;
+	background: #f6f7f7;
+	border-radius: 4px;
+}
+
+.wc-tp-formula-input-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wc-tp-formula-input-group label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wc-tp-formula-input-group input {
+	width: 140px;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	transition: border-color 0.2s ease;
+}
+
+.wc-tp-formula-input-group input:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+#wc-tp-test-formula {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 20px;
+	font-size: 14px;
+	height: auto;
+}
+
+.wc-tp-formula-result {
+	background: #f0f6fc;
+	border: 1px solid #c3d7ee;
+	border-radius: 4px;
+	padding: 20px;
+	animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.wc-tp-formula-breakdown {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.wc-tp-formula-breakdown h5 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 2px solid #2271b1;
+	padding-bottom: 8px;
+}
+
+.wc-tp-formula-steps {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	background: #fff;
+	padding: 15px;
+	border-radius: 4px;
+	border-left: 4px solid #2271b1;
+}
+
+.wc-tp-formula-step {
+	font-size: 13px;
+	color: #1d2327;
+	font-family: 'Courier New', monospace;
+	padding: 6px 0;
+	border-bottom: 1px solid #e9ecef;
+	line-height: 1.6;
+}
+
+.wc-tp-formula-step:last-child {
+	border-bottom: none;
+}
+
+.wc-tp-formula-final {
+	background: linear-gradient(135deg, #f0f6fc 0%, #e8f1f8 100%);
+	padding: 20px;
+	border-radius: 4px;
+	border: 2px solid #2271b1;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.wc-tp-formula-final strong {
+	font-size: 14px;
+	color: #1d2327;
+}
+
+#formula_final_score {
+	font-size: 32px;
+	font-weight: 700;
+	color: #2271b1;
+	font-family: 'Courier New', monospace;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+	.wc-tp-formula-inputs {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wc-tp-formula-input-group input {
+		width: 100%;
+	}
+
+	#wc-tp-test-formula {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.wc-tp-formula-final {
+		flex-direction: column;
+		gap: 10px;
+		text-align: center;
+	}
+
+	#formula_final_score {
+		font-size: 28px;
+	}
 }

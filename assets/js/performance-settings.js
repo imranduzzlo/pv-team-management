@@ -7,6 +7,12 @@
 jQuery(document).ready(function($) {
 	'use strict';
 
+	// Debug: Check if elements exist
+	console.log('Performance Settings JS loaded');
+	console.log('Goals role selector exists:', $('#wc-tp-goals-role-selector').length);
+	console.log('Achievements role selector exists:', $('#wc-tp-achievements-role-selector').length);
+	console.log('wcTpPerformance object:', wcTpPerformance);
+
 	// Navigation tabs
 	$('.wc-tp-perf-nav-tab').on('click', function(e) {
 		e.preventDefault(); // Prevent form submission
@@ -19,6 +25,27 @@ jQuery(document).ready(function($) {
 		// Show corresponding section
 		$('.wc-tp-perf-section').removeClass('active');
 		$('#wc-tp-perf-' + section).addClass('active');
+	});
+
+	// Calculation Period toggle for custom date range
+	$(document).on('change', '#calc_period_type', function() {
+		const selectedValue = $(this).val();
+		
+		// Hide all conditional rows
+		$('.wc-tp-calc-option').hide();
+		
+		// Show the row for the selected period type
+		if (selectedValue === 'custom_range') {
+			$('.wc-tp-calc-option[data-show-for="custom_range"]').show();
+		}
+	});
+
+	// Initialize calculation period toggle on page load
+	$(document).ready(function() {
+		const currentPeriod = $('#calc_period_type').val();
+		if (currentPeriod === 'custom_range') {
+			$('.wc-tp-calc-option[data-show-for="custom_range"]').show();
+		}
 	});
 
 	// Role selector change
@@ -256,6 +283,17 @@ jQuery(document).ready(function($) {
 						console.error('Error collecting baselines config:', e);
 					}
 					break;
+				case 'calculation':
+					try {
+						const calculationConfig = collectCalculationConfigurationData();
+						console.log('Calculation config collected:', calculationConfig);
+						if (calculationConfig && Object.keys(calculationConfig).length > 0) {
+							savePromises.push(saveCalculationConfig(calculationConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting calculation config:', e);
+					}
+					break;
 			}
 			
 			console.log('Total save promises:', savePromises.length);
@@ -380,6 +418,22 @@ jQuery(document).ready(function($) {
 			return { success: response.success, message: response.data ? response.data.message : 'Baselines config saved' };
 		}).catch(function(xhr) {
 			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving baselines config' };
+		});
+	}
+
+	function saveCalculationConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_calculation_config',
+				nonce: wcTpPerformance.nonce,
+				config: config
+			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'Calculation config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving calculation config' };
 		});
 	}
 
@@ -575,7 +629,6 @@ jQuery(document).ready(function($) {
 		// Scroll to top
 		$('html, body').animate({ scrollTop: 0 }, 300);
 	}
-});
 
 	// ============================================================================
 	// GOALS & TARGETS FUNCTIONALITY
@@ -584,6 +637,7 @@ jQuery(document).ready(function($) {
 	// Goals role selector change
 	$('#wc-tp-goals-role-selector').on('change', function() {
 		const role = $(this).val();
+		console.log('Goals role selector changed to:', role);
 		
 		if (!role) {
 			$('#wc-tp-goals-config-container').html(
@@ -597,6 +651,386 @@ jQuery(document).ready(function($) {
 
 		loadRoleGoals(role);
 	});
+
+	// Load role goals via AJAX
+	function loadRoleGoals(role) {
+		console.log('Loading goals for role:', role);
+		$('#wc-tp-goals-config-container').html(
+			'<div class="wc-tp-loading">' +
+			'<span class="spinner is-active"></span>' +
+			'<p>Loading goals configuration...</p>' +
+			'</div>'
+		);
+
+		$.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_get_role_goals',
+				nonce: wcTpPerformance.nonce,
+				role: role
+			},
+			success: function(response) {
+				console.log('Goals AJAX response:', response);
+				if (response.success) {
+					$('#wc-tp-goals-config-container').html(response.data.html);
+					initializeGoalsControls();
+				} else {
+					showMessage('error', response.data.message || 'Error loading goals configuration');
+				}
+			},
+			error: function(xhr, status, error) {
+				console.error('Goals AJAX error:', xhr, status, error);
+				showMessage('error', 'AJAX error occurred');
+			}
+		});
+	}
+
+	// Initialize goals controls
+	function initializeGoalsControls() {
+		// Preview goals button
+		$(document).on('click', '.wc-tp-preview-goals', function() {
+			previewGoalProgress();
+		});
+	}
+
+	// Clone goals configuration
+	$('#wc-tp-clone-goals-role').on('click', function() {
+		const currentRole = $('#wc-tp-goals-role-selector').val();
+		
+		if (!currentRole) {
+			alert('Please select a role first');
+			return;
+		}
+
+		// Show dialog to select source role
+		const allRoles = [];
+		$('#wc-tp-goals-role-selector option').each(function() {
+			if ($(this).val() && $(this).val() !== currentRole) {
+				allRoles.push({
+					value: $(this).val(),
+					text: $(this).text()
+				});
+			}
+		});
+
+		if (allRoles.length === 0) {
+			alert('No other roles available to clone from');
+			return;
+		}
+
+		const sourceRole = prompt('Enter the role name to clone from:\n\n' + allRoles.map(r => r.text).join('\n'));
+		
+		if (sourceRole) {
+			cloneRoleGoals(sourceRole, currentRole);
+		}
+	});
+
+	// Clone role goals via AJAX
+	function cloneRoleGoals(fromRole, toRole) {
+		$.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_clone_role_goals',
+				nonce: wcTpPerformance.nonce,
+				from_role: fromRole,
+				to_role: toRole
+			},
+			success: function(response) {
+				if (response.success) {
+					showMessage('success', response.data.message);
+					loadRoleGoals(toRole);
+				} else {
+					showMessage('error', response.data.message || 'Error cloning goals configuration');
+				}
+			},
+			error: function() {
+				showMessage('error', 'AJAX error occurred');
+			}
+		});
+	}
+
+	// Reset goals role configuration
+	$('#wc-tp-reset-goals-role').on('click', function() {
+		const currentRole = $('#wc-tp-goals-role-selector').val();
+		
+		if (!currentRole) {
+			alert('Please select a role first');
+			return;
+		}
+
+		if (confirm('Are you sure you want to reset this role goals configuration to default values?')) {
+			showMessage('success', 'Role goals configuration reset to defaults');
+			loadRoleGoals(currentRole);
+		}
+	});
+
+	// Collect goals configuration data
+	function collectGoalsConfigurationData() {
+		const config = {
+			period: $('#goals_period').val(),
+			display_mode: $('#goals_display_mode').val(),
+			show_stretch: $('#goals_show_stretch').is(':checked') ? 1 : 0,
+			roles: {}
+		};
+
+		// Get current role being configured
+		const currentRole = $('.wc-tp-role-goals-form').data('role');
+		
+		if (currentRole) {
+			config.roles[currentRole] = {
+				earnings: {
+					minimum: parseFloat($('input[name="earnings_minimum"]').val()) || 0,
+					target: parseFloat($('input[name="earnings_target"]').val()) || 0,
+					stretch: parseFloat($('input[name="earnings_stretch"]').val()) || 0
+				},
+				orders: {
+					minimum: parseInt($('input[name="orders_minimum"]').val()) || 0,
+					target: parseInt($('input[name="orders_target"]').val()) || 0,
+					stretch: parseInt($('input[name="orders_stretch"]').val()) || 0
+				},
+				aov: {
+					minimum: parseFloat($('input[name="aov_minimum"]').val()) || 0,
+					target: parseFloat($('input[name="aov_target"]').val()) || 0,
+					stretch: parseFloat($('input[name="aov_stretch"]').val()) || 0
+				}
+			};
+		}
+
+		return config;
+	}
+
+	// Preview goal progress
+	function previewGoalProgress() {
+		const currentEarnings = parseFloat($('.wc-tp-preview-goal-earnings').val()) || 0;
+		const currentOrders = parseInt($('.wc-tp-preview-goal-orders').val()) || 0;
+		const currentAov = parseFloat($('.wc-tp-preview-goal-aov').val()) || 0;
+
+		const earningsTarget = parseFloat($('input[name="earnings_target"]').val()) || 0;
+		const ordersTarget = parseInt($('input[name="orders_target"]').val()) || 0;
+		const aovTarget = parseFloat($('input[name="aov_target"]').val()) || 0;
+
+		// Get currency symbol from localized data
+		const currencySymbol = wcTpPerformance.currency_symbol || '$';
+
+		// Calculate percentages
+		const earningsPercentage = earningsTarget > 0 ? Math.min((currentEarnings / earningsTarget) * 100, 100) : 0;
+		const ordersPercentage = ordersTarget > 0 ? Math.min((currentOrders / ordersTarget) * 100, 100) : 0;
+		const aovPercentage = aovTarget > 0 ? Math.min((currentAov / aovTarget) * 100, 100) : 0;
+
+		// Update earnings progress
+		$('#preview-earnings-progress').css('width', earningsPercentage + '%');
+		$('#preview-earnings-current').text(currencySymbol + currentEarnings.toFixed(2));
+		$('#preview-earnings-target').text('/ ' + currencySymbol + earningsTarget.toFixed(2));
+		$('#preview-earnings-percentage').text(earningsPercentage.toFixed(1) + '%');
+
+		// Update orders progress
+		$('#preview-orders-progress').css('width', ordersPercentage + '%');
+		$('#preview-orders-current').text(currentOrders);
+		$('#preview-orders-target').text('/ ' + ordersTarget);
+		$('#preview-orders-percentage').text(ordersPercentage.toFixed(1) + '%');
+
+		// Update AOV progress
+		$('#preview-aov-progress').css('width', aovPercentage + '%');
+		$('#preview-aov-current').text(currencySymbol + currentAov.toFixed(2));
+		$('#preview-aov-target').text('/ ' + currencySymbol + aovTarget.toFixed(2));
+		$('#preview-aov-percentage').text(aovPercentage.toFixed(1) + '%');
+
+		// Show results
+		$('.wc-tp-goal-preview-result').slideDown(300);
+	}
+
+	// ============================================================================
+	// ACHIEVEMENTS FUNCTIONALITY
+	// ============================================================================
+
+	// Achievements role selector change
+	$('#wc-tp-achievements-role-selector').on('change', function() {
+		const role = $(this).val();
+		
+		if (!role) {
+			$('#wc-tp-achievements-config-container').html(
+				'<div class="wc-tp-empty-state">' +
+				'<span class="dashicons dashicons-awards"></span>' +
+				'<p>Select an employee role above to configure achievements and badges.</p>' +
+				'</div>'
+			);
+			return;
+		}
+
+		loadRoleAchievements(role);
+	});
+
+	// Load role achievements via AJAX
+	function loadRoleAchievements(role) {
+		$('#wc-tp-achievements-config-container').html(
+			'<div class="wc-tp-loading">' +
+			'<span class="spinner is-active"></span>' +
+			'<p>Loading achievements configuration...</p>' +
+			'</div>'
+		);
+
+		$.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_get_role_achievements',
+				nonce: wcTpPerformance.nonce,
+				role: role
+			},
+			success: function(response) {
+				if (response.success) {
+					$('#wc-tp-achievements-config-container').html(response.data.html);
+				} else {
+					showMessage('error', response.data.message || 'Error loading achievements configuration');
+				}
+			},
+			error: function() {
+				showMessage('error', 'AJAX error occurred');
+			}
+		});
+	}
+
+	// Clone achievements configuration
+	$('#wc-tp-clone-achievements-role').on('click', function() {
+		const currentRole = $('#wc-tp-achievements-role-selector').val();
+		
+		if (!currentRole) {
+			alert('Please select a role first');
+			return;
+		}
+
+		// Show dialog to select source role
+		const allRoles = [];
+		$('#wc-tp-achievements-role-selector option').each(function() {
+			if ($(this).val() && $(this).val() !== currentRole) {
+				allRoles.push({
+					value: $(this).val(),
+					text: $(this).text()
+				});
+			}
+		});
+
+		if (allRoles.length === 0) {
+			alert('No other roles available to clone from');
+			return;
+		}
+
+		const sourceRole = prompt('Enter the role name to clone from:\n\n' + allRoles.map(r => r.text).join('\n'));
+		
+		if (sourceRole) {
+			cloneRoleAchievements(sourceRole, currentRole);
+		}
+	});
+
+	// Clone role achievements via AJAX
+	function cloneRoleAchievements(fromRole, toRole) {
+		$.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_clone_role_achievements',
+				nonce: wcTpPerformance.nonce,
+				from_role: fromRole,
+				to_role: toRole
+			},
+			success: function(response) {
+				if (response.success) {
+					showMessage('success', response.data.message);
+					loadRoleAchievements(toRole);
+				} else {
+					showMessage('error', response.data.message || 'Error cloning achievements configuration');
+				}
+			},
+			error: function() {
+				showMessage('error', 'AJAX error occurred');
+			}
+		});
+	}
+
+	// Reset achievements role configuration
+	$('#wc-tp-reset-achievements-role').on('click', function() {
+		const currentRole = $('#wc-tp-achievements-role-selector').val();
+		
+		if (!currentRole) {
+			alert('Please select a role first');
+			return;
+		}
+
+		if (confirm('Are you sure you want to reset this role achievements configuration to default values?')) {
+			showMessage('success', 'Role achievements configuration reset to defaults');
+			loadRoleAchievements(currentRole);
+		}
+	});
+
+	// Save achievements configuration (integrated with main save button)
+	function saveAchievementsConfiguration() {
+		const achievementsConfig = collectAchievementsConfigurationData();
+
+		$.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_achievements_config',
+				nonce: wcTpPerformance.nonce,
+				config: achievementsConfig
+			},
+			success: function(response) {
+				if (response.success) {
+					showMessage('success', 'Achievements configuration saved successfully!');
+				} else {
+					showMessage('error', response.data.message || 'Error saving achievements configuration');
+				}
+			},
+			error: function() {
+				showMessage('error', 'AJAX error occurred while saving achievements');
+			}
+		});
+	}
+
+	// Collect achievements configuration data
+	function collectAchievementsConfigurationData() {
+		const config = {
+			enabled: $('#achievements_enabled').is(':checked') ? 1 : 0,
+			display_style: $('#achievements_display_style').val(),
+			show_locked: $('#achievements_show_locked').is(':checked') ? 1 : 0,
+			notification: $('#achievements_notification').is(':checked') ? 1 : 0,
+			roles: {}
+		};
+
+		// Get current role being configured
+		const currentRole = $('.wc-tp-role-achievements-form').data('role');
+		
+		if (currentRole) {
+			config.roles[currentRole] = {};
+			
+			const categories = ['earnings', 'orders', 'aov'];
+			const tiers = ['bronze', 'silver', 'gold'];
+			
+			categories.forEach(function(category) {
+				tiers.forEach(function(tier) {
+					const key = category + '_' + tier;
+					const nameField = $('input[name="achievement_' + category + '_' + tier + '_name"]');
+					const descField = $('textarea[name="achievement_' + category + '_' + tier + '_description"]');
+					const thresholdField = $('input[name="achievement_' + category + '_' + tier + '_threshold"]');
+					const iconField = $('select[name="achievement_' + category + '_' + tier + '_icon"]');
+					
+					if (nameField.length) {
+						config.roles[currentRole][key] = {
+							name: nameField.val(),
+							description: descField.val(),
+							threshold: category === 'orders' ? parseInt(thresholdField.val()) || 0 : parseFloat(thresholdField.val()) || 0,
+							tier: tier,
+							icon: iconField.val()
+						};
+					}
+				});
+			});
+		}
+
+		return config;
+	}
 
 	// Load role goals via AJAX
 	function loadRoleGoals(role) {
@@ -761,8 +1195,8 @@ jQuery(document).ready(function($) {
 
 		// Update earnings progress
 		$('#preview-earnings-progress').css('width', earningsPercentage + '%');
-		$('#preview-earnings-current').text('$' + currentEarnings.toFixed(2));
-		$('#preview-earnings-target').text('/ $' + earningsTarget.toFixed(2));
+		$('#preview-earnings-current').text(wcTpPerformance.currency_symbol + currentEarnings.toFixed(2));
+		$('#preview-earnings-target').text('/ ' + wcTpPerformance.currency_symbol + earningsTarget.toFixed(2));
 		$('#preview-earnings-percentage').text(earningsPercentage.toFixed(1) + '%');
 
 		// Update orders progress
@@ -773,8 +1207,8 @@ jQuery(document).ready(function($) {
 
 		// Update AOV progress
 		$('#preview-aov-progress').css('width', aovPercentage + '%');
-		$('#preview-aov-current').text('$' + currentAov.toFixed(2));
-		$('#preview-aov-target').text('/ $' + aovTarget.toFixed(2));
+		$('#preview-aov-current').text(wcTpPerformance.currency_symbol + currentAov.toFixed(2));
+		$('#preview-aov-target').text('/ ' + wcTpPerformance.currency_symbol + aovTarget.toFixed(2));
 		$('#preview-aov-percentage').text(aovPercentage.toFixed(1) + '%');
 
 		// Show results
@@ -991,6 +1425,27 @@ jQuery(document).ready(function($) {
 		return config;
 	}
 
+	// Collect calculation configuration data
+	function collectCalculationConfigurationData() {
+		const config = {
+			score_method: $('#calc_score_method').val(),
+			weight_earnings: parseInt($('#calc_weight_earnings').val()) || 40,
+			weight_orders: parseInt($('#calc_weight_orders').val()) || 35,
+			weight_aov: parseInt($('#calc_weight_aov').val()) || 25,
+			score_cap: parseFloat($('#calc_score_cap').val()) || 10,
+			rounding: $('#calc_rounding').val(),
+			period_type: $('#calc_period_type').val(),
+			custom_start_date: $('#calc_custom_start_date').val() || '',
+			custom_end_date: $('#calc_custom_end_date').val() || '',
+			revenue_attribution: $('#calc_revenue_attribution').val(),
+			exclude_refunds: $('#calc_exclude_refunds').is(':checked') ? 1 : 0,
+			aov_method: $('#calc_aov_method').val(),
+			custom_formula: $('#calc_custom_formula').val()
+		};
+		
+		return config;
+	}
+
 	// Show/hide baseline options based on method
 	$('#baseline_method').on('change', function() {
 		const method = $(this).val();
@@ -1000,6 +1455,17 @@ jQuery(document).ready(function($) {
 		
 		// Show relevant options
 		$('.wc-tp-baseline-option[data-show-for="' + method + '"]').show();
+	}).trigger('change');
+
+	// Show/hide calculation options based on method
+	$('#calc_score_method').on('change', function() {
+		const method = $(this).val();
+		
+		// Hide all calculation options first
+		$('.wc-tp-calc-option').hide();
+		
+		// Show relevant options
+		$('.wc-tp-calc-option[data-show-for="' + method + '"]').show();
 	}).trigger('change');
 
 	// Calculate baseline preview
@@ -1121,4 +1587,132 @@ jQuery(document).ready(function($) {
 		});
 	}
 
+});
 
+	// ============================================================================
+	// FORMULA TESTER
+	// ============================================================================
+
+	// Formula Tester - Calculate Score
+	$(document).on('click', '#wc-tp-test-formula', function() {
+		const baseScore = parseFloat($('#test_base_score').val()) || 0;
+		const earningsPoints = parseFloat($('#test_earnings_points').val()) || 0;
+		const ordersPoints = parseFloat($('#test_orders_points').val()) || 0;
+		const aovPoints = parseFloat($('#test_aov_points').val()) || 0;
+
+		// Get calculation settings
+		const scoreMethod = $('#calc_score_method').val() || 'additive';
+		const scoreCap = parseFloat($('#calc_score_cap').val()) || 10;
+		const rounding = $('#calc_rounding').val() || 'one_decimal';
+		const customFormula = $('#calc_custom_formula').val() || '';
+
+		// Get weights for weighted method
+		const weightEarnings = parseFloat($('#calc_weight_earnings').val()) || 40;
+		const weightOrders = parseFloat($('#calc_weight_orders').val()) || 35;
+		const weightAov = parseFloat($('#calc_weight_aov').val()) || 25;
+
+		let finalScore = 0;
+		let steps = [];
+
+		// Calculate based on method
+		switch (scoreMethod) {
+			case 'additive':
+				finalScore = baseScore + earningsPoints + ordersPoints + aovPoints;
+				steps.push('Base Score: ' + baseScore.toFixed(2));
+				steps.push('+ Earnings Points: ' + earningsPoints.toFixed(2));
+				steps.push('+ Orders Points: ' + ordersPoints.toFixed(2));
+				steps.push('+ AOV Points: ' + aovPoints.toFixed(2));
+				steps.push('= Subtotal: ' + finalScore.toFixed(2));
+				break;
+
+			case 'weighted':
+				const totalWeight = weightEarnings + weightOrders + weightAov;
+				const weightedScore = (earningsPoints * (weightEarnings / 100)) +
+									   (ordersPoints * (weightOrders / 100)) +
+									   (aovPoints * (weightAov / 100));
+				finalScore = baseScore + weightedScore;
+				steps.push('Base Score: ' + baseScore.toFixed(2));
+				steps.push('Earnings: ' + earningsPoints.toFixed(2) + ' × ' + (weightEarnings / 100).toFixed(2) + ' = ' + (earningsPoints * (weightEarnings / 100)).toFixed(2));
+				steps.push('Orders: ' + ordersPoints.toFixed(2) + ' × ' + (weightOrders / 100).toFixed(2) + ' = ' + (ordersPoints * (weightOrders / 100)).toFixed(2));
+				steps.push('AOV: ' + aovPoints.toFixed(2) + ' × ' + (weightAov / 100).toFixed(2) + ' = ' + (aovPoints * (weightAov / 100)).toFixed(2));
+				steps.push('= Subtotal: ' + finalScore.toFixed(2));
+				break;
+
+			case 'multiplicative':
+				finalScore = baseScore * (1 + (earningsPoints * 0.1)) * (1 + (ordersPoints * 0.1)) * (1 + (aovPoints * 0.1));
+				steps.push('Base Score: ' + baseScore.toFixed(2));
+				steps.push('× (1 + Earnings × 0.1): ' + (1 + (earningsPoints * 0.1)).toFixed(2));
+				steps.push('× (1 + Orders × 0.1): ' + (1 + (ordersPoints * 0.1)).toFixed(2));
+				steps.push('× (1 + AOV × 0.1): ' + (1 + (aovPoints * 0.1)).toFixed(2));
+				steps.push('= Subtotal: ' + finalScore.toFixed(2));
+				break;
+
+			case 'custom':
+				if (customFormula.trim() === '') {
+					alert('Please enter a custom formula');
+					return;
+				}
+				try {
+					// Replace variable names with actual values
+					let formula = customFormula
+						.replace(/\bbase\b/g, baseScore)
+						.replace(/\bearnings\b/g, earningsPoints)
+						.replace(/\borders\b/g, ordersPoints)
+						.replace(/\baov\b/g, aovPoints);
+
+					// Evaluate the formula (safe evaluation with limited scope)
+					finalScore = Function('"use strict"; return (' + formula + ')')();
+					steps.push('Formula: ' + customFormula);
+					steps.push('= Result: ' + finalScore.toFixed(2));
+				} catch (e) {
+					alert('Invalid formula: ' + e.message);
+					return;
+				}
+				break;
+
+			default:
+				finalScore = baseScore + earningsPoints + ordersPoints + aovPoints;
+		}
+
+		// Apply score cap
+		const cappedScore = Math.min(finalScore, scoreCap);
+		if (cappedScore !== finalScore) {
+			steps.push('Score Cap Applied: ' + scoreCap);
+			steps.push('Capped Score: ' + cappedScore.toFixed(2));
+		}
+
+		// Apply rounding
+		let roundedScore = cappedScore;
+		switch (rounding) {
+			case 'none':
+				roundedScore = cappedScore;
+				steps.push('Rounding: None');
+				break;
+			case 'one_decimal':
+				roundedScore = Math.round(cappedScore * 10) / 10;
+				steps.push('Rounding: One Decimal');
+				break;
+			case 'two_decimals':
+				roundedScore = Math.round(cappedScore * 100) / 100;
+				steps.push('Rounding: Two Decimals');
+				break;
+			case 'whole':
+				roundedScore = Math.round(cappedScore);
+				steps.push('Rounding: Whole Number');
+				break;
+		}
+
+		// Display results
+		let stepsHtml = '';
+		steps.forEach(function(step) {
+			stepsHtml += '<div class="wc-tp-formula-step">' + step + '</div>';
+		});
+
+		$('#formula_steps').html(stepsHtml);
+		$('#formula_final_score').text(roundedScore.toFixed(rounding === 'none' ? 3 : (rounding === 'two_decimals' ? 2 : (rounding === 'one_decimal' ? 1 : 0))));
+
+		// Show result
+		$('.wc-tp-formula-result').slideDown(300);
+	});
+
+});

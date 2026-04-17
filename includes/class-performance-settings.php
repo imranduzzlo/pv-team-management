@@ -99,6 +99,7 @@ class WC_Team_Payroll_Performance_Settings {
 			array(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'wc_tp_performance_nonce' ),
+				'currency_symbol' => get_woocommerce_currency_symbol(),
 				'strings'  => array(
 					'save_success' => __( 'Configuration saved successfully!', 'wc-team-payroll' ),
 					'save_error'   => __( 'Error saving configuration.', 'wc-team-payroll' ),
@@ -111,7 +112,7 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render performance settings tab content
 	 */
-	public static function render_performance_tab() {
+	public function render_performance_tab() {
 		?>
 		<div class="wc-tp-performance-settings-wrapper">
 			<h2><?php esc_html_e( 'Reports & Performance Configuration', 'wc-team-payroll' ); ?></h2>
@@ -149,32 +150,32 @@ class WC_Team_Payroll_Performance_Settings {
 
 			<!-- Section: Performance Scoring -->
 			<div class="wc-tp-perf-section active" id="wc-tp-perf-scoring">
-				<?php self::render_scoring_section(); ?>
+				<?php $this->render_scoring_section(); ?>
 			</div>
 
 			<!-- Section: Goals & Targets -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-goals">
-				<?php self::render_goals_section(); ?>
+				<?php $this->render_goals_section(); ?>
 			</div>
 
 			<!-- Section: Achievements -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-achievements">
-				<?php self::render_achievements_section(); ?>
+				<?php $this->render_achievements_section(); ?>
 			</div>
 
 			<!-- Section: Baselines -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-baselines">
-				<?php self::render_baselines_section(); ?>
+				<?php $this->render_baselines_section(); ?>
 			</div>
 
 			<!-- Section: Calculation Engine -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-calculation">
-				<?php self::render_calculation_section(); ?>
+				<?php $this->render_calculation_section(); ?>
 			</div>
 
 			<!-- Section: System Config -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-system">
-				<?php self::render_system_section(); ?>
+				<?php $this->render_system_section(); ?>
 			</div>
 
 			<!-- Save Button -->
@@ -203,9 +204,9 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render Performance Scoring Section
 	 */
-	private static function render_scoring_section() {
+	private function render_scoring_section() {
 		// Get employee roles from settings (only configured employee roles)
-		$all_roles = self::get_all_roles();
+		$all_roles = $this->get_all_roles();
 		$performance_config = get_option( 'wc_tp_performance_config', array() );
 		?>
 		<div class="wc-tp-perf-scoring-wrapper">
@@ -232,11 +233,12 @@ class WC_Team_Payroll_Performance_Settings {
 				<p class="description">
 					<?php esc_html_e( 'Configure performance scoring for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
 					<?php if ( empty( $all_roles ) ) : ?>
-						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce → Employee User Roles first.', 'wc-team-payroll' ); ?></strong>
 					<?php endif; ?>
 				</p>
 				<div class="wc-tp-role-selector-wrapper">
 					<label for="wc-tp-role-selector"><?php esc_html_e( 'Select Employee Role to Configure:', 'wc-team-payroll' ); ?></label>
+					
 					<select id="wc-tp-role-selector" class="wc-tp-role-selector" <?php echo empty( $all_roles ) ? 'disabled' : ''; ?>>
 						<option value=""><?php esc_html_e( '-- Select an Employee Role --', 'wc-team-payroll' ); ?></option>
 						<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
@@ -274,9 +276,9 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render Goals & Targets Section
 	 */
-	private static function render_goals_section() {
+	private function render_goals_section() {
 		// Get employee roles from settings (only configured employee roles)
-		$all_roles = self::get_all_roles();
+		$all_roles = $this->get_all_roles();
 		$goals_config = get_option( 'wc_tp_goals_config', array() );
 		?>
 		<div class="wc-tp-perf-goals-wrapper">
@@ -343,7 +345,7 @@ class WC_Team_Payroll_Performance_Settings {
 				<p class="description">
 					<?php esc_html_e( 'Set different goal targets for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
 					<?php if ( empty( $all_roles ) ) : ?>
-						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce → Employee User Roles first.', 'wc-team-payroll' ); ?></strong>
 					<?php endif; ?>
 				</p>
 				<div class="wc-tp-role-selector-wrapper">
@@ -385,9 +387,9 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render Achievements Section
 	 */
-	private static function render_achievements_section() {
+	private function render_achievements_section() {
 		// Get employee roles from settings (only configured employee roles)
-		$all_roles = self::get_all_roles();
+		$all_roles = $this->get_all_roles();
 		$achievements_config = get_option( 'wc_tp_achievements_config', array() );
 		?>
 		<div class="wc-tp-perf-achievements-wrapper">
@@ -448,7 +450,7 @@ class WC_Team_Payroll_Performance_Settings {
 				<p class="description">
 					<?php esc_html_e( 'Create role-specific achievements with different criteria for each employee role. Only roles configured in Settings → WooCommerce → Employee User Roles are shown here.', 'wc-team-payroll' ); ?>
 					<?php if ( empty( $all_roles ) ) : ?>
-						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce tab first.', 'wc-team-payroll' ); ?></strong>
+						<br><strong style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles in Settings → WooCommerce → Employee User Roles first.', 'wc-team-payroll' ); ?></strong>
 					<?php endif; ?>
 				</p>
 				<div class="wc-tp-role-selector-wrapper">
@@ -490,7 +492,7 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render Baselines Section
 	 */
-	private static function render_baselines_section() {
+	private function render_baselines_section() {
 		$baselines_config = get_option( 'wc_tp_baselines_config', array() );
 		?>
 		<div class="wc-tp-perf-baselines-wrapper">
@@ -746,7 +748,7 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render Calculation Engine Section
 	 */
-	private static function render_calculation_section() {
+	private function render_calculation_section() {
 		$calculation_config = get_option( 'wc_tp_calculation_config', array() );
 		?>
 		<div class="wc-tp-perf-calculation-wrapper">
@@ -777,6 +779,55 @@ class WC_Team_Payroll_Performance_Settings {
 								?>
 							</select>
 							<p class="description"><?php esc_html_e( 'How individual factors combine to create final score', 'wc-team-payroll' ); ?></p>
+						</td>
+					</tr>
+					
+					<tr class="wc-tp-calc-option" data-show-for="custom">
+						<th><label for="calc_custom_formula"><?php esc_html_e( 'Custom Formula', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<textarea id="calc_custom_formula" 
+									  name="calc_custom_formula" 
+									  rows="4" 
+									  class="wc-tp-calc-setting"
+									  placeholder="Example: (base * 0.5) + (earnings * 0.4) + (orders * 0.08) + (aov * 0.02)"
+									  style="width: 100%; font-family: monospace;"><?php echo esc_textarea( isset( $calculation_config['custom_formula'] ) ? $calculation_config['custom_formula'] : '' ); ?></textarea>
+							
+							<div class="wc-tp-formula-guide" style="margin-top: 12px; padding: 12px; background: #f0f6fc; border: 1px solid #c3dcf0; border-radius: 4px;">
+								<strong><?php esc_html_e( '📝 Formula Guide:', 'wc-team-payroll' ); ?></strong><br><br>
+								
+								<strong><?php esc_html_e( 'Available Variables:', 'wc-team-payroll' ); ?></strong>
+								<ul style="margin: 8px 0; padding-left: 20px;">
+									<li><code>base</code> - <?php esc_html_e( 'Base score (usually 5)', 'wc-team-payroll' ); ?></li>
+									<li><code>earnings</code> - <?php esc_html_e( 'Earnings performance points', 'wc-team-payroll' ); ?></li>
+									<li><code>orders</code> - <?php esc_html_e( 'Orders performance points', 'wc-team-payroll' ); ?></li>
+									<li><code>aov</code> - <?php esc_html_e( 'Average Order Value performance points', 'wc-team-payroll' ); ?></li>
+								</ul>
+								
+								<strong><?php esc_html_e( 'Supported Operators:', 'wc-team-payroll' ); ?></strong>
+								<ul style="margin: 8px 0; padding-left: 20px;">
+									<li><code>+</code> - <?php esc_html_e( 'Addition', 'wc-team-payroll' ); ?></li>
+									<li><code>-</code> - <?php esc_html_e( 'Subtraction', 'wc-team-payroll' ); ?></li>
+									<li><code>*</code> - <?php esc_html_e( 'Multiplication', 'wc-team-payroll' ); ?></li>
+									<li><code>/</code> - <?php esc_html_e( 'Division', 'wc-team-payroll' ); ?></li>
+									<li><code>( )</code> - <?php esc_html_e( 'Parentheses for grouping', 'wc-team-payroll' ); ?></li>
+								</ul>
+								
+								<strong><?php esc_html_e( 'Examples:', 'wc-team-payroll' ); ?></strong>
+								<ul style="margin: 8px 0; padding-left: 20px;">
+									<li><code>base + earnings + orders + aov</code> - <?php esc_html_e( 'Simple addition', 'wc-team-payroll' ); ?></li>
+									<li><code>(earnings * 0.4) + (orders * 0.35) + (aov * 0.25)</code> - <?php esc_html_e( 'Weighted average', 'wc-team-payroll' ); ?></li>
+									<li><code>base * (1 + earnings * 0.1) * (1 + orders * 0.05)</code> - <?php esc_html_e( 'Multiplicative', 'wc-team-payroll' ); ?></li>
+									<li><code>(earnings * 0.6) + (orders * 0.3) + (aov * 0.1)</code> - <?php esc_html_e( 'Sales-focused', 'wc-team-payroll' ); ?></li>
+								</ul>
+								
+								<strong style="color: #d63638;"><?php esc_html_e( '⚠️ Important:', 'wc-team-payroll' ); ?></strong>
+								<ul style="margin: 8px 0; padding-left: 20px; color: #d63638;">
+									<li><?php esc_html_e( 'Formula is case-sensitive (use lowercase variable names)', 'wc-team-payroll' ); ?></li>
+									<li><?php esc_html_e( 'Use * for multiplication (not x)', 'wc-team-payroll' ); ?></li>
+									<li><?php esc_html_e( 'Final score will be capped at the Score Cap value', 'wc-team-payroll' ); ?></li>
+									<li><?php esc_html_e( 'Invalid formulas will fall back to additive method', 'wc-team-payroll' ); ?></li>
+								</ul>
+							</div>
 						</td>
 					</tr>
 					
@@ -892,22 +943,80 @@ class WC_Team_Payroll_Performance_Settings {
 						</td>
 					</tr>
 					
-					<tr>
-						<th><label for="calc_order_status"><?php esc_html_e( 'Include Order Statuses', 'wc-team-payroll' ); ?></label></th>
+					<tr class="wc-tp-calc-option" data-show-for="custom_range" style="<?php echo $period === 'custom_range' ? '' : 'display: none;'; ?>">
+						<th><label><?php esc_html_e( 'Custom Date Range', 'wc-team-payroll' ); ?></label></th>
 						<td>
-							<?php
-							$included_statuses = isset( $calculation_config['order_statuses'] ) ? $calculation_config['order_statuses'] : array( 'completed', 'processing' );
-							$order_statuses = wc_get_order_statuses();
-							foreach ( $order_statuses as $status => $label ) {
-								$status_key = str_replace( 'wc-', '', $status );
-								$checked = in_array( $status_key, $included_statuses ) ? 'checked' : '';
-								echo '<label style="display: block; margin-bottom: 5px;">';
-								echo '<input type="checkbox" name="calc_order_status[]" value="' . esc_attr( $status_key ) . '" ' . $checked . ' class="wc-tp-calc-setting" /> ';
-								echo esc_html( $label );
-								echo '</label>';
-							}
-							?>
-							<p class="description"><?php esc_html_e( 'Which order statuses count toward metrics', 'wc-team-payroll' ); ?></p>
+							<div class="wc-tp-date-range-inputs" style="display: flex; gap: 15px; align-items: center;">
+								<div>
+									<label for="calc_custom_start_date" style="display: block; margin-bottom: 5px;"><?php esc_html_e( 'Start Date:', 'wc-team-payroll' ); ?></label>
+									<input type="date" 
+										   id="calc_custom_start_date" 
+										   name="calc_custom_start_date" 
+										   value="<?php echo esc_attr( isset( $calculation_config['custom_start_date'] ) ? $calculation_config['custom_start_date'] : '' ); ?>" 
+										   class="wc-tp-calc-setting" />
+								</div>
+								<div>
+									<label for="calc_custom_end_date" style="display: block; margin-bottom: 5px;"><?php esc_html_e( 'End Date:', 'wc-team-payroll' ); ?></label>
+									<input type="date" 
+										   id="calc_custom_end_date" 
+										   name="calc_custom_end_date" 
+										   value="<?php echo esc_attr( isset( $calculation_config['custom_end_date'] ) ? $calculation_config['custom_end_date'] : '' ); ?>" 
+										   class="wc-tp-calc-setting" />
+								</div>
+							</div>
+							<p class="description"><?php esc_html_e( 'Select the start and end dates for the custom calculation period.', 'wc-team-payroll' ); ?></p>
+						</td>
+					</tr>
+					
+					<tr>
+						<th><label for="calc_revenue_attribution"><?php esc_html_e( 'Revenue Attribution Method', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<select id="calc_revenue_attribution" name="calc_revenue_attribution" class="wc-tp-calc-setting">
+								<?php
+								$attribution_method = isset( $calculation_config['revenue_attribution'] ) ? $calculation_config['revenue_attribution'] : 'full';
+								$attribution_methods = array(
+									'full' => __( 'Full Order Value (No Split)', 'wc-team-payroll' ),
+									'commission_split' => __( 'Use Commission Split Percentages', 'wc-team-payroll' ),
+								);
+								foreach ( $attribution_methods as $value => $label ) {
+									echo '<option value="' . esc_attr( $value ) . '"' . selected( $attribution_method, $value, false ) . '>' . esc_html( $label ) . '</option>';
+								}
+								?>
+							</select>
+							<p class="description"><?php esc_html_e( 'How to attribute order values when multiple roles (Agent + Processor) are assigned to the same order.', 'wc-team-payroll' ); ?></p>
+							
+							<div class="wc-tp-attribution-explanation" style="margin-top: 10px; padding: 12px; background: #f0f6fc; border: 1px solid #c3dcf0; border-radius: 4px;">
+								<div class="wc-tp-attribution-option" data-method="full">
+									<strong><?php esc_html_e( '📊 Full Order Value:', 'wc-team-payroll' ); ?></strong><br>
+									<span style="color: #d63638;"><?php esc_html_e( '⚠️ Warning: May cause double-counting if same order has Agent + Processor', 'wc-team-payroll' ); ?></span><br>
+									<em><?php esc_html_e( 'Example: $1,000 order → Agent gets $1,000 credit + Processor gets $1,000 credit = $2,000 total (inflated)', 'wc-team-payroll' ); ?></em>
+								</div>
+								
+								<div class="wc-tp-attribution-option" data-method="commission_split" style="display: none;">
+									<strong><?php esc_html_e( '🎯 Commission Split Method:', 'wc-team-payroll' ); ?></strong><br>
+									<span style="color: #00a32a;"><?php esc_html_e( '✅ Prevents double-counting by using commission percentages', 'wc-team-payroll' ); ?></span><br>
+									<?php esc_html_e( 'Uses the same percentage splits configured in', 'wc-team-payroll' ); ?> 
+									<a href="?page=wc-team-payroll-settings&tab=commission" target="_blank" style="text-decoration: none;">
+										<strong><?php esc_html_e( 'Settings → Commission', 'wc-team-payroll' ); ?></strong>
+									</a><br>
+									<em><?php esc_html_e( 'Example: If Agent gets 70% commission and Processor gets 30%, then for $1,000 order → Agent gets $700 credit + Processor gets $300 credit = $1,000 total (accurate)', 'wc-team-payroll' ); ?></em>
+								</div>
+							</div>
+						</td>
+					</tr>
+					
+					<tr>
+						<th><label><?php esc_html_e( 'Order Statuses', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<p class="description">
+								<?php esc_html_e( 'Order statuses are configured in', 'wc-team-payroll' ); ?> 
+								<a href="?page=wc-team-payroll-settings&tab=woocommerce" target="_blank">
+									<?php esc_html_e( 'Settings → WooCommerce → Order Status Configuration', 'wc-team-payroll' ); ?>
+								</a>
+							</p>
+							<p class="description">
+								<?php esc_html_e( 'Only orders with the statuses selected in WooCommerce settings will count toward performance metrics.', 'wc-team-payroll' ); ?>
+							</p>
 						</td>
 					</tr>
 					
@@ -993,7 +1102,7 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Render System Configuration Section
 	 */
-	private static function render_system_section() {
+	private function render_system_section() {
 		$system_config = get_option( 'wc_tp_system_config', array() );
 		?>
 		<div class="wc-tp-perf-system-wrapper">
@@ -1016,67 +1125,6 @@ class WC_Team_Payroll_Performance_Settings {
 								   <?php checked( isset( $system_config['enable_performance'] ) ? $system_config['enable_performance'] : 1, 1 ); ?> />
 							<label for="system_enable_performance"><?php esc_html_e( 'Enable the entire performance tracking system', 'wc-team-payroll' ); ?></label>
 							<p class="description"><?php esc_html_e( 'Turn off to disable all performance features site-wide', 'wc-team-payroll' ); ?></p>
-						</td>
-					</tr>
-					
-					<tr>
-						<th><label for="system_currency_symbol"><?php esc_html_e( 'Currency Symbol', 'wc-team-payroll' ); ?></label></th>
-						<td>
-							<input type="text" 
-								   id="system_currency_symbol" 
-								   name="system_currency_symbol" 
-								   value="<?php echo esc_attr( isset( $system_config['currency_symbol'] ) ? $system_config['currency_symbol'] : get_woocommerce_currency_symbol() ); ?>" 
-								   class="wc-tp-system-setting small-text" />
-							<p class="description"><?php esc_html_e( 'Currency symbol for displaying monetary values', 'wc-team-payroll' ); ?></p>
-						</td>
-					</tr>
-					
-					<tr>
-						<th><label for="system_date_format"><?php esc_html_e( 'Date Format', 'wc-team-payroll' ); ?></label></th>
-						<td>
-							<select id="system_date_format" name="system_date_format" class="wc-tp-system-setting">
-								<?php
-								$date_format = isset( $system_config['date_format'] ) ? $system_config['date_format'] : 'Y-m-d';
-								$formats = array(
-									'Y-m-d' => date( 'Y-m-d' ) . ' (YYYY-MM-DD)',
-									'm/d/Y' => date( 'm/d/Y' ) . ' (MM/DD/YYYY)',
-									'd/m/Y' => date( 'd/m/Y' ) . ' (DD/MM/YYYY)',
-									'F j, Y' => date( 'F j, Y' ) . ' (Month Day, Year)',
-								);
-								foreach ( $formats as $value => $label ) {
-									echo '<option value="' . esc_attr( $value ) . '"' . selected( $date_format, $value, false ) . '>' . esc_html( $label ) . '</option>';
-								}
-								?>
-							</select>
-						</td>
-					</tr>
-					
-					<tr>
-						<th><label for="system_timezone"><?php esc_html_e( 'Timezone', 'wc-team-payroll' ); ?></label></th>
-						<td>
-							<select id="system_timezone" name="system_timezone" class="wc-tp-system-setting">
-								<?php
-								$current_timezone = isset( $system_config['timezone'] ) ? $system_config['timezone'] : wp_timezone_string();
-								$timezones = array(
-									'UTC' => 'UTC',
-									'America/New_York' => 'America/New_York (EST/EDT)',
-									'America/Chicago' => 'America/Chicago (CST/CDT)',
-									'America/Denver' => 'America/Denver (MST/MDT)',
-									'America/Los_Angeles' => 'America/Los_Angeles (PST/PDT)',
-									'Europe/London' => 'Europe/London (GMT/BST)',
-									'Europe/Paris' => 'Europe/Paris (CET/CEST)',
-									'Asia/Dubai' => 'Asia/Dubai (GST)',
-									'Asia/Kolkata' => 'Asia/Kolkata (IST)',
-									'Asia/Shanghai' => 'Asia/Shanghai (CST)',
-									'Asia/Tokyo' => 'Asia/Tokyo (JST)',
-									'Australia/Sydney' => 'Australia/Sydney (AEST/AEDT)',
-								);
-								foreach ( $timezones as $value => $label ) {
-									echo '<option value="' . esc_attr( $value ) . '"' . selected( $current_timezone, $value, false ) . '>' . esc_html( $label ) . '</option>';
-								}
-								?>
-							</select>
-							<p class="description"><?php esc_html_e( 'Timezone for date/time calculations', 'wc-team-payroll' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -1293,9 +1341,12 @@ class WC_Team_Payroll_Performance_Settings {
 	/**
 	 * Get employee roles from settings (not all WordPress roles)
 	 */
-	private static function get_all_roles() {
-		// Get employee roles from settings
-		$employee_roles = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+	private function get_all_roles() {
+		// Get employee roles from WooCommerce settings (agent_user_roles)
+		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
+		$employee_roles = isset( $checkout_fields['agent_user_roles'] ) && is_array( $checkout_fields['agent_user_roles'] ) 
+			? $checkout_fields['agent_user_roles'] 
+			: array( 'shop_employee', 'shop_manager', 'administrator' );
 		
 		// Get WordPress roles for display names
 		global $wp_roles;
@@ -1700,6 +1751,197 @@ class WC_Team_Payroll_Performance_Settings {
 
 		switch ( $method ) {
 			case 'rolling_average':
+				$slice = array_slice( $data, -$periods );
+				return array_sum( $slice ) / count( $slice );
+
+			case 'historical_average':
+				return array_sum( $data ) / count( $data );
+
+			case 'best_period':
+				return max( $data );
+
+			case 'median':
+				sort( $data );
+				$count = count( $data );
+				$middle = floor( ( $count - 1 ) / 2 );
+				if ( $count % 2 ) {
+					return $data[ $middle ];
+				} else {
+					return ( $data[ $middle ] + $data[ $middle + 1 ] ) / 2;
+				}
+
+			case 'percentile':
+				sort( $data );
+				$index = ( $percentile / 100 ) * ( count( $data ) - 1 );
+				$lower = floor( $index );
+				$upper = ceil( $index );
+				if ( $lower == $upper ) {
+					return $data[ $lower ];
+				} else {
+					return $data[ $lower ] * ( $upper - $index ) + $data[ $upper ] * ( $index - $lower );
+				}
+
+			case 'manual':
+			default:
+				return array_sum( $data ) / count( $data );
+		}
+	}
+
+	/**
+	 * Calculate employee earnings with revenue attribution
+	 * 
+	 * @param int $employee_id Employee user ID
+	 * @param string $start_date Start date (Y-m-d format)
+	 * @param string $end_date End date (Y-m-d format)
+	 * @return float Total attributed earnings
+	 */
+	public function calculate_employee_earnings_with_attribution( $employee_id, $start_date, $end_date ) {
+		$calculation_config = get_option( 'wc_tp_calculation_config', array() );
+		$revenue_attribution = isset( $calculation_config['revenue_attribution'] ) ? $calculation_config['revenue_attribution'] : 'full';
+		
+		if ( $revenue_attribution === 'commission_split' ) {
+			return $this->calculate_earnings_with_commission_split( $employee_id, $start_date, $end_date );
+		} else {
+			return $this->calculate_earnings_full_value( $employee_id, $start_date, $end_date );
+		}
+	}
+
+	/**
+	 * Calculate earnings using commission split percentages
+	 * 
+	 * @param int $employee_id Employee user ID
+	 * @param string $start_date Start date (Y-m-d format)
+	 * @param string $end_date End date (Y-m-d format)
+	 * @return float Total attributed earnings
+	 */
+	private function calculate_earnings_with_commission_split( $employee_id, $start_date, $end_date ) {
+		// Get commission calculation statuses
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+		
+		// Get orders for the period
+		$args = array(
+			'limit'        => -1,
+			'date_created' => $start_date . '...' . $end_date,
+			'status'       => $commission_statuses,
+			'meta_query'   => array(
+				'relation' => 'OR',
+				array(
+					'key'     => '_wc_tp_agent_id',
+					'value'   => $employee_id,
+					'compare' => '='
+				),
+				array(
+					'key'     => '_wc_tp_processor_id',
+					'value'   => $employee_id,
+					'compare' => '='
+				)
+			)
+		);
+		
+		$orders = wc_get_orders( $args );
+		$total_attributed_earnings = 0;
+		
+		foreach ( $orders as $order ) {
+			$order_total = $order->get_total();
+			$agent_id = get_post_meta( $order->get_id(), '_wc_tp_agent_id', true );
+			$processor_id = get_post_meta( $order->get_id(), '_wc_tp_processor_id', true );
+			
+			// Get employee's attribution percentage for this order
+			$attribution_percentage = $this->get_employee_attribution_percentage( 
+				$order->get_id(), 
+				$employee_id, 
+				$agent_id, 
+				$processor_id 
+			);
+			
+			// Apply attribution percentage to order total
+			$attributed_amount = $order_total * ( $attribution_percentage / 100 );
+			$total_attributed_earnings += $attributed_amount;
+		}
+		
+		return $total_attributed_earnings;
+	}
+
+	/**
+	 * Calculate earnings using full order value (original method)
+	 * 
+	 * @param int $employee_id Employee user ID
+	 * @param string $start_date Start date (Y-m-d format)
+	 * @param string $end_date End date (Y-m-d format)
+	 * @return float Total earnings
+	 */
+	private function calculate_earnings_full_value( $employee_id, $start_date, $end_date ) {
+		// Get commission calculation statuses
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+		
+		// Get orders for the period
+		$args = array(
+			'limit'        => -1,
+			'date_created' => $start_date . '...' . $end_date,
+			'status'       => $commission_statuses,
+			'meta_query'   => array(
+				'relation' => 'OR',
+				array(
+					'key'     => '_wc_tp_agent_id',
+					'value'   => $employee_id,
+					'compare' => '='
+				),
+				array(
+					'key'     => '_wc_tp_processor_id',
+					'value'   => $employee_id,
+					'compare' => '='
+				)
+			)
+		);
+		
+		$orders = wc_get_orders( $args );
+		$total_earnings = 0;
+		
+		foreach ( $orders as $order ) {
+			$total_earnings += $order->get_total();
+		}
+		
+		return $total_earnings;
+	}
+
+	/**
+	 * Get employee's attribution percentage for a specific order
+	 * 
+	 * @param int $order_id Order ID
+	 * @param int $employee_id Employee user ID
+	 * @param int $agent_id Agent ID from order
+	 * @param int $processor_id Processor ID from order
+	 * @return float Attribution percentage (0-100)
+	 */
+	private function get_employee_attribution_percentage( $order_id, $employee_id, $agent_id, $processor_id ) {
+		// Get commission configuration
+		$commission_config = get_option( 'wc_team_payroll_commission_config', array() );
+		
+		// Default percentages if not configured
+		$agent_percentage = isset( $commission_config['agent_percentage'] ) ? floatval( $commission_config['agent_percentage'] ) : 70;
+		$processor_percentage = isset( $commission_config['processor_percentage'] ) ? floatval( $commission_config['processor_percentage'] ) : 30;
+		
+		// Determine employee's role and return appropriate percentage
+		if ( $employee_id == $agent_id && $employee_id == $processor_id ) {
+			// Same person is both agent and processor - gets 100%
+			return 100;
+		} elseif ( $employee_id == $agent_id ) {
+			// Employee is the agent
+			return $agent_percentage;
+		} elseif ( $employee_id == $processor_id ) {
+			// Employee is the processor
+			return $processor_percentage;
+		}
+		
+		// Employee is not assigned to this order
+		return 0;
+	}
+		if ( empty( $data ) ) {
+			return 0;
+		}
+
+		switch ( $method ) {
+			case 'rolling_average':
 				// Take last N periods
 				$slice = array_slice( $data, -$periods );
 				return array_sum( $slice ) / count( $slice );
@@ -1762,9 +2004,12 @@ class WC_Team_Payroll_Performance_Settings {
 			'score_cap' => isset( $config['score_cap'] ) ? floatval( $config['score_cap'] ) : 10,
 			'rounding' => isset( $config['rounding'] ) ? sanitize_text_field( $config['rounding'] ) : 'one_decimal',
 			'period_type' => isset( $config['period_type'] ) ? sanitize_text_field( $config['period_type'] ) : 'calendar_month',
-			'order_statuses' => isset( $config['order_statuses'] ) && is_array( $config['order_statuses'] ) ? array_map( 'sanitize_text_field', $config['order_statuses'] ) : array( 'completed', 'processing' ),
+			'custom_start_date' => isset( $config['custom_start_date'] ) ? sanitize_text_field( $config['custom_start_date'] ) : '',
+			'custom_end_date' => isset( $config['custom_end_date'] ) ? sanitize_text_field( $config['custom_end_date'] ) : '',
+			'revenue_attribution' => isset( $config['revenue_attribution'] ) ? sanitize_text_field( $config['revenue_attribution'] ) : 'full',
 			'exclude_refunds' => isset( $config['exclude_refunds'] ) ? intval( $config['exclude_refunds'] ) : 1,
 			'aov_method' => isset( $config['aov_method'] ) ? sanitize_text_field( $config['aov_method'] ) : 'total_divided_orders',
+			'custom_formula' => isset( $config['custom_formula'] ) ? sanitize_text_field( $config['custom_formula'] ) : '',
 		);
 		
 		// Save configuration
@@ -1870,9 +2115,6 @@ class WC_Team_Payroll_Performance_Settings {
 		// Sanitize configuration
 		$sanitized_config = array(
 			'enable_performance' => isset( $config['enable_performance'] ) ? intval( $config['enable_performance'] ) : 1,
-			'currency_symbol' => isset( $config['currency_symbol'] ) ? sanitize_text_field( $config['currency_symbol'] ) : '$',
-			'date_format' => isset( $config['date_format'] ) ? sanitize_text_field( $config['date_format'] ) : 'Y-m-d',
-			'timezone' => isset( $config['timezone'] ) ? sanitize_text_field( $config['timezone'] ) : 'UTC',
 			'show_score' => isset( $config['show_score'] ) ? intval( $config['show_score'] ) : 1,
 			'show_goals' => isset( $config['show_goals'] ) ? intval( $config['show_goals'] ) : 1,
 			'show_achievements' => isset( $config['show_achievements'] ) ? intval( $config['show_achievements'] ) : 1,
@@ -1950,8 +2192,120 @@ class WC_Team_Payroll_Performance_Settings {
 			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
 		}
 
-		// Preview calculation logic will be implemented
-		wp_send_json_success( array( 'preview' => 'Preview calculation coming soon' ) );
+		// Get calculation settings
+		$calculation_config = get_option( 'wc_tp_calculation_config', array() );
+		
+		// Get input values
+		$base_score = isset( $_POST['base_score'] ) ? floatval( $_POST['base_score'] ) : 5;
+		$earnings_points = isset( $_POST['earnings_points'] ) ? floatval( $_POST['earnings_points'] ) : 0;
+		$orders_points = isset( $_POST['orders_points'] ) ? floatval( $_POST['orders_points'] ) : 0;
+		$aov_points = isset( $_POST['aov_points'] ) ? floatval( $_POST['aov_points'] ) : 0;
+
+		// Get calculation method
+		$score_method = isset( $calculation_config['score_method'] ) ? $calculation_config['score_method'] : 'additive';
+		$score_cap = isset( $calculation_config['score_cap'] ) ? floatval( $calculation_config['score_cap'] ) : 10;
+		$rounding = isset( $calculation_config['rounding'] ) ? $calculation_config['rounding'] : 'one_decimal';
+
+		// Calculate based on method
+		$final_score = 0;
+		$steps = array();
+
+		switch ( $score_method ) {
+			case 'additive':
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( '+ Earnings Points: %s', 'wc-team-payroll' ), number_format( $earnings_points, 2 ) );
+				$steps[] = sprintf( __( '+ Orders Points: %s', 'wc-team-payroll' ), number_format( $orders_points, 2 ) );
+				$steps[] = sprintf( __( '+ AOV Points: %s', 'wc-team-payroll' ), number_format( $aov_points, 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'weighted':
+				$weight_earnings = isset( $calculation_config['weight_earnings'] ) ? floatval( $calculation_config['weight_earnings'] ) : 40;
+				$weight_orders = isset( $calculation_config['weight_orders'] ) ? floatval( $calculation_config['weight_orders'] ) : 35;
+				$weight_aov = isset( $calculation_config['weight_aov'] ) ? floatval( $calculation_config['weight_aov'] ) : 25;
+
+				$weighted_score = ( $earnings_points * ( $weight_earnings / 100 ) ) +
+									( $orders_points * ( $weight_orders / 100 ) ) +
+									( $aov_points * ( $weight_aov / 100 ) );
+				$final_score = $base_score + $weighted_score;
+
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( 'Earnings: %s × %s = %s', 'wc-team-payroll' ), number_format( $earnings_points, 2 ), number_format( $weight_earnings / 100, 2 ), number_format( $earnings_points * ( $weight_earnings / 100 ), 2 ) );
+				$steps[] = sprintf( __( 'Orders: %s × %s = %s', 'wc-team-payroll' ), number_format( $orders_points, 2 ), number_format( $weight_orders / 100, 2 ), number_format( $orders_points * ( $weight_orders / 100 ), 2 ) );
+				$steps[] = sprintf( __( 'AOV: %s × %s = %s', 'wc-team-payroll' ), number_format( $aov_points, 2 ), number_format( $weight_aov / 100, 2 ), number_format( $aov_points * ( $weight_aov / 100 ), 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'multiplicative':
+				$final_score = $base_score * ( 1 + ( $earnings_points * 0.1 ) ) * ( 1 + ( $orders_points * 0.1 ) ) * ( 1 + ( $aov_points * 0.1 ) );
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( '× (1 + Earnings × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $earnings_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '× (1 + Orders × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $orders_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '× (1 + AOV × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $aov_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'custom':
+				$custom_formula = isset( $calculation_config['custom_formula'] ) ? $calculation_config['custom_formula'] : '';
+				if ( empty( $custom_formula ) ) {
+					wp_send_json_error( array( 'message' => __( 'Custom formula not configured', 'wc-team-payroll' ) ) );
+				}
+
+				try {
+					// Replace variable names with actual values
+					$formula = $custom_formula;
+					$formula = str_replace( 'base', $base_score, $formula );
+					$formula = str_replace( 'earnings', $earnings_points, $formula );
+					$formula = str_replace( 'orders', $orders_points, $formula );
+					$formula = str_replace( 'aov', $aov_points, $formula );
+
+					// Evaluate the formula (safe evaluation with limited scope)
+					$final_score = eval( 'return (' . $formula . ');' );
+					$steps[] = sprintf( __( 'Formula: %s', 'wc-team-payroll' ), $custom_formula );
+					$steps[] = sprintf( __( '= Result: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				} catch ( Exception $e ) {
+					wp_send_json_error( array( 'message' => sprintf( __( 'Invalid formula: %s', 'wc-team-payroll' ), $e->getMessage() ) ) );
+				}
+				break;
+
+			default:
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+		}
+
+		// Apply score cap
+		$capped_score = min( $final_score, $score_cap );
+		if ( $capped_score !== $final_score ) {
+			$steps[] = sprintf( __( 'Score Cap Applied: %s', 'wc-team-payroll' ), number_format( $score_cap, 2 ) );
+			$steps[] = sprintf( __( 'Capped Score: %s', 'wc-team-payroll' ), number_format( $capped_score, 2 ) );
+		}
+
+		// Apply rounding
+		$rounded_score = $capped_score;
+		switch ( $rounding ) {
+			case 'none':
+				$rounded_score = $capped_score;
+				$steps[] = __( 'Rounding: None', 'wc-team-payroll' );
+				break;
+			case 'one_decimal':
+				$rounded_score = round( $capped_score, 1 );
+				$steps[] = __( 'Rounding: One Decimal', 'wc-team-payroll' );
+				break;
+			case 'two_decimals':
+				$rounded_score = round( $capped_score, 2 );
+				$steps[] = __( 'Rounding: Two Decimals', 'wc-team-payroll' );
+				break;
+			case 'whole':
+				$rounded_score = round( $capped_score );
+				$steps[] = __( 'Rounding: Whole Number', 'wc-team-payroll' );
+				break;
+		}
+
+		wp_send_json_success( array(
+			'final_score' => $rounded_score,
+			'steps' => $steps,
+			'method' => $score_method,
+		) );
 	}
 
 	/**
@@ -2089,7 +2443,8 @@ class WC_Team_Payroll_Performance_Settings {
 		$min = isset( $range['min'] ) ? $range['min'] : 0;
 		$max = isset( $range['max'] ) ? $range['max'] : 0;
 		$points = isset( $range['points'] ) ? $range['points'] : 0;
-		$currency_symbol = $factor === 'earnings' || $factor === 'aov' ? '$' : '';
+		// Get currency symbol from WooCommerce
+		$currency_symbol = ( $factor === 'earnings' || $factor === 'aov' ) ? get_woocommerce_currency_symbol() : '';
 		?>
 		<div class="wc-tp-range-row" data-index="<?php echo esc_attr( $index ); ?>">
 			<label><?php esc_html_e( 'Range:', 'wc-team-payroll' ); ?></label>
@@ -2267,7 +2622,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Minimum Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="earnings_minimum" 
 								   value="<?php echo esc_attr( isset( $goals['earnings']['minimum'] ) ? $goals['earnings']['minimum'] : 1000 ); ?>" 
@@ -2281,7 +2636,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Target Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="earnings_target" 
 								   value="<?php echo esc_attr( isset( $goals['earnings']['target'] ) ? $goals['earnings']['target'] : 5000 ); ?>" 
@@ -2295,7 +2650,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Stretch Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="earnings_stretch" 
 								   value="<?php echo esc_attr( isset( $goals['earnings']['stretch'] ) ? $goals['earnings']['stretch'] : 10000 ); ?>" 
@@ -2364,7 +2719,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Minimum Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="aov_minimum" 
 								   value="<?php echo esc_attr( isset( $goals['aov']['minimum'] ) ? $goals['aov']['minimum'] : 100 ); ?>" 
@@ -2378,7 +2733,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Target Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="aov_target" 
 								   value="<?php echo esc_attr( isset( $goals['aov']['target'] ) ? $goals['aov']['target'] : 250 ); ?>" 
@@ -2392,7 +2747,7 @@ class WC_Team_Payroll_Performance_Settings {
 					<div class="wc-tp-goal-input-group">
 						<label><?php esc_html_e( 'Stretch Goal', 'wc-team-payroll' ); ?></label>
 						<div class="wc-tp-input-with-icon">
-							<span class="wc-tp-currency-icon">$</span>
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
 							<input type="number" 
 								   name="aov_stretch" 
 								   value="<?php echo esc_attr( isset( $goals['aov']['stretch'] ) ? $goals['aov']['stretch'] : 500 ); ?>" 
@@ -2736,5 +3091,4 @@ class WC_Team_Payroll_Performance_Settings {
 
 }
 
-// Initialize the class
-new WC_Team_Payroll_Performance_Settings();
+// Note: Class is instantiated in the main plugin file
