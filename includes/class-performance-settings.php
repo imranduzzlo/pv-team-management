@@ -1936,4 +1936,1113 @@ class WC_Team_Payroll_Performance_Settings {
 		// Employee is not assigned to this order
 		return 0;
 	}
+
+	/**
+	 * AJAX: Save calculation configuration
+	 */
+	public function ajax_save_calculation_config() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$config = isset( $_POST['config'] ) ? $_POST['config'] : array();
+		
+		// Sanitize configuration
+		$sanitized_config = array(
+			'score_method' => isset( $config['score_method'] ) ? sanitize_text_field( $config['score_method'] ) : 'additive',
+			'weight_earnings' => isset( $config['weight_earnings'] ) ? intval( $config['weight_earnings'] ) : 40,
+			'weight_orders' => isset( $config['weight_orders'] ) ? intval( $config['weight_orders'] ) : 35,
+			'weight_aov' => isset( $config['weight_aov'] ) ? intval( $config['weight_aov'] ) : 25,
+			'score_cap' => isset( $config['score_cap'] ) ? floatval( $config['score_cap'] ) : 10,
+			'rounding' => isset( $config['rounding'] ) ? sanitize_text_field( $config['rounding'] ) : 'one_decimal',
+			'period_type' => isset( $config['period_type'] ) ? sanitize_text_field( $config['period_type'] ) : 'calendar_month',
+			'custom_start_date' => isset( $config['custom_start_date'] ) ? sanitize_text_field( $config['custom_start_date'] ) : '',
+			'custom_end_date' => isset( $config['custom_end_date'] ) ? sanitize_text_field( $config['custom_end_date'] ) : '',
+			'revenue_attribution' => isset( $config['revenue_attribution'] ) ? sanitize_text_field( $config['revenue_attribution'] ) : 'full',
+			'exclude_refunds' => isset( $config['exclude_refunds'] ) ? intval( $config['exclude_refunds'] ) : 1,
+			'aov_method' => isset( $config['aov_method'] ) ? sanitize_text_field( $config['aov_method'] ) : 'total_divided_orders',
+			'custom_formula' => isset( $config['custom_formula'] ) ? sanitize_text_field( $config['custom_formula'] ) : '',
+		);
+		
+		// Save configuration
+		update_option( 'wc_tp_calculation_config', $sanitized_config );
+
+		wp_send_json_success( array( 'message' => __( 'Calculation configuration saved successfully!', 'wc-team-payroll' ) ) );
+	}
+
+	/**
+	 * AJAX: Test formula
+	 */
+	public function ajax_test_formula() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$method = isset( $_POST['method'] ) ? sanitize_text_field( $_POST['method'] ) : 'additive';
+		$base_score = isset( $_POST['base_score'] ) ? floatval( $_POST['base_score'] ) : 5;
+		$earnings_points = isset( $_POST['earnings_points'] ) ? floatval( $_POST['earnings_points'] ) : 0;
+		$orders_points = isset( $_POST['orders_points'] ) ? floatval( $_POST['orders_points'] ) : 0;
+		$aov_points = isset( $_POST['aov_points'] ) ? floatval( $_POST['aov_points'] ) : 0;
+		$weight_earnings = isset( $_POST['weight_earnings'] ) ? intval( $_POST['weight_earnings'] ) : 40;
+		$weight_orders = isset( $_POST['weight_orders'] ) ? intval( $_POST['weight_orders'] ) : 35;
+		$weight_aov = isset( $_POST['weight_aov'] ) ? intval( $_POST['weight_aov'] ) : 25;
+		$score_cap = isset( $_POST['score_cap'] ) ? floatval( $_POST['score_cap'] ) : 10;
+		$rounding = isset( $_POST['rounding'] ) ? sanitize_text_field( $_POST['rounding'] ) : 'one_decimal';
+
+		$steps = array();
+		$final_score = 0;
+
+		switch ( $method ) {
+			case 'additive':
+				$steps[] = "Base Score: {$base_score}";
+				$steps[] = "+ Earnings Points: {$earnings_points}";
+				$steps[] = "+ Orders Points: {$orders_points}";
+				$steps[] = "+ AOV Points: {$aov_points}";
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+				break;
+
+			case 'weighted':
+				$steps[] = "Earnings: {$earnings_points} × {$weight_earnings}% = " . ( $earnings_points * $weight_earnings / 100 );
+				$steps[] = "Orders: {$orders_points} × {$weight_orders}% = " . ( $orders_points * $weight_orders / 100 );
+				$steps[] = "AOV: {$aov_points} × {$weight_aov}% = " . ( $aov_points * $weight_aov / 100 );
+				$final_score = ( $earnings_points * $weight_earnings / 100 ) + ( $orders_points * $weight_orders / 100 ) + ( $aov_points * $weight_aov / 100 );
+				$steps[] = "Base Score: {$base_score}";
+				$final_score += $base_score;
+				break;
+
+			case 'multiplicative':
+				$multiplier = 1 + ( $earnings_points / 10 ) + ( $orders_points / 10 ) + ( $aov_points / 10 );
+				$steps[] = "Multiplier: 1 + ({$earnings_points}/10) + ({$orders_points}/10) + ({$aov_points}/10) = {$multiplier}";
+				$steps[] = "Base Score × Multiplier: {$base_score} × {$multiplier}";
+				$final_score = $base_score * $multiplier;
+				break;
+
+			case 'custom':
+				$steps[] = "Custom formula not yet implemented";
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+				break;
+		}
+
+		// Apply cap
+		if ( $final_score > $score_cap ) {
+			$steps[] = "Score capped at: {$score_cap}";
+			$final_score = $score_cap;
+		}
+
+		// Apply rounding
+		switch ( $rounding ) {
+			case 'none':
+				break;
+			case 'one_decimal':
+				$final_score = round( $final_score, 1 );
+				break;
+			case 'two_decimals':
+				$final_score = round( $final_score, 2 );
+				break;
+			case 'whole':
+				$final_score = round( $final_score );
+				break;
+		}
+
+		wp_send_json_success( array(
+			'steps' => $steps,
+			'final_score' => $final_score,
+		) );
+	}
+
+	/**
+	 * AJAX: Save system configuration
+	 */
+	public function ajax_save_system_config() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$config = isset( $_POST['config'] ) ? $_POST['config'] : array();
+		
+		// Sanitize configuration
+		$sanitized_config = array(
+			'enable_performance' => isset( $config['enable_performance'] ) ? intval( $config['enable_performance'] ) : 1,
+			'show_score' => isset( $config['show_score'] ) ? intval( $config['show_score'] ) : 1,
+			'show_goals' => isset( $config['show_goals'] ) ? intval( $config['show_goals'] ) : 1,
+			'show_achievements' => isset( $config['show_achievements'] ) ? intval( $config['show_achievements'] ) : 1,
+			'show_baselines' => isset( $config['show_baselines'] ) ? intval( $config['show_baselines'] ) : 1,
+			'show_leaderboard' => isset( $config['show_leaderboard'] ) ? intval( $config['show_leaderboard'] ) : 0,
+			'refresh_interval' => isset( $config['refresh_interval'] ) ? intval( $config['refresh_interval'] ) : 30,
+			'data_retention' => isset( $config['data_retention'] ) ? sanitize_text_field( $config['data_retention'] ) : 'forever',
+			'anonymize_data' => isset( $config['anonymize_data'] ) ? intval( $config['anonymize_data'] ) : 0,
+			'cache_duration' => isset( $config['cache_duration'] ) ? intval( $config['cache_duration'] ) : 300,
+			'debug_mode' => isset( $config['debug_mode'] ) ? intval( $config['debug_mode'] ) : 0,
+		);
+		
+		// Save configuration
+		update_option( 'wc_tp_system_config', $sanitized_config );
+
+		wp_send_json_success( array( 'message' => __( 'System configuration saved successfully!', 'wc-team-payroll' ) ) );
+	}
+
+	/**
+	 * AJAX: Reset all data
+	 */
+	public function ajax_reset_all_data() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		// Delete all performance-related options
+		delete_option( 'wc_tp_performance_config' );
+		delete_option( 'wc_tp_goals_config' );
+		delete_option( 'wc_tp_achievements_config' );
+		delete_option( 'wc_tp_baselines_config' );
+		delete_option( 'wc_tp_calculation_config' );
+		delete_option( 'wc_tp_system_config' );
+
+		wp_send_json_success( array( 'message' => __( 'All performance data has been reset!', 'wc-team-payroll' ) ) );
+	}
+
+	/**
+	 * AJAX: Clone role configuration
+	 */
+	public function ajax_clone_role_config() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$from_role = isset( $_POST['from_role'] ) ? sanitize_text_field( $_POST['from_role'] ) : '';
+		$to_role = isset( $_POST['to_role'] ) ? sanitize_text_field( $_POST['to_role'] ) : '';
+
+		if ( empty( $from_role ) || empty( $to_role ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid roles', 'wc-team-payroll' ) ) );
+		}
+
+		$performance_config = get_option( 'wc_tp_performance_config', array() );
+		
+		if ( isset( $performance_config['roles'][ $from_role ] ) ) {
+			$performance_config['roles'][ $to_role ] = $performance_config['roles'][ $from_role ];
+			update_option( 'wc_tp_performance_config', $performance_config );
+			wp_send_json_success( array( 'message' => __( 'Configuration cloned successfully!', 'wc-team-payroll' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Source role configuration not found', 'wc-team-payroll' ) ) );
+		}
+	}
+
+	/**
+	 * AJAX: Preview calculation
+	 */
+	public function ajax_preview_calculation() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		// Get calculation settings
+		$calculation_config = get_option( 'wc_tp_calculation_config', array() );
+		
+		// Get input values
+		$base_score = isset( $_POST['base_score'] ) ? floatval( $_POST['base_score'] ) : 5;
+		$earnings_points = isset( $_POST['earnings_points'] ) ? floatval( $_POST['earnings_points'] ) : 0;
+		$orders_points = isset( $_POST['orders_points'] ) ? floatval( $_POST['orders_points'] ) : 0;
+		$aov_points = isset( $_POST['aov_points'] ) ? floatval( $_POST['aov_points'] ) : 0;
+
+		// Get calculation method
+		$score_method = isset( $calculation_config['score_method'] ) ? $calculation_config['score_method'] : 'additive';
+		$score_cap = isset( $calculation_config['score_cap'] ) ? floatval( $calculation_config['score_cap'] ) : 10;
+		$rounding = isset( $calculation_config['rounding'] ) ? $calculation_config['rounding'] : 'one_decimal';
+
+		// Calculate based on method
+		$final_score = 0;
+		$steps = array();
+
+		switch ( $score_method ) {
+			case 'additive':
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( '+ Earnings Points: %s', 'wc-team-payroll' ), number_format( $earnings_points, 2 ) );
+				$steps[] = sprintf( __( '+ Orders Points: %s', 'wc-team-payroll' ), number_format( $orders_points, 2 ) );
+				$steps[] = sprintf( __( '+ AOV Points: %s', 'wc-team-payroll' ), number_format( $aov_points, 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'weighted':
+				$weight_earnings = isset( $calculation_config['weight_earnings'] ) ? floatval( $calculation_config['weight_earnings'] ) : 40;
+				$weight_orders = isset( $calculation_config['weight_orders'] ) ? floatval( $calculation_config['weight_orders'] ) : 35;
+				$weight_aov = isset( $calculation_config['weight_aov'] ) ? floatval( $calculation_config['weight_aov'] ) : 25;
+
+				$weighted_score = ( $earnings_points * ( $weight_earnings / 100 ) ) +
+									( $orders_points * ( $weight_orders / 100 ) ) +
+									( $aov_points * ( $weight_aov / 100 ) );
+				$final_score = $base_score + $weighted_score;
+
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( 'Earnings: %s × %s = %s', 'wc-team-payroll' ), number_format( $earnings_points, 2 ), number_format( $weight_earnings / 100, 2 ), number_format( $earnings_points * ( $weight_earnings / 100 ), 2 ) );
+				$steps[] = sprintf( __( 'Orders: %s × %s = %s', 'wc-team-payroll' ), number_format( $orders_points, 2 ), number_format( $weight_orders / 100, 2 ), number_format( $orders_points * ( $weight_orders / 100 ), 2 ) );
+				$steps[] = sprintf( __( 'AOV: %s × %s = %s', 'wc-team-payroll' ), number_format( $aov_points, 2 ), number_format( $weight_aov / 100, 2 ), number_format( $aov_points * ( $weight_aov / 100 ), 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'multiplicative':
+				$final_score = $base_score * ( 1 + ( $earnings_points * 0.1 ) ) * ( 1 + ( $orders_points * 0.1 ) ) * ( 1 + ( $aov_points * 0.1 ) );
+				$steps[] = sprintf( __( 'Base Score: %s', 'wc-team-payroll' ), number_format( $base_score, 2 ) );
+				$steps[] = sprintf( __( '× (1 + Earnings × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $earnings_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '× (1 + Orders × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $orders_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '× (1 + AOV × 0.1): %s', 'wc-team-payroll' ), number_format( 1 + ( $aov_points * 0.1 ), 2 ) );
+				$steps[] = sprintf( __( '= Subtotal: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				break;
+
+			case 'custom':
+				$custom_formula = isset( $calculation_config['custom_formula'] ) ? $calculation_config['custom_formula'] : '';
+				if ( empty( $custom_formula ) ) {
+					wp_send_json_error( array( 'message' => __( 'Custom formula not configured', 'wc-team-payroll' ) ) );
+				}
+
+				try {
+					// Replace variable names with actual values
+					$formula = $custom_formula;
+					$formula = str_replace( 'base', $base_score, $formula );
+					$formula = str_replace( 'earnings', $earnings_points, $formula );
+					$formula = str_replace( 'orders', $orders_points, $formula );
+					$formula = str_replace( 'aov', $aov_points, $formula );
+
+					// Evaluate the formula (safe evaluation with limited scope)
+					$final_score = eval( 'return (' . $formula . ');' );
+					$steps[] = sprintf( __( 'Formula: %s', 'wc-team-payroll' ), $custom_formula );
+					$steps[] = sprintf( __( '= Result: %s', 'wc-team-payroll' ), number_format( $final_score, 2 ) );
+				} catch ( Exception $e ) {
+					wp_send_json_error( array( 'message' => sprintf( __( 'Invalid formula: %s', 'wc-team-payroll' ), $e->getMessage() ) ) );
+				}
+				break;
+
+			default:
+				$final_score = $base_score + $earnings_points + $orders_points + $aov_points;
+		}
+
+		// Apply score cap
+		$capped_score = min( $final_score, $score_cap );
+		if ( $capped_score !== $final_score ) {
+			$steps[] = sprintf( __( 'Score Cap Applied: %s', 'wc-team-payroll' ), number_format( $score_cap, 2 ) );
+			$steps[] = sprintf( __( 'Capped Score: %s', 'wc-team-payroll' ), number_format( $capped_score, 2 ) );
+		}
+
+		// Apply rounding
+		$rounded_score = $capped_score;
+		switch ( $rounding ) {
+			case 'none':
+				$rounded_score = $capped_score;
+				$steps[] = __( 'Rounding: None', 'wc-team-payroll' );
+				break;
+			case 'one_decimal':
+				$rounded_score = round( $capped_score, 1 );
+				$steps[] = __( 'Rounding: One Decimal', 'wc-team-payroll' );
+				break;
+			case 'two_decimals':
+				$rounded_score = round( $capped_score, 2 );
+				$steps[] = __( 'Rounding: Two Decimals', 'wc-team-payroll' );
+				break;
+			case 'whole':
+				$rounded_score = round( $capped_score );
+				$steps[] = __( 'Rounding: Whole Number', 'wc-team-payroll' );
+				break;
+		}
+
+		wp_send_json_success( array(
+			'final_score' => $rounded_score,
+			'steps' => $steps,
+			'method' => $score_method,
+		) );
+	}
+
+	/**
+	 * Render role configuration form
+	 */
+	private function render_role_config_form( $role, $config ) {
+		?>
+		<div class="wc-tp-role-config-form" data-role="<?php echo esc_attr( $role ); ?>">
+			<h4><?php echo esc_html( sprintf( __( 'Configuring: %s', 'wc-team-payroll' ), $role ) ); ?></h4>
+			
+			<!-- Earnings Factor -->
+			<div class="wc-tp-factor-config">
+				<h5>
+					<?php esc_html_e( 'Earnings Factor Configuration', 'wc-team-payroll' ); ?>
+					<span class="wc-tp-factor-info"><?php esc_html_e( '(Max Points Cap: 3.0)', 'wc-team-payroll' ); ?></span>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Define earnings ranges and corresponding points for this role. Example: $5,000-$6,999 = +2.0 points', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-ranges-container" data-factor="earnings" data-role="<?php echo esc_attr( $role ); ?>">
+					<?php
+					$earnings_ranges = isset( $config['earnings_ranges'] ) ? $config['earnings_ranges'] : array();
+					foreach ( $earnings_ranges as $index => $range ) {
+						$this->render_range_row( 'earnings', $range, $index );
+					}
+					?>
+					<button type="button" class="button wc-tp-add-range">
+						<span class="dashicons dashicons-plus-alt"></span>
+						<?php esc_html_e( 'Add Earnings Range', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+			</div>
+
+			<!-- Orders Factor -->
+			<div class="wc-tp-factor-config">
+				<h5>
+					<?php esc_html_e( 'Orders Factor Configuration', 'wc-team-payroll' ); ?>
+					<span class="wc-tp-factor-info"><?php esc_html_e( '(Max Points Cap: 2.0)', 'wc-team-payroll' ); ?></span>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Define order count ranges and corresponding points for this role. Example: 30-49 orders = +1.0 points', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-ranges-container" data-factor="orders" data-role="<?php echo esc_attr( $role ); ?>">
+					<?php
+					$orders_ranges = isset( $config['orders_ranges'] ) ? $config['orders_ranges'] : array();
+					foreach ( $orders_ranges as $index => $range ) {
+						$this->render_range_row( 'orders', $range, $index );
+					}
+					?>
+					<button type="button" class="button wc-tp-add-range">
+						<span class="dashicons dashicons-plus-alt"></span>
+						<?php esc_html_e( 'Add Orders Range', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+			</div>
+
+			<!-- AOV Factor -->
+			<div class="wc-tp-factor-config">
+				<h5>
+					<?php esc_html_e( 'Average Order Value (AOV) Factor Configuration', 'wc-team-payroll' ); ?>
+					<span class="wc-tp-factor-info"><?php esc_html_e( '(Max Points Cap: 1.0)', 'wc-team-payroll' ); ?></span>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Define AOV ranges and corresponding points for this role. Example: $200-$499 = +0.5 points', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-ranges-container" data-factor="aov" data-role="<?php echo esc_attr( $role ); ?>">
+					<?php
+					$aov_ranges = isset( $config['aov_ranges'] ) ? $config['aov_ranges'] : array();
+					foreach ( $aov_ranges as $index => $range ) {
+						$this->render_range_row( 'aov', $range, $index );
+					}
+					?>
+					<button type="button" class="button wc-tp-add-range">
+						<span class="dashicons dashicons-plus-alt"></span>
+						<?php esc_html_e( 'Add AOV Range', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+			</div>
+
+			<!-- Preview Calculation -->
+			<div class="wc-tp-factor-config wc-tp-preview-section">
+				<h5><?php esc_html_e( 'Preview Calculation', 'wc-team-payroll' ); ?></h5>
+				<p class="description"><?php esc_html_e( 'Test how the performance score will be calculated with sample data.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-preview-inputs">
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Sample Earnings:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-earnings" placeholder="5000" step="0.01" />
+					</div>
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Sample Orders:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-orders" placeholder="30" step="1" />
+					</div>
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Sample AOV:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-aov" placeholder="250" step="0.01" />
+					</div>
+					<button type="button" class="button button-secondary wc-tp-calculate-preview">
+						<span class="dashicons dashicons-calculator"></span>
+						<?php esc_html_e( 'Calculate Score', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+				
+				<div class="wc-tp-preview-result" style="display: none;">
+					<div class="wc-tp-preview-breakdown">
+						<h6><?php esc_html_e( 'Score Breakdown:', 'wc-team-payroll' ); ?></h6>
+						<div class="wc-tp-preview-item">
+							<span class="label"><?php esc_html_e( 'Base Score:', 'wc-team-payroll' ); ?></span>
+							<span class="value" id="preview-base-score">5.0</span>
+						</div>
+						<div class="wc-tp-preview-item">
+							<span class="label"><?php esc_html_e( 'Earnings Points:', 'wc-team-payroll' ); ?></span>
+							<span class="value" id="preview-earnings-points">+0.0</span>
+						</div>
+						<div class="wc-tp-preview-item">
+							<span class="label"><?php esc_html_e( 'Orders Points:', 'wc-team-payroll' ); ?></span>
+							<span class="value" id="preview-orders-points">+0.0</span>
+						</div>
+						<div class="wc-tp-preview-item">
+							<span class="label"><?php esc_html_e( 'AOV Points:', 'wc-team-payroll' ); ?></span>
+							<span class="value" id="preview-aov-points">+0.0</span>
+						</div>
+						<div class="wc-tp-preview-item wc-tp-preview-total">
+							<span class="label"><?php esc_html_e( 'Final Score:', 'wc-team-payroll' ); ?></span>
+							<span class="value" id="preview-final-score">5.0/10</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render a single range row
+	 */
+	private function render_range_row( $factor, $range, $index ) {
+		$min = isset( $range['min'] ) ? $range['min'] : 0;
+		$max = isset( $range['max'] ) ? $range['max'] : 0;
+		$points = isset( $range['points'] ) ? $range['points'] : 0;
+		// Get currency symbol from WooCommerce
+		$currency_symbol = ( $factor === 'earnings' || $factor === 'aov' ) ? get_woocommerce_currency_symbol() : '';
+		?>
+		<div class="wc-tp-range-row" data-index="<?php echo esc_attr( $index ); ?>">
+			<label><?php esc_html_e( 'Range:', 'wc-team-payroll' ); ?></label>
+			<span class="wc-tp-range-currency"><?php echo esc_html( $currency_symbol ); ?></span>
+			<input type="number" 
+				   name="<?php echo esc_attr( $factor ); ?>_min[]" 
+				   value="<?php echo esc_attr( $min ); ?>" 
+				   placeholder="Min" 
+				   step="<?php echo $factor === 'orders' ? '1' : '0.01'; ?>" 
+				   min="0"
+				   class="wc-tp-range-min" />
+			<span><?php esc_html_e( 'to', 'wc-team-payroll' ); ?></span>
+			<span class="wc-tp-range-currency"><?php echo esc_html( $currency_symbol ); ?></span>
+			<input type="number" 
+				   name="<?php echo esc_attr( $factor ); ?>_max[]" 
+				   value="<?php echo esc_attr( $max ); ?>" 
+				   placeholder="Max" 
+				   step="<?php echo $factor === 'orders' ? '1' : '0.01'; ?>" 
+				   min="0"
+				   class="wc-tp-range-max" />
+			<span>=</span>
+			<input type="number" 
+				   name="<?php echo esc_attr( $factor ); ?>_points[]" 
+				   value="<?php echo esc_attr( $points ); ?>" 
+				   placeholder="Points" 
+				   step="0.1" 
+				   min="0"
+				   max="10"
+				   class="wc-tp-range-points" />
+			<span><?php esc_html_e( 'points', 'wc-team-payroll' ); ?></span>
+			<span class="dashicons dashicons-trash wc-tp-remove-range" title="<?php esc_attr_e( 'Remove this range', 'wc-team-payroll' ); ?>"></span>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Get default role configuration
+	 */
+	private function get_default_role_config() {
+		return array(
+			'earnings_ranges' => array(
+				array( 'min' => 0, 'max' => 999, 'points' => 0.0 ),
+				array( 'min' => 1000, 'max' => 2999, 'points' => 0.5 ),
+				array( 'min' => 3000, 'max' => 4999, 'points' => 1.0 ),
+				array( 'min' => 5000, 'max' => 6999, 'points' => 2.0 ),
+				array( 'min' => 7000, 'max' => 9999, 'points' => 2.5 ),
+				array( 'min' => 10000, 'max' => 999999, 'points' => 3.0 ),
+			),
+			'orders_ranges' => array(
+				array( 'min' => 0, 'max' => 9, 'points' => 0.0 ),
+				array( 'min' => 10, 'max' => 29, 'points' => 1.0 ),
+				array( 'min' => 30, 'max' => 49, 'points' => 1.5 ),
+				array( 'min' => 50, 'max' => 999, 'points' => 2.0 ),
+			),
+			'aov_ranges' => array(
+				array( 'min' => 0, 'max' => 199, 'points' => 0.0 ),
+				array( 'min' => 200, 'max' => 499, 'points' => 0.5 ),
+				array( 'min' => 500, 'max' => 999999, 'points' => 1.0 ),
+			),
+		);
+	}
+
+	/**
+	 * Get default role goals
+	 */
+	private function get_default_role_goals() {
+		return array(
+			'earnings' => array(
+				'minimum' => 1000,
+				'target' => 5000,
+				'stretch' => 10000,
+			),
+			'orders' => array(
+				'minimum' => 10,
+				'target' => 30,
+				'stretch' => 50,
+			),
+			'aov' => array(
+				'minimum' => 100,
+				'target' => 250,
+				'stretch' => 500,
+			),
+		);
+	}
+
+	/**
+	 * Get default role achievements
+	 */
+	private function get_default_role_achievements() {
+		return array(
+			'earnings_bronze' => array(
+				'name' => 'Earnings Bronze',
+				'description' => 'Reach $3,000 in earnings',
+				'threshold' => 3000,
+				'tier' => 'bronze',
+				'icon' => 'money-alt',
+			),
+			'earnings_silver' => array(
+				'name' => 'Earnings Silver',
+				'description' => 'Reach $7,000 in earnings',
+				'threshold' => 7000,
+				'tier' => 'silver',
+				'icon' => 'money-alt',
+			),
+			'earnings_gold' => array(
+				'name' => 'Earnings Gold',
+				'description' => 'Reach $15,000 in earnings',
+				'threshold' => 15000,
+				'tier' => 'gold',
+				'icon' => 'money-alt',
+			),
+			'orders_bronze' => array(
+				'name' => 'Orders Bronze',
+				'description' => 'Complete 20 orders',
+				'threshold' => 20,
+				'tier' => 'bronze',
+				'icon' => 'cart',
+			),
+			'orders_silver' => array(
+				'name' => 'Orders Silver',
+				'description' => 'Complete 50 orders',
+				'threshold' => 50,
+				'tier' => 'silver',
+				'icon' => 'cart',
+			),
+			'orders_gold' => array(
+				'name' => 'Orders Gold',
+				'description' => 'Complete 100 orders',
+				'threshold' => 100,
+				'tier' => 'gold',
+				'icon' => 'cart',
+			),
+			'aov_bronze' => array(
+				'name' => 'AOV Bronze',
+				'description' => 'Maintain $200 average order value',
+				'threshold' => 200,
+				'tier' => 'bronze',
+				'icon' => 'chart-line',
+			),
+			'aov_silver' => array(
+				'name' => 'AOV Silver',
+				'description' => 'Maintain $400 average order value',
+				'threshold' => 400,
+				'tier' => 'silver',
+				'icon' => 'chart-line',
+			),
+			'aov_gold' => array(
+				'name' => 'AOV Gold',
+				'description' => 'Maintain $600 average order value',
+				'threshold' => 600,
+				'tier' => 'gold',
+				'icon' => 'chart-line',
+			),
+		);
+	}
+
+	/**
+	 * Render role goals configuration form
+	 */
+	private function render_role_goals_form( $role, $goals ) {
+		?>
+		<div class="wc-tp-role-goals-form" data-role="<?php echo esc_attr( $role ); ?>">
+			<h4><?php echo esc_html( sprintf( __( 'Configuring Goals: %s', 'wc-team-payroll' ), $role ) ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Set minimum, target, and stretch goals for this role. These will be displayed on the employee reports page.', 'wc-team-payroll' ); ?></p>
+			
+			<!-- Earnings Goals -->
+			<div class="wc-tp-goal-config">
+				<h5>
+					<span class="dashicons dashicons-money-alt"></span>
+					<?php esc_html_e( 'Earnings Goals', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set earnings targets for this role. Employees will see their progress toward these goals.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-goal-inputs">
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Minimum Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="earnings_minimum" 
+								   value="<?php echo esc_attr( isset( $goals['earnings']['minimum'] ) ? $goals['earnings']['minimum'] : 1000 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-minimum"><?php esc_html_e( 'Baseline', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Target Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="earnings_target" 
+								   value="<?php echo esc_attr( isset( $goals['earnings']['target'] ) ? $goals['earnings']['target'] : 5000 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-target"><?php esc_html_e( 'Expected', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Stretch Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="earnings_stretch" 
+								   value="<?php echo esc_attr( isset( $goals['earnings']['stretch'] ) ? $goals['earnings']['stretch'] : 10000 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-stretch"><?php esc_html_e( 'Excellence', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Orders Goals -->
+			<div class="wc-tp-goal-config">
+				<h5>
+					<span class="dashicons dashicons-cart"></span>
+					<?php esc_html_e( 'Orders Goals', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set order count targets for this role.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-goal-inputs">
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Minimum Goal', 'wc-team-payroll' ); ?></label>
+						<input type="number" 
+							   name="orders_minimum" 
+							   value="<?php echo esc_attr( isset( $goals['orders']['minimum'] ) ? $goals['orders']['minimum'] : 10 ); ?>" 
+							   step="1" 
+							   min="0"
+							   class="wc-tp-goal-input" />
+						<span class="wc-tp-goal-badge wc-tp-badge-minimum"><?php esc_html_e( 'Baseline', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Target Goal', 'wc-team-payroll' ); ?></label>
+						<input type="number" 
+							   name="orders_target" 
+							   value="<?php echo esc_attr( isset( $goals['orders']['target'] ) ? $goals['orders']['target'] : 30 ); ?>" 
+							   step="1" 
+							   min="0"
+							   class="wc-tp-goal-input" />
+						<span class="wc-tp-goal-badge wc-tp-badge-target"><?php esc_html_e( 'Expected', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Stretch Goal', 'wc-team-payroll' ); ?></label>
+						<input type="number" 
+							   name="orders_stretch" 
+							   value="<?php echo esc_attr( isset( $goals['orders']['stretch'] ) ? $goals['orders']['stretch'] : 50 ); ?>" 
+							   step="1" 
+							   min="0"
+							   class="wc-tp-goal-input" />
+						<span class="wc-tp-goal-badge wc-tp-badge-stretch"><?php esc_html_e( 'Excellence', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+			</div>
+
+			<!-- AOV Goals -->
+			<div class="wc-tp-goal-config">
+				<h5>
+					<span class="dashicons dashicons-chart-line"></span>
+					<?php esc_html_e( 'Average Order Value (AOV) Goals', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set average order value targets for this role.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-goal-inputs">
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Minimum Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="aov_minimum" 
+								   value="<?php echo esc_attr( isset( $goals['aov']['minimum'] ) ? $goals['aov']['minimum'] : 100 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-minimum"><?php esc_html_e( 'Baseline', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Target Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="aov_target" 
+								   value="<?php echo esc_attr( isset( $goals['aov']['target'] ) ? $goals['aov']['target'] : 250 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-target"><?php esc_html_e( 'Expected', 'wc-team-payroll' ); ?></span>
+					</div>
+					
+					<div class="wc-tp-goal-input-group">
+						<label><?php esc_html_e( 'Stretch Goal', 'wc-team-payroll' ); ?></label>
+						<div class="wc-tp-input-with-icon">
+							<span class="wc-tp-currency-icon"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+							<input type="number" 
+								   name="aov_stretch" 
+								   value="<?php echo esc_attr( isset( $goals['aov']['stretch'] ) ? $goals['aov']['stretch'] : 500 ); ?>" 
+								   step="0.01" 
+								   min="0"
+								   class="wc-tp-goal-input" />
+						</div>
+						<span class="wc-tp-goal-badge wc-tp-badge-stretch"><?php esc_html_e( 'Excellence', 'wc-team-payroll' ); ?></span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Goal Progress Preview -->
+			<div class="wc-tp-goal-config wc-tp-goal-preview-section">
+				<h5>
+					<span class="dashicons dashicons-visibility"></span>
+					<?php esc_html_e( 'Goal Progress Preview', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'See how goal progress will be displayed to employees on the reports page.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-goal-preview-inputs">
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Current Earnings:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-goal-earnings" placeholder="3500" step="0.01" />
+					</div>
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Current Orders:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-goal-orders" placeholder="25" step="1" />
+					</div>
+					<div class="wc-tp-preview-input-group">
+						<label><?php esc_html_e( 'Current AOV:', 'wc-team-payroll' ); ?></label>
+						<input type="number" class="wc-tp-preview-goal-aov" placeholder="200" step="0.01" />
+					</div>
+					<button type="button" class="button button-secondary wc-tp-preview-goals">
+						<span class="dashicons dashicons-visibility"></span>
+						<?php esc_html_e( 'Preview Progress', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+				
+				<div class="wc-tp-goal-preview-result" style="display: none;">
+					<div class="wc-tp-goal-preview-item">
+						<h6><?php esc_html_e( 'Earnings Progress', 'wc-team-payroll' ); ?></h6>
+						<div class="wc-tp-goal-progress-bar">
+							<div class="wc-tp-goal-progress-fill" id="preview-earnings-progress" style="width: 0%"></div>
+						</div>
+						<div class="wc-tp-goal-progress-labels">
+							<span class="wc-tp-goal-current" id="preview-earnings-current">$0</span>
+							<span class="wc-tp-goal-target" id="preview-earnings-target">/ $0</span>
+							<span class="wc-tp-goal-percentage" id="preview-earnings-percentage">0%</span>
+						</div>
+					</div>
+					
+					<div class="wc-tp-goal-preview-item">
+						<h6><?php esc_html_e( 'Orders Progress', 'wc-team-payroll' ); ?></h6>
+						<div class="wc-tp-goal-progress-bar">
+							<div class="wc-tp-goal-progress-fill" id="preview-orders-progress" style="width: 0%"></div>
+						</div>
+						<div class="wc-tp-goal-progress-labels">
+							<span class="wc-tp-goal-current" id="preview-orders-current">0</span>
+							<span class="wc-tp-goal-target" id="preview-orders-target">/ 0</span>
+							<span class="wc-tp-goal-percentage" id="preview-orders-percentage">0%</span>
+						</div>
+					</div>
+					
+					<div class="wc-tp-goal-preview-item">
+						<h6><?php esc_html_e( 'AOV Progress', 'wc-team-payroll' ); ?></h6>
+						<div class="wc-tp-goal-progress-bar">
+							<div class="wc-tp-goal-progress-fill" id="preview-aov-progress" style="width: 0%"></div>
+						</div>
+						<div class="wc-tp-goal-progress-labels">
+							<span class="wc-tp-goal-current" id="preview-aov-current">$0</span>
+							<span class="wc-tp-goal-target" id="preview-aov-target">/ $0</span>
+							<span class="wc-tp-goal-percentage" id="preview-aov-percentage">0%</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Sanitize role goals
+	 */
+	private function sanitize_role_goals( $goals ) {
+		$sanitized = array();
+		
+		// Sanitize earnings goals
+		if ( isset( $goals['earnings'] ) && is_array( $goals['earnings'] ) ) {
+			$sanitized['earnings'] = array(
+				'minimum' => floatval( $goals['earnings']['minimum'] ),
+				'target' => floatval( $goals['earnings']['target'] ),
+				'stretch' => floatval( $goals['earnings']['stretch'] ),
+			);
+		}
+		
+		// Sanitize orders goals
+		if ( isset( $goals['orders'] ) && is_array( $goals['orders'] ) ) {
+			$sanitized['orders'] = array(
+				'minimum' => intval( $goals['orders']['minimum'] ),
+				'target' => intval( $goals['orders']['target'] ),
+				'stretch' => intval( $goals['orders']['stretch'] ),
+			);
+		}
+		
+		// Sanitize AOV goals
+		if ( isset( $goals['aov'] ) && is_array( $goals['aov'] ) ) {
+			$sanitized['aov'] = array(
+				'minimum' => floatval( $goals['aov']['minimum'] ),
+				'target' => floatval( $goals['aov']['target'] ),
+				'stretch' => floatval( $goals['aov']['stretch'] ),
+			);
+		}
+		
+		return $sanitized;
+	}
+
+	/**
+	 * Render role achievements configuration form
+	 */
+	private function render_role_achievements_form( $role, $achievements ) {
+		?>
+		<div class="wc-tp-role-achievements-form" data-role="<?php echo esc_attr( $role ); ?>">
+			<h4><?php echo esc_html( sprintf( __( 'Configuring Achievements: %s', 'wc-team-payroll' ), $role ) ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Configure achievement badges for this role. Each achievement has three tiers: Bronze, Silver, and Gold. Employees earn badges when they reach the specified thresholds.', 'wc-team-payroll' ); ?></p>
+			
+			<!-- Earnings Achievements -->
+			<div class="wc-tp-achievement-category">
+				<h5>
+					<span class="dashicons dashicons-money-alt"></span>
+					<?php esc_html_e( 'Earnings Achievements', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set earnings thresholds for Bronze, Silver, and Gold badges.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-achievement-tiers">
+					<?php
+					$tiers = array( 'bronze', 'silver', 'gold' );
+					foreach ( $tiers as $tier ) {
+						$key = 'earnings_' . $tier;
+						$achievement = isset( $achievements[ $key ] ) ? $achievements[ $key ] : array();
+						$this->render_achievement_card( 'earnings', $tier, $achievement );
+					}
+					?>
+				</div>
+			</div>
+
+			<!-- Orders Achievements -->
+			<div class="wc-tp-achievement-category">
+				<h5>
+					<span class="dashicons dashicons-cart"></span>
+					<?php esc_html_e( 'Orders Achievements', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set order count thresholds for Bronze, Silver, and Gold badges.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-achievement-tiers">
+					<?php
+					foreach ( $tiers as $tier ) {
+						$key = 'orders_' . $tier;
+						$achievement = isset( $achievements[ $key ] ) ? $achievements[ $key ] : array();
+						$this->render_achievement_card( 'orders', $tier, $achievement );
+					}
+					?>
+				</div>
+			</div>
+
+			<!-- AOV Achievements -->
+			<div class="wc-tp-achievement-category">
+				<h5>
+					<span class="dashicons dashicons-chart-line"></span>
+					<?php esc_html_e( 'Average Order Value (AOV) Achievements', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'Set AOV thresholds for Bronze, Silver, and Gold badges.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-achievement-tiers">
+					<?php
+					foreach ( $tiers as $tier ) {
+						$key = 'aov_' . $tier;
+						$achievement = isset( $achievements[ $key ] ) ? $achievements[ $key ] : array();
+						$this->render_achievement_card( 'aov', $tier, $achievement );
+					}
+					?>
+				</div>
+			</div>
+
+			<!-- Achievement Preview -->
+			<div class="wc-tp-achievement-preview-section">
+				<h5>
+					<span class="dashicons dashicons-visibility"></span>
+					<?php esc_html_e( 'Achievement Preview', 'wc-team-payroll' ); ?>
+				</h5>
+				<p class="description"><?php esc_html_e( 'See how achievements will be displayed to employees on the reports page.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-achievement-preview-grid">
+					<div class="wc-tp-achievement-badge wc-tp-badge-bronze wc-tp-badge-earned">
+						<div class="wc-tp-badge-icon">
+							<span class="dashicons dashicons-awards"></span>
+						</div>
+						<div class="wc-tp-badge-info">
+							<h6><?php esc_html_e( 'Bronze Badge', 'wc-team-payroll' ); ?></h6>
+							<p><?php esc_html_e( 'Earned', 'wc-team-payroll' ); ?></p>
+						</div>
+					</div>
+					
+					<div class="wc-tp-achievement-badge wc-tp-badge-silver wc-tp-badge-earned">
+						<div class="wc-tp-badge-icon">
+							<span class="dashicons dashicons-awards"></span>
+						</div>
+						<div class="wc-tp-badge-info">
+							<h6><?php esc_html_e( 'Silver Badge', 'wc-team-payroll' ); ?></h6>
+							<p><?php esc_html_e( 'Earned', 'wc-team-payroll' ); ?></p>
+						</div>
+					</div>
+					
+					<div class="wc-tp-achievement-badge wc-tp-badge-gold wc-tp-badge-locked">
+						<div class="wc-tp-badge-icon">
+							<span class="dashicons dashicons-lock"></span>
+						</div>
+						<div class="wc-tp-badge-info">
+							<h6><?php esc_html_e( 'Gold Badge', 'wc-team-payroll' ); ?></h6>
+							<p><?php esc_html_e( 'Locked', 'wc-team-payroll' ); ?></p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render achievement card
+	 */
+	private function render_achievement_card( $category, $tier, $achievement ) {
+		$name = isset( $achievement['name'] ) ? $achievement['name'] : ucfirst( $category ) . ' ' . ucfirst( $tier );
+		$description = isset( $achievement['description'] ) ? $achievement['description'] : '';
+		$threshold = isset( $achievement['threshold'] ) ? $achievement['threshold'] : 0;
+		$icon = isset( $achievement['icon'] ) ? $achievement['icon'] : 'awards';
+		
+		$tier_labels = array(
+			'bronze' => __( 'Bronze Tier', 'wc-team-payroll' ),
+			'silver' => __( 'Silver Tier', 'wc-team-payroll' ),
+			'gold' => __( 'Gold Tier', 'wc-team-payroll' ),
+		);
+		
+		$currency_prefix = ( $category === 'earnings' || $category === 'aov' ) ? '$' : '';
+		$step = ( $category === 'orders' ) ? '1' : '0.01';
+		?>
+		<div class="wc-tp-achievement-card wc-tp-tier-<?php echo esc_attr( $tier ); ?>">
+			<div class="wc-tp-achievement-header">
+				<div class="wc-tp-achievement-badge-icon">
+					<span class="dashicons dashicons-<?php echo esc_attr( $icon ); ?>"></span>
+				</div>
+				<span class="wc-tp-tier-label"><?php echo esc_html( $tier_labels[ $tier ] ); ?></span>
+			</div>
+			
+			<div class="wc-tp-achievement-body">
+				<div class="wc-tp-achievement-field">
+					<label><?php esc_html_e( 'Achievement Name', 'wc-team-payroll' ); ?></label>
+					<input type="text" 
+						   name="achievement_<?php echo esc_attr( $category ); ?>_<?php echo esc_attr( $tier ); ?>_name" 
+						   value="<?php echo esc_attr( $name ); ?>" 
+						   placeholder="<?php echo esc_attr( ucfirst( $category ) . ' ' . ucfirst( $tier ) ); ?>"
+						   class="wc-tp-achievement-input" />
+				</div>
+				
+				<div class="wc-tp-achievement-field">
+					<label><?php esc_html_e( 'Description', 'wc-team-payroll' ); ?></label>
+					<textarea name="achievement_<?php echo esc_attr( $category ); ?>_<?php echo esc_attr( $tier ); ?>_description" 
+							  rows="2" 
+							  placeholder="<?php esc_attr_e( 'Describe what this achievement represents...', 'wc-team-payroll' ); ?>"
+							  class="wc-tp-achievement-textarea"><?php echo esc_textarea( $description ); ?></textarea>
+				</div>
+				
+				<div class="wc-tp-achievement-field">
+					<label><?php esc_html_e( 'Threshold', 'wc-team-payroll' ); ?></label>
+					<div class="wc-tp-threshold-input">
+						<?php if ( $currency_prefix ) : ?>
+							<span class="wc-tp-threshold-prefix"><?php echo esc_html( $currency_prefix ); ?></span>
+						<?php endif; ?>
+						<input type="number" 
+							   name="achievement_<?php echo esc_attr( $category ); ?>_<?php echo esc_attr( $tier ); ?>_threshold" 
+							   value="<?php echo esc_attr( $threshold ); ?>" 
+							   step="<?php echo esc_attr( $step ); ?>"
+							   min="0"
+							   class="wc-tp-achievement-input" />
+					</div>
+					<p class="description"><?php esc_html_e( 'Value needed to earn this badge', 'wc-team-payroll' ); ?></p>
+				</div>
+				
+				<div class="wc-tp-achievement-field">
+					<label><?php esc_html_e( 'Icon', 'wc-team-payroll' ); ?></label>
+					<select name="achievement_<?php echo esc_attr( $category ); ?>_<?php echo esc_attr( $tier ); ?>_icon" class="wc-tp-achievement-select">
+						<?php
+						$icons = array(
+							'awards' => __( 'Trophy', 'wc-team-payroll' ),
+							'star-filled' => __( 'Star', 'wc-team-payroll' ),
+							'money-alt' => __( 'Money', 'wc-team-payroll' ),
+							'cart' => __( 'Cart', 'wc-team-payroll' ),
+							'chart-line' => __( 'Chart', 'wc-team-payroll' ),
+							'thumbs-up' => __( 'Thumbs Up', 'wc-team-payroll' ),
+							'heart' => __( 'Heart', 'wc-team-payroll' ),
+							'flag' => __( 'Flag', 'wc-team-payroll' ),
+						);
+						foreach ( $icons as $icon_value => $icon_label ) {
+							echo '<option value="' . esc_attr( $icon_value ) . '"' . selected( $icon, $icon_value, false ) . '>' . esc_html( $icon_label ) . '</option>';
+						}
+						?>
+					</select>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Sanitize role achievements
+	 */
+	private function sanitize_role_achievements( $achievements ) {
+		$sanitized = array();
+		
+		$categories = array( 'earnings', 'orders', 'aov' );
+		$tiers = array( 'bronze', 'silver', 'gold' );
+		
+		foreach ( $categories as $category ) {
+			foreach ( $tiers as $tier ) {
+				$key = $category . '_' . $tier;
+				
+				if ( isset( $achievements[ $key ] ) && is_array( $achievements[ $key ] ) ) {
+					$sanitized[ $key ] = array(
+						'name' => sanitize_text_field( $achievements[ $key ]['name'] ),
+						'description' => sanitize_textarea_field( $achievements[ $key ]['description'] ),
+						'threshold' => ( $category === 'orders' ) ? intval( $achievements[ $key ]['threshold'] ) : floatval( $achievements[ $key ]['threshold'] ),
+						'tier' => $tier,
+						'icon' => sanitize_text_field( $achievements[ $key ]['icon'] ),
+					);
+				}
+			}
+		}
+		
+		return $sanitized;
+	}
+
 }
+
+// Note: Class is instantiated in the main plugin file
