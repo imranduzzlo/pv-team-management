@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.56] - 2026-04-17
+### Critical Bug Fix
+- **FIX**: Added role check in `get_user_earnings()` to prevent including orders where user is not agent/processor
+- **FIX**: Resolved critical error that occurred when activating plugin
+- **TECHNICAL**: Updated condition from `if ( $user_earnings > 0 || $attributed_value > 0 )` to `if ( $role && ( $user_earnings > 0 || $attributed_value > 0 ) )`
+- **TECHNICAL**: Ensures only orders where user has a valid role (agent or processor) are included in earnings data
+
 ## [1.0.55] - 2026-04-17
 ### Reports Page Enhancements & Performance Score Improvements
 - **FEATURE**: Performance Score now uses attributed order values based on agent/processor commission split
