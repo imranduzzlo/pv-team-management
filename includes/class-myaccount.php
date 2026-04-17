@@ -3728,7 +3728,9 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get actual salary transactions for the period (not calculated from salary amount)
-		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date );
+		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
+		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date, $salary_amount, $salary_frequency );
 
 		// Get salary type for display
 		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );

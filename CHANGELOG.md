@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.74] - 2026-04-18
+### KPI Cards AJAX Handler Fix
+- **FIX**: Fixed KPI cards showing 500 Internal Server Error
+- **ROOT CAUSE**: `get_user_salary_for_period()` function called with 3 parameters but requires 5 parameters ($user_id, $start_date, $end_date, $salary_amount, $salary_frequency)
+- **SOLUTION**: Added missing $salary_amount and $salary_frequency parameters by fetching from user meta before calling the function
+- **RESULT**: KPI cards now load correctly with real data from database
+
 ## [1.0.73] - 2026-04-18
 ### Order Status Filter Fix
 - **FIX**: Fixed Reports page order status filter not showing any statuses
