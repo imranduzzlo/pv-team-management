@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.71] - 2026-04-18
+### Debug & Filter Parsing Improvements
+- **ENHANCEMENT**: Added console logging to JavaScript AJAX calls for better error visibility
+- **ENHANCEMENT**: Improved error messages in browser console showing actual error details
+- **ENHANCEMENT**: Enhanced PHP filter parsing to handle jQuery serialized objects correctly
+- **ENHANCEMENT**: Added debug logging to WordPress error log for filter data inspection
+- **TECHNICAL**: Better error handling in loadDashboardData() with detailed console output
+- **TECHNICAL**: Improved $_POST['filters'] parsing to handle both array and serialized formats
+
 ## [1.0.70] - 2026-04-18
 ### CRITICAL FIX - Date Range Filter Format Mismatch
 - **FIX**: Fixed KPI cards not loading - date range format mismatch between JavaScript and PHP
