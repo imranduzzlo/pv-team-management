@@ -1080,3 +1080,4 @@ jQuery(document).ready(function($) {
 			role: role && role !== 'all' ? role.toUpperCase() : 'All'
 		};
 	}
+
