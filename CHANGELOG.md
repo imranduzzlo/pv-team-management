@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.66] - 2026-04-17
+### Critical Bug Fixes - KPI Cards Date Range Filter
+- **FIX**: Fixed KPI cards showing error - date range filter mismatch between JavaScript and PHP
+- **FIX**: JavaScript was sending hyphens (this-month) but PHP expected underscores (this_month)
+- **FIX**: All date range values now use consistent underscore format
+- **ENHANCEMENT**: Added try-catch error handling to AJAX handlers
+- **ENHANCEMENT**: Added console logging for debugging AJAX calls
+- **TECHNICAL**: Updated all date range cases in reports.js to use underscores
+- **TECHNICAL**: Added error handling wrapper to ajax_get_filtered_dashboard_data()
+
 ## [1.0.65] - 2026-04-17
 ### Critical Bug Fixes - Reports KPI Cards
 - **FIX**: Fixed KPI cards not loading - showing fallback error message
