@@ -249,15 +249,15 @@ jQuery(document).ready(function($) {
 							<div class="breakdown-items">
 								<div class="breakdown-item">
 									<span class="breakdown-label">Period</span>
-									<span class="breakdown-value">$${filters.dateRange || 'Current Period'}</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Status Filter</span>
-									<span class="breakdown-value">$${filters.orderStatus || 'All'}</span>
+									<span class="breakdown-value">${filters.orderStatus || 'All'}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Role Filter</span>
-									<span class="breakdown-value">$${filters.role || 'All'}</span>
+									<span class="breakdown-value">${filters.role || 'All'}</span>
 								</div>
 							</div>
 						</div>
@@ -277,11 +277,11 @@ jQuery(document).ready(function($) {
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Salary Type</span>
-									<span class="breakdown-value">$${$('[data-card-type="my_salary"] .reports-kpi-change').text() || 'N/A'}</span>
+									<span class="breakdown-value">${$('[data-card-type="my_salary"] .reports-kpi-change').text() || 'N/A'}</span>
 								</div>
 								<div class="breakdown-item">
 									<span class="breakdown-label">Period</span>
-									<span class="breakdown-value">$${filters.dateRange || 'Current Period'}</span>
+									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
 								</div>
 							</div>
 						</div>

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.89] - 2026-04-18
+### Reports Page - KPI Modal Breakdown Values Fix
+- **FIX**: KPI modal breakdown values no longer show incorrect `$` prefix for non-currency text
+- **ROOT CAUSE**: Template literal syntax error - double `$$` instead of single `$` for interpolation
+- **SOLUTION**: Fixed template literal placeholders in Total Earnings and Salary modal content
+- **AFFECTED**: Period, Status Filter, Role Filter, and Salary Type breakdown values
+- **RESULT**: Breakdown values now display correctly (e.g., "All" instead of "$All", "CURRENT PERIOD" instead of "$CURRENT PERIOD")
+
 ## [1.0.88] - 2026-04-18
 ### Reports Page - Dynamic Auto-Refresh Interval
 - **FEATURE**: Reports page auto-refresh interval now uses System Config setting from Performance Settings tab
