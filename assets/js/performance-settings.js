@@ -294,6 +294,17 @@ jQuery(document).ready(function($) {
 						console.error('Error collecting calculation config:', e);
 					}
 					break;
+				case 'system':
+					try {
+						const systemConfig = collectSystemConfigurationData();
+						console.log('System config collected:', systemConfig);
+						if (systemConfig && Object.keys(systemConfig).length > 0) {
+							savePromises.push(saveSystemConfig(systemConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting system config:', e);
+					}
+					break;
 			}
 			
 			console.log('Total save promises:', savePromises.length);
@@ -434,6 +445,22 @@ jQuery(document).ready(function($) {
 			return { success: response.success, message: response.data ? response.data.message : 'Calculation config saved' };
 		}).catch(function(xhr) {
 			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving calculation config' };
+		});
+	}
+
+	function saveSystemConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_system_config',
+				nonce: wcTpPerformance.nonce,
+				config: config
+			}
+		}).then(function(response) {
+			return { success: response.success, message: response.data ? response.data.message : 'System config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving system config' };
 		});
 	}
 
@@ -1441,6 +1468,25 @@ jQuery(document).ready(function($) {
 			exclude_refunds: $('#calc_exclude_refunds').is(':checked') ? 1 : 0,
 			aov_method: $('#calc_aov_method').val(),
 			custom_formula: $('#calc_custom_formula').val()
+		};
+		
+		return config;
+	}
+
+	// Collect system configuration data
+	function collectSystemConfigurationData() {
+		const config = {
+			enable_performance: $('#system_enable_performance').is(':checked') ? 1 : 0,
+			show_score: $('#system_show_score').is(':checked') ? 1 : 0,
+			show_goals: $('#system_show_goals').is(':checked') ? 1 : 0,
+			show_achievements: $('#system_show_achievements').is(':checked') ? 1 : 0,
+			show_baselines: $('#system_show_baselines').is(':checked') ? 1 : 0,
+			show_leaderboard: $('#system_show_leaderboard').is(':checked') ? 1 : 0,
+			refresh_interval: parseInt($('#system_refresh_interval').val()) || 30,
+			data_retention: $('#system_data_retention').val(),
+			anonymize_data: $('#system_anonymize_data').is(':checked') ? 1 : 0,
+			cache_duration: parseInt($('#system_cache_duration').val()) || 300,
+			debug_mode: $('#system_debug_mode').is(':checked') ? 1 : 0
 		};
 		
 		return config;

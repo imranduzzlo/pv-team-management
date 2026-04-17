@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.85] - 2026-04-18
+### Performance Settings - System Config Save Fix
+- **FIX**: System Config tab in Performance Settings now saves settings correctly
+- **ROOT CAUSE**: JavaScript save handler had no case for 'system' section, so system config data was never collected or sent to server
+- **SOLUTION**: Added `collectSystemConfigurationData()` function to collect all system config form fields
+- **SOLUTION**: Added case for 'system' in the unified save handler switch statement
+- **SOLUTION**: Added `saveSystemConfig()` function to send data to AJAX handler
+- **TECHNICAL**: System config includes: enable_performance, show_score, show_goals, show_achievements, show_baselines, show_leaderboard, refresh_interval, data_retention, anonymize_data, cache_duration, debug_mode
+- **RESULT**: System Config settings now persist correctly after clicking save button
+
 ## [1.0.84] - 2026-04-18
 ### Reports Page - KPI Modal Fix
 - **FIX**: KPI card modals now load content properly instead of showing infinite loading
