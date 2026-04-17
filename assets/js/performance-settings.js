@@ -477,8 +477,24 @@ jQuery(document).ready(function($) {
 			console.log('wcTpResetUnsavedChanges function available (delayed check):', typeof window.wcTpResetUnsavedChanges === 'function');
 		}, 1000);
 
+		// Flag to track if page has finished initial load
+		let pageLoadComplete = false;
+		
+		// Mark page load as complete after a delay to allow all initial changes to settle
+		setTimeout(function() {
+			pageLoadComplete = true;
+			console.log('Performance settings page load complete - now tracking changes');
+		}, 1500);
+
 		// Ensure performance settings changes are tracked by main form
+		// BUT only after initial page load is complete
 		$('.wc-tp-performance-settings-wrapper').on('change', 'input, select, textarea', function() {
+			// Ignore changes during initial page load
+			if (!pageLoadComplete) {
+				console.log('Ignoring change during page load:', $(this).attr('name') || $(this).attr('id'));
+				return;
+			}
+			
 			console.log('Performance setting changed:', $(this).attr('name') || $(this).attr('id'));
 			// Trigger change on main form to ensure unsaved changes detection
 			$('#wc-tp-settings-form').trigger('wc-tp-performance-change');

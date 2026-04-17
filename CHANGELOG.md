@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.86] - 2026-04-18
+### Performance Settings - False Unsaved Changes Warning Fix
+- **FIX**: Performance Settings tab no longer shows "unsaved changes" warning immediately on page load
+- **ROOT CAUSE**: Change event listeners were triggering during initial page load when elements were being populated programmatically
+- **SOLUTION**: Added `pageLoadComplete` flag that is set to true after 1.5 seconds
+- **SOLUTION**: Change detection now ignores all changes during initial page load period
+- **TECHNICAL**: Only user-initiated changes after page load completion trigger the unsaved changes warning
+- **RESULT**: Unsaved changes warning only appears when user actually modifies settings, not on page load
+
 ## [1.0.85] - 2026-04-18
 ### Performance Settings - System Config Save Fix
 - **FIX**: System Config tab in Performance Settings now saves settings correctly
