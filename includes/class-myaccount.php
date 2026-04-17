@@ -1025,6 +1025,31 @@ class WC_Team_Payroll_MyAccount {
 	public static function orders_commission_content() {
 		$user_id = get_current_user_id();
 		
+		// Get all WooCommerce order statuses
+		$all_statuses = wc_get_order_statuses();
+		
+		// Define icons for default WooCommerce statuses
+		$status_icons = array(
+			'wc-completed'   => 'ph-check-circle',
+			'wc-processing'  => 'ph-hourglass',
+			'wc-pending'     => 'ph-clock',
+			'wc-on-hold'     => 'ph-pause-circle',
+			'wc-cancelled'   => 'ph-x-circle',
+			'wc-refunded'    => 'ph-arrow-counter-clockwise',
+		);
+		
+		// Default icon for custom statuses
+		$default_custom_icon = 'ph-tag';
+		
+		// Filter out draft and failed statuses
+		$filtered_statuses = array();
+		foreach ( $all_statuses as $status_key => $status_label ) {
+			$clean_status = str_replace( 'wc-', '', $status_key );
+			if ( $clean_status !== 'draft' && $clean_status !== 'failed' ) {
+				$filtered_statuses[ $status_key ] = $status_label;
+			}
+		}
+		
 		?>
 		<div class="pv-page-wrapper wc-team-payroll-orders">
 			<!-- Employee Header -->
@@ -1034,6 +1059,7 @@ class WC_Team_Payroll_MyAccount {
 			<div class="pv-section-wrapper orders-summary-section">
 				<h3><?php esc_html_e( 'Orders Summary', 'wc-team-payroll' ); ?></h3>
 				<div class="pv-summary-grid orders-summary">
+					<!-- Fixed Summary Cards -->
 					<div class="pv-card order-card total-orders">
 						<div class="card-header">
 							<i class="ph ph-shopping-cart"></i>
@@ -1064,65 +1090,22 @@ class WC_Team_Payroll_MyAccount {
 						</div>
 					</div>
 					
-					<div class="pv-card order-card status-completed">
-						<div class="card-header">
-							<i class="ph ph-check-circle"></i>
+					<!-- Dynamic Status Cards -->
+					<?php foreach ( $filtered_statuses as $status_key => $status_label ) : 
+						$clean_status = str_replace( 'wc-', '', $status_key );
+						$icon_class = isset( $status_icons[ $status_key ] ) ? $status_icons[ $status_key ] : $default_custom_icon;
+						$is_custom = ! isset( $status_icons[ $status_key ] );
+					?>
+						<div class="pv-card order-card status-<?php echo esc_attr( $clean_status ); ?><?php echo $is_custom ? ' custom-status' : ''; ?>">
+							<div class="card-header">
+								<i class="ph <?php echo esc_attr( $icon_class ); ?>"></i>
+							</div>
+							<div class="card-label-amount-wrapper">
+								<div class="card-label"><?php echo esc_html( $status_label ); ?></div>
+								<p class="amount" id="status-<?php echo esc_attr( $clean_status ); ?>">0</p>
+							</div>
 						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'Completed', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-completed">0</p>
-						</div>
-					</div>
-					
-					<div class="pv-card order-card status-processing">
-						<div class="card-header">
-							<i class="ph ph-hourglass"></i>
-						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'Processing', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-processing">0</p>
-						</div>
-					</div>
-					
-					<div class="pv-card order-card status-pending">
-						<div class="card-header">
-							<i class="ph ph-clock"></i>
-						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'Pending', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-pending">0</p>
-						</div>
-					</div>
-					
-					<div class="pv-card order-card status-on-hold">
-						<div class="card-header">
-							<i class="ph ph-pause-circle"></i>
-						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'On Hold', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-on-hold">0</p>
-						</div>
-					</div>
-					
-					<div class="pv-card order-card status-cancelled">
-						<div class="card-header">
-							<i class="ph ph-x-circle"></i>
-						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'Cancelled', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-cancelled">0</p>
-						</div>
-					</div>
-					
-					<div class="pv-card order-card status-refunded">
-						<div class="card-header">
-							<i class="ph ph-warning"></i>
-						</div>
-						<div class="card-label-amount-wrapper">
-							<div class="card-label"><?php esc_html_e( 'Refunded', 'wc-team-payroll' ); ?></div>
-							<p class="amount" id="status-refunded">0</p>
-						</div>
-					</div>
+					<?php endforeach; ?>
 				</div>
 			</div>
 
@@ -1300,12 +1283,14 @@ class WC_Team_Payroll_MyAccount {
 								$('#total-orders').html(data.summary.total_orders);
 								$('#total-commission').html(data.summary.total_commission);
 								$('#my-earnings').html(data.summary.my_earnings);
-								$('#status-completed').html(data.summary.status_completed || 0);
-								$('#status-processing').html(data.summary.status_processing || 0);
-								$('#status-pending').html(data.summary.status_pending || 0);
-								$('#status-on-hold').html(data.summary['status_on-hold'] || 0);
-								$('#status-cancelled').html(data.summary.status_cancelled || 0);
-								$('#status-refunded').html(data.summary.status_refunded || 0);
+								
+								// Update all status cards dynamically
+								for (var key in data.summary) {
+									if (key.startsWith('status_')) {
+										var statusId = key.replace(/_/g, '-'); // Convert underscores to hyphens for ID
+										$('#' + statusId).html(data.summary[key] || 0);
+									}
+								}
 
 								// Populate table rows
 								allRows = [];
@@ -3463,13 +3448,39 @@ class WC_Team_Payroll_MyAccount {
 		$offset = ( $page - 1 ) * $per_page;
 		$paged_orders = array_slice( $filtered_orders, $offset, $per_page );
 
+		// Calculate status counts dynamically from filtered orders
+		$status_counts = array();
+		
+		// Get all WooCommerce statuses (excluding draft and failed)
+		$all_statuses = wc_get_order_statuses();
+		foreach ( $all_statuses as $status_key => $status_label ) {
+			$clean_status = str_replace( 'wc-', '', $status_key );
+			if ( $clean_status !== 'draft' && $clean_status !== 'failed' ) {
+				$status_counts[ 'status_' . $clean_status ] = 0;
+			}
+		}
+
+		// Count orders by status
+		foreach ( $filtered_orders as $order_data ) {
+			$status_key = 'status_' . $order_data['status'];
+			if ( isset( $status_counts[ $status_key ] ) ) {
+				$status_counts[ $status_key ]++;
+			}
+		}
+
+		// Build summary with dynamic status counts
+		$summary = array(
+			'total_orders' => $total_orders,
+			'total_commission' => wp_kses_post( wc_price( $total_commission ) ),
+			'my_earnings' => wp_kses_post( wc_price( $my_total_earnings ) ),
+		);
+		
+		// Merge status counts into summary
+		$summary = array_merge( $summary, $status_counts );
+
 		wp_send_json_success( array(
 			'orders' => $paged_orders,
-			'summary' => array(
-				'total_orders' => $total_orders,
-				'total_commission' => wp_kses_post( wc_price( $total_commission ) ),
-				'my_earnings' => wp_kses_post( wc_price( $my_total_earnings ) ),
-			),
+			'summary' => $summary,
 			'pagination' => array(
 				'current_page' => $page,
 				'total_pages' => $total_pages,

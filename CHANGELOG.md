@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.83] - 2026-04-18
+### My Orders Page - Dynamic Status Cards
+- **FEATURE**: Status cards now dynamically generated from all WooCommerce order statuses
+- **FEATURE**: Automatically includes custom order statuses created by admin
+- **ENHANCEMENT**: Default WooCommerce statuses use specific icons (completed, processing, pending, on-hold, cancelled, refunded)
+- **ENHANCEMENT**: Custom statuses use a generic tag icon to distinguish them visually
+- **FILTER**: Draft and Failed statuses are excluded from status cards
+- **TECHNICAL**: Status cards generated dynamically in PHP from `wc_get_order_statuses()`
+- **TECHNICAL**: AJAX handler calculates counts for all statuses dynamically
+- **TECHNICAL**: JavaScript updates all status cards using loop instead of hardcoded IDs
+- **RESULT**: Status cards automatically adapt to custom order statuses without code changes
+
+## [1.0.82] - 2026-04-18
+### My Orders Page - Status Cards Fix
+- **FIX**: Status cards in My Orders page now show correct order counts instead of always showing 0
+- **ROOT CAUSE**: AJAX handler `ajax_get_orders()` was not returning status counts in the summary response
+- **SOLUTION**: Added status count calculation for all order statuses (completed, processing, pending, on-hold, cancelled, refunded)
+- **ENHANCEMENT**: Status counts are calculated from filtered orders respecting role, status, and date filters
+- **RESULT**: Status cards now display accurate order counts for each status
+
 ## [1.0.81] - 2026-04-18
 ### Employee Details Page - Orders and Earnings Calculation Fix
 - **FIX**: Total orders now counts ALL orders (not just commission calculation statuses)
