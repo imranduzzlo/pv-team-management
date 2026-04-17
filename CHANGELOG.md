@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.87] - 2026-04-18
+### Reports Page - KPI Modal Loading Fix
+- **FIX**: KPI card modals (Total Earnings, Commission, Salary, Performance Score) now load content properly instead of showing infinite loading
+- **ROOT CAUSE**: `getCurrentFilters()` helper function was defined outside the jQuery ready scope, making it inaccessible to `loadDrillDownData()` function
+- **SOLUTION**: Moved `getCurrentFilters()` function definition inside `loadDrillDownData()` as a local helper function
+- **TECHNICAL**: Function scope issue caused JavaScript error that prevented modal content from rendering
+- **RESULT**: All KPI card modals now display detailed breakdown data correctly
+
 ## [1.0.86] - 2026-04-18
 ### Performance Settings - False Unsaved Changes Warning Fix
 - **FIX**: Performance Settings tab no longer shows "unsaved changes" warning immediately on page load

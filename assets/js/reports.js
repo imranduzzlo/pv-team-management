@@ -182,6 +182,19 @@ jQuery(document).ready(function($) {
 	function loadDrillDownData(cardType, modal) {
 		// Add small delay to ensure KPI cards are fully loaded
 		setTimeout(function() {
+			// Helper function to get current filters
+			function getCurrentFilters() {
+				const dateRangeSelect = $('#reports-date-range').val();
+				const orderStatus = $('#reports-order-status').val();
+				const role = $('#reports-role').val();
+				
+				return {
+					dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
+					orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
+					role: role && role !== 'all' ? role.toUpperCase() : 'All'
+				};
+			}
+			
 			// Fetch real data from the current dashboard data
 			const filters = getCurrentFilters();
 		
