@@ -685,7 +685,6 @@ jQuery(document).ready(function($) {
 	 * Load KPI dashboard data
 	 */
 	function loadDashboardData() {
-		console.log('Loading dashboard data with filters:', masterFilters);
 		$.ajax({
 			url: wc_tp_reports.ajax_url,
 			type: 'POST',
