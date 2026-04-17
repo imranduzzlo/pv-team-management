@@ -1,49 +1,22 @@
 # Changelog
 
-## [1.0.92] - 2026-04-18
-### Reports Page - Performance Score Modal Order Total Fix
-- **FIX**: Order Total (Attributed) now shows actual attributed order value instead of duplicate earnings value
-- **FEATURE**: Added AJAX handler to fetch real attributed order total from commission data
-- **TECHNICAL**: New `ajax_get_attributed_order_total()` method calculates sum of attributed order values
-- **TECHNICAL**: Attributed order value comes from `agent_order_value` or `processor_order_value` in commission data
-- **TECHNICAL**: JavaScript fetches attributed total via AJAX when Performance Score modal opens
-- **RESULT**: Order Total (Attributed) and Total Earnings now show different, correct values
-
-## [1.0.91] - 2026-04-18
-### Reports Page - Performance Score Modal Enhancement
-- **FEATURE**: Added Order Total (Attributed) to Performance Score breakdown
+## [1.0.93] - 2026-04-18
+### Reports Page - Performance Score Modal Enhancements & Fixes
+- **FIX**: Fixed KPI modal breakdown values showing incorrect $ prefix for non-currency text (e.g., "$All" now shows as "All")
+- **FIX**: Fixed Performance Score modal showing duplicate "/10" (e.g., "5.2/10/10" now shows as "5.2/10")
+- **FEATURE**: Added "Order Total (Attributed)" field to Performance Score modal showing real attributed order values
 - **FEATURE**: Added comprehensive "Calculation Details" section explaining performance scoring system
-- **ENHANCEMENT**: Explains how performance score is calculated (base score + earnings + orders + AOV)
+- **ENHANCEMENT**: Order Total (Attributed) fetches real data from order meta (agent_order_value/processor_order_value)
+- **ENHANCEMENT**: Calculation Details explains how performance score works with 3 key metrics
 - **ENHANCEMENT**: Explains attribution system (Agent/Processor split based on configured percentages)
-- **ENHANCEMENT**: Includes example calculation showing how metrics convert to score points
-- **ENHANCEMENT**: Shows current period filters applied to the score calculation
-- **TECHNICAL**: Order Total reflects attributed value based on agent/processor split stored in order meta
-- **RESULT**: Users now understand exactly how their performance score is calculated with real data examples
-
-## [1.0.90] - 2026-04-18
-### Reports Page - Performance Score Modal Fix
-- **FIX**: Performance Score modal current score no longer shows duplicate "/10" (e.g., "5.2/10/10")
-- **ROOT CAUSE**: Performance score value extracted from KPI card already contained "/10", then template added another "/10"
-- **SOLUTION**: Strip "/10" suffix from extracted value using regex `.replace(/\/10$/, '')`
-- **RESULT**: Current Score now displays correctly as "5.2/10" instead of "5.2/10/10"
-
-## [1.0.89] - 2026-04-18
-### Reports Page - KPI Modal Breakdown Values Fix
-- **FIX**: KPI modal breakdown values no longer show incorrect `$` prefix for non-currency text
-- **ROOT CAUSE**: Template literal syntax error - double `$$` instead of single `$` for interpolation
-- **SOLUTION**: Fixed template literal placeholders in Total Earnings and Salary modal content
-- **AFFECTED**: Period, Status Filter, Role Filter, and Salary Type breakdown values
-- **RESULT**: Breakdown values now display correctly (e.g., "All" instead of "$All", "CURRENT PERIOD" instead of "$CURRENT PERIOD")
-
-## [1.0.88] - 2026-04-18
-### Reports Page - Dynamic Auto-Refresh Interval
-- **FEATURE**: Reports page auto-refresh interval now uses System Config setting from Performance Settings tab
-- **ENHANCEMENT**: Refresh interval is configurable in Performance Settings → System Config → Auto-Refresh Interval (0-300 seconds)
-- **ENHANCEMENT**: Setting value of 0 disables auto-refresh completely
-- **TECHNICAL**: Added `get_refresh_interval()` method to retrieve system config setting
-- **TECHNICAL**: Refresh interval passed to JavaScript via `wc_tp_reports` localized script object
-- **TECHNICAL**: JavaScript converts seconds to milliseconds for proper timing
-- **RESULT**: Reports page respects admin-configured refresh interval instead of hardcoded 30 seconds
+- **ENHANCEMENT**: Shows score calculation formula with example using realistic numbers
+- **ENHANCEMENT**: Displays current period data with applied filters
+- **TECHNICAL**: Added new AJAX handler `ajax_get_attributed_order_total()` in MyAccount class
+- **TECHNICAL**: AJAX handler calculates sum of attributed order values from commission data
+- **TECHNICAL**: JavaScript fetches attributed total via AJAX when Performance Score modal opens
+- **TECHNICAL**: Fixed template literal syntax errors (double $$ to single $)
+- **TECHNICAL**: Added regex `.replace(/\/10$/, '')` to strip "/10" suffix from performance score value
+- **RESULT**: Performance Score modal now shows accurate attributed order totals and comprehensive calculation explanations
 
 ## [1.0.87] - 2026-04-18
 ### Reports Page - KPI Modal Loading Fix

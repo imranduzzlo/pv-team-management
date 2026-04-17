@@ -39,9 +39,8 @@ jQuery(document).ready(function($) {
 
 	// Auto-refresh interval (in milliseconds)
 	let autoRefreshInterval = null;
-	// Get refresh interval from system config (passed from PHP, default 30 seconds)
-	const AUTO_REFRESH_DELAY = (typeof wc_tp_reports !== 'undefined' && wc_tp_reports.refresh_interval) ? wc_tp_reports.refresh_interval : 30000;
-	const AUTO_REFRESH_ENABLED = AUTO_REFRESH_DELAY > 0; // Disable if set to 0
+	const AUTO_REFRESH_ENABLED = true;
+	const AUTO_REFRESH_DELAY = 30000; // 30 seconds
 	
 	// Track if filters have changed to control animations
 	let filtersChanged = false;
@@ -181,30 +180,31 @@ jQuery(document).ready(function($) {
 	 * Load drill-down data
 	 */
 	function loadDrillDownData(cardType, modal) {
-		// Helper function to get current filters
-		function getCurrentFilters() {
-			const dateRangeSelect = $('#reports-date-range').val();
-			const orderStatus = $('#reports-order-status').val();
-			const role = $('#reports-role').val();
+		// Add small delay to ensure KPI cards are fully loaded
+		setTimeout(function() {
+			// Helper function to get current filters
+			function getCurrentFilters() {
+				const dateRangeSelect = $('#reports-date-range').val();
+				const orderStatus = $('#reports-order-status').val();
+				const role = $('#reports-role').val();
+				
+				return {
+					dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
+					orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
+					role: role && role !== 'all' ? role.toUpperCase() : 'All'
+				};
+			}
 			
-			return {
-				dateRange: dateRangeSelect ? dateRangeSelect.replace(/-/g, ' ').toUpperCase() : 'Current Period',
-				orderStatus: orderStatus && orderStatus !== 'all' ? orderStatus.toUpperCase() : 'All',
-				role: role && role !== 'all' ? role.toUpperCase() : 'All'
-			};
-		}
+			// Fetch real data from the current dashboard data
+			const filters = getCurrentFilters();
 		
-		// Fetch real data from the current dashboard data
-		const filters = getCurrentFilters();
-	
 		// Get the current KPI values from the page using .text() to get clean text
 		const kpiCards = {
 			my_earnings: {
 				value: $('[data-card-type="my_earnings"] .reports-kpi-value').text().trim() || '$0.00',
 				commission: $('[data-card-type="my_commission"] .reports-kpi-value').text().trim() || '$0.00',
 				salary: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
-				change: $('[data-card-type="my_earnings"] .reports-kpi-change').text().trim() || '0 orders',
-				attributedTotal: '$0.00' // Will be calculated from commission data
+				change: $('[data-card-type="my_earnings"] .reports-kpi-change').text().trim() || '0 orders'
 			},
 			my_salary: {
 				value: $('[data-card-type="my_salary"] .reports-kpi-value').text().trim() || '$0.00',
@@ -221,35 +221,6 @@ jQuery(document).ready(function($) {
 			}
 		};
 
-		// Fetch attributed order total via AJAX for performance score modal
-		if (cardType === 'my_performance_score') {
-			$.ajax({
-				url: wc_tp_reports.ajax_url,
-				type: 'POST',
-				data: {
-					action: 'wc_tp_get_attributed_order_total',
-					nonce: wc_tp_reports.nonce,
-					filters: masterFilters
-				},
-				success: function(response) {
-					if (response.success) {
-						kpiCards.my_earnings.attributedTotal = response.data.attributed_total || '$0.00';
-					}
-					renderModalContent(cardType, kpiCards, filters, modal);
-				},
-				error: function() {
-					renderModalContent(cardType, kpiCards, filters, modal);
-				}
-			});
-		} else {
-			renderModalContent(cardType, kpiCards, filters, modal);
-		}
-	}
-
-	/**
-	 * Render modal content
-	 */
-	function renderModalContent(cardType, kpiCards, filters, modal) {
 		let content = '';
 
 		switch (cardType) {
@@ -369,110 +340,235 @@ jQuery(document).ready(function($) {
 				break;
 
 			case 'my_performance_score':
-				content = `
-					<div class="drill-down-content">
-						<div class="drill-down-section">
-							<h4>Performance Score Breakdown</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Current Score</span>
-									<span class="breakdown-value">${kpiCards.my_performance_score.value}/10</span>
+				// Fetch attributed order total via AJAX
+				$.ajax({
+					url: wc_tp_reports.ajax_url,
+					type: 'POST',
+					data: {
+						action: 'wc_tp_get_attributed_order_total',
+						nonce: wc_tp_reports.nonce,
+						filters: masterFilters
+					},
+					success: function(response) {
+						let attributedTotal = '$0.00';
+						if (response.success && response.data.attributed_total) {
+							attributedTotal = response.data.attributed_total;
+						}
+
+						content = `
+							<div class="drill-down-content">
+								<div class="drill-down-section">
+									<h4>Performance Score Breakdown</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">Current Score</span>
+											<span class="breakdown-value">${kpiCards.my_performance_score.value}/10</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Total Orders</span>
+											<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Order Total (Attributed)</span>
+											<span class="breakdown-value">${attributedTotal}</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Total Earnings</span>
+											<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Commission Earned</span>
+											<span class="breakdown-value">${kpiCards.my_commission.value}</span>
+										</div>
+									</div>
 								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Total Orders</span>
-									<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
+								<div class="drill-down-section">
+									<h4>Performance Calculation</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">Calculation Method</span>
+											<span class="breakdown-value">Role-based configuration from Performance Settings</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Based On</span>
+											<span class="breakdown-value">Attributed order totals, order count, and AOV</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Filters Applied</span>
+											<span class="breakdown-value">Date Range, Order Status, Role</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Period</span>
+											<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
+										</div>
+									</div>
 								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Order Total (Attributed)</span>
-									<span class="breakdown-value">${kpiCards.my_earnings.attributedTotal}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Total Earnings</span>
-									<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Commission Earned</span>
-									<span class="breakdown-value">${kpiCards.my_commission.value}</span>
+								<div class="drill-down-section">
+									<h4>Calculation Details</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">How Performance Score Works</span>
+											<span class="breakdown-value">
+												Your performance score is calculated based on three key metrics:
+												<br><strong>1. Order Count:</strong> Number of orders processed
+												<br><strong>2. Total Earnings:</strong> Commission earned from orders
+												<br><strong>3. Average Order Value (AOV):</strong> Average value per order
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Attribution System</span>
+											<span class="breakdown-value">
+												Orders are split between Agent and Processor based on configured percentages (typically 70% Agent / 30% Processor). Your attributed order value is your percentage share of the total order amount.
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Score Calculation</span>
+											<span class="breakdown-value">
+												Base Score (5.0) + Points from Earnings Range + Points from Orders Range + Points from AOV Range = Final Score (capped at 10.0)
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Example Calculation</span>
+											<span class="breakdown-value">
+												If you have: 15 orders, $1,500 earnings, $100 AOV
+												<br>• Base Score: 5.0 points
+												<br>• Earnings ($1,500): +2.5 points (from your role's earnings range)
+												<br>• Orders (15): +1.5 points (from your role's orders range)
+												<br>• AOV ($100): +1.0 point (from your role's AOV range)
+												<br><strong>Final Score: 10.0/10</strong>
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Current Period Data</span>
+											<span class="breakdown-value">
+												Date Range: ${filters.dateRange || 'Current Period'}
+												<br>Status Filter: ${filters.orderStatus || 'All'}
+												<br>Role Filter: ${filters.role || 'All'}
+												<br>Your score reflects only orders matching these filters.
+											</span>
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div class="drill-down-section">
-							<h4>Performance Calculation</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">Calculation Method</span>
-									<span class="breakdown-value">Role-based configuration from Performance Settings</span>
+						`;
+
+						// Replace loading with actual content
+						modal.find('.reports-modal-body').html(content);
+					},
+					error: function() {
+						// Fallback if AJAX fails
+						content = `
+							<div class="drill-down-content">
+								<div class="drill-down-section">
+									<h4>Performance Score Breakdown</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">Current Score</span>
+											<span class="breakdown-value">${kpiCards.my_performance_score.value}/10</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Total Orders</span>
+											<span class="breakdown-value">${kpiCards.my_commission.orders}</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Order Total (Attributed)</span>
+											<span class="breakdown-value">$0.00</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Total Earnings</span>
+											<span class="breakdown-value">${kpiCards.my_earnings.value}</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Commission Earned</span>
+											<span class="breakdown-value">${kpiCards.my_commission.value}</span>
+										</div>
+									</div>
 								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Based On</span>
-									<span class="breakdown-value">Attributed order totals, order count, and AOV</span>
+								<div class="drill-down-section">
+									<h4>Performance Calculation</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">Calculation Method</span>
+											<span class="breakdown-value">Role-based configuration from Performance Settings</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Based On</span>
+											<span class="breakdown-value">Attributed order totals, order count, and AOV</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Filters Applied</span>
+											<span class="breakdown-value">Date Range, Order Status, Role</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Period</span>
+											<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
+										</div>
+									</div>
 								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Filters Applied</span>
-									<span class="breakdown-value">Date Range, Order Status, Role</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Period</span>
-									<span class="breakdown-value">${filters.dateRange || 'Current Period'}</span>
+								<div class="drill-down-section">
+									<h4>Calculation Details</h4>
+									<div class="breakdown-items">
+										<div class="breakdown-item">
+											<span class="breakdown-label">How Performance Score Works</span>
+											<span class="breakdown-value">
+												Your performance score is calculated based on three key metrics:
+												<br><strong>1. Order Count:</strong> Number of orders processed
+												<br><strong>2. Total Earnings:</strong> Commission earned from orders
+												<br><strong>3. Average Order Value (AOV):</strong> Average value per order
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Attribution System</span>
+											<span class="breakdown-value">
+												Orders are split between Agent and Processor based on configured percentages (typically 70% Agent / 30% Processor). Your attributed order value is your percentage share of the total order amount.
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Score Calculation</span>
+											<span class="breakdown-value">
+												Base Score (5.0) + Points from Earnings Range + Points from Orders Range + Points from AOV Range = Final Score (capped at 10.0)
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Example Calculation</span>
+											<span class="breakdown-value">
+												If you have: 15 orders, $1,500 earnings, $100 AOV
+												<br>• Base Score: 5.0 points
+												<br>• Earnings ($1,500): +2.5 points (from your role's earnings range)
+												<br>• Orders (15): +1.5 points (from your role's orders range)
+												<br>• AOV ($100): +1.0 point (from your role's AOV range)
+												<br><strong>Final Score: 10.0/10</strong>
+											</span>
+										</div>
+										<div class="breakdown-item">
+											<span class="breakdown-label">Current Period Data</span>
+											<span class="breakdown-value">
+												Date Range: ${filters.dateRange || 'Current Period'}
+												<br>Status Filter: ${filters.orderStatus || 'All'}
+												<br>Role Filter: ${filters.role || 'All'}
+												<br>Your score reflects only orders matching these filters.
+											</span>
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div class="drill-down-section">
-							<h4>Calculation Details</h4>
-							<div class="breakdown-items">
-								<div class="breakdown-item">
-									<span class="breakdown-label">How Performance Score Works</span>
-									<span class="breakdown-value">
-										Your performance score is calculated based on three key metrics:
-										<br><strong>1. Order Count:</strong> Number of orders processed
-										<br><strong>2. Total Earnings:</strong> Commission earned from orders
-										<br><strong>3. Average Order Value (AOV):</strong> Average value per order
-									</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Attribution System</span>
-									<span class="breakdown-value">
-										Orders are split between Agent and Processor based on configured percentages (typically 70% Agent / 30% Processor). Your attributed order value is your percentage share of the total order amount.
-									</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Score Calculation</span>
-									<span class="breakdown-value">
-										Base Score (5.0) + Points from Earnings Range + Points from Orders Range + Points from AOV Range = Final Score (capped at 10.0)
-									</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Example Calculation</span>
-									<span class="breakdown-value">
-										If you have: 15 orders, $1,500 earnings, $100 AOV
-										<br>• Base Score: 5.0 points
-										<br>• Earnings ($1,500): +2.5 points (from your role's earnings range)
-										<br>• Orders (15): +1.5 points (from your role's orders range)
-										<br>• AOV ($100): +1.0 point (from your role's AOV range)
-										<br><strong>Final Score: 10.0/10</strong>
-									</span>
-								</div>
-								<div class="breakdown-item">
-									<span class="breakdown-label">Current Period Data</span>
-									<span class="breakdown-value">
-										Date Range: ${filters.dateRange || 'Current Period'}
-										<br>Status Filter: ${filters.orderStatus || 'All'}
-										<br>Role Filter: ${filters.role || 'All'}
-										<br>Your score reflects only orders matching these filters.
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
+						`;
+
+						// Replace loading with actual content
+						modal.find('.reports-modal-body').html(content);
+					}
+				});
 				break;
 
 			default:
 				content = '<div class="drill-down-content"><p>No details available</p></div>';
 		}
 
-		// Replace loading with actual content
-		modal.find('.reports-modal-body').html(content);
+		// Replace loading with actual content (skip for performance score as it's handled in AJAX)
+		if (cardType !== 'my_performance_score') {
+			modal.find('.reports-modal-body').html(content);
+		}
+		}, 150); // Small delay to ensure DOM is ready
 	}
 
 	/**

@@ -2670,22 +2670,10 @@ class WC_Team_Payroll_MyAccount {
 				'wc_tp_reports',
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),
-					'refresh_interval' => $this->get_refresh_interval()
+					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' )
 				)
 			);
 		}
-	}
-
-	/**
-	 * Get refresh interval from system config
-	 */
-	private function get_refresh_interval() {
-		$system_config = get_option( 'wc_tp_system_config', array() );
-		$refresh_interval = isset( $system_config['refresh_interval'] ) ? intval( $system_config['refresh_interval'] ) : 30;
-		
-		// Convert seconds to milliseconds for JavaScript
-		return $refresh_interval * 1000;
 	}
 
 	/**
@@ -4892,20 +4880,17 @@ class WC_Team_Payroll_MyAccount {
 	}
 
 	/**
-	 * AJAX: Get attributed order total for performance modal
+	 * AJAX: Get attributed order total for performance score modal
 	 */
 	public static function ajax_get_attributed_order_total() {
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'wc_team_payroll_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed', 'wc-team-payroll' ) );
-		}
+		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
+		// Get filters
 		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
 
 		// Get date range
@@ -4913,41 +4898,57 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get filter values
-		$role_filter = isset( $filters['role'] ) ? $filters['role'] : 'all';
-		$status_filter = isset( $filters['orderStatus'] ) ? $filters['orderStatus'] : 'all';
+		// Get order status filter
+		$order_status = isset( $filters['orderStatus'] ) && $filters['orderStatus'] !== 'all' ? $filters['orderStatus'] : 'any';
 
-		// Prepare order statuses for query
-		$order_statuses = null;
-		if ( $status_filter !== 'all' ) {
-			$order_statuses = array( $status_filter );
+		// Get user's role
+		$user = get_userdata( $user_id );
+		$user_roles = $user->roles;
+
+		// Get orders for this user
+		$args = array(
+			'limit'        => -1,
+			'date_created' => $start_date . '...' . $end_date,
+			'return'       => 'ids',
+		);
+
+		if ( $order_status !== 'any' ) {
+			$args['status'] = $order_status;
 		}
 
-		// Get user earnings data with status filtering
-		$engine = new WC_Team_Payroll_Core_Engine();
-		$earnings_data = $engine->get_user_earnings( $user_id, $start_date, $end_date, $order_statuses );
+		// Get orders where user is agent or processor
+		$agent_orders = wc_get_orders( array_merge( $args, array(
+			'meta_key'   => '_primary_agent_id',
+			'meta_value' => $user_id,
+		) ) );
 
-		// Filter orders by role if needed
-		$filtered_orders = $earnings_data['orders'];
-		if ( $role_filter !== 'all' ) {
-			$filtered_orders = array_filter( $filtered_orders, function( $order ) use ( $role_filter ) {
-				return $order['role'] === $role_filter;
-			});
-		}
+		$processor_orders = wc_get_orders( array_merge( $args, array(
+			'meta_key'   => '_processor_user_id',
+			'meta_value' => $user_id,
+		) ) );
 
 		// Calculate attributed order total
-		$attributed_order_total = 0;
-		foreach ( $filtered_orders as $order_data ) {
-			// Add attributed order value from commission data
-			if ( isset( $order_data['attributed_value'] ) ) {
-				$attributed_order_total += $order_data['attributed_value'];
+		$attributed_total = 0;
+
+		// Process agent orders
+		foreach ( $agent_orders as $order_id ) {
+			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+				$attributed_total += floatval( $commission_data['agent_order_value'] );
 			}
 		}
 
-		// Format as currency
-		$formatted_total = wc_price( $attributed_order_total );
+		// Process processor orders
+		foreach ( $processor_orders as $order_id ) {
+			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+				$attributed_total += floatval( $commission_data['processor_order_value'] );
+			}
+		}
 
-		wp_send_json_success( array( 'attributed_total' => $formatted_total ) );
+		wp_send_json_success( array(
+			'attributed_total' => wc_price( $attributed_total ),
+		) );
 	}
 
 	/**
