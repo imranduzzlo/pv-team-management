@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.64] - 2026-04-17
+### Critical Bug Fixes
+- **FIX**: Fixed JavaScript syntax error in `performance-settings.js` preventing page functionality
+- **FIX**: Removed extra closing brace causing role selector and tab switching to fail
+- **FIX**: Performance settings page now fully functional with working AJAX calls
+- **TECHNICAL**: JavaScript file now has balanced braces (335 opening, 335 closing)
+- **TECHNICAL**: All JavaScript files pass syntax validation
+
 ## [1.0.63] - 2026-04-17
 ### Bug Fix Release
 - **FIX**: Fixed critical syntax error in `class-performance-settings.php` caused by orphaned duplicate code
