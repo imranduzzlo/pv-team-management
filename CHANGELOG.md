@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.59] - 2026-04-17
+### Critical Bug Fix - Restored v1.0.54 Logic with Attributed Value Support
+- **FIX**: Restored EXACT v1.0.54 logic for `get_user_earnings()` method
+- **FIX**: Used v1.0.54's working condition: `if ( $user_earnings > 0 )` - no role check, no attributed_value check
+- **ENHANCEMENT**: Added attributed_value calculation INSIDE the if block (after order is confirmed valid)
+- **TECHNICAL**: Attributed value is calculated based on role AFTER we know the order qualifies
+- **TECHNICAL**: Old orders without agent_order_value/processor_order_value will have attributed_value = 0 (safe fallback)
+- **ROOT CAUSE**: Previous versions changed the core logic of v1.0.54 which was working perfectly
+
 ## [1.0.58] - 2026-04-17
 ### Critical Bug Fix - Reverted Static Method Change
 - **FIX**: Reverted `get_user_earnings()` back to instance method (non-static) to resolve activation error

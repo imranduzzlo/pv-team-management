@@ -310,22 +310,26 @@ class WC_Team_Payroll_Core_Engine {
 
 			$user_earnings = 0;
 			$role = null;
-			$attributed_value = 0;
 
 			if ( intval( $agent_id ) === intval( $user_id ) ) {
 				$user_earnings = $commission_data['agent_earnings'];
 				$role = 'agent';
-				// Get agent's attributed order value (their % of order total)
-				$attributed_value = isset( $commission_data['agent_order_value'] ) ? $commission_data['agent_order_value'] : 0;
 			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
 				$user_earnings = $commission_data['processor_earnings'];
 				$role = 'processor';
-				// Get processor's attributed order value (their % of order total)
-				$attributed_value = isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0;
 			}
 
-			if ( $user_earnings > 0 || $attributed_value > 0 ) {
+			if ( $user_earnings > 0 ) {
 				$total_earnings += $user_earnings;
+				
+				// Calculate attributed value based on role (for new orders that have this data)
+				$attributed_value = 0;
+				if ( $role === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = $commission_data['agent_order_value'];
+				} elseif ( $role === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = $commission_data['processor_order_value'];
+				}
+				
 				$orders_data[] = array(
 					'order_id'  => $order->get_id(),
 					'date'      => $order->get_date_created()->format( 'Y-m-d' ),
@@ -333,7 +337,7 @@ class WC_Team_Payroll_Core_Engine {
 					'commission' => $commission_data['total_commission'],
 					'earnings'  => $user_earnings,
 					'role'      => $role,
-					'attributed_value' => $attributed_value, // User's attributed portion of order total
+					'attributed_value' => $attributed_value,
 				);
 			}
 		}
