@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.73] - 2026-04-18
+### Order Status Filter Fix
+- **FIX**: Fixed Reports page order status filter not showing any statuses
+- **ROOT CAUSE**: Status key mismatch - `get_commission_calculation_statuses()` returns slugs without 'wc-' prefix (e.g., 'completed') but `wc_get_order_statuses()` returns keys with 'wc-' prefix (e.g., 'wc-completed')
+- **SOLUTION**: Added status key normalization by removing 'wc-' prefix before comparison
+- **RESULT**: Order status dropdown now correctly displays all commission calculation statuses from settings
+
 ## [1.0.72] - 2026-04-18
 ### KPI Cards Complete Rebuild - Based on v1.0.54 Working Version
 - **FIX**: Completely rebuilt KPI cards AJAX handler based on v1.0.54 working implementation

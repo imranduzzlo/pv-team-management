@@ -685,6 +685,7 @@ jQuery(document).ready(function($) {
 	 * Load KPI dashboard data
 	 */
 	function loadDashboardData() {
+		console.log('Loading dashboard data with filters:', masterFilters);
 		$.ajax({
 			url: wc_tp_reports.ajax_url,
 			type: 'POST',
@@ -694,6 +695,10 @@ jQuery(document).ready(function($) {
 				filters: masterFilters
 			},
 			success: function(response) {
+				console.log('AJAX Success - Full Response:', response);
+				console.log('Response success:', response.success);
+				console.log('Response data:', response.data);
+				
 				if (response.success) {
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content
@@ -704,10 +709,17 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-kpi-container').html(response.data.html);
 					}
+				} else {
+					console.error('Response not successful. Error:', response.data);
+					$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error: ' + (response.data || 'Unknown error') + '</p></div>');
 				}
 			},
-			error: function() {
-				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data</p></div>');
+			error: function(xhr, status, error) {
+				console.error('AJAX Error - Status:', status);
+				console.error('AJAX Error - Error:', error);
+				console.error('AJAX Error - XHR:', xhr);
+				console.error('AJAX Error - Response Text:', xhr.responseText);
+				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>AJAX Error: ' + error + '</p></div>');
 			}
 		});
 	}

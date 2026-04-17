@@ -1838,8 +1838,11 @@ class WC_Team_Payroll_MyAccount {
 							$all_statuses = wc_get_order_statuses();
 							
 							foreach ( $all_statuses as $status_key => $status_label ) {
+								// Normalize status key by removing 'wc-' prefix for comparison
+								$normalized_status = str_replace( 'wc-', '', $status_key );
+								
 								// Only show statuses that are configured for commission calculation
-								if ( in_array( $status_key, $commission_statuses ) ) {
+								if ( in_array( $normalized_status, $commission_statuses ) ) {
 									echo '<option value="' . esc_attr( $status_key ) . '">' . esc_html( $status_label ) . '</option>';
 								}
 							}
