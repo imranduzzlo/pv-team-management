@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.75] - 2026-04-18
+### KPI Cards Earnings Calculation - Match Admin Employee Details
+- **ENHANCEMENT**: KPI cards now calculate Total Earnings the same way as admin employee details page
+- **CHANGE**: Total Earnings = Commission from filtered orders + ALL base salary (not period-based)
+- **CHANGE**: My Salary card now shows total accumulated salary (from `_wc_tp_total_earnings` meta)
+- **CHANGE**: Period comparison now based on commission only (salary doesn't change with filters)
+- **RESULT**: Reports page Total Earnings now matches admin employee details page exactly, with filtering applied to commission portion only
+
 ## [1.0.74] - 2026-04-18
 ### KPI Cards AJAX Handler Fix
 - **FIX**: Fixed KPI cards showing 500 Internal Server Error

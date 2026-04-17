@@ -3672,15 +3672,13 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Calculate KPI metrics from filtered data
-		$total_earnings = 0;
-		$total_commission = 0;
+		$total_commission = 0; // Commission from filtered orders
 		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
 		$attributed_order_total = 0; // Sum of attributed order values based on user's role
 
 		foreach ( $filtered_orders as $order_data ) {
-			$total_earnings += $order_data['earnings'];
-			$total_commission += $order_data['commission'];
+			$total_commission += $order_data['earnings']; // This is the user's commission earnings
 			$total_order_value += $order_data['total'];
 			
 			// Add attributed order value based on user's role in this order
@@ -3691,6 +3689,15 @@ class WC_Team_Payroll_MyAccount {
 
 		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
+
+		// Get base salary earnings (from automatic salary system) - NOT filtered by date
+		$salary_earnings = get_user_meta( $user_id, '_wc_tp_total_earnings', true );
+		if ( ! $salary_earnings ) {
+			$salary_earnings = 0;
+		}
+
+		// Total earnings = commission from filtered orders + all base salary
+		$total_earnings = $total_commission + $salary_earnings;
 
 		// Get previous period data for comparison (with same status filtering)
 		$prev_date_range = self::get_previous_period_range( $date_range['start'], $date_range['end'] );
@@ -3704,16 +3711,16 @@ class WC_Team_Payroll_MyAccount {
 			});
 		}
 		
-		// Calculate previous period total earnings
-		$prev_total_earnings = 0;
+		// Calculate previous period total commission (not salary)
+		$prev_total_commission = 0;
 		foreach ( $prev_filtered_orders as $order_data ) {
-			$prev_total_earnings += $order_data['earnings'];
+			$prev_total_commission += $order_data['earnings'];
 		}
 
-		// Calculate change percentage
+		// Calculate change percentage (commission only, since salary doesn't change with filters)
 		$earnings_change = 0;
-		if ( $prev_total_earnings > 0 ) {
-			$earnings_change = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
+		if ( $prev_total_commission > 0 ) {
+			$earnings_change = ( ( $total_commission - $prev_total_commission ) / $prev_total_commission ) * 100;
 		}
 
 		// Determine change direction
@@ -3726,11 +3733,6 @@ class WC_Team_Payroll_MyAccount {
 			$change_class = 'negative';
 			$change_icon = 'ph-trend-down';
 		}
-
-		// Get actual salary transactions for the period (not calculated from salary amount)
-		$salary_amount = get_user_meta( $user_id, '_wc_tp_salary_amount', true );
-		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true );
-		$salary_for_period = self::get_user_salary_for_period( $user_id, $start_date, $end_date, $salary_amount, $salary_frequency );
 
 		// Get salary type for display
 		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
@@ -3746,7 +3748,7 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 			<p class="reports-kpi-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $total_earnings + $salary_for_period ) ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
 			<div class="reports-kpi-change <?php echo esc_attr( $change_class ); ?>">
 				<i class="ph <?php echo esc_attr( $change_icon ); ?>"></i>
 				<?php 
@@ -3768,7 +3770,7 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 			<p class="reports-kpi-label"><?php esc_html_e( 'My Salary', 'wc-team-payroll' ); ?></p>
-			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $salary_for_period ) ); ?></p>
+			<p class="reports-kpi-value"><?php echo wp_kses_post( wc_price( $salary_earnings ) ); ?></p>
 			<div class="reports-kpi-change neutral">
 				<i class="ph ph-info"></i>
 				<?php 
