@@ -1581,7 +1581,7 @@
 	white-space: nowrap;
 }
 
-.reports-export-btn:hover {
+.reports-export-btn:hover, .reports-export-btn:focus {
 	background: #f8f9fa;
 	border-color: #0073aa;
 	color: #0073aa;

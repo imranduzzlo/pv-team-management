@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.69] - 2026-04-18
+### Critical Bug Fixes - KPI Cards Final Fix
+- **FIX**: Fixed KPI cards not displaying - reverted to jQuery serialization instead of JSON.stringify()
+- **FIX**: jQuery now properly serializes filters object as form data
+- **FIX**: PHP receives filters as array instead of JSON string
+- **ENHANCEMENT**: KPI cards now load with real data from database
+- **TECHNICAL**: Removed JSON.stringify() calls to match v1.0.54 working implementation
+- **TECHNICAL**: Filters now properly parsed by PHP AJAX handlers
+
 ## [1.0.68] - 2026-04-17
 ### Critical Bug Fixes - KPI Cards Complete Fix
 - **FIX**: Fixed KPI cards AJAX nonce verification - replaced check_ajax_referer() with wp_verify_nonce()
