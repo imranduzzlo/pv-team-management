@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.67] - 2026-04-17
+### Critical Bug Fixes - KPI Cards AJAX Nonce Verification
+- **FIX**: Fixed KPI cards showing empty error message - nonce verification was dying silently
+- **FIX**: Replaced check_ajax_referer() with wp_verify_nonce() for proper error handling
+- **FIX**: AJAX handlers now return meaningful error messages instead of dying silently
+- **ENHANCEMENT**: Improved filter parsing to handle both JSON strings and arrays
+- **TECHNICAL**: All AJAX handlers now use wp_verify_nonce() with proper error responses
+- **TECHNICAL**: Better error handling prevents silent failures in AJAX calls
+
 ## [1.0.66] - 2026-04-17
 ### Critical Bug Fixes - KPI Cards Date Range Filter
 - **FIX**: Fixed KPI cards showing error - date range filter mismatch between JavaScript and PHP
