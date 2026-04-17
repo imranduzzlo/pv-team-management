@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.56] - 2026-04-17
+## [1.0.63] - 2026-04-17
 ### Bug Fix Release
 - **FIX**: Fixed critical syntax error in `class-performance-settings.php` caused by orphaned duplicate code
 - **FIX**: Removed 49 lines of duplicate code that was causing PHP parse error on line 1939
