@@ -694,6 +694,7 @@ jQuery(document).ready(function($) {
 				filters: masterFilters
 			},
 			success: function(response) {
+				console.log('Dashboard response:', response);
 				if (response.success) {
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content
@@ -704,10 +705,14 @@ jQuery(document).ready(function($) {
 						// Silent update (auto-refresh)
 						$('#reports-kpi-container').html(response.data.html);
 					}
+				} else {
+					console.error('Dashboard error:', response.data);
+					$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error: ' + (response.data ? response.data : 'Unknown error') + '</p></div>');
 				}
 			},
-			error: function() {
-				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data</p></div>');
+			error: function(xhr, status, error) {
+				console.error('Dashboard AJAX error:', error, xhr);
+				$('#reports-kpi-container').html('<div class="reports-no-data"><i class="ph ph-warning"></i><p>Error loading dashboard data: ' + error + '</p></div>');
 			}
 		});
 	}

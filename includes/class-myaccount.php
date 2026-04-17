@@ -3637,8 +3637,22 @@ class WC_Team_Payroll_MyAccount {
 			wp_send_json_error( __( 'Unauthorized', 'wc-team-payroll' ) );
 		}
 
-		// Get filters from request
-		$filters = isset( $_POST['filters'] ) ? $_POST['filters'] : array();
+		// Get filters from request - jQuery serializes objects as nested keys
+		$filters = array();
+		if ( isset( $_POST['filters'] ) ) {
+			// jQuery serializes objects like: filters[dateRange]=this-month&filters[role]=all
+			// So we need to check for filters as an array
+			if ( is_array( $_POST['filters'] ) ) {
+				$filters = $_POST['filters'];
+			} else {
+				// If it's a string, try to parse it
+				parse_str( 'filters=' . $_POST['filters'], $parsed );
+				$filters = isset( $parsed['filters'] ) ? $parsed['filters'] : array();
+			}
+		}
+
+		// Debug log
+		error_log( 'Dashboard filters: ' . print_r( $filters, true ) );
 
 		// Get date range
 		$date_range = self::get_date_range_from_filter( $filters );
