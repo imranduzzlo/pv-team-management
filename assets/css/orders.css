@@ -271,6 +271,15 @@
 	background-color: rgba(52, 152, 219, 0.1);
 }
 
+/* Fix icon color to match button color - override global .ph styling */
+.wc-team-payroll-orders .btn-action .ph {
+	color: inherit !important;
+}
+
+.wc-team-payroll-orders .btn-action.btn-view .ph {
+	color: #3498db !important;
+}
+
 /* Responsive table */
 @media (max-width: 768px) {
 	.wc-team-payroll-orders .woocommerce-table--orders {

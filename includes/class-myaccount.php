@@ -1198,10 +1198,20 @@ class WC_Team_Payroll_MyAccount {
 										<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
 										<i class="ph ph-caret-up-down sort-icon"></i>
 									</th>
-									<th><?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?></th>
-									<th><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></th>
+									<th class="sortable" data-sort="customer">
+										<?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="role">
+										<?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
 									<th class="sortable" data-sort="total">
 										<?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?>
+										<i class="ph ph-caret-up-down sort-icon"></i>
+									</th>
+									<th class="sortable" data-sort="attributed">
+										<?php esc_html_e( 'Attributed Order Total', 'wc-team-payroll' ); ?>
 										<i class="ph ph-caret-up-down sort-icon"></i>
 									</th>
 									<th class="sortable" data-sort="commission">
@@ -1218,7 +1228,7 @@ class WC_Team_Payroll_MyAccount {
 							</thead>
 							<tbody id="orders-tbody">
 								<tr>
-									<td colspan="9" style="text-align: center; padding: 40px 20px;">
+									<td colspan="10" style="text-align: center; padding: 40px 20px;">
 										<i class="ph ph-spinner" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
 										<p><?php esc_html_e( 'Loading orders...', 'wc-team-payroll' ); ?></p>
 									</td>
@@ -1302,7 +1312,10 @@ class WC_Team_Payroll_MyAccount {
 											data: {
 												order_id: order.order_id,
 												date: order.date_timestamp,
+												customer: order.customer_name.toLowerCase(),
+												role: order.my_role.toLowerCase(),
 												total: order.total_amount,
+												attributed: order.attributed_amount || 0,
 												commission: order.commission_amount,
 												earning: order.earning_amount,
 												text: (order.order_id + ' ' + order.customer_name).toLowerCase()
@@ -1321,7 +1334,7 @@ class WC_Team_Payroll_MyAccount {
 							}
 						},
 						error: function() {
-							$('#orders-tbody').html('<tr><td colspan="9" style="text-align: center; padding: 20px;"><p style="color: #dc3545;"><?php esc_html_e( 'Error loading orders', 'wc-team-payroll' ); ?></p></td></tr>');
+							$('#orders-tbody').html('<tr><td colspan="10" style="text-align: center; padding: 20px;"><p style="color: #dc3545;"><?php esc_html_e( 'Error loading orders', 'wc-team-payroll' ); ?></p></td></tr>');
 						}
 					});
 				}
@@ -1341,11 +1354,11 @@ class WC_Team_Payroll_MyAccount {
 						.append($('<span class="order-date"></span>').text(order.date));
 					
 					// Customer
-					const customerCell = $('<td></td>')
+					const customerCell = $('<td></td>').attr('data-sort-value', order.customer_name.toLowerCase())
 						.append($('<span class="customer-name"></span>').text(order.customer_name));
 					
 					// My Role
-					const roleCell = $('<td></td>')
+					const roleCell = $('<td></td>').attr('data-sort-value', order.my_role.toLowerCase())
 						.append($('<span class="role-badge role-' + order.my_role + '"></span>')
 							.append($('<i class="ph ' + (order.my_role === 'agent' ? 'ph-user-check' : 'ph-gear') + '"></i>'))
 							.append(' ' + order.my_role_label));
@@ -1353,6 +1366,10 @@ class WC_Team_Payroll_MyAccount {
 					// Order Total
 					const totalCell = $('<td></td>').attr('data-sort-value', order.total_amount)
 						.append($('<span class="amount-total"></span>').html(order.total));
+					
+					// Attributed Order Total
+					const attributedCell = $('<td></td>').attr('data-sort-value', order.attributed_amount || 0)
+						.append($('<span class="amount-attributed"></span>').html(order.attributed || '—'));
 					
 					// Commission
 					const commissionCell = $('<td></td>').attr('data-sort-value', order.commission_amount);
@@ -1388,7 +1405,7 @@ class WC_Team_Payroll_MyAccount {
 								showOrderDetails(order.order_id);
 							}));
 					
-					row.append(orderIdCell, dateCell, customerCell, roleCell, totalCell, commissionCell, earningCell, statusCell, actionsCell);
+					row.append(orderIdCell, dateCell, customerCell, roleCell, totalCell, attributedCell, commissionCell, earningCell, statusCell, actionsCell);
 					return row;
 				}
 
@@ -3402,6 +3419,16 @@ class WC_Team_Payroll_MyAccount {
 			$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 			$has_commission = $commission_data && in_array( $order_status, $commission_statuses );
 			
+			// Get attributed order value
+			$attributed_value = 0;
+			if ( $has_commission && is_array( $commission_data ) ) {
+				if ( $user_role === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['agent_order_value'] );
+				} elseif ( $user_role === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['processor_order_value'] );
+				}
+			}
+			
 			if ( $has_commission ) {
 				$my_earning = $user_role === 'agent' ? $commission_data['agent_earnings'] : $commission_data['processor_earnings'];
 				$order_commission = $commission_data['total_commission'];
@@ -3422,14 +3449,20 @@ class WC_Team_Payroll_MyAccount {
 				'my_role' => $user_role,
 				'my_role_label' => $user_role === 'agent' ? __( 'Agent', 'wc-team-payroll' ) : __( 'Processor', 'wc-team-payroll' ),
 				'total' => wp_kses_post( wc_price( $order->get_total() ) ),
+				'attributed' => $attributed_value > 0 ? wp_kses_post( wc_price( $attributed_value ) ) : '—',
 				'commission' => wp_kses_post( wc_price( $order_commission ) ),
 				'earning' => wp_kses_post( wc_price( $my_earning ) ),
 				'status' => $order->get_status(),
 				'status_label' => wc_get_order_status_name( $order->get_status() ),
 				'edit_url' => admin_url( 'post.php?post=' . $order->get_id() . '&action=edit' ),
 				'total_raw' => $order->get_total(),
+				'total_amount' => $order->get_total(),
+				'attributed_amount' => $attributed_value,
+				'commission_amount' => $order_commission,
 				'earning_raw' => $my_earning,
+				'earning_amount' => $my_earning,
 				'date_raw' => $order->get_date_created()->getTimestamp(),
+				'date_timestamp' => $order->get_date_created()->getTimestamp(),
 				'has_commission' => $has_commission,
 			);
 		}

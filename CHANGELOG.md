@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.2] - 2026-04-18
+### My Orders Table - Enhancements
+- **FEATURE**: Added "Attributed Order Total" column after "Order Total" (sortable)
+- **ENHANCEMENT**: Made "Customer" column sortable
+- **ENHANCEMENT**: Made "My Role" column sortable
+- **FIX**: Fixed button icon colors to match button color (override global .ph styling)
+- **TECHNICAL**: AJAX response now includes attributed_amount from commission data
+- **TECHNICAL**: JavaScript sorts by customer name and role
+- **CSS**: Added .btn-action .ph color override to prevent conflicts
+- **RESULT**: More comprehensive order table with attributed values and better sorting
+
 ## [1.2.1] - 2026-04-18
 ### Highest/Lowest Order - Use Attributed Values with Filters
 - **CHANGE**: Highest Order now shows highest attributed order value (not regular total)
