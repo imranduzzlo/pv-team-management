@@ -4812,7 +4812,7 @@ class WC_Team_Payroll_MyAccount {
 			
 			<div class="reports-table-controls">
 				<div class="reports-table-search">
-					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search by Order ID...', 'wc-team-payroll' ); ?>" data-table="orders-table" />
+					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search orders...', 'wc-team-payroll' ); ?>" data-table="orders-table" />
 					<i class="ph ph-magnifying-glass"></i>
 				</div>
 				<div class="reports-table-per-page">
@@ -4830,51 +4830,110 @@ class WC_Team_Payroll_MyAccount {
 				<table class="reports-table" id="orders-table">
 					<thead>
 						<tr>
-							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
 							<th class="sortable" data-sort="order_id"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="total"><?php esc_html_e( 'Order Value', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="role"><?php esc_html_e( 'Your Role', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="customer"><?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="role"><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="total"><?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="attributed"><?php esc_html_e( 'Attributed Order Total', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="commission"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="earning"><?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?></th>
 							<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
-							<th><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
+							<th><?php esc_html_e( 'Actions', 'wc-team-payroll' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( ! empty( $filtered_orders ) ) : ?>
-							<?php foreach ( $filtered_orders as $order ) : ?>
+							<?php foreach ( $filtered_orders as $order ) : 
+								// Get order object for additional data
+								$order_obj = wc_get_order( $order['order_id'] );
+								$customer_name = $order_obj ? $order_obj->get_billing_first_name() . ' ' . $order_obj->get_billing_last_name() : 'N/A';
+								
+								// Get attributed order value
+								$commission_data = $order_obj ? $order_obj->get_meta( '_commission_data' ) : null;
+								$attributed_value = 0;
+								if ( $commission_data && is_array( $commission_data ) ) {
+									if ( $order['role'] === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
+										$attributed_value = floatval( $commission_data['agent_order_value'] );
+									} elseif ( $order['role'] === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
+										$attributed_value = floatval( $commission_data['processor_order_value'] );
+									}
+								}
+								
+								// Check if this order status calculates commission
+								$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+								$status = isset( $order['status'] ) ? $order['status'] : 'completed';
+								$has_commission = in_array( $status, $commission_statuses, true );
+							?>
 								<tr>
-									<td><?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?></td>
-									<td><strong>#<?php echo esc_html( $order['order_id'] ); ?></strong></td>
-									<td><?php echo wp_kses_post( wc_price( $order['total'] ) ); ?></td>
-									<td>
+									<td data-sort-value="<?php echo esc_attr( $order['order_id'] ); ?>">
+										<strong>#<?php echo esc_html( $order['order_id'] ); ?></strong>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( strtotime( $order['date'] ) ); ?>">
+										<?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( strtolower( $customer_name ) ); ?>">
+										<?php echo esc_html( $customer_name ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
 										<span class="role-badge role-<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
+											<i class="ph <?php echo $order['role'] === 'agent' ? 'ph-user-check' : 'ph-gear'; ?>"></i>
 											<?php echo esc_html( ucfirst( $order['role'] ) ); ?>
 										</span>
 									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['total'] ); ?>">
+										<?php echo wp_kses_post( wc_price( $order['total'] ) ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $attributed_value ); ?>">
+										<?php echo $attributed_value > 0 ? wp_kses_post( wc_price( $attributed_value ) ) : '—'; ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['commission'] ); ?>">
+										<?php 
+										if ( $has_commission ) {
+											echo wp_kses_post( wc_price( $order['commission'] ) );
+										} else {
+											echo '<span class="commission-na" title="' . esc_attr__( 'Commission not calculated for this status', 'wc-team-payroll' ) . '">N/A</span>';
+										}
+										?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['earnings'] ); ?>">
+										<?php 
+										if ( $has_commission ) {
+											echo '<strong>' . wp_kses_post( wc_price( $order['earnings'] ) ) . '</strong>';
+										} else {
+											echo '<span class="commission-na" title="' . esc_attr__( 'Earnings not available for this status', 'wc-team-payroll' ) . '">N/A</span>';
+										}
+										?>
+									</td>
 									<td>
 										<?php 
-										$status = isset( $order['status'] ) ? $order['status'] : 'completed';
 										$status_label = wc_get_order_status_name( 'wc-' . $status );
 										?>
 										<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
+											<i class="ph <?php 
+												$status_icons = array(
+													'completed' => 'ph-check-circle',
+													'processing' => 'ph-hourglass',
+													'pending' => 'ph-clock',
+													'on-hold' => 'ph-pause-circle',
+													'cancelled' => 'ph-x-circle',
+													'refunded' => 'ph-arrow-counter-clockwise',
+												);
+												echo isset( $status_icons[$status] ) ? $status_icons[$status] : 'ph-tag';
+											?>"></i>
 											<?php echo esc_html( $status_label ); ?>
 										</span>
 									</td>
 									<td>
-										<?php 
-										// Check if this order status calculates commission
-										$commission_statuses = get_option( 'wc_team_payroll_commission_calculation_statuses', array( 'completed', 'processing' ) );
-										if ( in_array( $status, $commission_statuses, true ) ) {
-											echo wp_kses_post( wc_price( $order['earnings'] ) );
-										} else {
-											echo '<span class="commission-na">N/A</span>';
-										}
-										?>
+										<button class="btn-action btn-view" onclick="window.open('<?php echo esc_url( admin_url( 'post.php?post=' . $order['order_id'] . '&action=edit' ) ); ?>', '_blank')">
+											<i class="ph ph-eye"></i>
+										</button>
 									</td>
 								</tr>
 							<?php endforeach; ?>
 						<?php else : ?>
 							<tr>
-								<td colspan="6" class="reports-no-data">
+								<td colspan="10" class="reports-no-data">
 									<i class="ph ph-inbox"></i>
 									<p><?php esc_html_e( 'No orders found for the selected filters', 'wc-team-payroll' ); ?></p>
 								</td>

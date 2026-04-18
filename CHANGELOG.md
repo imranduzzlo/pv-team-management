@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.3] - 2026-04-18
+### Reports Page - My Order Processing Table Enhanced
+- **FEATURE**: Added "Customer" column (sortable)
+- **FEATURE**: Added "Attributed Order Total" column (sortable)
+- **FEATURE**: Added "My Earning" column (sortable)
+- **FEATURE**: Added "Actions" column with view button
+- **ENHANCEMENT**: Made "My Role" column sortable with icons
+- **ENHANCEMENT**: Table now matches My Orders (Commission) table structure
+- **ENHANCEMENT**: Respects Reports page filters (date range, status, role)
+- **TECHNICAL**: Reads attributed values from commission data (agent_order_value/processor_order_value)
+- **TECHNICAL**: Shows N/A for commission/earnings when status doesn't calculate commission
+- **CSS**: Added button action styles to reports.css with icon color fix
+- **RESULT**: Comprehensive order table with all details and proper filtering
+
 ## [1.2.2] - 2026-04-18
 ### My Orders Table - Enhancements
 - **FEATURE**: Added "Attributed Order Total" column after "Order Total" (sortable)

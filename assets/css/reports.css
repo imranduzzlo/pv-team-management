@@ -1730,3 +1730,44 @@
 		font-size: 12px;
 	}
 }
+
+/* ============================================================================
+   ACTION BUTTONS IN TABLES
+   ============================================================================ */
+
+/* Action buttons */
+.reports-table .btn-action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border: none;
+	border-radius: 4px;
+	background-color: transparent;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 16px;
+	margin-right: 6px;
+}
+
+.reports-table .btn-action:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+}
+
+.reports-table .btn-action.btn-view {
+	color: #3498db;
+}
+
+.reports-table .btn-action.btn-view:hover {
+	background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Fix icon color to match button color - override global .ph styling */
+.reports-table .btn-action .ph {
+	color: inherit !important;
+}
+
+.reports-table .btn-action.btn-view .ph {
+	color: #3498db !important;
+}
