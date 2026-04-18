@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.95] - 2026-04-18
+### Fix Attributed Order Total Calculation
+- **FIX**: Fixed attributed order total showing $0.00 in Performance Score modal
+- **ROOT CAUSE**: Using `get_post_meta()` instead of WooCommerce order object's `get_meta()` method
+- **SOLUTION**: Changed to use `$order->get_meta('_commission_data')` to properly retrieve commission data
+- **TECHNICAL**: WooCommerce stores order meta differently, requiring the order object's get_meta() method
+- **RESULT**: Order Total (Attributed) now displays correct values from agent_order_value and processor_order_value
+
 ## [1.0.94] - 2026-04-18
 ### Debug Logging for Attributed Order Total
 - **DEBUG**: Added comprehensive debug logging to `ajax_get_attributed_order_total()` AJAX handler

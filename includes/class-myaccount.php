@@ -4943,10 +4943,14 @@ class WC_Team_Payroll_MyAccount {
 
 		// Process agent orders
 		foreach ( $agent_orders as $order_id ) {
-			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			$order = wc_get_order( $order_id );
+			if ( ! $order ) {
+				continue;
+			}
+			$commission_data = $order->get_meta( '_commission_data' );
 			$debug_info['agent_orders'][] = array(
 				'order_id' => $order_id,
-				'has_commission_data' => is_array( $commission_data ),
+				'has_commission_data' => ! empty( $commission_data ) && is_array( $commission_data ),
 				'has_agent_order_value' => isset( $commission_data['agent_order_value'] ),
 				'agent_order_value' => isset( $commission_data['agent_order_value'] ) ? $commission_data['agent_order_value'] : 0,
 			);
@@ -4957,10 +4961,14 @@ class WC_Team_Payroll_MyAccount {
 
 		// Process processor orders
 		foreach ( $processor_orders as $order_id ) {
-			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			$order = wc_get_order( $order_id );
+			if ( ! $order ) {
+				continue;
+			}
+			$commission_data = $order->get_meta( '_commission_data' );
 			$debug_info['processor_orders'][] = array(
 				'order_id' => $order_id,
-				'has_commission_data' => is_array( $commission_data ),
+				'has_commission_data' => ! empty( $commission_data ) && is_array( $commission_data ),
 				'has_processor_order_value' => isset( $commission_data['processor_order_value'] ),
 				'processor_order_value' => isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0,
 			);
