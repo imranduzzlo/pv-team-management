@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.5] - 2026-04-18
+### Performance Metrics - Fix Total Order Value Calculation
+- **FIX**: Total Order Value now uses the same calculation method as KPI Performance Score modal
+- **FIX**: Correctly handles cases where user is both agent and processor (counts full order value)
+- **ENHANCEMENT**: Reads agent_order_value and processor_order_value from commission data
+- **ENHANCEMENT**: Respects role filter (agent/processor/all) when calculating attributed total
+- **TECHNICAL**: Queries orders separately for agent and processor roles
+- **TECHNICAL**: Uses commission calculation statuses from settings
+- **RESULT**: More accurate Total Order Value that follows proper attribution rules
+
 ## [1.1.4] - 2026-04-18
 ### Performance Metrics - Show Total Order Value and Total Earnings
 - **CHANGE**: Second metric "Total Earnings" renamed to "Total Order Value"
