@@ -286,7 +286,6 @@ class WC_Team_Payroll_Performance_Tracker {
 		// Get user role
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
-			error_log( 'Performance Tracker: User not found - ID: ' . $user_id );
 			return array();
 		}
 
@@ -295,8 +294,6 @@ class WC_Team_Payroll_Performance_Tracker {
 
 		// Find employee role (agent, processor, etc.)
 		$all_roles = $this->get_employee_roles();
-		error_log( 'Performance Tracker: Available employee roles: ' . print_r( $all_roles, true ) );
-		error_log( 'Performance Tracker: User roles: ' . print_r( $user_roles, true ) );
 		
 		foreach ( $user_roles as $role ) {
 			if ( isset( $all_roles[ $role ] ) ) {
@@ -306,37 +303,26 @@ class WC_Team_Payroll_Performance_Tracker {
 		}
 
 		if ( empty( $employee_role ) ) {
-			error_log( 'Performance Tracker: No employee role found for user ' . $user_id );
 			return array();
 		}
 
-		error_log( 'Performance Tracker: Employee role found: ' . $employee_role );
-
 		// Get goals configuration
 		$goals_config = get_option( 'wc_tp_goals_config', array() );
-		error_log( 'Performance Tracker: Goals config: ' . print_r( $goals_config, true ) );
 		
 		$period_type = isset( $goals_config['period'] ) ? $goals_config['period'] : 'monthly';
 		$role_goals = isset( $goals_config['roles'][ $employee_role ] ) ? $goals_config['roles'][ $employee_role ] : array();
 
-		error_log( 'Performance Tracker: Period type: ' . $period_type );
-		error_log( 'Performance Tracker: Role goals for ' . $employee_role . ': ' . print_r( $role_goals, true ) );
-
 		if ( empty( $role_goals ) ) {
-			error_log( 'Performance Tracker: No goals configured for role: ' . $employee_role );
 			return array();
 		}
 
 		// Get current period dates
 		$period_dates = $this->get_period_dates( $period_type );
-		error_log( 'Performance Tracker: Period dates: ' . print_r( $period_dates, true ) );
 
 		// Calculate current values
 		$attributed_total = $this->get_attributed_order_total( $user_id, $period_dates['start'], $period_dates['end'] );
 		$order_count = $this->get_order_count( $user_id, $period_dates['start'], $period_dates['end'] );
 		$aov = $this->get_average_order_value( $user_id, $period_dates['start'], $period_dates['end'] );
-
-		error_log( 'Performance Tracker: Calculated values - Order Total: ' . $attributed_total . ', Orders: ' . $order_count . ', AOV: ' . $aov );
 
 		// Build progress data
 		$progress_data = array(
@@ -348,8 +334,6 @@ class WC_Team_Payroll_Performance_Tracker {
 			'orders' => $this->calculate_goal_status( $order_count, $role_goals['orders'] ?? array() ),
 			'aov' => $this->calculate_goal_status( $aov, $role_goals['aov'] ?? array() ),
 		);
-
-		error_log( 'Performance Tracker: Progress data: ' . print_r( $progress_data, true ) );
 
 		// Save to user meta
 		update_user_meta( $user_id, '_wc_tp_current_goal_progress', $progress_data );
@@ -450,9 +434,6 @@ class WC_Team_Payroll_Performance_Tracker {
 			$roles[ $role_key ] = $role_name;
 		}
 
-		error_log( 'Performance Tracker: Employee role keys from settings: ' . print_r( $employee_role_keys, true ) );
-		error_log( 'Performance Tracker: Mapped employee roles: ' . print_r( $roles, true ) );
-
 		return $roles;
 	}
 
@@ -470,7 +451,6 @@ class WC_Team_Payroll_Performance_Tracker {
 		// Get user role
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
-			error_log( 'Performance Tracker Achievements: User not found - ID: ' . $user_id );
 			return array();
 		}
 
@@ -487,22 +467,15 @@ class WC_Team_Payroll_Performance_Tracker {
 		}
 
 		if ( empty( $employee_role ) ) {
-			error_log( 'Performance Tracker Achievements: No employee role found for user ' . $user_id );
 			return array();
 		}
 
-		error_log( 'Performance Tracker Achievements: Employee role: ' . $employee_role );
-
 		// Get achievements configuration
 		$achievements_config = get_option( 'wc_tp_achievements_config', array() );
-		error_log( 'Performance Tracker Achievements: Config: ' . print_r( $achievements_config, true ) );
 		
 		$role_achievements = isset( $achievements_config['roles'][ $employee_role ] ) ? $achievements_config['roles'][ $employee_role ] : array();
 
-		error_log( 'Performance Tracker Achievements: Role achievements for ' . $employee_role . ': ' . print_r( $role_achievements, true ) );
-
 		if ( empty( $role_achievements ) ) {
-			error_log( 'Performance Tracker Achievements: No achievements configured for role: ' . $employee_role );
 			return array();
 		}
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.6] - 2026-04-19
+### Fixed
+- **Performance Tracker Currency**: Fixed hardcoded dollar sign ($) to use dynamic WooCommerce currency settings
+- Currency now displays correctly based on WooCommerce settings (৳, $, €, £, etc.) with proper positioning
+- Currency formatting respects WooCommerce position settings (left, left_space, right, right_space)
+- **Code Cleanup**: Removed all debug error_log statements from Performance Tracker for cleaner production code
+- Removed 23 debug logging statements that were cluttering error logs
+- Performance Tracker now matches currency behavior of other plugin pages
+
 ## [1.3.5] - 2026-04-19
 ### Fixed
 - **CRITICAL FIX**: Fixed Performance Tracker not loading data due to incorrect employee roles retrieval

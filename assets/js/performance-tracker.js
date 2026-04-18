@@ -14,12 +14,17 @@
 		periodType: 'monthly',
 		currentView: 'current',
 		currentTab: 'overview',
+		currencySymbol: '$',
+		currencyPosition: 'left',
 
 		/**
 		 * Initialize the Performance Tracker
 		 */
 		init() {
 			console.log('Performance Tracker: Initializing...');
+			// Get currency settings from WooCommerce
+			this.currencySymbol = wc_tp_reports.currency_symbol || '$';
+			this.currencyPosition = wc_tp_reports.currency_pos || 'left';
 			this.loadConfiguration();
 			this.bindEvents();
 		},
@@ -554,7 +559,18 @@
 			if (value === null || value === undefined) return 'N/A';
 
 			if (label.toLowerCase().includes('value') || label.toLowerCase().includes('earnings')) {
-				return '$' + parseFloat(value).toFixed(2);
+				const formatted = parseFloat(value).toFixed(2);
+				// Use WooCommerce currency formatting
+				if (this.currencyPosition === 'left') {
+					return this.currencySymbol + formatted;
+				} else if (this.currencyPosition === 'left_space') {
+					return this.currencySymbol + ' ' + formatted;
+				} else if (this.currencyPosition === 'right') {
+					return formatted + this.currencySymbol;
+				} else if (this.currencyPosition === 'right_space') {
+					return formatted + ' ' + this.currencySymbol;
+				}
+				return this.currencySymbol + formatted;
 			}
 
 			return parseFloat(value).toFixed(label.toLowerCase().includes('average') ? 2 : 0);
