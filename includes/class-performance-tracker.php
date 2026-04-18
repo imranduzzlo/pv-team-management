@@ -71,11 +71,8 @@ class WC_Team_Payroll_Performance_Tracker {
 	 * @return float Attributed order total
 	 */
 	private function get_attributed_order_total( $user_id, $start_date, $end_date, $role_filter = 'all', $status_filter = 'all' ) {
-		// Get commission calculation statuses from settings
-		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
-		$commission_statuses = isset( $checkout_fields['commission_calculation_statuses'] ) && is_array( $checkout_fields['commission_calculation_statuses'] ) 
-			? $checkout_fields['commission_calculation_statuses'] 
-			: array( 'completed' );
+		// Get commission calculation statuses from settings using the correct method
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 
 		// Prepare statuses to query
 		$statuses_to_query = array();
@@ -150,11 +147,8 @@ class WC_Team_Payroll_Performance_Tracker {
 	 * @return int Order count
 	 */
 	private function get_order_count( $user_id, $start_date, $end_date, $role_filter = 'all' ) {
-		// Get commission calculation statuses from settings
-		$checkout_fields = get_option( 'wc_team_payroll_checkout_fields', array() );
-		$commission_statuses = isset( $checkout_fields['commission_calculation_statuses'] ) && is_array( $checkout_fields['commission_calculation_statuses'] ) 
-			? $checkout_fields['commission_calculation_statuses'] 
-			: array( 'completed' );
+		// Get commission calculation statuses from settings using the correct method
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 
 		// Prepare statuses to query
 		$statuses_to_query = array();
