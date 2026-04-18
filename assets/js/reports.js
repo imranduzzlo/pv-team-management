@@ -39,8 +39,9 @@ jQuery(document).ready(function($) {
 
 	// Auto-refresh interval (in milliseconds)
 	let autoRefreshInterval = null;
-	const AUTO_REFRESH_ENABLED = true;
-	const AUTO_REFRESH_DELAY = 30000; // 30 seconds
+	// Get auto-refresh settings from PHP (converted from seconds to milliseconds)
+	const AUTO_REFRESH_INTERVAL = (wc_tp_reports.auto_refresh_interval || 30) * 1000;
+	const AUTO_REFRESH_ENABLED = AUTO_REFRESH_INTERVAL > 0; // Disabled if 0
 	
 	// Track if filters have changed to control animations
 	let filtersChanged = false;
@@ -111,11 +112,11 @@ jQuery(document).ready(function($) {
 	 * Setup auto-refresh
 	 */
 	function setupAutoRefresh() {
-		// Refresh data every 30 seconds (silent refresh - no animations)
+		// Refresh data at configured interval (silent refresh - no animations)
 		autoRefreshInterval = setInterval(function() {
 			filtersChanged = false; // Silent refresh
 			loadAllReportData();
-		}, AUTO_REFRESH_DELAY);
+		}, AUTO_REFRESH_INTERVAL);
 	}
 
 	/**

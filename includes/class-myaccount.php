@@ -2665,12 +2665,17 @@ class WC_Team_Payroll_MyAccount {
 			);
 
 			// Localize reports script with AJAX data
+			// Get auto-refresh interval from system config
+			$system_config = get_option( 'wc_tp_system_config', array() );
+			$refresh_interval = isset( $system_config['refresh_interval'] ) ? intval( $system_config['refresh_interval'] ) : 30;
+			
 			wp_localize_script(
 				'wc-team-payroll-reports',
 				'wc_tp_reports',
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' )
+					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),
+					'auto_refresh_interval' => $refresh_interval, // in seconds
 				)
 			);
 		}

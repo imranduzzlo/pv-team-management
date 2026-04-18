@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.99] - 2026-04-18
+### Dynamic Auto-Refresh Interval from Settings
+- **FEATURE**: Reports page auto-refresh interval now uses value from Settings > Performance > Auto Config
+- **ENHANCEMENT**: Auto-refresh can be disabled by setting interval to 0 seconds in settings
+- **TECHNICAL**: PHP passes `auto_refresh_interval` from `wc_tp_system_config` option to JavaScript via wp_localize_script
+- **TECHNICAL**: JavaScript converts seconds to milliseconds and checks if > 0 to enable/disable auto-refresh
+- **DEFAULT**: 30 seconds if not configured
+- **RANGE**: 0-300 seconds (0 = disabled, configurable in 5-second increments)
+- **RESULT**: Admins can now control reports page refresh rate globally from Performance Settings
+
 ## [1.0.98] - 2026-04-18
 ### Remove Debug Code from Production
 - **CLEANUP**: Removed debug console.log statement from reports.js (Attributed Order Total Response)
