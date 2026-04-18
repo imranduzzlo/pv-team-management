@@ -1,0 +1,649 @@
+/**
+ * Performance Tracker Frontend
+ * Handles Goals, Achievements, and Baselines display
+ * 
+ * @package WooCommerce Team Payroll
+ * @since 1.3.0
+ */
+
+(function($) {
+	'use strict';
+
+	const PerformanceTracker = {
+		// Configuration
+		periodType: 'monthly',
+		currentView: 'current',
+		currentTab: 'overview',
+
+		/**
+		 * Initialize the Performance Tracker
+		 */
+		init() {
+			console.log('Performance Tracker: Initializing...');
+			this.loadConfiguration();
+			this.bindEvents();
+		},
+
+		/**
+		 * Load admin configuration (period type, etc.)
+		 */
+		loadConfiguration() {
+			this.fetchData('config', (data) => {
+				this.periodType = data.period_type || 'monthly';
+				console.log('Performance Tracker: Period type =', this.periodType);
+				
+				// Update view options based on period type
+				this.updateViewOptions();
+				
+				// Load initial data
+				this.loadOverview();
+			});
+		},
+
+		/**
+		 * Bind event handlers
+		 */
+		bindEvents() {
+			// View selector change
+			$(document).on('change', '#performance-view-selector', (e) => {
+				this.currentView = $(e.target).val();
+				this.refreshCurrentTab();
+			});
+
+			// Tab switching
+			$(document).on('click', '.performance-tab', (e) => {
+				e.preventDefault();
+				const tab = $(e.currentTarget).data('tab');
+				this.switchTab(tab);
+			});
+
+			// Refresh button
+			$(document).on('click', '#performance-refresh-btn', () => {
+				this.refreshCurrentTab();
+			});
+		},
+
+		/**
+		 * Update view options based on period type
+		 */
+		updateViewOptions() {
+			const options = this.getViewOptions(this.periodType);
+			const $selector = $('#performance-view-selector');
+			
+			if ($selector.length) {
+				$selector.empty();
+				options.forEach(opt => {
+					$selector.append(`<option value="${opt.value}">${opt.label}</option>`);
+				});
+			}
+		},
+
+		/**
+		 * Get view options based on period type
+		 */
+		getViewOptions(periodType) {
+			const optionsMap = {
+				'weekly': [
+					{ value: 'current', label: 'Current Week' },
+					{ value: 'last', label: 'Last Week' },
+					{ value: 'last_4', label: 'Last 4 Weeks' },
+					{ value: 'last_12', label: 'Last 12 Weeks' },
+					{ value: 'ytd', label: 'Year to Date' }
+				],
+				'monthly': [
+					{ value: 'current', label: 'Current Month' },
+					{ value: 'last', label: 'Last Month' },
+					{ value: 'last_3', label: 'Last 3 Months' },
+					{ value: 'last_6', label: 'Last 6 Months' },
+					{ value: 'last_12', label: 'Last 12 Months' },
+					{ value: 'ytd', label: 'Year to Date' }
+				],
+				'quarterly': [
+					{ value: 'current', label: 'Current Quarter' },
+					{ value: 'last', label: 'Last Quarter' },
+					{ value: 'last_4', label: 'Last 4 Quarters' },
+					{ value: 'ytd', label: 'Year to Date' }
+				],
+				'yearly': [
+					{ value: 'current', label: 'Current Year' },
+					{ value: 'last', label: 'Last Year' },
+					{ value: 'last_3', label: 'Last 3 Years' }
+				]
+			};
+
+			return optionsMap[periodType] || optionsMap['monthly'];
+		},
+
+		/**
+		 * Switch between tabs
+		 */
+		switchTab(tab) {
+			this.currentTab = tab;
+
+			// Update tab UI
+			$('.performance-tab').removeClass('active');
+			$(`.performance-tab[data-tab="${tab}"]`).addClass('active');
+
+			// Load tab content
+			switch(tab) {
+				case 'overview':
+					this.loadOverview();
+					break;
+				case 'goals':
+					this.loadGoals();
+					break;
+				case 'achievements':
+					this.loadAchievements();
+					break;
+				case 'baselines':
+					this.loadBaselines();
+					break;
+			}
+		},
+
+		/**
+		 * Refresh current tab
+		 */
+		refreshCurrentTab() {
+			this.switchTab(this.currentTab);
+		},
+
+		/**
+		 * Load overview data
+		 */
+		loadOverview() {
+			this.showLoading();
+			
+			this.fetchData('overview', (data) => {
+				this.renderOverview(data);
+			}, { view_mode: this.currentView });
+		},
+
+		/**
+		 * Load goals data
+		 */
+		loadGoals() {
+			this.showLoading();
+			
+			this.fetchData('goals', (data) => {
+				this.renderGoals(data);
+			}, { view_mode: this.currentView });
+		},
+
+		/**
+		 * Load achievements data
+		 */
+		loadAchievements() {
+			this.showLoading();
+			
+			this.fetchData('achievements', (data) => {
+				this.renderAchievements(data);
+			});
+		},
+
+		/**
+		 * Load baselines data
+		 */
+		loadBaselines() {
+			this.showLoading();
+			
+			this.fetchData('baselines', (data) => {
+				this.renderBaselines(data);
+			});
+		},
+
+		/**
+		 * Fetch data from server
+		 */
+		fetchData(section, callback, extraData = {}) {
+			$.ajax({
+				url: wcTpReports.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'wc_tp_get_performance_tracker_data',
+					nonce: wcTpReports.nonce,
+					section: section,
+					...extraData
+				},
+				success: (response) => {
+					if (response.success) {
+						callback(response.data);
+					} else {
+						this.showError(response.data?.message || 'Failed to load data');
+					}
+				},
+				error: (xhr, status, error) => {
+					console.error('Performance Tracker Error:', error);
+					this.showError('Network error. Please try again.');
+				}
+			});
+		},
+
+		/**
+		 * Render overview section
+		 */
+		renderOverview(data) {
+			const html = `
+				<div class="performance-overview">
+					<div class="overview-header">
+						<h3><i class="ph ph-chart-line"></i> Performance Overview</h3>
+						<span class="period-label">${this.getPeriodLabel()}</span>
+					</div>
+
+					<div class="overview-grid">
+						${this.renderOverviewCard('Goals', data.goals_summary)}
+						${this.renderOverviewCard('Achievements', data.achievements_summary)}
+						${this.renderOverviewCard('Baselines', data.baselines_summary)}
+					</div>
+
+					<div class="overview-quick-stats">
+						<h4>Quick Stats</h4>
+						${this.renderQuickStats(data)}
+					</div>
+				</div>
+			`;
+
+			$('#performance-content').html(html);
+		},
+
+		/**
+		 * Render overview card
+		 */
+		renderOverviewCard(title, data) {
+			if (!data) return '';
+
+			return `
+				<div class="overview-card">
+					<h4>${title}</h4>
+					<div class="overview-card-content">
+						${data.html || '<p>No data available</p>'}
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Render quick stats
+		 */
+		renderQuickStats(data) {
+			if (!data.quick_stats) return '<p>No stats available</p>';
+
+			const stats = data.quick_stats;
+			return `
+				<div class="quick-stats-grid">
+					${stats.map(stat => `
+						<div class="stat-item">
+							<span class="stat-label">${stat.label}</span>
+							<span class="stat-value">${stat.value}</span>
+						</div>
+					`).join('')}
+				</div>
+			`;
+		},
+
+		/**
+		 * Render goals section
+		 */
+		renderGoals(data) {
+			if (!data.goals) {
+				this.showError('No goals configured');
+				return;
+			}
+
+			const goals = data.goals;
+			const html = `
+				<div class="performance-goals">
+					<div class="goals-header">
+						<h3><i class="ph ph-target"></i> Goals & Progress</h3>
+						<span class="period-label">${goals.period_start} - ${goals.period_end}</span>
+					</div>
+
+					<div class="goals-grid">
+						${this.renderGoalCard('Order Value', goals.order_value, 'ph-wallet', '#0073aa')}
+						${this.renderGoalCard('Orders Count', goals.orders, 'ph-shopping-bag', '#28a745')}
+						${this.renderGoalCard('Average Order Value', goals.aov, 'ph-chart-bar', '#ffc107')}
+					</div>
+
+					${data.history ? this.renderGoalHistory(data.history) : ''}
+				</div>
+			`;
+
+			$('#performance-content').html(html);
+		},
+
+		/**
+		 * Render single goal card
+		 */
+		renderGoalCard(label, goal, icon, color) {
+			if (!goal) return '';
+
+			const percentage = goal.percentage || 0;
+			const status = goal.status || 'not_started';
+			const achievedClass = status === 'achieved' || status === 'stretch_achieved' ? 'achieved' : '';
+
+			return `
+				<div class="goal-card ${achievedClass}" data-status="${status}">
+					<div class="goal-header">
+						<div class="goal-icon" style="background-color: ${color}20; color: ${color};">
+							<i class="ph ${icon}"></i>
+						</div>
+						<div class="goal-title">
+							<h4>${label}</h4>
+							${achievedClass ? '<span class="achievement-badge"><i class="ph ph-check-circle"></i> Achieved!</span>' : ''}
+						</div>
+					</div>
+
+					<div class="goal-progress">
+						<div class="progress-bar-container">
+							<div class="progress-bar" style="width: ${percentage}%; background-color: ${color};"></div>
+						</div>
+						<div class="progress-text">
+							<span class="progress-percentage">${percentage.toFixed(0)}%</span>
+						</div>
+					</div>
+
+					<div class="goal-stats">
+						<div class="stat-row">
+							<span class="stat-label">Current:</span>
+							<span class="stat-value">${this.formatValue(goal.current, label)}</span>
+						</div>
+						<div class="stat-row">
+							<span class="stat-label">Target:</span>
+							<span class="stat-value">${this.formatValue(goal.target, label)}</span>
+						</div>
+						${goal.stretch ? `
+							<div class="stat-row">
+								<span class="stat-label">Stretch:</span>
+								<span class="stat-value">${this.formatValue(goal.stretch, label)}</span>
+							</div>
+						` : ''}
+					</div>
+
+					<div class="goal-status-badge status-${status}">
+						${this.getStatusLabel(status)}
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Render goal history
+		 */
+		renderGoalHistory(history) {
+			if (!history || history.length === 0) return '';
+
+			return `
+				<div class="goal-history">
+					<h4><i class="ph ph-clock-clockwise"></i> Goal History</h4>
+					<div class="history-list">
+						${history.slice(0, 6).map(period => `
+							<div class="history-item">
+								<span class="history-period">${period.period}</span>
+								<span class="history-status status-${period.order_value?.status || 'not_started'}">
+									${this.getStatusIcon(period.order_value?.status)}
+								</span>
+								<span class="history-value">${this.formatValue(period.order_value?.current, 'Order Value')}</span>
+							</div>
+						`).join('')}
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Render achievements section
+		 */
+		renderAchievements(data) {
+			if (!data.achievements) {
+				this.showError('No achievements configured');
+				return;
+			}
+
+			const achievements = data.achievements;
+			const stats = data.stats || {};
+
+			const html = `
+				<div class="performance-achievements">
+					<div class="achievements-header">
+						<h3><i class="ph ph-trophy"></i> Achievements</h3>
+						<div class="achievements-stats">
+							<span class="stat-badge">Total: ${stats.total_unlocked || 0}</span>
+							<span class="stat-badge bronze">🥉 ${stats.bronze_count || 0}</span>
+							<span class="stat-badge silver">🥈 ${stats.silver_count || 0}</span>
+							<span class="stat-badge gold">🥇 ${stats.gold_count || 0}</span>
+						</div>
+					</div>
+
+					<div class="achievements-grid">
+						${Object.entries(achievements).map(([key, achievement]) => 
+							this.renderAchievementCard(key, achievement)
+						).join('')}
+					</div>
+				</div>
+			`;
+
+			$('#performance-content').html(html);
+		},
+
+		/**
+		 * Render single achievement card
+		 */
+		renderAchievementCard(key, achievement) {
+			const isUnlocked = achievement.unlocked === true;
+			const tier = achievement.tier || 'bronze';
+			const tierEmoji = { bronze: '🥉', silver: '🥈', gold: '🥇' }[tier];
+
+			if (isUnlocked) {
+				return `
+					<div class="achievement-card unlocked tier-${tier}">
+						<div class="achievement-badge">${tierEmoji}</div>
+						<h4>${this.formatAchievementName(key)}</h4>
+						<p class="achievement-desc">Threshold: ${this.formatValue(achievement.threshold, key)}</p>
+						<div class="achievement-meta">
+							<span class="unlock-date">Unlocked: ${achievement.unlocked_date}</span>
+							<span class="unlock-value">Value: ${this.formatValue(achievement.value_at_unlock, key)}</span>
+						</div>
+					</div>
+				`;
+			} else {
+				const percentage = achievement.percentage || 0;
+				return `
+					<div class="achievement-card locked tier-${tier}">
+						<div class="achievement-badge locked-badge">🔒</div>
+						<h4>${this.formatAchievementName(key)}</h4>
+						<p class="achievement-desc">Threshold: ${this.formatValue(achievement.threshold, key)}</p>
+						<div class="achievement-progress">
+							<div class="progress-bar-container">
+								<div class="progress-bar" style="width: ${percentage}%;"></div>
+							</div>
+							<span class="progress-text">${percentage.toFixed(0)}%</span>
+						</div>
+						<div class="achievement-meta">
+							<span>Current: ${this.formatValue(achievement.current_progress, key)}</span>
+							<span>Remaining: ${this.formatValue(achievement.threshold - achievement.current_progress, key)}</span>
+						</div>
+					</div>
+				`;
+			}
+		},
+
+		/**
+		 * Render baselines section
+		 */
+		renderBaselines(data) {
+			if (!data.baselines) {
+				this.showError('No baselines calculated yet');
+				return;
+			}
+
+			const baselines = data.baselines;
+
+			const html = `
+				<div class="performance-baselines">
+					<div class="baselines-header">
+						<h3><i class="ph ph-chart-line-up"></i> Performance Baselines</h3>
+						<div class="baselines-meta">
+							<span>Method: ${baselines.method}</span>
+							<span>Updated: ${baselines.calculated_date}</span>
+						</div>
+					</div>
+
+					<div class="baselines-grid">
+						${this.renderBaselineCard('Order Value', baselines.order_value)}
+						${this.renderBaselineCard('Orders Count', baselines.orders)}
+						${this.renderBaselineCard('Average Order Value', baselines.aov)}
+					</div>
+				</div>
+			`;
+
+			$('#performance-content').html(html);
+		},
+
+		/**
+		 * Render single baseline card
+		 */
+		renderBaselineCard(label, baseline) {
+			if (!baseline) return '';
+
+			const trend = baseline.trend || 'stable';
+			const trendIcon = {
+				'improving': 'ph-trend-up',
+				'declining': 'ph-trend-down',
+				'stable': 'ph-minus'
+			}[trend];
+			const trendColor = {
+				'improving': '#28a745',
+				'declining': '#dc3545',
+				'stable': '#6c757d'
+			}[trend];
+
+			return `
+				<div class="baseline-card trend-${trend}">
+					<h4>${label}</h4>
+					
+					<div class="baseline-comparison">
+						<div class="baseline-item">
+							<span class="label">Current</span>
+							<span class="value">${this.formatValue(baseline.current, label)}</span>
+						</div>
+						<div class="baseline-divider">vs</div>
+						<div class="baseline-item">
+							<span class="label">Baseline</span>
+							<span class="value">${this.formatValue(baseline.baseline, label)}</span>
+						</div>
+					</div>
+
+					<div class="baseline-difference" style="color: ${trendColor};">
+						<i class="ph ${trendIcon}"></i>
+						<span>${baseline.difference > 0 ? '+' : ''}${this.formatValue(baseline.difference, label)}</span>
+						<span>(${baseline.percentage > 0 ? '+' : ''}${baseline.percentage.toFixed(1)}%)</span>
+					</div>
+
+					<div class="baseline-trend">
+						<span class="trend-label">Trend:</span>
+						<span class="trend-value" style="color: ${trendColor};">${trend.charAt(0).toUpperCase() + trend.slice(1)}</span>
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Helper: Format value based on metric type
+		 */
+		formatValue(value, label) {
+			if (value === null || value === undefined) return 'N/A';
+
+			if (label.toLowerCase().includes('value') || label.toLowerCase().includes('earnings')) {
+				return '$' + parseFloat(value).toFixed(2);
+			}
+
+			return parseFloat(value).toFixed(label.toLowerCase().includes('average') ? 2 : 0);
+		},
+
+		/**
+		 * Helper: Format achievement name
+		 */
+		formatAchievementName(key) {
+			return key.split('_').map(word => 
+				word.charAt(0).toUpperCase() + word.slice(1)
+			).join(' ');
+		},
+
+		/**
+		 * Helper: Get status label
+		 */
+		getStatusLabel(status) {
+			const labels = {
+				'not_started': 'Not Started',
+				'in_progress': 'In Progress',
+				'achieved': 'Achieved',
+				'stretch_achieved': 'Stretch Achieved'
+			};
+			return labels[status] || status;
+		},
+
+		/**
+		 * Helper: Get status icon
+		 */
+		getStatusIcon(status) {
+			const icons = {
+				'not_started': '○',
+				'in_progress': '◐',
+				'achieved': '✓',
+				'stretch_achieved': '★'
+			};
+			return icons[status] || '○';
+		},
+
+		/**
+		 * Helper: Get period label
+		 */
+		getPeriodLabel() {
+			const viewLabels = {
+				'current': 'Current Period',
+				'last': 'Last Period',
+				'last_3': 'Last 3 Periods',
+				'last_6': 'Last 6 Periods',
+				'last_12': 'Last 12 Periods',
+				'ytd': 'Year to Date'
+			};
+			return viewLabels[this.currentView] || 'Current Period';
+		},
+
+		/**
+		 * Show loading state
+		 */
+		showLoading() {
+			$('#performance-content').html(`
+				<div class="performance-loading">
+					<i class="ph ph-spinner ph-spin"></i>
+					<p>Loading performance data...</p>
+				</div>
+			`);
+		},
+
+		/**
+		 * Show error message
+		 */
+		showError(message) {
+			$('#performance-content').html(`
+				<div class="performance-error">
+					<i class="ph ph-warning-circle"></i>
+					<p>${message}</p>
+				</div>
+			`);
+		}
+	};
+
+	// Initialize when document is ready
+	$(document).ready(function() {
+		// Only initialize if performance tracker container exists
+		if ($('#performance-tracker-container').length) {
+			PerformanceTracker.init();
+		}
+	});
+
+	// Expose to global scope for debugging
+	window.PerformanceTracker = PerformanceTracker;
+
+})(jQuery);

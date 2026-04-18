@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.3.1] - 2026-04-19
+### Performance Tracker Frontend - Complete Implementation
+- **NEW FILE**: `assets/js/performance-tracker.js` - Frontend JavaScript for dynamic data display
+- **NEW FILE**: `assets/css/performance-tracker.css` - Complete styling for all performance tracker components
+- **NEW FILE**: `includes/class-performance-tracker-ajax.php` - AJAX handlers for frontend requests
+- **FEATURE**: Dynamic Goals display with progress bars, status badges, and 3-level thresholds (minimum/target/stretch)
+- **FEATURE**: Achievements display with locked/unlocked states, bronze/silver/gold badges, and progress tracking
+- **FEATURE**: Baselines display with trend indicators (improving/declining/stable) and comparison charts
+- **FEATURE**: Overview dashboard with quick stats and summary cards
+- **FEATURE**: Tabbed interface for Goals, Achievements, Baselines, and Overview
+- **FEATURE**: Period selector dropdown (dynamically generated based on admin-configured period type)
+- **FEATURE**: Goal history timeline showing last 6 completed periods
+- **FEATURE**: Baseline history showing last 12 calculations
+- **UI**: Responsive design with mobile-friendly layouts
+- **UI**: Loading states and error handling
+- **UI**: Color-coded status indicators and trend arrows
+- **UI**: Achievement tier badges with emoji icons (🥉🥈🥇)
+- **AJAX**: `wc_tp_get_performance_tracker_data` handler with sections (config, overview, goals, achievements, baselines)
+- **INTEGRATION**: Replaced static Goals & Achievements section in Reports page with dynamic Performance Tracker
+- **INTEGRATION**: Enqueued new CSS and JS files in MyAccount assets
+- **INTEGRATION**: Added Performance Tracker AJAX handler initialization
+- **TECHNICAL**: JavaScript module pattern with proper initialization and event binding
+- **TECHNICAL**: Helper functions for value formatting (currency, numbers, percentages)
+- **TECHNICAL**: Status label and icon mapping
+- **TECHNICAL**: Period label generation based on view mode
+- **RESULT**: Fully functional Performance Tracker frontend displaying real-time data from backend
+
 ## [1.3.0] - 2026-04-19
 ### Performance Tracker System - Complete Backend Implementation
 - **NEW CLASS**: Added `class-performance-tracker.php` for Goals, Achievements, and Baselines tracking

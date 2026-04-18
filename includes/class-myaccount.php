@@ -47,6 +47,7 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'wp_ajax_wc_tp_get_filtered_goals_data', array( __CLASS__, 'ajax_get_filtered_goals_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_attributed_order_total', array( __CLASS__, 'ajax_get_attributed_order_total' ) );
 		add_action( 'wp_ajax_wc_tp_export_filtered_report', array( __CLASS__, 'ajax_export_filtered_report' ) );
+		add_action( 'wp_ajax_wc_tp_get_performance_tracker_data', array( __CLASS__, 'ajax_get_performance_tracker_data' ) );
 
 		// Enqueue assets
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
@@ -1917,12 +1918,37 @@ class WC_Team_Payroll_MyAccount {
 				</div>
 			</div>
 
-			<!-- STEP 6: GOALS & ACHIEVEMENTS (Will be populated by AJAX) -->
-			<div class="reports-goals-section-wrapper pv-section-wrapper">
-				<div id="reports-goals-container">
-					<div class="reports-loading">
-						<i class="ph ph-spinner"></i>
-						<p><?php esc_html_e( 'Loading your goals and achievements...', 'wc-team-payroll' ); ?></p>
+			<!-- STEP 6: PERFORMANCE TRACKER (Goals, Achievements, Baselines) -->
+			<div class="performance-tracker-wrapper pv-section-wrapper" id="performance-tracker-container">
+				<!-- Performance Header -->
+				<div class="performance-header">
+					<h3><i class="ph ph-target"></i> <?php esc_html_e( 'Performance Tracker', 'wc-team-payroll' ); ?></h3>
+					<select id="performance-view-selector">
+						<option value="current"><?php esc_html_e( 'Current Period', 'wc-team-payroll' ); ?></option>
+					</select>
+				</div>
+
+				<!-- Performance Tabs -->
+				<div class="performance-tabs">
+					<button class="performance-tab active" data-tab="overview">
+						<i class="ph ph-chart-line"></i> <?php esc_html_e( 'Overview', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="goals">
+						<i class="ph ph-target"></i> <?php esc_html_e( 'Goals', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="achievements">
+						<i class="ph ph-trophy"></i> <?php esc_html_e( 'Achievements', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="baselines">
+						<i class="ph ph-chart-line-up"></i> <?php esc_html_e( 'Baselines', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+
+				<!-- Performance Content -->
+				<div id="performance-content">
+					<div class="performance-loading">
+						<i class="ph ph-spinner ph-spin"></i>
+						<p><?php esc_html_e( 'Loading performance data...', 'wc-team-payroll' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -2668,6 +2694,23 @@ class WC_Team_Payroll_MyAccount {
 				true
 			);
 
+			// Enqueue Performance Tracker CSS
+			wp_enqueue_style(
+				'wc-team-payroll-performance-tracker',
+				WC_TEAM_PAYROLL_URL . 'assets/css/performance-tracker.css',
+				array( 'wc-team-payroll-reports' ),
+				WC_TEAM_PAYROLL_VERSION . '-' . time()
+			);
+
+			// Enqueue Performance Tracker JavaScript
+			wp_enqueue_script(
+				'wc-team-payroll-performance-tracker',
+				WC_TEAM_PAYROLL_URL . 'assets/js/performance-tracker.js',
+				array( 'jquery', 'wc-team-payroll-reports' ),
+				WC_TEAM_PAYROLL_VERSION . '-' . time(),
+				true
+			);
+
 			// Enqueue Chart.js for analytics charts
 			wp_enqueue_script(
 				'chart-js',
@@ -2684,7 +2727,7 @@ class WC_Team_Payroll_MyAccount {
 			
 			wp_localize_script(
 				'wc-team-payroll-reports',
-				'wc_tp_reports',
+				'wcTpReports',
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),
