@@ -47,7 +47,7 @@ class WC_Team_Payroll_MyAccount {
 		add_action( 'wp_ajax_wc_tp_get_filtered_goals_data', array( __CLASS__, 'ajax_get_filtered_goals_data' ) );
 		add_action( 'wp_ajax_wc_tp_get_attributed_order_total', array( __CLASS__, 'ajax_get_attributed_order_total' ) );
 		add_action( 'wp_ajax_wc_tp_export_filtered_report', array( __CLASS__, 'ajax_export_filtered_report' ) );
-		add_action( 'wp_ajax_wc_tp_get_performance_tracker_data', array( __CLASS__, 'ajax_get_performance_tracker_data' ) );
+		// Performance Tracker AJAX is handled by WC_Team_Payroll_Performance_Tracker_AJAX class
 
 		// Enqueue assets
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );

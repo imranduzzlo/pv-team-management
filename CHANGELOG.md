@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.2] - 2026-04-19
+### Fixed
+- **CRITICAL FIX**: Performance Tracker data not loading due to duplicate AJAX handler registration
+- Removed conflicting `wc_tp_get_performance_tracker_data` AJAX registration from MyAccount class
+- AJAX handler is properly initialized in `WC_Team_Payroll_Performance_Tracker_AJAX` class
+
 ## [1.3.1] - 2026-04-19
 ### Performance Tracker Frontend - Complete Implementation
 - **NEW FILE**: `assets/js/performance-tracker.js` - Frontend JavaScript for dynamic data display
