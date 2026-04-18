@@ -395,58 +395,6 @@
 	font-size: 13px;
 }
 
-.reports-table-container {
-	overflow-x: auto;
-	-webkit-overflow-scrolling: touch;
-}
-
-.reports-table {
-	width: 100%;
-	border-collapse: collapse;
-	margin: 0;
-	border: none;
-}
-
-.reports-table thead tr {
-	background: #f8f9fa;
-	border: none;
-}
-
-.reports-table th {
-	padding: 12px;
-	text-align: left;
-	border: none;
-	border-bottom: 1px solid #e9ecef;
-	font-weight: 600;
-	color: #495057;
-	font-size: 13px;
-	white-space: nowrap;
-	cursor: pointer;
-	user-select: none;
-	transition: background-color 0.2s ease;
-}
-
-.reports-table th:hover {
-	background: #e9ecef;
-}
-
-.reports-table th.sortable::after {
-	content: ' ↕';
-	font-size: 11px;
-	color: #6c757d;
-	margin-left: 4px;
-}
-
-.reports-table th.sortable {
-	cursor: pointer;
-	user-select: none;
-	transition: background-color 0.2s ease;
-}
-
-.reports-table th.sortable:hover {
-	background: #e9ecef;
-}
-
 /* Role Badges */
 .role-badge {
 	display: inline-block;

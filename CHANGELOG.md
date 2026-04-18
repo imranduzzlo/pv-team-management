@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.2.6] - 2026-04-18
+### Reports Page - My Commission History Table Enhanced
+- **FEATURE**: Added "Commission" column showing total commission for each order
+- **CHANGE**: Renamed previous "Commission" column to "My Earning" for clarity
+- **ENHANCEMENT**: Table now uses both reports-specific and shared table classes (same as My Order Processing)
+- **ENHANCEMENT**: Table wrapper now includes `table-wrapper` class
+- **ENHANCEMENT**: Table controls now include `section-header`, `pv-table-controls`, `table-controls` classes
+- **ENHANCEMENT**: Search control now includes `search-control` class
+- **ENHANCEMENT**: Per page control now includes `per-page-control` class
+- **ENHANCEMENT**: Table container now includes `table-container`, `pv-table-container` classes
+- **ENHANCEMENT**: Table now includes `pv-table`, `woocommerce-table`, `woocommerce-table--commission` classes
+- **ENHANCEMENT**: All sortable columns now have sort icons (`ph-caret-up-down sort-icon`)
+- **ENHANCEMENT**: All table cells now have `data-sort-value` attributes for proper sorting
+- **ENHANCEMENT**: Role badges now include icons (agent: `ph-user-check`, processor: `ph-gear`)
+- **ENHANCEMENT**: Status badges now include icons matching order status
+- **ENHANCEMENT**: Pagination now includes `pagination-container`, `pagination-info`, `pagination-controls` classes
+- **TECHNICAL**: Updated colspan from 6 to 7 for no-data message
+- **RESULT**: Table follows shared design from myaccount-shared.css with complete sorting functionality
+
+## [1.2.5] - 2026-04-18
+### Reports Page - My Order Processing Table Uses Shared Design
+- **CHANGE**: My Order Processing table now uses both reports-specific and shared table classes
+- **ENHANCEMENT**: Table wrapper now includes `table-wrapper` class for consistent card styling
+- **ENHANCEMENT**: Table controls now include `section-header`, `pv-table-controls`, `table-controls` classes
+- **ENHANCEMENT**: Search control now includes `search-control` class for consistent styling
+- **ENHANCEMENT**: Per page control now includes `per-page-control` class
+- **ENHANCEMENT**: Table container now includes `table-container`, `pv-table-container` classes
+- **ENHANCEMENT**: Table now includes `pv-table`, `woocommerce-table`, `woocommerce-table--orders` classes
+- **ENHANCEMENT**: Table headers now include sort icons (`ph-caret-up-down sort-icon`)
+- **ENHANCEMENT**: Pagination now includes `pagination-container`, `pagination-info`, `pagination-controls` classes
+- **TECHNICAL**: Maintains reports-specific classes alongside shared classes for dual styling support
+- **RESULT**: Table follows shared design from myaccount-shared.css while respecting reports page filters
+
+## [1.2.4] - 2026-04-18
+### Global .ph Icon Color - Made Dynamic from Settings
+- **CHANGE**: Global `.ph` icon color now uses primary color from Settings > Frontend Styling
+- **FIX**: Removed `!important` from hardcoded CSS to allow dynamic styling to override
+- **ENHANCEMENT**: Icons now respect theme customization without requiring CSS file edits
+- **TECHNICAL**: Dynamic CSS from `enqueue_assets()` now properly overrides default color
+- **RESULT**: All Phosphor icons (.ph) now use the primary color set in settings, maintaining design consistency
+
 ## [1.2.3] - 2026-04-18
 ### Reports Page - My Order Processing Table Enhanced
 - **FEATURE**: Added "Customer" column (sortable)

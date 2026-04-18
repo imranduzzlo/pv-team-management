@@ -4723,37 +4723,58 @@ class WC_Team_Payroll_MyAccount {
 		ob_start();
 		?>
 		<!-- COMMISSION HISTORY TABLE -->
-		<div class="reports-table-wrapper">
+		<div class="reports-table-wrapper table-wrapper">
 			<h3 class="reports-table-title">
 				<i class="ph ph-wallet"></i>
 				<?php esc_html_e( 'My Commission History', 'wc-team-payroll' ); ?>
 			</h3>
 			
-			<div class="reports-table-controls">
-				<div class="reports-table-search">
-					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search by Order ID...', 'wc-team-payroll' ); ?>" data-table="commission-table" />
-					<i class="ph ph-magnifying-glass"></i>
-				</div>
-				<div class="reports-table-per-page">
-					<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
-					<select class="table-per-page-select" data-table="commission-table">
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-					</select>
-					<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+			<div class="reports-table-controls section-header">
+				<div class="pv-table-controls table-controls">
+					<div class="reports-table-search search-control">
+						<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search by Order ID...', 'wc-team-payroll' ); ?>" data-table="commission-table" />
+						<i class="ph ph-magnifying-glass"></i>
+					</div>
+					<div class="reports-table-per-page per-page-control">
+						<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+						<select class="table-per-page-select" data-table="commission-table">
+							<option value="10">10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+						</select>
+						<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+					</div>
 				</div>
 			</div>
 
-			<div class="reports-table-container">
-				<table class="reports-table" id="commission-table">
+			<div class="reports-table-container table-container pv-table-container">
+				<table class="reports-table pv-table woocommerce-table woocommerce-table--commission" id="commission-table">
 					<thead>
 						<tr>
-							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="order_id"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="total"><?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="earnings"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="role"><?php esc_html_e( 'Role', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="date">
+								<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="order_id">
+								<?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="total">
+								<?php esc_html_e( 'Amount', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="commission">
+								<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="earnings">
+								<?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="role">
+								<?php esc_html_e( 'Role', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
 							<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
 						</tr>
 					</thead>
@@ -4761,12 +4782,24 @@ class WC_Team_Payroll_MyAccount {
 						<?php if ( ! empty( $filtered_orders ) ) : ?>
 							<?php foreach ( $filtered_orders as $order ) : ?>
 								<tr>
-									<td><?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?></td>
-									<td><strong>#<?php echo esc_html( $order['order_id'] ); ?></strong></td>
-									<td><?php echo wp_kses_post( wc_price( $order['total'] ) ); ?></td>
-									<td><strong><?php echo wp_kses_post( wc_price( $order['earnings'] ) ); ?></strong></td>
-									<td>
+									<td data-sort-value="<?php echo esc_attr( strtotime( $order['date'] ) ); ?>">
+										<?php echo esc_html( date( 'M j, Y', strtotime( $order['date'] ) ) ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['order_id'] ); ?>">
+										<strong>#<?php echo esc_html( $order['order_id'] ); ?></strong>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['total'] ); ?>">
+										<?php echo wp_kses_post( wc_price( $order['total'] ) ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['commission'] ); ?>">
+										<?php echo wp_kses_post( wc_price( $order['commission'] ) ); ?>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( $order['earnings'] ); ?>">
+										<strong><?php echo wp_kses_post( wc_price( $order['earnings'] ) ); ?></strong>
+									</td>
+									<td data-sort-value="<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
 										<span class="role-badge role-<?php echo esc_attr( strtolower( $order['role'] ) ); ?>">
+											<i class="ph <?php echo $order['role'] === 'agent' ? 'ph-user-check' : 'ph-gear'; ?>"></i>
 											<?php echo esc_html( ucfirst( $order['role'] ) ); ?>
 										</span>
 									</td>
@@ -4776,6 +4809,17 @@ class WC_Team_Payroll_MyAccount {
 										$status_label = wc_get_order_status_name( 'wc-' . $status );
 										?>
 										<span class="status-badge status-<?php echo esc_attr( $status ); ?>">
+											<i class="ph <?php 
+												$status_icons = array(
+													'completed' => 'ph-check-circle',
+													'processing' => 'ph-hourglass',
+													'pending' => 'ph-clock',
+													'on-hold' => 'ph-pause-circle',
+													'cancelled' => 'ph-x-circle',
+													'refunded' => 'ph-arrow-counter-clockwise',
+												);
+												echo isset( $status_icons[$status] ) ? $status_icons[$status] : 'ph-tag';
+											?>"></i>
 											<?php echo esc_html( $status_label ); ?>
 										</span>
 									</td>
@@ -4783,7 +4827,7 @@ class WC_Team_Payroll_MyAccount {
 							<?php endforeach; ?>
 						<?php else : ?>
 							<tr>
-								<td colspan="6" class="reports-no-data">
+								<td colspan="7" class="reports-no-data">
 									<i class="ph ph-inbox"></i>
 									<p><?php esc_html_e( 'No commission data found for the selected filters', 'wc-team-payroll' ); ?></p>
 								</td>
@@ -4793,51 +4837,77 @@ class WC_Team_Payroll_MyAccount {
 				</table>
 			</div>
 
-			<div class="reports-pagination" data-table="commission-table">
-				<div class="reports-pagination-info">
+			<div class="reports-pagination pagination-container" data-table="commission-table">
+				<div class="reports-pagination-info pagination-info">
 					<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> <span class="pagination-start">1</span> <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> <span class="pagination-end">10</span> <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> <span class="pagination-total"><?php echo esc_html( count( $filtered_orders ) ); ?></span> <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>
 				</div>
-				<div class="reports-pagination-controls">
+				<div class="reports-pagination-controls pagination-controls">
 					<!-- Pagination buttons will be generated by JavaScript -->
 				</div>
 			</div>
 		</div>
 
 		<!-- ORDER PROCESSING TABLE -->
-		<div class="reports-table-wrapper">
+		<div class="reports-table-wrapper table-wrapper">
 			<h3 class="reports-table-title">
 				<i class="ph ph-shopping-bag"></i>
 				<?php esc_html_e( 'My Order Processing', 'wc-team-payroll' ); ?>
 			</h3>
 			
-			<div class="reports-table-controls">
-				<div class="reports-table-search">
-					<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search orders...', 'wc-team-payroll' ); ?>" data-table="orders-table" />
-					<i class="ph ph-magnifying-glass"></i>
-				</div>
-				<div class="reports-table-per-page">
-					<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
-					<select class="table-per-page-select" data-table="orders-table">
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-					</select>
-					<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+			<div class="reports-table-controls section-header">
+				<div class="pv-table-controls table-controls">
+					<div class="reports-table-search search-control">
+						<input type="text" class="table-search-input" placeholder="<?php esc_attr_e( 'Search orders...', 'wc-team-payroll' ); ?>" data-table="orders-table" />
+						<i class="ph ph-magnifying-glass"></i>
+					</div>
+					<div class="reports-table-per-page per-page-control">
+						<label><?php esc_html_e( 'Show:', 'wc-team-payroll' ); ?></label>
+						<select class="table-per-page-select" data-table="orders-table">
+							<option value="10">10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+						</select>
+						<span><?php esc_html_e( 'per page', 'wc-team-payroll' ); ?></span>
+					</div>
 				</div>
 			</div>
 
-			<div class="reports-table-container">
-				<table class="reports-table" id="orders-table">
+			<div class="reports-table-container table-container pv-table-container">
+				<table class="reports-table pv-table woocommerce-table woocommerce-table--orders" id="orders-table">
 					<thead>
 						<tr>
-							<th class="sortable" data-sort="order_id"><?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="date"><?php esc_html_e( 'Date', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="customer"><?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="role"><?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="total"><?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="attributed"><?php esc_html_e( 'Attributed Order Total', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="commission"><?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?></th>
-							<th class="sortable" data-sort="earning"><?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?></th>
+							<th class="sortable" data-sort="order_id">
+								<?php esc_html_e( 'Order ID', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="date">
+								<?php esc_html_e( 'Date', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="customer">
+								<?php esc_html_e( 'Customer', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="role">
+								<?php esc_html_e( 'My Role', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="total">
+								<?php esc_html_e( 'Order Total', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="attributed">
+								<?php esc_html_e( 'Attributed Order Total', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="commission">
+								<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
+							<th class="sortable" data-sort="earning">
+								<?php esc_html_e( 'My Earning', 'wc-team-payroll' ); ?>
+								<i class="ph ph-caret-up-down sort-icon"></i>
+							</th>
 							<th><?php esc_html_e( 'Status', 'wc-team-payroll' ); ?></th>
 							<th><?php esc_html_e( 'Actions', 'wc-team-payroll' ); ?></th>
 						</tr>
@@ -4943,11 +5013,11 @@ class WC_Team_Payroll_MyAccount {
 				</table>
 			</div>
 
-			<div class="reports-pagination" data-table="orders-table">
-				<div class="reports-pagination-info">
+			<div class="reports-pagination pagination-container" data-table="orders-table">
+				<div class="reports-pagination-info pagination-info">
 					<?php esc_html_e( 'Showing', 'wc-team-payroll' ); ?> <span class="pagination-start">1</span> <?php esc_html_e( 'to', 'wc-team-payroll' ); ?> <span class="pagination-end">10</span> <?php esc_html_e( 'of', 'wc-team-payroll' ); ?> <span class="pagination-total"><?php echo esc_html( count( $filtered_orders ) ); ?></span> <?php esc_html_e( 'entries', 'wc-team-payroll' ); ?>
 				</div>
-				<div class="reports-pagination-controls">
+				<div class="reports-pagination-controls pagination-controls">
 					<!-- Pagination buttons will be generated by JavaScript -->
 				</div>
 			</div>

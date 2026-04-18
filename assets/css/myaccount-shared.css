@@ -8,9 +8,9 @@
 	padding: 20px 0 !important;
 }
 
-/* Global .ph icon styling */
+/* Global .ph icon styling - Dynamic color from settings (see includes/class-myaccount.php enqueue_assets) */
 .pv-page-wrapper .ph {
-	color: #0073aa !important;
+	color: #0073aa;
 }
 
 /* ============================================================================
