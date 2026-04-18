@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.7] - 2026-04-18
+### Performance Metrics - Total Earnings Now Includes Salary
+- **CHANGE**: Total Earnings in Performance Metrics now follows same calculation as KPI cards
+- **ENHANCEMENT**: Total Earnings = Commission from filtered orders + Salary from filtered period
+- **TECHNICAL**: Reads salary transactions and filters by date range (transfer types only)
+- **TECHNICAL**: Only includes salary for fixed and combined salary users
+- **RESULT**: Total Earnings now accurately reflects both commission and salary for the filtered period
+
 ## [1.1.6] - 2026-04-18
 ### KPI Cards - Fix Total Order Value to Respect Filters
 - **FIX**: KPI Performance Score card now respects date range, status, and role filters

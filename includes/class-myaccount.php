@@ -4210,15 +4210,13 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Calculate metrics
-		$total_earnings = 0;
-		$total_commission = 0;
+		$total_commission = 0; // Commission only (not including salary)
 		$total_order_value = 0;
 		$highest_order = 0;
 		$lowest_order = PHP_INT_MAX;
 
 		foreach ( $filtered_orders as $order_data ) {
-			$total_earnings += $order_data['earnings'];
-			$total_commission += $order_data['commission'];
+			$total_commission += $order_data['earnings'];
 			$total_order_value += $order_data['total'];
 			
 			if ( $order_data['total'] > $highest_order ) {
@@ -4228,6 +4226,34 @@ class WC_Team_Payroll_MyAccount {
 				$lowest_order = $order_data['total'];
 			}
 		}
+		
+		// Get salary for the filtered period (same as KPI cards)
+		// Read directly from transactions and filter by date range
+		$salary_for_period = 0;
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+			if ( is_array( $transactions ) ) {
+				foreach ( $transactions as $transaction ) {
+					if ( ! isset( $transaction['date'] ) ) {
+						continue;
+					}
+					
+					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+					if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+							$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+						}
+					}
+				}
+			}
+		}
+		
+		// Total earnings = commission from filtered orders + salary from filtered period
+		$total_earnings = $total_commission + $salary_for_period;
 		
 		// Calculate attributed order total using the same method as KPI modal
 		// This correctly handles cases where user is both agent and processor
