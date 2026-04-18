@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.1] - 2026-04-18
+### Highest/Lowest Order - Use Attributed Values with Filters
+- **CHANGE**: Highest Order now shows highest attributed order value (not regular total)
+- **CHANGE**: Lowest Order now shows lowest attributed order value (not regular total)
+- **ENHANCEMENT**: Both metrics respect filters (date range, status, role)
+- **TECHNICAL**: Reads agent_order_value and processor_order_value from commission data
+- **TECHNICAL**: Applies role filter to only check relevant orders
+- **RESULT**: Accurate highest/lowest values reflecting user's attributed contribution
+
 ## [1.2.0] - 2026-04-18
 ### Growth Rate - Fix to Include Salary in Previous Period
 - **FIX**: Growth Rate now compares total earnings (commission + salary) for both current and previous periods

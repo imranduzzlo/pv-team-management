@@ -4212,19 +4212,10 @@ class WC_Team_Payroll_MyAccount {
 		// Calculate metrics
 		$total_commission = 0; // Commission only (not including salary)
 		$total_order_value = 0;
-		$highest_order = 0;
-		$lowest_order = PHP_INT_MAX;
 
 		foreach ( $filtered_orders as $order_data ) {
 			$total_commission += $order_data['earnings'];
 			$total_order_value += $order_data['total'];
-			
-			if ( $order_data['total'] > $highest_order ) {
-				$highest_order = $order_data['total'];
-			}
-			if ( $order_data['total'] < $lowest_order ) {
-				$lowest_order = $order_data['total'];
-			}
 		}
 		
 		// Get salary for the filtered period (same as KPI cards)
@@ -4335,6 +4326,84 @@ class WC_Team_Payroll_MyAccount {
 				$commission_data = $order->get_meta( '_commission_data' );
 				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
 					$attributed_order_total += floatval( $commission_data['processor_order_value'] );
+				}
+			}
+		}
+		
+		// Calculate highest and lowest attributed order values (respecting filters)
+		$highest_order = 0;
+		$lowest_order = PHP_INT_MAX;
+		
+		// Apply role filter to highest/lowest calculation
+		if ( $role_filter === 'agent' ) {
+			// Only check agent orders
+			foreach ( $agent_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['agent_order_value'] );
+					if ( $attributed_value > $highest_order ) {
+						$highest_order = $attributed_value;
+					}
+					if ( $attributed_value < $lowest_order ) {
+						$lowest_order = $attributed_value;
+					}
+				}
+			}
+		} elseif ( $role_filter === 'processor' ) {
+			// Only check processor orders
+			foreach ( $processor_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['processor_order_value'] );
+					if ( $attributed_value > $highest_order ) {
+						$highest_order = $attributed_value;
+					}
+					if ( $attributed_value < $lowest_order ) {
+						$lowest_order = $attributed_value;
+					}
+				}
+			}
+		} else {
+			// Check both agent and processor orders
+			foreach ( $agent_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['agent_order_value'] );
+					if ( $attributed_value > $highest_order ) {
+						$highest_order = $attributed_value;
+					}
+					if ( $attributed_value < $lowest_order ) {
+						$lowest_order = $attributed_value;
+					}
+				}
+			}
+			
+			foreach ( $processor_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['processor_order_value'] );
+					if ( $attributed_value > $highest_order ) {
+						$highest_order = $attributed_value;
+					}
+					if ( $attributed_value < $lowest_order ) {
+						$lowest_order = $attributed_value;
+					}
 				}
 			}
 		}
