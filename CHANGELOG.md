@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2] - 2026-04-18
+### Make Commission Breakdown Donut Chart Responsive
+- **FIX**: Changed maintainAspectRatio from true to false for commission breakdown chart
+- **ENHANCEMENT**: Added specific height (350px) for donut chart container
+- **CSS**: Added max-height constraint for commission-breakdown-chart canvas
+- **RESULT**: Donut chart now properly fills its container and responds to container size changes
+
 ## [1.1.1] - 2026-04-18
 ### Convert Earnings Trend to Bar Chart & Fix Currency Display
 - **CHANGE**: Converted Earnings Trend from line chart to bar chart for better visual comparison

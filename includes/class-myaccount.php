@@ -4053,7 +4053,7 @@ class WC_Team_Payroll_MyAccount {
 										},
 										options: {
 											responsive: true,
-											maintainAspectRatio: true,
+											maintainAspectRatio: false,
 											plugins: {
 												legend: {
 													display: true,

@@ -265,6 +265,15 @@
 	position: relative;
 }
 
+/* Make donut chart container more compact */
+#commission-breakdown-chart {
+	max-height: 350px;
+}
+
+.reports-chart-container:has(#commission-breakdown-chart) .reports-chart-canvas {
+	height: 350px;
+}
+
 /* ============================================================================
    PERFORMANCE METRICS SECTION (FILTERED)
    ============================================================================ */
