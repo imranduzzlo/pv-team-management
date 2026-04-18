@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.94] - 2026-04-18
+### Debug Logging for Attributed Order Total
+- **DEBUG**: Added comprehensive debug logging to `ajax_get_attributed_order_total()` AJAX handler
+- **DEBUG**: Console logging shows agent/processor orders count, commission data, filters, date range, and statuses
+- **DEBUG**: Response includes debug info with order details and attributed values for troubleshooting
+- **TECHNICAL**: Debug output helps identify why Order Total (Attributed) might show $0.00
+- **TECHNICAL**: Logs show which orders are found and whether they have commission data with attributed values
+
 ## [1.0.93] - 2026-04-18
 ### Reports Page - Performance Score Modal Enhancements & Fixes
 - **FIX**: Fixed KPI modal breakdown values showing incorrect $ prefix for non-currency text (e.g., "$All" now shows as "All")

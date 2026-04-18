@@ -4898,23 +4898,28 @@ class WC_Team_Payroll_MyAccount {
 		$start_date = $date_range['start'];
 		$end_date = $date_range['end'];
 
-		// Get order status filter
-		$order_status = isset( $filters['orderStatus'] ) && $filters['orderStatus'] !== 'all' ? $filters['orderStatus'] : 'any';
+		// Get commission calculation statuses from settings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 
-		// Get user's role
-		$user = get_userdata( $user_id );
-		$user_roles = $user->roles;
+		// Get order status filter
+		$order_status_filter = isset( $filters['orderStatus'] ) && $filters['orderStatus'] !== 'all' ? $filters['orderStatus'] : '';
+
+		// Determine which statuses to query
+		if ( $order_status_filter && $order_status_filter !== 'all' ) {
+			// If specific status is selected, use only that status if it's in commission statuses
+			$statuses_to_query = in_array( $order_status_filter, $commission_statuses ) ? array( $order_status_filter ) : $commission_statuses;
+		} else {
+			// Use all commission calculation statuses
+			$statuses_to_query = $commission_statuses;
+		}
 
 		// Get orders for this user
 		$args = array(
 			'limit'        => -1,
 			'date_created' => $start_date . '...' . $end_date,
+			'status'       => $statuses_to_query,
 			'return'       => 'ids',
 		);
-
-		if ( $order_status !== 'any' ) {
-			$args['status'] = $order_status;
-		}
 
 		// Get orders where user is agent or processor
 		$agent_orders = wc_get_orders( array_merge( $args, array(
@@ -4929,10 +4934,22 @@ class WC_Team_Payroll_MyAccount {
 
 		// Calculate attributed order total
 		$attributed_total = 0;
+		$debug_info = array(
+			'agent_orders_count' => count( $agent_orders ),
+			'processor_orders_count' => count( $processor_orders ),
+			'agent_orders' => array(),
+			'processor_orders' => array(),
+		);
 
 		// Process agent orders
 		foreach ( $agent_orders as $order_id ) {
 			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			$debug_info['agent_orders'][] = array(
+				'order_id' => $order_id,
+				'has_commission_data' => is_array( $commission_data ),
+				'has_agent_order_value' => isset( $commission_data['agent_order_value'] ),
+				'agent_order_value' => isset( $commission_data['agent_order_value'] ) ? $commission_data['agent_order_value'] : 0,
+			);
 			if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
 				$attributed_total += floatval( $commission_data['agent_order_value'] );
 			}
@@ -4941,6 +4958,12 @@ class WC_Team_Payroll_MyAccount {
 		// Process processor orders
 		foreach ( $processor_orders as $order_id ) {
 			$commission_data = get_post_meta( $order_id, '_commission_data', true );
+			$debug_info['processor_orders'][] = array(
+				'order_id' => $order_id,
+				'has_commission_data' => is_array( $commission_data ),
+				'has_processor_order_value' => isset( $commission_data['processor_order_value'] ),
+				'processor_order_value' => isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0,
+			);
 			if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
 				$attributed_total += floatval( $commission_data['processor_order_value'] );
 			}
@@ -4948,6 +4971,10 @@ class WC_Team_Payroll_MyAccount {
 
 		wp_send_json_success( array(
 			'attributed_total' => wc_price( $attributed_total ),
+			'debug' => $debug_info,
+			'filters' => $filters,
+			'date_range' => $date_range,
+			'statuses_to_query' => $statuses_to_query,
 		) );
 	}
 

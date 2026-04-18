@@ -350,6 +350,7 @@ jQuery(document).ready(function($) {
 						filters: masterFilters
 					},
 					success: function(response) {
+						console.log('Attributed Order Total Response:', response);
 						let attributedTotal = '$0.00';
 						if (response.success && response.data.attributed_total) {
 							attributedTotal = response.data.attributed_total;
