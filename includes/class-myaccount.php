@@ -3783,7 +3783,7 @@ class WC_Team_Payroll_MyAccount {
 			}
 		}
 
-		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
+		$avg_order_value = $total_orders > 0 ? $attributed_order_total / $total_orders : 0;
 		$avg_commission = $total_orders > 0 ? $total_commission / $total_orders : 0;
 
 		// Get salary for the filtered period (same as My Earnings This Month)

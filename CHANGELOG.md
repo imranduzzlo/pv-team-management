@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.9] - 2026-04-18
+### KPI Cards - Performance Score Now Uses Attributed Total for Avg Order Value
+- **FIX**: KPI cards avg_order_value now uses attributed_order_total (same as Performance Metrics)
+- **CONSISTENCY**: Performance Score calculation now identical between KPI cards and Performance Metrics
+- **TECHNICAL**: Both sections now use attributed total for avg_order_value calculation
+- **RESULT**: Performance Score is now consistent across KPI cards and Performance Metrics sections
+
 ## [1.1.8] - 2026-04-18
 ### Performance Metrics - Avg Order Value Now Uses Attributed Total
 - **CHANGE**: Avg Order Value now uses attributed order total (filtered) instead of regular total
