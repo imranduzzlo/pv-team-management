@@ -4944,12 +4944,6 @@ class WC_Team_Payroll_MyAccount {
 
 		// Calculate attributed order total
 		$attributed_total = 0;
-		$debug_info = array(
-			'agent_orders_count' => count( $agent_orders ),
-			'processor_orders_count' => count( $processor_orders ),
-			'agent_orders' => array(),
-			'processor_orders' => array(),
-		);
 
 		// Process agent orders
 		foreach ( $agent_orders as $order_id ) {
@@ -4958,12 +4952,6 @@ class WC_Team_Payroll_MyAccount {
 				continue;
 			}
 			$commission_data = $order->get_meta( '_commission_data' );
-			$debug_info['agent_orders'][] = array(
-				'order_id' => $order_id,
-				'has_commission_data' => ! empty( $commission_data ) && is_array( $commission_data ),
-				'has_agent_order_value' => isset( $commission_data['agent_order_value'] ),
-				'agent_order_value' => isset( $commission_data['agent_order_value'] ) ? $commission_data['agent_order_value'] : 0,
-			);
 			if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
 				$attributed_total += floatval( $commission_data['agent_order_value'] );
 			}
@@ -4976,12 +4964,6 @@ class WC_Team_Payroll_MyAccount {
 				continue;
 			}
 			$commission_data = $order->get_meta( '_commission_data' );
-			$debug_info['processor_orders'][] = array(
-				'order_id' => $order_id,
-				'has_commission_data' => ! empty( $commission_data ) && is_array( $commission_data ),
-				'has_processor_order_value' => isset( $commission_data['processor_order_value'] ),
-				'processor_order_value' => isset( $commission_data['processor_order_value'] ) ? $commission_data['processor_order_value'] : 0,
-			);
 			if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
 				$attributed_total += floatval( $commission_data['processor_order_value'] );
 			}
@@ -4989,10 +4971,6 @@ class WC_Team_Payroll_MyAccount {
 
 		wp_send_json_success( array(
 			'attributed_total' => wc_price( $attributed_total ),
-			'debug' => $debug_info,
-			'filters' => $filters,
-			'date_range' => $date_range,
-			'statuses_to_query' => $statuses_to_query,
 		) );
 	}
 

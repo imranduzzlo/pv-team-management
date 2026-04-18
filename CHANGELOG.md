@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.98] - 2026-04-18
+### Remove Debug Code from Production
+- **CLEANUP**: Removed debug console.log statement from reports.js (Attributed Order Total Response)
+- **CLEANUP**: Removed debug data from ajax_get_attributed_order_total AJAX response
+- **REMOVED**: Debug info array with agent_orders, processor_orders, filters, date_range, statuses_to_query
+- **REMOVED**: Console logging of AJAX response in Performance Score modal
+- **RESULT**: Cleaner console output and smaller AJAX responses in production
+
 ## [1.0.97] - 2026-04-18
 ### Fix Browser Caching Issue for JavaScript Files
 - **FIX**: Fixed browser caching causing old JavaScript to load (showing 0 orders/commissions in regular browser while incognito works)
