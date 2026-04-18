@@ -3914,6 +3914,9 @@ class WC_Team_Payroll_MyAccount {
 		$styling_settings = get_option( 'wc_team_payroll_styling', array() );
 		$primary_color = isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa';
 		$secondary_color = isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745';
+		
+		// Get WooCommerce currency symbol
+		$currency_symbol = get_woocommerce_currency_symbol();
 
 		// Generate chart HTML and JavaScript
 		ob_start();
@@ -3969,6 +3972,20 @@ class WC_Team_Payroll_MyAccount {
 									pointBorderColor: '#fff',
 									pointBorderWidth: 2,
 									pointHoverRadius: 6
+								},
+								{
+									label: '<?php esc_html_e( 'Salary', 'wc-team-payroll' ); ?>',
+									data: <?php echo wp_json_encode( $chart_data['salary'] ); ?>,
+									borderColor: '#ffc107',
+									backgroundColor: 'rgba(255, 193, 7, 0.1)',
+									borderWidth: 2,
+									fill: true,
+									tension: 0.4,
+									pointRadius: 4,
+									pointBackgroundColor: '#ffc107',
+									pointBorderColor: '#fff',
+									pointBorderWidth: 2,
+									pointHoverRadius: 6
 								}
 							]
 						},
@@ -3999,7 +4016,7 @@ class WC_Team_Payroll_MyAccount {
 											if (label) {
 												label += ': ';
 											}
-											label += '$' + parseFloat(context.parsed.y).toFixed(2);
+											label += '<?php echo esc_js( $currency_symbol ); ?>' + parseFloat(context.parsed.y).toFixed(2);
 											return label;
 										}
 									}
@@ -4010,7 +4027,7 @@ class WC_Team_Payroll_MyAccount {
 									beginAtZero: true,
 									ticks: {
 										callback: function(value) {
-											return '$' + value.toFixed(0);
+											return '<?php echo esc_js( $currency_symbol ); ?>' + value.toFixed(0);
 										},
 										font: { size: 11 },
 										color: '#6c757d'
@@ -5568,10 +5585,13 @@ class WC_Team_Payroll_MyAccount {
 	 * Helper: Prepare chart data from orders
 	 */
 	private static function prepare_chart_data( $orders, $time_period, $start_date, $end_date ) {
+		$user_id = get_current_user_id();
+		
 		$chart_data = array(
 			'labels' => array(),
 			'earnings' => array(),
 			'commission' => array(),
+			'salary' => array(),
 			'breakdown_labels' => array(),
 			'breakdown_data' => array()
 		);
@@ -5587,6 +5607,7 @@ class WC_Team_Payroll_MyAccount {
 				$grouped_data[ $period_key ] = array(
 					'earnings' => 0,
 					'commission' => 0,
+					'salary' => 0,
 					'orders' => 0,
 					'date' => $order['date']
 				);
@@ -5597,6 +5618,57 @@ class WC_Team_Payroll_MyAccount {
 			$grouped_data[ $period_key ]['orders'] += 1;
 		}
 
+		// Calculate salary for each period
+		$salary_type = get_user_meta( $user_id, '_wc_tp_salary_type', true );
+		$salary_amount = floatval( get_user_meta( $user_id, '_wc_tp_salary_amount', true ) );
+		$salary_frequency = get_user_meta( $user_id, '_wc_tp_salary_frequency', true ) ?: 'monthly';
+		
+		// Check for fixed/combined salary flags
+		$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+		$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+		
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			// Calculate salary per period based on frequency
+			foreach ( $grouped_data as $period_key => &$data ) {
+				$period_salary = 0;
+				
+				switch ( $salary_frequency ) {
+					case 'daily':
+						$period_salary = $salary_amount; // Per day
+						break;
+					case 'weekly':
+						if ( $time_period === 'daily' ) {
+							$period_salary = $salary_amount / 7; // Divide weekly by 7 for daily view
+						} else {
+							$period_salary = $salary_amount;
+						}
+						break;
+					case 'monthly':
+						if ( $time_period === 'daily' ) {
+							$period_salary = $salary_amount / 30; // Approximate daily
+						} elseif ( $time_period === 'weekly' ) {
+							$period_salary = $salary_amount / 4; // Approximate weekly
+						} else {
+							$period_salary = $salary_amount;
+						}
+						break;
+					case 'yearly':
+						if ( $time_period === 'daily' ) {
+							$period_salary = $salary_amount / 365;
+						} elseif ( $time_period === 'weekly' ) {
+							$period_salary = $salary_amount / 52;
+						} elseif ( $time_period === 'monthly' ) {
+							$period_salary = $salary_amount / 12;
+						} else {
+							$period_salary = $salary_amount;
+						}
+						break;
+				}
+				
+				$data['salary'] = $period_salary;
+			}
+		}
+
 		// Sort by date
 		ksort( $grouped_data );
 
@@ -5605,6 +5677,7 @@ class WC_Team_Payroll_MyAccount {
 			$chart_data['labels'][] = self::format_period_label( $data['date'], $time_period );
 			$chart_data['earnings'][] = round( $data['earnings'], 2 );
 			$chart_data['commission'][] = round( $data['commission'], 2 );
+			$chart_data['salary'][] = round( $data['salary'], 2 );
 		}
 
 		// Prepare breakdown data (by role or status)

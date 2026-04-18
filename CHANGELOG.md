@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.0] - 2026-04-18
+### Earnings Trend Chart - Add Salary Line & WooCommerce Currency
+- **FEATURE**: Added Salary line to Earnings Trend chart (yellow line with #ffc107 color)
+- **FEATURE**: Chart now uses WooCommerce currency symbol instead of hardcoded $
+- **ENHANCEMENT**: Salary calculation considers user's salary frequency (daily, weekly, monthly, yearly)
+- **ENHANCEMENT**: Salary is calculated per time period view (daily/weekly/monthly chart views)
+- **TECHNICAL**: Added 'salary' array to chart_data in prepare_chart_data()
+- **TECHNICAL**: Salary calculated based on salary_frequency and time_period for accurate representation
+- **TECHNICAL**: Uses get_woocommerce_currency_symbol() for tooltip and Y-axis labels
+- **CALCULATION**: 
+  - Daily salary: shown as-is per day
+  - Weekly salary: divided by 7 for daily view, shown as-is for weekly/monthly
+  - Monthly salary: divided by 30 for daily, by 4 for weekly, as-is for monthly
+  - Yearly salary: divided by 365/52/12 based on view period
+- **RESULT**: Users can now see salary trend alongside earnings and commission with proper currency
+
 ## [1.0.99] - 2026-04-18
 ### Dynamic Auto-Refresh Interval from Settings
 - **FEATURE**: Reports page auto-refresh interval now uses value from Settings > Performance > Auto Config
