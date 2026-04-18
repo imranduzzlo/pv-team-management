@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.3.7] - 2026-04-19
+### Added
+- **Performance Tracker Visual Enhancements**: Overview cards now show green background and border when goals/achievements are achieved
+- **Congratulations Banner**: Displays celebration message when all goals, achievements, and baselines are achieved for the period
+- **Congratulations Email**: Automatically sends professional HTML email to employees when they achieve outstanding performance
+- Email branded as "Povaly Group" with "Vorosa Bajar" as sub-brand
+- Email includes detailed performance summary with goals, achievements, and baselines metrics
+- Beautiful gradient design with green success theme and call-to-action button
+- Prevents duplicate emails for same period using user meta tracking
+
+### Fixed
+- **Baselines Tab**: Fixed "undefined" showing for Method and Updated date in baselines header
+- Added fallback values: "Not Set" for method and "Not Calculated" for date when baselines haven't been calculated yet
+
+### Enhanced
+- Overview cards with achieved status now have subtle green gradient background and green border
+- Congratulations banner includes confetti icon and motivational message
+- Smooth slide-down animation for banner appearance
+- Responsive design for mobile devices
+- Email notification system integrated with daily cron job for automatic sending
+
 ## [1.3.6] - 2026-04-19
 ### Fixed
 - **Performance Tracker Currency**: Fixed hardcoded dollar sign ($) to use dynamic WooCommerce currency settings
