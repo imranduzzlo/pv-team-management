@@ -402,7 +402,301 @@ class WC_Team_Payroll_Performance_Tracker {
 		// Save history
 		update_user_meta( $user_id, '_wc_tp_goal_history', $goal_history );
 
+		// Check if all performance metrics are achieved and send congratulations email
+		$this->check_and_send_congratulations_email( $user_id );
+
 		return true;
+	}
+
+	/**
+	 * Check if all performance metrics are achieved and send congratulations email
+	 *
+	 * @param int $user_id User ID
+	 * @return bool Success
+	 */
+	private function check_and_send_congratulations_email( $user_id ) {
+		// Check if email was already sent for this period
+		$last_email_sent = get_user_meta( $user_id, '_wc_tp_last_congratulations_email', true );
+		$current_progress = get_user_meta( $user_id, '_wc_tp_current_goal_progress', true );
+		
+		if ( empty( $current_progress ) ) {
+			return false;
+		}
+
+		$current_period = isset( $current_progress['period'] ) ? $current_progress['period'] : '';
+		
+		// Don't send if already sent for this period
+		if ( $last_email_sent === $current_period ) {
+			return false;
+		}
+
+		// Check if all goals are achieved
+		$goals_achieved = false;
+		if ( isset( $current_progress['order_value']['status'] ) && 
+		     isset( $current_progress['orders']['status'] ) && 
+		     isset( $current_progress['aov']['status'] ) ) {
+			
+			$order_value_achieved = in_array( $current_progress['order_value']['status'], array( 'achieved', 'stretch_achieved' ) );
+			$orders_achieved = in_array( $current_progress['orders']['status'], array( 'achieved', 'stretch_achieved' ) );
+			$aov_achieved = in_array( $current_progress['aov']['status'], array( 'achieved', 'stretch_achieved' ) );
+			
+			$goals_achieved = $order_value_achieved && $orders_achieved && $aov_achieved;
+		}
+
+		// Check if achievements are unlocked
+		$achievement_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+		$achievements_unlocked = isset( $achievement_stats['total_unlocked'] ) && $achievement_stats['total_unlocked'] > 0;
+
+		// Check if baselines have sufficient data
+		$baselines = get_user_meta( $user_id, '_wc_tp_current_baselines', true );
+		$baselines_sufficient = ! empty( $baselines ) && isset( $baselines['order_value'] );
+
+		// All three must be achieved
+		if ( $goals_achieved && $achievements_unlocked && $baselines_sufficient ) {
+			// Send congratulations email
+			$this->send_congratulations_email( $user_id, $current_progress, $achievement_stats, $baselines );
+			
+			// Mark email as sent for this period
+			update_user_meta( $user_id, '_wc_tp_last_congratulations_email', $current_period );
+			
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Send congratulations email to employee
+	 *
+	 * @param int $user_id User ID
+	 * @param array $goal_progress Goal progress data
+	 * @param array $achievement_stats Achievement statistics
+	 * @param array $baselines Baseline data
+	 * @return bool Success
+	 */
+	private function send_congratulations_email( $user_id, $goal_progress, $achievement_stats, $baselines ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return false;
+		}
+
+		$to = $user->user_email;
+		$subject = '🎉 Outstanding Performance Achievement - Congratulations!';
+
+		// Get period information
+		$period_type = isset( $goal_progress['period_type'] ) ? $goal_progress['period_type'] : 'monthly';
+		$period_start = isset( $goal_progress['period_start'] ) ? date( 'F j, Y', strtotime( $goal_progress['period_start'] ) ) : '';
+		$period_end = isset( $goal_progress['period_end'] ) ? date( 'F j, Y', strtotime( $goal_progress['period_end'] ) ) : '';
+
+		// Get currency symbol
+		$currency_symbol = html_entity_decode( get_woocommerce_currency_symbol() );
+
+		// Build email content
+		$message = $this->get_congratulations_email_template( 
+			$user->display_name, 
+			$period_type, 
+			$period_start, 
+			$period_end,
+			$goal_progress,
+			$achievement_stats,
+			$baselines,
+			$currency_symbol
+		);
+
+		// Email headers
+		$headers = array(
+			'Content-Type: text/html; charset=UTF-8',
+			'From: Povaly Group <noreply@povalygroup.com>',
+		);
+
+		// Send email
+		$sent = wp_mail( $to, $subject, $message, $headers );
+
+		return $sent;
+	}
+
+	/**
+	 * Get congratulations email HTML template
+	 *
+	 * @param string $name Employee name
+	 * @param string $period_type Period type
+	 * @param string $period_start Period start date
+	 * @param string $period_end Period end date
+	 * @param array $goal_progress Goal progress data
+	 * @param array $achievement_stats Achievement statistics
+	 * @param array $baselines Baseline data
+	 * @param string $currency_symbol Currency symbol
+	 * @return string HTML email content
+	 */
+	private function get_congratulations_email_template( $name, $period_type, $period_start, $period_end, $goal_progress, $achievement_stats, $baselines, $currency_symbol ) {
+		ob_start();
+		?>
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Outstanding Performance Achievement</title>
+		</head>
+		<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8;">
+			<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f6f8; padding: 40px 20px;">
+				<tr>
+					<td align="center">
+						<!-- Main Container -->
+						<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); overflow: hidden;">
+							
+							<!-- Header with Povaly Group Branding -->
+							<tr>
+								<td style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 40px 30px; text-align: center;">
+									<h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+										🎉 Outstanding Performance!
+									</h1>
+									<p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.95;">
+										Congratulations on Your Achievement
+									</p>
+								</td>
+							</tr>
+
+							<!-- Greeting -->
+							<tr>
+								<td style="padding: 40px 30px 20px 30px;">
+									<p style="margin: 0; font-size: 18px; color: #212B36; line-height: 1.6;">
+										Dear <strong><?php echo esc_html( $name ); ?></strong>,
+									</p>
+								</td>
+							</tr>
+
+							<!-- Main Message -->
+							<tr>
+								<td style="padding: 0 30px 30px 30px;">
+									<p style="margin: 0 0 20px 0; font-size: 16px; color: #637381; line-height: 1.8;">
+										We are thrilled to inform you that you have achieved <strong style="color: #28a745;">exceptional performance</strong> for the period from <strong><?php echo esc_html( $period_start ); ?></strong> to <strong><?php echo esc_html( $period_end ); ?></strong>!
+									</p>
+									<p style="margin: 0; font-size: 16px; color: #637381; line-height: 1.8;">
+										You have successfully completed <strong>all your goals</strong>, unlocked <strong>achievements</strong>, and maintained <strong>excellent performance baselines</strong>. This is a testament to your dedication, hard work, and commitment to excellence.
+									</p>
+								</td>
+							</tr>
+
+							<!-- Performance Summary -->
+							<tr>
+								<td style="padding: 0 30px 30px 30px;">
+									<table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%); border: 2px solid #28a745; border-radius: 8px; padding: 20px;">
+										<tr>
+											<td>
+												<h2 style="margin: 0 0 20px 0; font-size: 20px; color: #28a745; font-weight: 700;">
+													📊 Your Performance Summary
+												</h2>
+
+												<!-- Goals Achieved -->
+												<div style="margin-bottom: 20px;">
+													<h3 style="margin: 0 0 10px 0; font-size: 16px; color: #212B36; font-weight: 600;">
+														🎯 Goals Achieved (100%)
+													</h3>
+													<table width="100%" cellpadding="8" cellspacing="0" style="font-size: 14px; color: #637381;">
+														<tr>
+															<td style="padding: 8px 0;">Order Value:</td>
+															<td align="right" style="padding: 8px 0; font-weight: 600; color: #28a745;">
+																<?php echo esc_html( $currency_symbol . number_format( $goal_progress['order_value']['current'], 2 ) ); ?> / <?php echo esc_html( $currency_symbol . number_format( $goal_progress['order_value']['target'], 2 ) ); ?>
+															</td>
+														</tr>
+														<tr>
+															<td style="padding: 8px 0;">Orders Count:</td>
+															<td align="right" style="padding: 8px 0; font-weight: 600; color: #28a745;">
+																<?php echo esc_html( number_format( $goal_progress['orders']['current'], 0 ) ); ?> / <?php echo esc_html( number_format( $goal_progress['orders']['target'], 0 ) ); ?>
+															</td>
+														</tr>
+														<tr>
+															<td style="padding: 8px 0;">Avg Order Value:</td>
+															<td align="right" style="padding: 8px 0; font-weight: 600; color: #28a745;">
+																<?php echo esc_html( $currency_symbol . number_format( $goal_progress['aov']['current'], 2 ) ); ?> / <?php echo esc_html( $currency_symbol . number_format( $goal_progress['aov']['target'], 2 ) ); ?>
+															</td>
+														</tr>
+													</table>
+												</div>
+
+												<!-- Achievements -->
+												<div style="margin-bottom: 20px;">
+													<h3 style="margin: 0 0 10px 0; font-size: 16px; color: #212B36; font-weight: 600;">
+														🏆 Achievements Unlocked
+													</h3>
+													<p style="margin: 0; font-size: 14px; color: #637381;">
+														<strong style="color: #28a745;"><?php echo esc_html( $achievement_stats['total_unlocked'] ); ?></strong> Total Achievements
+														<span style="margin-left: 10px;">
+															🥉 <?php echo esc_html( $achievement_stats['bronze_count'] ); ?>
+															🥈 <?php echo esc_html( $achievement_stats['silver_count'] ); ?>
+															🥇 <?php echo esc_html( $achievement_stats['gold_count'] ); ?>
+														</span>
+													</p>
+												</div>
+
+												<!-- Baselines -->
+												<div>
+													<h3 style="margin: 0 0 10px 0; font-size: 16px; color: #212B36; font-weight: 600;">
+														📈 Performance Baselines
+													</h3>
+													<p style="margin: 0; font-size: 14px; color: #637381;">
+														Your performance is 
+														<strong style="color: #28a745; text-transform: capitalize;">
+															<?php echo esc_html( $baselines['order_value']['trend'] ); ?>
+														</strong>
+														compared to your baseline metrics.
+													</p>
+												</div>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+
+							<!-- Closing Message -->
+							<tr>
+								<td style="padding: 0 30px 30px 30px;">
+									<p style="margin: 0 0 20px 0; font-size: 16px; color: #637381; line-height: 1.8;">
+										Your outstanding performance reflects the values and excellence that <strong>Povaly Group</strong> stands for. As part of the <strong>Vorosa Bajar</strong> family, you continue to set the standard for success.
+									</p>
+									<p style="margin: 0; font-size: 16px; color: #637381; line-height: 1.8;">
+										Keep up the excellent work, and we look forward to celebrating more of your achievements in the future!
+									</p>
+								</td>
+							</tr>
+
+							<!-- Call to Action -->
+							<tr>
+								<td style="padding: 0 30px 40px 30px;" align="center">
+									<a href="<?php echo esc_url( home_url( '/my-account/reports/' ) ); ?>" style="display: inline-block; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);">
+										View Your Performance Dashboard
+									</a>
+								</td>
+							</tr>
+
+							<!-- Footer -->
+							<tr>
+								<td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5eaf0;">
+									<p style="margin: 0 0 10px 0; font-size: 16px; color: #212B36; font-weight: 600;">
+										Best Regards,
+									</p>
+									<p style="margin: 0 0 5px 0; font-size: 18px; color: #28a745; font-weight: 700;">
+										Povaly Group
+									</p>
+									<p style="margin: 0 0 20px 0; font-size: 14px; color: #637381;">
+										<em>Vorosa Bajar - A Povaly Group Product</em>
+									</p>
+									<p style="margin: 0; font-size: 12px; color: #919EAB; line-height: 1.6;">
+										This is an automated message from your performance tracking system.<br>
+										Please do not reply to this email.
+									</p>
+								</td>
+							</tr>
+
+						</table>
+					</td>
+				</tr>
+			</table>
+		</body>
+		</html>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
