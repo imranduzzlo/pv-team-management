@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1] - 2026-04-18
+### Convert Earnings Trend to Bar Chart & Fix Currency Display
+- **CHANGE**: Converted Earnings Trend from line chart to bar chart for better visual comparison
+- **FIX**: Fixed currency symbol showing HTML entities (&#2547;&nbsp;) by using html_entity_decode()
+- **ENHANCEMENT**: Simplified bar chart styling - removed line-specific properties (tension, pointRadius, etc.)
+- **RESULT**: Clean bar chart with proper currency symbols (৳, $, €, etc.) displaying correctly
+
 ## [1.1.0] - 2026-04-18
 ### Earnings Trend Chart - Add Salary Line & WooCommerce Currency
 - **FEATURE**: Added Salary line to Earnings Trend chart (yellow line with #ffc107 color)

@@ -3915,8 +3915,8 @@ class WC_Team_Payroll_MyAccount {
 		$primary_color = isset( $styling_settings['primary_color'] ) ? $styling_settings['primary_color'] : '#0073aa';
 		$secondary_color = isset( $styling_settings['secondary_color'] ) ? $styling_settings['secondary_color'] : '#28a745';
 		
-		// Get WooCommerce currency symbol
-		$currency_symbol = get_woocommerce_currency_symbol();
+		// Get WooCommerce currency symbol and decode HTML entities for JavaScript
+		$currency_symbol = html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' );
 
 		// Generate chart HTML and JavaScript
 		ob_start();
@@ -3941,51 +3941,30 @@ class WC_Team_Payroll_MyAccount {
 				var earningsTrendCtx = document.getElementById('earnings-trend-chart');
 				if (earningsTrendCtx) {
 					new Chart(earningsTrendCtx, {
-						type: 'line',
+						type: 'bar',
 						data: {
 							labels: <?php echo wp_json_encode( $chart_data['labels'] ); ?>,
 							datasets: [
 								{
 									label: '<?php esc_html_e( 'Earnings', 'wc-team-payroll' ); ?>',
 									data: <?php echo wp_json_encode( $chart_data['earnings'] ); ?>,
+									backgroundColor: '<?php echo esc_attr( $primary_color ); ?>',
 									borderColor: '<?php echo esc_attr( $primary_color ); ?>',
-									backgroundColor: 'rgba(0, 115, 170, 0.1)',
-									borderWidth: 2,
-									fill: true,
-									tension: 0.4,
-									pointRadius: 4,
-									pointBackgroundColor: '<?php echo esc_attr( $primary_color ); ?>',
-									pointBorderColor: '#fff',
-									pointBorderWidth: 2,
-									pointHoverRadius: 6
+									borderWidth: 1
 								},
 								{
 									label: '<?php esc_html_e( 'Commission', 'wc-team-payroll' ); ?>',
 									data: <?php echo wp_json_encode( $chart_data['commission'] ); ?>,
+									backgroundColor: '<?php echo esc_attr( $secondary_color ); ?>',
 									borderColor: '<?php echo esc_attr( $secondary_color ); ?>',
-									backgroundColor: 'rgba(40, 167, 69, 0.1)',
-									borderWidth: 2,
-									fill: true,
-									tension: 0.4,
-									pointRadius: 4,
-									pointBackgroundColor: '<?php echo esc_attr( $secondary_color ); ?>',
-									pointBorderColor: '#fff',
-									pointBorderWidth: 2,
-									pointHoverRadius: 6
+									borderWidth: 1
 								},
 								{
 									label: '<?php esc_html_e( 'Salary', 'wc-team-payroll' ); ?>',
 									data: <?php echo wp_json_encode( $chart_data['salary'] ); ?>,
+									backgroundColor: '#ffc107',
 									borderColor: '#ffc107',
-									backgroundColor: 'rgba(255, 193, 7, 0.1)',
-									borderWidth: 2,
-									fill: true,
-									tension: 0.4,
-									pointRadius: 4,
-									pointBackgroundColor: '#ffc107',
-									pointBorderColor: '#fff',
-									pointBorderWidth: 2,
-									pointHoverRadius: 6
+									borderWidth: 1
 								}
 							]
 						},
