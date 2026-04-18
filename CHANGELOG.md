@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0] - 2026-04-18
+### Growth Rate - Fix to Include Salary in Previous Period
+- **FIX**: Growth Rate now compares total earnings (commission + salary) for both current and previous periods
+- **ISSUE**: Previously compared current total earnings vs previous commission only (inconsistent)
+- **ENHANCEMENT**: Previous period salary now calculated from salary transactions (same as current period)
+- **TECHNICAL**: Reads salary transactions filtered by previous period date range
+- **RESULT**: Accurate growth rate showing true earnings growth including both commission and salary changes
+
 ## [1.1.9] - 2026-04-18
 ### KPI Cards - Performance Score Now Uses Attributed Total for Avg Order Value
 - **FIX**: KPI cards avg_order_value now uses attributed_order_total (same as Performance Metrics)

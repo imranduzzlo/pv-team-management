@@ -4407,13 +4407,37 @@ class WC_Team_Payroll_MyAccount {
 			});
 		}
 		
-		// Calculate previous period total earnings
-		$prev_total_earnings = 0;
+		// Calculate previous period total commission
+		$prev_total_commission = 0;
 		foreach ( $prev_filtered_orders as $order_data ) {
-			$prev_total_earnings += $order_data['earnings'];
+			$prev_total_commission += $order_data['earnings'];
 		}
+		
+		// Get salary for the previous period (same as current period calculation)
+		$prev_salary_for_period = 0;
+		if ( $is_fixed_salary || $is_combined_salary ) {
+			$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+			if ( is_array( $transactions ) ) {
+				foreach ( $transactions as $transaction ) {
+					if ( ! isset( $transaction['date'] ) ) {
+						continue;
+					}
+					
+					$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+					if ( $trans_date >= $prev_date_range['start'] && $trans_date <= $prev_date_range['end'] ) {
+						// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+						if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+							$prev_salary_for_period += floatval( $transaction['amount'] ?? 0 );
+						}
+					}
+				}
+			}
+		}
+		
+		// Previous period total earnings = commission + salary
+		$prev_total_earnings = $prev_total_commission + $prev_salary_for_period;
 
-		// Calculate growth rate
+		// Calculate growth rate (comparing total earnings: commission + salary)
 		$growth_rate = 0;
 		if ( $prev_total_earnings > 0 ) {
 			$growth_rate = ( ( $total_earnings - $prev_total_earnings ) / $prev_total_earnings ) * 100;
