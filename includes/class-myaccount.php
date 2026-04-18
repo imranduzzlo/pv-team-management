@@ -4389,8 +4389,8 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		$avg_per_order = $total_orders > 0 ? $total_earnings / $total_orders : 0;
-		$avg_order_value = $total_orders > 0 ? $total_order_value / $total_orders : 0;
-		$commission_rate = $total_order_value > 0 ? ( $total_commission / $total_order_value ) * 100 : 0;
+		$avg_order_value = $total_orders > 0 ? $attributed_order_total / $total_orders : 0;
+		$commission_rate = $attributed_order_total > 0 ? ( $total_commission / $attributed_order_total ) * 100 : 0;
 
 		// Calculate performance score using attributed order total
 		$performance_score = self::calculate_performance_score( $total_orders, $attributed_order_total, $avg_order_value, $user_id );

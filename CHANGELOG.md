@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.8] - 2026-04-18
+### Performance Metrics - Avg Order Value Now Uses Attributed Total
+- **CHANGE**: Avg Order Value now uses attributed order total (filtered) instead of regular total
+- **CHANGE**: Commission Rate now calculated based on attributed order total
+- **ENHANCEMENT**: Respects filters (date range, status, role) for accurate average calculation
+- **TECHNICAL**: Uses same attributed_order_total calculation as Total Order Value metric
+- **RESULT**: More accurate average order value reflecting user's actual contribution
+
 ## [1.1.7] - 2026-04-18
 ### Performance Metrics - Total Earnings Now Includes Salary
 - **CHANGE**: Total Earnings in Performance Metrics now follows same calculation as KPI cards
