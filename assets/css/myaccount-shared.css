@@ -617,6 +617,9 @@
 }
 
 /* Filter Buttons */
+button:focus{
+	outline:none;
+}
 .pv-table-controls .filter-button,
 .pv-table-controls .btn-clear-filters {
 	display: inline-flex;

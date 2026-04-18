@@ -2233,6 +2233,9 @@ class WC_Team_Payroll_MyAccount {
 				/* Phosphor icons in content */
 				.pv-page-wrapper .ph {
 					color: {$primary_color};
+				}				
+				.pv-page-wrapper button .ph {
+					color: {$button_text_color} !important;
 				}
 				
 				/* Grid layouts */

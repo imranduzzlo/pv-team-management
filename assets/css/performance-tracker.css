@@ -167,6 +167,55 @@
 	border-radius: 4px;
 }
 
+/* Congratulations Banner */
+.congratulations-banner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+	border: 2px solid #28a745;
+	border-radius: 12px;
+	padding: 20px 24px;
+	margin-bottom: 24px;
+	box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+	animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.congratulations-banner > i {
+	font-size: 48px;
+	color: #28a745;
+	flex-shrink: 0;
+}
+
+.congratulations-content {
+	flex: 1;
+}
+
+.congratulations-content h4 {
+	margin: 0 0 8px 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #28a745;
+}
+
+.congratulations-content p {
+	margin: 0;
+	font-size: 14px;
+	color: #2d5a3d;
+	line-height: 1.5;
+}
+
 .overview-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -179,6 +228,13 @@
 	border: 1px solid #E5EAF0;
 	border-radius: 8px;
 	padding: 20px;
+	transition: all 0.3s ease;
+}
+
+.overview-card.achieved {
+	background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+	border-color: #28a745;
+	box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
 }
 
 .overview-card h4 {
@@ -191,6 +247,15 @@
 .overview-card-content {
 	font-size: 14px;
 	color: #637381;
+}
+
+.overview-card.achieved .summary-stat strong {
+	color: #28a745;
+}
+
+.overview-card.achieved .summary-progress {
+	color: #28a745;
+	font-weight: 600;
 }
 
 /* Quick Stats */
@@ -324,10 +389,12 @@
 	border-radius: 4px;
 	font-size: 12px;
 	font-weight: 600;
+	margin-bottom: 12px;
 }
 
 .achievement-badge i {
 	font-size: 14px;
+	color:#fff !important;
 }
 
 /* Progress Bar */
@@ -365,6 +432,7 @@
 .goal-stats {
 	display: flex;
 	flex-direction: column;
+	align-items: start;
 	gap: 8px;
 	margin-bottom: 12px;
 }
@@ -582,12 +650,6 @@
 .achievement-card.tier-gold.unlocked {
 	border-color: #FFD700;
 	background: linear-gradient(135deg, #ffffff 0%, #FFF9C4 100%);
-}
-
-.achievement-badge {
-	font-size: 48px;
-	margin-bottom: 12px;
-	display: block;
 }
 
 .locked-badge {
@@ -811,6 +873,24 @@
 	.performance-tab {
 		white-space: nowrap;
 		padding: 12px 16px;
+	}
+
+	.congratulations-banner {
+		flex-direction: column;
+		text-align: center;
+		padding: 16px;
+	}
+
+	.congratulations-banner > i {
+		font-size: 40px;
+	}
+
+	.congratulations-content h4 {
+		font-size: 16px;
+	}
+
+	.congratulations-content p {
+		font-size: 13px;
 	}
 
 	.overview-grid,

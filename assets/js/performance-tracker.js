@@ -228,12 +228,29 @@
 		 * Render overview section
 		 */
 		renderOverview(data) {
+			// Check if all sections are achieved
+			const goalsAchieved = data.goals_summary?.html && (data.goals_summary.html.includes('100%') || data.goals_summary.html.includes('Goals Achieved'));
+			const achievementsUnlocked = data.achievements_summary?.html && data.achievements_summary.html.match(/<strong>(\d+)<\/strong>\s*Total Unlocked/) && parseInt(data.achievements_summary.html.match(/<strong>(\d+)<\/strong>/)[1]) > 0;
+			const baselinesAchieved = data.baselines_summary?.html && !data.baselines_summary.html.includes('Insufficient data') && !data.baselines_summary.html.includes('No data');
+			
+			const allAchieved = goalsAchieved && achievementsUnlocked && baselinesAchieved;
+
 			const html = `
 				<div class="performance-overview">
 					<div class="overview-header">
 						<h3><i class="ph ph-chart-line"></i> Performance Overview</h3>
 						<span class="period-label">${this.getPeriodLabel()}</span>
 					</div>
+
+					${allAchieved ? `
+						<div class="congratulations-banner">
+							<i class="ph ph-confetti"></i>
+							<div class="congratulations-content">
+								<h4>🎉 Outstanding Performance!</h4>
+								<p>Congratulations! You've achieved all your goals and unlocked achievements for this period. Keep up the excellent work!</p>
+							</div>
+						</div>
+					` : ''}
 
 					<div class="overview-grid">
 						${this.renderOverviewCard('Goals', data.goals_summary)}
@@ -257,8 +274,24 @@
 		renderOverviewCard(title, data) {
 			if (!data) return '';
 
+			// Determine if card should be marked as achieved
+			let achievedClass = '';
+			
+			if (title === 'Goals' && data.html) {
+				// Check if goals are achieved (look for "100%" or "Goals Achieved" in the HTML)
+				if (data.html.includes('100%') || data.html.includes('Goals Achieved')) {
+					achievedClass = 'achieved';
+				}
+			} else if (title === 'Achievements' && data.html) {
+				// Check if achievements are unlocked (look for "Total Unlocked" with a number > 0)
+				const match = data.html.match(/<strong>(\d+)<\/strong>\s*Total Unlocked/);
+				if (match && parseInt(match[1]) > 0) {
+					achievedClass = 'achieved';
+				}
+			}
+
 			return `
-				<div class="overview-card">
+				<div class="overview-card ${achievedClass}">
 					<h4>${title}</h4>
 					<div class="overview-card-content">
 						${data.html || '<p>No data available</p>'}
