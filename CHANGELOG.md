@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.97] - 2026-04-18
+### Fix Browser Caching Issue for JavaScript Files
+- **FIX**: Fixed browser caching causing old JavaScript to load (showing 0 orders/commissions in regular browser while incognito works)
+- **ROOT CAUSE**: reports.js was enqueued with static version number, causing browsers to cache old file even after updates
+- **SOLUTION**: Added `time()` to JavaScript version string for automatic cache busting (same as CSS files)
+- **TECHNICAL**: Changed from `WC_TEAM_PAYROLL_VERSION` to `WC_TEAM_PAYROLL_VERSION . '-' . time()`
+- **RESULT**: Browsers now always load the latest JavaScript file after plugin updates, no manual cache clearing needed
+
 ## [1.0.96] - 2026-04-18
 ### Fix Date Range Filtering for "Today" and All Date Queries
 - **FIX**: Fixed "Today" date filter showing only 1 order when 2 orders were created today

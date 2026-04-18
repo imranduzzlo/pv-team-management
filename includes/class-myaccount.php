@@ -2651,7 +2651,7 @@ class WC_Team_Payroll_MyAccount {
 				'wc-team-payroll-reports',
 				WC_TEAM_PAYROLL_URL . 'assets/js/reports.js',
 				array( 'jquery' ),
-				WC_TEAM_PAYROLL_VERSION,
+				WC_TEAM_PAYROLL_VERSION . '-' . time(),
 				true
 			);
 
