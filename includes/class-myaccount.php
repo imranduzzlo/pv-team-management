@@ -2732,6 +2732,8 @@ class WC_Team_Payroll_MyAccount {
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),
 					'auto_refresh_interval' => $refresh_interval, // in seconds
+					'currency_symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
+					'currency_pos' => get_option( 'woocommerce_currency_pos', 'left' ),
 				)
 			);
 		}
