@@ -4141,7 +4141,6 @@ class WC_Team_Payroll_MyAccount {
 		// Calculate metrics
 		$total_earnings = 0;
 		$total_commission = 0;
-		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
 		$attributed_order_total = 0;
 		$highest_order = 0;
@@ -4163,6 +4162,55 @@ class WC_Team_Payroll_MyAccount {
 			if ( $order_data['total'] < $lowest_order ) {
 				$lowest_order = $order_data['total'];
 			}
+		}
+		
+		// Count ALL orders (excluding draft and failed) for Total Orders metric
+		$all_statuses = array_keys( wc_get_order_statuses() );
+		// Remove draft and failed statuses
+		$all_statuses = array_diff( $all_statuses, array( 'wc-draft', 'wc-failed', 'wc-cancelled', 'wc-trash' ) );
+		
+		// Apply status filter if specified
+		if ( $status_filter !== 'all' ) {
+			$all_statuses = array( 'wc-' . $status_filter );
+		}
+		
+		// Query for total orders count
+		$total_orders_args = array(
+			'limit'        => -1,
+			'date_created' => $start_date . ' 00:00:00...' . $end_date . ' 23:59:59',
+			'status'       => $all_statuses,
+			'return'       => 'ids',
+		);
+		
+		// Get orders where user is agent
+		$agent_orders_count = count( wc_get_orders( array_merge( $total_orders_args, array(
+			'meta_key'   => '_primary_agent_id',
+			'meta_value' => $user_id,
+		) ) ) );
+		
+		// Get orders where user is processor
+		$processor_orders_count = count( wc_get_orders( array_merge( $total_orders_args, array(
+			'meta_key'   => '_processor_user_id',
+			'meta_value' => $user_id,
+		) ) ) );
+		
+		// Apply role filter to count
+		if ( $role_filter === 'agent' ) {
+			$total_orders = $agent_orders_count;
+		} elseif ( $role_filter === 'processor' ) {
+			$total_orders = $processor_orders_count;
+		} else {
+			// Remove duplicates (orders where user is both agent and processor)
+			$agent_order_ids = wc_get_orders( array_merge( $total_orders_args, array(
+				'meta_key'   => '_primary_agent_id',
+				'meta_value' => $user_id,
+			) ) );
+			$processor_order_ids = wc_get_orders( array_merge( $total_orders_args, array(
+				'meta_key'   => '_processor_user_id',
+				'meta_value' => $user_id,
+			) ) );
+			$unique_orders = array_unique( array_merge( $agent_order_ids, $processor_order_ids ) );
+			$total_orders = count( $unique_orders );
 		}
 
 		$avg_per_order = $total_orders > 0 ? $total_earnings / $total_orders : 0;
@@ -4209,20 +4257,20 @@ class WC_Team_Payroll_MyAccount {
 		</div>
 
 		<div class="reports-metric-box">
-			<p class="reports-metric-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
-			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
+			<p class="reports-metric-label"><?php esc_html_e( 'Total Order Value', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $attributed_order_total ) ); ?></p>
 			<p class="reports-metric-detail">
 				<i class="ph ph-wallet"></i>
-				<?php esc_html_e( 'total earned', 'wc-team-payroll' ); ?>
+				<?php esc_html_e( 'attributed value', 'wc-team-payroll' ); ?>
 			</p>
 		</div>
 
 		<div class="reports-metric-box">
-			<p class="reports-metric-label"><?php esc_html_e( 'Avg per Order', 'wc-team-payroll' ); ?></p>
-			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $avg_per_order ) ); ?></p>
+			<p class="reports-metric-label"><?php esc_html_e( 'Total Earnings', 'wc-team-payroll' ); ?></p>
+			<p class="reports-metric-value"><?php echo wp_kses_post( wc_price( $total_earnings ) ); ?></p>
 			<p class="reports-metric-detail">
 				<i class="ph ph-chart-bar"></i>
-				<?php esc_html_e( 'average earnings', 'wc-team-payroll' ); ?>
+				<?php esc_html_e( 'total earned', 'wc-team-payroll' ); ?>
 			</p>
 		</div>
 

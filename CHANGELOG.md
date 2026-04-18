@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.4] - 2026-04-18
+### Performance Metrics - Show Total Order Value and Total Earnings
+- **CHANGE**: Second metric "Total Earnings" renamed to "Total Order Value"
+- **CHANGE**: Now displays attributed order total (split-compatible) instead of earnings
+- **CHANGE**: Third metric "Avg per Order" changed back to "Total Earnings"
+- **ENHANCEMENT**: Shows the actual order value attributed to the user based on agent/processor split
+- **ENHANCEMENT**: Total Earnings now shows actual earnings (salary + commission)
+- **TECHNICAL**: Total Order Value uses $attributed_order_total which respects commission split percentages
+- **TECHNICAL**: Total Earnings uses $total_earnings (salary + commission)
+- **RESULT**: More accurate representation with both order value contribution and actual earnings
+
+## [1.1.3] - 2026-04-18
+### Performance Metrics - Count All Order Statuses
+- **FEATURE**: Total Orders metric now counts ALL WooCommerce order statuses (excluding draft, failed, cancelled, trash)
+- **ENHANCEMENT**: Previously only counted orders from commission calculation statuses
+- **LOGIC**: Queries orders where user is agent OR processor, applies date range and status filters
+- **TECHNICAL**: Added separate query using wc_get_order_statuses() to get all valid statuses
+- **TECHNICAL**: Removes duplicates when role filter is "all" (orders where user is both agent and processor)
+- **RESULT**: More accurate Total Orders count reflecting actual order volume
+
 ## [1.1.2] - 2026-04-18
 ### Make Commission Breakdown Donut Chart Responsive
 - **FIX**: Changed maintainAspectRatio from true to false for commission breakdown chart
