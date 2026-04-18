@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.6] - 2026-04-18
+### KPI Cards - Fix Total Order Value to Respect Filters
+- **FIX**: KPI Performance Score card now respects date range, status, and role filters
+- **FIX**: Total Order Value (attributed) in KPI cards now uses same calculation as Performance Metrics
+- **ENHANCEMENT**: Correctly handles cases where user is both agent and processor
+- **TECHNICAL**: Queries orders separately for agent and processor roles with filters applied
+- **RESULT**: KPI cards now show filtered data instead of always showing totals
+
 ## [1.1.5] - 2026-04-18
 ### Performance Metrics - Fix Total Order Value Calculation
 - **FIX**: Total Order Value now uses the same calculation method as KPI Performance Score modal

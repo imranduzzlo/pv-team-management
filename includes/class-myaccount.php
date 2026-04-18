@@ -3700,15 +3700,86 @@ class WC_Team_Payroll_MyAccount {
 		$total_commission = 0; // Commission from filtered orders
 		$total_orders = count( $filtered_orders );
 		$total_order_value = 0;
-		$attributed_order_total = 0; // Sum of attributed order values based on user's role
 
 		foreach ( $filtered_orders as $order_data ) {
 			$total_commission += $order_data['earnings']; // This is the user's commission earnings
 			$total_order_value += $order_data['total'];
+		}
+
+		// Calculate attributed order total using the same method as Performance Metrics
+		// This correctly handles cases where user is both agent and processor
+		$attributed_order_total = 0;
+		
+		// Determine which statuses to query for attributed total
+		$statuses_for_attributed = $order_statuses;
+		
+		// Query args for attributed total
+		$attributed_args = array(
+			'limit'        => -1,
+			'date_created' => $start_date . ' 00:00:00...' . $end_date . ' 23:59:59',
+			'status'       => $statuses_for_attributed,
+			'return'       => 'ids',
+		);
+		
+		// Get orders where user is agent
+		$agent_order_ids = wc_get_orders( array_merge( $attributed_args, array(
+			'meta_key'   => '_primary_agent_id',
+			'meta_value' => $user_id,
+		) ) );
+		
+		// Get orders where user is processor
+		$processor_order_ids = wc_get_orders( array_merge( $attributed_args, array(
+			'meta_key'   => '_processor_user_id',
+			'meta_value' => $user_id,
+		) ) );
+		
+		// Apply role filter to attributed calculation
+		if ( $role_filter === 'agent' ) {
+			// Only count agent orders
+			foreach ( $agent_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_order_total += floatval( $commission_data['agent_order_value'] );
+				}
+			}
+		} elseif ( $role_filter === 'processor' ) {
+			// Only count processor orders
+			foreach ( $processor_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_order_total += floatval( $commission_data['processor_order_value'] );
+				}
+			}
+		} else {
+			// Count both agent and processor orders
+			foreach ( $agent_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_order_total += floatval( $commission_data['agent_order_value'] );
+				}
+			}
 			
-			// Add attributed order value based on user's role in this order
-			if ( isset( $order_data['attributed_value'] ) ) {
-				$attributed_order_total += $order_data['attributed_value'];
+			foreach ( $processor_order_ids as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+				$commission_data = $order->get_meta( '_commission_data' );
+				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_order_total += floatval( $commission_data['processor_order_value'] );
+				}
 			}
 		}
 
