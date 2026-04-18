@@ -991,6 +991,10 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success) {
+					// Reset stored rows when new data loads
+					tableState['commission-table'].allRows = null;
+					tableState['orders-table'].allRows = null;
+					
 					if (filtersChanged) {
 						// Fade out old content, then fade in new content
 						$('#reports-tables-container').fadeOut(200, function() {
@@ -1101,13 +1105,43 @@ jQuery(document).ready(function($) {
 	function filterAndDisplayTable(tableId) {
 		const $table = $('#' + tableId);
 		const $tbody = $table.find('tbody');
-		let rows = $tbody.find('tr').not(':has(.reports-no-data)').toArray();
+		
+		// Store all rows with their data if not already stored
+		if (!tableState[tableId].allRows) {
+			tableState[tableId].allRows = [];
+			$tbody.find('tr').not(':has(.reports-no-data)').each(function() {
+				const $row = $(this);
+				const rowData = {};
+				
+				// Extract data-sort-value from each cell
+				$row.find('td').each(function(index) {
+					const $cell = $(this);
+					const $header = $table.find('th').eq(index);
+					const sortKey = $header.data('sort');
+					
+					if (sortKey) {
+						// Use data-sort-value if available, otherwise use text
+						rowData[sortKey] = $cell.attr('data-sort-value') || $cell.text().trim();
+					}
+				});
+				
+				// Store full text for search
+				rowData.fullText = $row.text().toLowerCase();
+				
+				tableState[tableId].allRows.push({
+					element: $row.clone(),
+					data: rowData
+				});
+			});
+		}
+		
+		let filteredRows = tableState[tableId].allRows.slice();
 
 		// Apply search filter
 		if (tableState[tableId].searchTerm) {
-			rows = rows.filter(function() {
-				const text = $(this).text().toLowerCase();
-				return text.includes(tableState[tableId].searchTerm);
+			const searchTerm = tableState[tableId].searchTerm.toLowerCase();
+			filteredRows = filteredRows.filter(function(row) {
+				return row.data.fullText.includes(searchTerm);
 			});
 		}
 
@@ -1116,25 +1150,9 @@ jQuery(document).ready(function($) {
 			const sortColumn = tableState[tableId].sortColumn;
 			const sortOrder = tableState[tableId].sortOrder;
 			
-			rows.sort(function(a, b) {
-				let aVal, bVal;
-				
-				// Find the column index
-				const $headers = $table.find('th');
-				let colIndex = 0;
-				$headers.each(function(i) {
-					if ($(this).data('sort') === sortColumn) {
-						colIndex = i;
-						return false;
-					}
-				});
-				
-				// Get data-sort-value attribute if available, otherwise use text content
-				const $aTd = $(a).find('td').eq(colIndex);
-				const $bTd = $(b).find('td').eq(colIndex);
-				
-				aVal = $aTd.attr('data-sort-value') || $aTd.text().trim();
-				bVal = $bTd.attr('data-sort-value') || $bTd.text().trim();
+			filteredRows.sort(function(a, b) {
+				let aVal = a.data[sortColumn];
+				let bVal = b.data[sortColumn];
 				
 				// Try to parse as numbers
 				const aNum = parseFloat(aVal);
@@ -1145,10 +1163,15 @@ jQuery(document).ready(function($) {
 				}
 				
 				// String comparison
+				if (typeof aVal === 'string') {
+					aVal = aVal.toLowerCase();
+					bVal = bVal.toLowerCase();
+				}
+				
 				if (sortOrder === 'asc') {
-					return aVal.toString().localeCompare(bVal.toString());
+					return aVal > bVal ? 1 : -1;
 				} else {
-					return bVal.toString().localeCompare(aVal.toString());
+					return aVal < bVal ? 1 : -1;
 				}
 			});
 			
@@ -1157,28 +1180,40 @@ jQuery(document).ready(function($) {
 		}
 
 		// Calculate pagination
-		const totalRows = rows.length;
+		const totalRows = filteredRows.length;
 		const perPage = tableState[tableId].perPage;
 		const totalPages = Math.ceil(totalRows / perPage);
 		const currentPage = Math.min(tableState[tableId].currentPage, totalPages) || 1;
 		const startIndex = (currentPage - 1) * perPage;
 		const endIndex = startIndex + perPage;
+		const pageRows = filteredRows.slice(startIndex, endIndex);
 
-		// Hide all rows
-		$tbody.find('tr').hide();
+		// Clear tbody
+		$tbody.empty();
 
 		// Show filtered and paginated rows
-		if (rows.length === 0) {
-			$tbody.find('tr:has(.reports-no-data)').show();
+		if (pageRows.length === 0) {
+			// Show no results message
+			const colspan = $table.find('thead th').length;
+			$tbody.append(`
+				<tr>
+					<td colspan="${colspan}" class="reports-no-data">
+						<div class="no-results-message">
+							<i class="ph ph-magnifying-glass"></i>
+							<p>No results found matching your search.</p>
+						</div>
+					</td>
+				</tr>
+			`);
 		} else {
-			rows.slice(startIndex, endIndex).forEach(function(row) {
-				$(row).show();
+			pageRows.forEach(function(row) {
+				$tbody.append(row.element);
 			});
 		}
 
 		// Update pagination info
 		const $pagination = $('[data-table="' + tableId + '"]');
-		$pagination.find('.pagination-start').text(rows.length === 0 ? 0 : startIndex + 1);
+		$pagination.find('.pagination-start').text(pageRows.length === 0 ? 0 : startIndex + 1);
 		$pagination.find('.pagination-end').text(Math.min(endIndex, totalRows));
 		$pagination.find('.pagination-total').text(totalRows);
 

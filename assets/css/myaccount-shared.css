@@ -618,7 +618,7 @@
 
 /* Filter Buttons */
 button:focus{
-	outline:none;
+	outline:none !important;
 }
 .pv-table-controls .filter-button,
 .pv-table-controls .btn-clear-filters {
