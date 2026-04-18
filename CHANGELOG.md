@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.4] - 2026-04-19
+### Debug
+- **DEBUG**: Added comprehensive error logging to Performance Tracker to diagnose data loading issues
+- Logs user roles, employee roles, goals configuration, achievements configuration
+- Logs calculated values (order total, orders count, AOV)
+- Logs period dates and progress data
+- **INSTRUCTIONS**: After updating, check Reports page Performance Tracker, then check WordPress debug.log for detailed information
+- Look for lines starting with "Performance Tracker:" to see what's happening
+
 ## [1.3.3] - 2026-04-19
 ### Fixed
 - **CRITICAL FIX**: Fixed Reports page sections not loading (infinite spinner) after v1.3.1 update
