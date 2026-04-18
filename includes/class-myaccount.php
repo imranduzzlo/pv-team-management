@@ -2999,20 +2999,20 @@ class WC_Team_Payroll_MyAccount {
 	 */
 	private static function get_user_commission_for_period( $user_id, $start_date, $end_date ) {
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+		
+		// Use proper date range with time to ensure full day coverage
+		$date_query = $start_date . ' 00:00:00...' . $end_date . ' 23:59:59';
+		
 		$args = array(
 			'limit'  => -1,
 			'status' => $commission_statuses,
-			'date_created' => '>=' . $start_date,
+			'date_created' => $date_query,
 		);
 
 		$orders = wc_get_orders( $args );
 		$total_commission = 0;
 
 		foreach ( $orders as $order ) {
-			$order_date = $order->get_date_created()->format( 'Y-m-d' );
-			if ( $order_date < $start_date || $order_date > $end_date ) {
-				continue;
-			}
 
 			$agent_id = $order->get_meta( '_primary_agent_id' );
 			$processor_id = $order->get_meta( '_processor_user_id' );
@@ -3089,19 +3089,20 @@ class WC_Team_Payroll_MyAccount {
 	 */
 	private static function get_user_orders_count_for_period( $user_id, $start_date, $end_date ) {
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+		
+		// Use proper date range with time to ensure full day coverage
+		$date_query = $start_date . ' 00:00:00...' . $end_date . ' 23:59:59';
+		
 		$args = array(
 			'limit'  => -1,
 			'status' => $commission_statuses,
+			'date_created' => $date_query,
 		);
 
 		$orders = wc_get_orders( $args );
 		$count = 0;
 
 		foreach ( $orders as $order ) {
-			$order_date = $order->get_date_created()->format( 'Y-m-d' );
-			if ( $order_date < $start_date || $order_date > $end_date ) {
-				continue;
-			}
 
 			$agent_id = $order->get_meta( '_primary_agent_id' );
 			$processor_id = $order->get_meta( '_processor_user_id' );
@@ -3326,10 +3327,15 @@ class WC_Team_Payroll_MyAccount {
 			'status' => 'any', // Get orders with any status
 		);
 
-		if ( $date_from ) {
-			$args['date_created'] = '>=' . $date_from;
-		}
-		if ( $date_to ) {
+		// Apply date range filter with proper time coverage
+		if ( $date_from && $date_to ) {
+			// Both dates provided - use range query
+			$args['date_created'] = $date_from . ' 00:00:00...' . $date_to . ' 23:59:59';
+		} elseif ( $date_from ) {
+			// Only start date provided
+			$args['date_created'] = '>=' . $date_from . ' 00:00:00';
+		} elseif ( $date_to ) {
+			// Only end date provided
 			$args['date_created'] = '<=' . $date_to . ' 23:59:59';
 		}
 
@@ -4914,9 +4920,13 @@ class WC_Team_Payroll_MyAccount {
 		}
 
 		// Get orders for this user
+		// For date queries, append time to ensure full day coverage
+		// WooCommerce expects timestamps, so we need to include the full day
+		$date_query = $start_date . ' 00:00:00...' . $end_date . ' 23:59:59';
+		
 		$args = array(
 			'limit'        => -1,
-			'date_created' => $start_date . '...' . $end_date,
+			'date_created' => $date_query,
 			'status'       => $statuses_to_query,
 			'return'       => 'ids',
 		);

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.96] - 2026-04-18
+### Fix Date Range Filtering for "Today" and All Date Queries
+- **FIX**: Fixed "Today" date filter showing only 1 order when 2 orders were created today
+- **ROOT CAUSE**: WooCommerce date_created queries with date-only format (e.g., `2026-04-18...2026-04-18`) don't include full day timestamps
+- **SOLUTION**: Appended time components to date queries: `YYYY-MM-DD 00:00:00...YYYY-MM-DD 23:59:59` for full day coverage
+- **FILES UPDATED**:
+  - `includes/class-myaccount.php`: Fixed 4 functions (ajax_get_attributed_order_total, get_user_commission_for_period, get_user_orders_count_for_period, ajax_get_orders)
+  - `includes/class-core-engine.php`: Fixed get_user_earnings function
+  - `includes/class-performance-settings.php`: Fixed 2 functions (calculate_earnings_with_commission_split, calculate_earnings_full_value)
+- **TECHNICAL**: WooCommerce stores order timestamps with time components, so date-only queries miss orders created at different times
+- **RESULT**: All date range filters now correctly include all orders for the selected period, especially "Today" filter
+
 ## [1.0.95] - 2026-04-18
 ### Fix Attributed Order Total Calculation
 - **FIX**: Fixed attributed order total showing $0.00 in Performance Score modal

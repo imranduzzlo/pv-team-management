@@ -281,17 +281,11 @@ class WC_Team_Payroll_Core_Engine {
 			$order_statuses = array( 'completed', 'processing', 'refunded' );
 		}
 
-		// Use proper WooCommerce date query format
+		// Use proper WooCommerce date query format with time for full day coverage
 		$args = array(
 			'limit'  => -1,
 			'status' => $order_statuses,
-			'date_query' => array(
-				array(
-					'after'     => $start_date,
-					'before'    => $end_date,
-					'inclusive' => true,
-				),
-			),
+			'date_created' => $start_date . ' 00:00:00...' . $end_date . ' 23:59:59',
 		);
 
 		$orders = wc_get_orders( $args );

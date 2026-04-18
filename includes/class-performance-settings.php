@@ -1818,10 +1818,12 @@ class WC_Team_Payroll_Performance_Settings {
 		// Get commission calculation statuses
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		
-		// Get orders for the period
+		// Get orders for the period with proper time coverage
+		$date_query = $start_date . ' 00:00:00...' . $end_date . ' 23:59:59';
+		
 		$args = array(
 			'limit'        => -1,
-			'date_created' => $start_date . '...' . $end_date,
+			'date_created' => $date_query,
 			'status'       => $commission_statuses,
 			'meta_query'   => array(
 				'relation' => 'OR',
@@ -1874,10 +1876,12 @@ class WC_Team_Payroll_Performance_Settings {
 		// Get commission calculation statuses
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		
-		// Get orders for the period
+		// Get orders for the period with proper time coverage
+		$date_query = $start_date . ' 00:00:00...' . $end_date . ' 23:59:59';
+		
 		$args = array(
 			'limit'        => -1,
-			'date_created' => $start_date . '...' . $end_date,
+			'date_created' => $date_query,
 			'status'       => $commission_statuses,
 			'meta_query'   => array(
 				'relation' => 'OR',
