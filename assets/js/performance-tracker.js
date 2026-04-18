@@ -516,13 +516,17 @@
 
 			const baselines = data.baselines;
 
+			// Handle undefined method and date with fallbacks
+			const method = baselines.method || 'Not Set';
+			const calculatedDate = baselines.calculated_date || 'Not Calculated';
+
 			const html = `
 				<div class="performance-baselines">
 					<div class="baselines-header">
 						<h3><i class="ph ph-chart-line-up"></i> Performance Baselines</h3>
 						<div class="baselines-meta">
-							<span>Method: ${baselines.method}</span>
-							<span>Updated: ${baselines.calculated_date}</span>
+							<span>Method: ${method}</span>
+							<span>Updated: ${calculatedDate}</span>
 						</div>
 					</div>
 
