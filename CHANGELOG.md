@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.3] - 2026-04-19
+### Fixed
+- **CRITICAL FIX**: Fixed Reports page sections not loading (infinite spinner) after v1.3.1 update
+- **ROOT CAUSE**: JavaScript variable name was changed from `wc_tp_reports` to `wcTpReports` in v1.3.1, breaking all existing AJAX calls
+- Reverted JavaScript variable name back to `wc_tp_reports` for backward compatibility
+- Updated `performance-tracker.js` to use correct variable name `wc_tp_reports`
+- All Reports page sections now load correctly: Dashboard, Analytics, Performance Metrics, Tables, Goals
+
 ## [1.3.2] - 2026-04-19
 ### Fixed
 - **CRITICAL FIX**: Performance Tracker data not loading due to duplicate AJAX handler registration

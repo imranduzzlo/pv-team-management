@@ -2727,7 +2727,7 @@ class WC_Team_Payroll_MyAccount {
 			
 			wp_localize_script(
 				'wc-team-payroll-reports',
-				'wcTpReports',
+				'wc_tp_reports',
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce' => wp_create_nonce( 'wc_team_payroll_nonce' ),

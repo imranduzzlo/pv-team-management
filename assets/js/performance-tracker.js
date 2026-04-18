@@ -197,11 +197,11 @@
 		 */
 		fetchData(section, callback, extraData = {}) {
 			$.ajax({
-				url: wcTpReports.ajax_url,
+				url: wc_tp_reports.ajax_url,
 				type: 'POST',
 				data: {
 					action: 'wc_tp_get_performance_tracker_data',
-					nonce: wcTpReports.nonce,
+					nonce: wc_tp_reports.nonce,
 					section: section,
 					...extraData
 				},
