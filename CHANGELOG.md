@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.7] - 2026-04-18
+### Reports Page - Table Sorting Fixed
+- **FIX**: Reports page tables (My Commission History and My Order Processing) now properly sort using `data-sort-value` attributes
+- **ENHANCEMENT**: Sorting now reads `data-sort-value` attribute from table cells instead of visible text content
+- **ENHANCEMENT**: Numeric values (dates, amounts, IDs) now sort correctly as numbers instead of strings
+- **ENHANCEMENT**: Sort icons now update properly to show current sort direction (up/down arrows)
+- **ENHANCEMENT**: Added `updateSortIcons()` function to manage sort icon states
+- **TECHNICAL**: Modified `filterAndDisplayTable()` function to use `data-sort-value` for accurate sorting
+- **TECHNICAL**: Sort icons now toggle between `ph-caret-up-down` (default), `ph-caret-up` (ascending), and `ph-caret-down` (descending)
+- **RESULT**: Sorting behavior now matches My Orders (Commission) page with accurate numeric and string sorting
+
 ## [1.2.6] - 2026-04-18
 ### Reports Page - My Commission History Table Enhanced
 - **FEATURE**: Added "Commission" column showing total commission for each order

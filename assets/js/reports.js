@@ -1129,12 +1129,16 @@ jQuery(document).ready(function($) {
 					}
 				});
 				
-				aVal = $(a).find('td').eq(colIndex).text().trim();
-				bVal = $(b).find('td').eq(colIndex).text().trim();
+				// Get data-sort-value attribute if available, otherwise use text content
+				const $aTd = $(a).find('td').eq(colIndex);
+				const $bTd = $(b).find('td').eq(colIndex);
+				
+				aVal = $aTd.attr('data-sort-value') || $aTd.text().trim();
+				bVal = $bTd.attr('data-sort-value') || $bTd.text().trim();
 				
 				// Try to parse as numbers
-				const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
-				const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
+				const aNum = parseFloat(aVal);
+				const bNum = parseFloat(bVal);
 				
 				if (!isNaN(aNum) && !isNaN(bNum)) {
 					return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
@@ -1142,11 +1146,14 @@ jQuery(document).ready(function($) {
 				
 				// String comparison
 				if (sortOrder === 'asc') {
-					return aVal.localeCompare(bVal);
+					return aVal.toString().localeCompare(bVal.toString());
 				} else {
-					return bVal.localeCompare(aVal);
+					return bVal.toString().localeCompare(aVal.toString());
 				}
 			});
+			
+			// Update sort icons
+			updateSortIcons(tableId);
 		}
 
 		// Calculate pagination
@@ -1177,6 +1184,27 @@ jQuery(document).ready(function($) {
 
 		// Generate pagination buttons
 		generatePaginationButtons(tableId, totalPages, currentPage);
+	}
+
+	/**
+	 * Update sort icons to reflect current sort state
+	 */
+	function updateSortIcons(tableId) {
+		const $table = $('#' + tableId);
+		const sortColumn = tableState[tableId].sortColumn;
+		const sortOrder = tableState[tableId].sortOrder;
+		
+		// Reset all sort icons to default
+		$table.find('th.sortable .sort-icon')
+			.removeClass('ph-caret-up ph-caret-down')
+			.addClass('ph-caret-up-down');
+		
+		// Update the active sort column icon
+		if (sortColumn) {
+			$table.find('th.sortable[data-sort="' + sortColumn + '"] .sort-icon')
+				.removeClass('ph-caret-up-down')
+				.addClass(sortOrder === 'asc' ? 'ph-caret-up' : 'ph-caret-down');
+		}
 	}
 
 	/**
