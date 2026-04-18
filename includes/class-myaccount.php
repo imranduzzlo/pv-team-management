@@ -2232,7 +2232,7 @@ class WC_Team_Payroll_MyAccount {
 				
 				/* Phosphor icons in content */
 				.pv-page-wrapper .ph {
-					color: {$primary_color} !important;
+					color: {$primary_color};
 				}
 				
 				/* Grid layouts */
@@ -2363,7 +2363,7 @@ class WC_Team_Payroll_MyAccount {
 				}
 				
 				.pv-table-controls .btn-clear-filters .ph {
-					color: {$primary_color} !important;
+					color: {$primary_color};
 				}
 				
 				.pv-table-controls .btn-clear-filters:hover {
@@ -2378,7 +2378,7 @@ class WC_Team_Payroll_MyAccount {
 				}
 				
 				.pv-table-controls .btn-clear-filters.filters-active .ph {
-					color: {$button_text_color} !important;
+					color: {$button_text_color};
 				}
 				
 				.pv-table-controls .btn-clear-filters.filters-active:hover {
@@ -2389,11 +2389,6 @@ class WC_Team_Payroll_MyAccount {
 				.pv-table-controls .btn-clear-filters:focus {
 					outline: none !important;
 					box-shadow: none !important;
-				}
-				
-				/* Global .ph icon styling */
-				.pv-page-wrapper .ph {
-					color: {$primary_color} !important;
 				}
 				
 				.pv-filter-container,
