@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.3.0] - 2026-04-19
+### Performance Tracker System - Complete Backend Implementation
+- **NEW CLASS**: Added `class-performance-tracker.php` for Goals, Achievements, and Baselines tracking
+- **CRITICAL FIX**: Fixed syntax error (premature class closing brace)
+- **CRITICAL FIX**: Updated meta keys to use correct system keys (`_primary_agent_id`, `_processor_user_id`)
+- **FEATURE**: Goals tracking system with current period progress calculation
+- **FEATURE**: Achievements system with automatic badge unlocking and notifications
+- **FEATURE**: Baselines calculation with 6 methods (rolling average, historical average, best period, median, percentile, custom)
+- **FEATURE**: Active/inactive employee status fully integrated - inactive employees excluded from all cron jobs
+- **CALCULATION**: Uses attributed order total (agent_order_value/processor_order_value from commission data)
+- **CALCULATION**: Properly handles cases where same user is both agent and processor
+- **CALCULATION**: Supports weekly, monthly, quarterly, yearly periods with automatic date range calculation
+- **AJAX**: Added `wc_tp_get_user_goal_progress` handler with permission checks
+- **AJAX**: Added `wc_tp_get_user_achievements` handler with stats
+- **AJAX**: Added `wc_tp_get_user_baselines` handler with history
+- **AJAX**: Added `wc_tp_recalculate_performance` handler for manual recalculation (admin only)
+- **CRON**: Added `wc_tp_daily_baseline_update` - respects update_frequency setting
+- **CRON**: Added `wc_tp_check_achievements` - hourly achievement checking
+- **CRON**: Added `wc_tp_finalize_period_goals` - period-end goal finalization
+- **CRON**: All cron jobs filter for active employees only via `get_all_employees()`
+- **USER META**: `_wc_tp_current_goal_progress` - Current period goal progress
+- **USER META**: `_wc_tp_goal_history` - Historical goal achievements (last 12 periods)
+- **USER META**: `_wc_tp_unlocked_achievements` - Unlocked achievements with unlock dates
+- **USER META**: `_wc_tp_achievement_stats` - Bronze/silver/gold counts, last unlocked, next achievement
+- **USER META**: `_wc_tp_current_baselines` - Current baseline values with trend analysis
+- **USER META**: `_wc_tp_baseline_history` - Historical baseline values (last 12 entries)
+- **TECHNICAL**: Helper functions for attributed order total, order count, AOV
+- **TECHNICAL**: Historical performance data retrieval with period-based filtering
+- **TECHNICAL**: Goal status determination (not_started, in_progress, achieved, stretch_achieved)
+- **TECHNICAL**: Trend detection for baselines (improving, declining, stable)
+- **TECHNICAL**: Achievement notification system using transients
+- **COMPATIBILITY**: Fully compatible with existing commission calculation system
+- **COMPATIBILITY**: Respects active/inactive employee status throughout
+- **RESULT**: Complete backend system ready for frontend implementation
+
+## [1.2.8] - 2026-04-19
+### Performance Tracker System - Backend Implementation (Deprecated - Use 1.3.0)
+- Initial implementation with syntax errors
+- Replaced by version 1.3.0 with critical fixes
+
 ## [1.2.7] - 2026-04-18
 ### Reports Page - Table Sorting Fixed
 - **FIX**: Reports page tables (My Commission History and My Order Processing) now properly sort using `data-sort-value` attributes

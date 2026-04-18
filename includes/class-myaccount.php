@@ -1877,7 +1877,7 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 
 			<!-- STEP 2: KPI DASHBOARD (Will be populated by AJAX) -->
-			<div class="reports-kpi-section">
+			<div class="reports-kpi-section pv-section-wrapper">
 				<div class="reports-kpi-grid" id="reports-kpi-container">
 					<div class="reports-loading">
 						<i class="ph ph-spinner"></i>
@@ -1887,7 +1887,7 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 
 			<!-- STEP 3: ANALYTICS CHARTS (Will be populated by AJAX) -->
-			<div class="reports-analytics-section">
+			<div class="reports-analytics-section pv-section-wrapper">
 				<div class="reports-charts-grid" id="reports-charts-container">
 					<div class="reports-loading">
 						<i class="ph ph-spinner"></i>
@@ -1897,7 +1897,7 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 
 			<!-- STEP 4: PERFORMANCE METRICS (Will be populated by AJAX) -->
-			<div class="reports-metrics-section">
+			<div class="reports-metrics-section pv-section-wrapper">
 				<h3><?php esc_html_e( 'Performance Metrics', 'wc-team-payroll' ); ?></h3>
 				<div class="reports-metrics-grid" id="reports-metrics-container">
 					<div class="reports-loading">
@@ -1908,7 +1908,7 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 
 			<!-- STEP 5: DATA TABLES (Will be populated by AJAX) -->
-			<div class="reports-tables-section">
+			<div class="reports-tables-section pv-section-wrapper">
 				<div id="reports-tables-container">
 					<div class="reports-loading">
 						<i class="ph ph-spinner"></i>
@@ -1918,7 +1918,7 @@ class WC_Team_Payroll_MyAccount {
 			</div>
 
 			<!-- STEP 6: GOALS & ACHIEVEMENTS (Will be populated by AJAX) -->
-			<div class="reports-goals-section-wrapper">
+			<div class="reports-goals-section-wrapper pv-section-wrapper">
 				<div id="reports-goals-container">
 					<div class="reports-loading">
 						<i class="ph ph-spinner"></i>
@@ -2181,10 +2181,6 @@ class WC_Team_Payroll_MyAccount {
 				}
 				
 				.section-header h3 {
-					border-bottom-color: {$border_color} !important;
-				}
-				
-				.pv-section-wrapper h3 {
 					border-bottom-color: {$border_color} !important;
 				}
 				
