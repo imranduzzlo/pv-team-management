@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.5] - 2026-04-19
+### Fixed
+- **CRITICAL FIX**: Fixed Performance Tracker not loading data due to incorrect employee roles retrieval
+- **ROOT CAUSE**: `get_employee_roles()` was looking for roles in wrong option (`wc_team_payroll_woocommerce`) with wrong structure
+- **SOLUTION**: Updated to read from correct option (`wc_tp_employee_roles`) which stores simple array of role keys
+- Now properly maps role keys to role names using WordPress global `$wp_roles`
+- Performance Tracker now correctly identifies user roles (administrator, shop_employee, shop_manager, etc.)
+- Goals, Achievements, and Baselines will now load for users with configured employee roles
+
 ## [1.3.4] - 2026-04-19
 ### Debug
 - **DEBUG**: Added comprehensive error logging to Performance Tracker to diagnose data loading issues

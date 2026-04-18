@@ -430,20 +430,28 @@ class WC_Team_Payroll_Performance_Tracker {
 	/**
 	 * Get employee roles from settings
 	 *
-	 * @return array Employee roles
+	 * @return array Employee roles (role_key => role_name)
 	 */
 	private function get_employee_roles() {
-		$woocommerce_settings = get_option( 'wc_team_payroll_woocommerce', array() );
-		$employee_roles = isset( $woocommerce_settings['employee_roles'] ) && is_array( $woocommerce_settings['employee_roles'] ) 
-			? $woocommerce_settings['employee_roles'] 
-			: array();
+		// Get employee roles from settings (simple array of role keys)
+		$employee_role_keys = get_option( 'wc_tp_employee_roles', array( 'shop_employee' ) );
+		
+		if ( ! is_array( $employee_role_keys ) ) {
+			$employee_role_keys = array( 'shop_employee' );
+		}
+
+		// Get WordPress roles to get display names
+		global $wp_roles;
+		$all_roles = isset( $wp_roles ) && isset( $wp_roles->roles ) ? $wp_roles->roles : array();
 
 		$roles = array();
-		foreach ( $employee_roles as $role_data ) {
-			if ( isset( $role_data['role_key'] ) && isset( $role_data['role_name'] ) ) {
-				$roles[ $role_data['role_key'] ] = $role_data['role_name'];
-			}
+		foreach ( $employee_role_keys as $role_key ) {
+			$role_name = isset( $all_roles[ $role_key ]['name'] ) ? $all_roles[ $role_key ]['name'] : ucfirst( str_replace( '_', ' ', $role_key ) );
+			$roles[ $role_key ] = $role_name;
 		}
+
+		error_log( 'Performance Tracker: Employee role keys from settings: ' . print_r( $employee_role_keys, true ) );
+		error_log( 'Performance Tracker: Mapped employee roles: ' . print_r( $roles, true ) );
 
 		return $roles;
 	}
