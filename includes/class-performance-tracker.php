@@ -215,6 +215,141 @@ class WC_Team_Payroll_Performance_Tracker {
 	}
 
 	/**
+	 * Get date range based on view mode
+	 *
+	 * @param string $view_mode View mode (current, last, last_3, last_6, last_12, ytd)
+	 * @param string $period_type Period type (weekly, monthly, quarterly, yearly)
+	 * @return array Array with 'start' and 'end' dates
+	 */
+	private function get_view_mode_dates( $view_mode, $period_type ) {
+		$timezone = wp_timezone();
+		$now = new DateTime( 'now', $timezone );
+
+		switch ( $view_mode ) {
+			case 'current':
+				// Current period
+				return $this->get_period_dates( $period_type );
+
+			case 'last':
+				// Last period
+				if ( $period_type === 'weekly' ) {
+					$start = clone $now;
+					$start->modify( 'monday last week' );
+					$end = clone $start;
+					$end->modify( '+6 days' );
+				} elseif ( $period_type === 'monthly' ) {
+					$start = clone $now;
+					$start->modify( 'first day of last month' );
+					$end = clone $start;
+					$end->modify( 'last day of this month' );
+				} elseif ( $period_type === 'quarterly' ) {
+					$month = (int) $now->format( 'n' );
+					$current_quarter_start = ( ceil( $month / 3 ) - 1 ) * 3 + 1;
+					$last_quarter_start = $current_quarter_start - 3;
+					if ( $last_quarter_start < 1 ) {
+						$last_quarter_start += 12;
+						$year = (int) $now->format( 'Y' ) - 1;
+					} else {
+						$year = (int) $now->format( 'Y' );
+					}
+					$start = new DateTime( $year . '-' . str_pad( $last_quarter_start, 2, '0', STR_PAD_LEFT ) . '-01', $timezone );
+					$end = clone $start;
+					$end->modify( '+2 months' );
+					$end->modify( 'last day of this month' );
+				} else { // yearly
+					$start = new DateTime( ( (int) $now->format( 'Y' ) - 1 ) . '-01-01', $timezone );
+					$end = new DateTime( ( (int) $now->format( 'Y' ) - 1 ) . '-12-31', $timezone );
+				}
+				break;
+
+			case 'last_3':
+				// Last 3 periods
+				if ( $period_type === 'weekly' ) {
+					$start = clone $now;
+					$start->modify( '-3 weeks monday' );
+					$end = clone $now;
+					$end->modify( 'sunday this week' );
+				} elseif ( $period_type === 'monthly' ) {
+					$start = clone $now;
+					$start->modify( '-2 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} elseif ( $period_type === 'quarterly' ) {
+					$start = clone $now;
+					$start->modify( '-9 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} else { // yearly
+					$start = new DateTime( ( (int) $now->format( 'Y' ) - 2 ) . '-01-01', $timezone );
+					$end = new DateTime( $now->format( 'Y' ) . '-12-31', $timezone );
+				}
+				break;
+
+			case 'last_6':
+				// Last 6 periods
+				if ( $period_type === 'weekly' ) {
+					$start = clone $now;
+					$start->modify( '-6 weeks monday' );
+					$end = clone $now;
+					$end->modify( 'sunday this week' );
+				} elseif ( $period_type === 'monthly' ) {
+					$start = clone $now;
+					$start->modify( '-5 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} elseif ( $period_type === 'quarterly' ) {
+					$start = clone $now;
+					$start->modify( '-18 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} else { // yearly
+					$start = new DateTime( ( (int) $now->format( 'Y' ) - 5 ) . '-01-01', $timezone );
+					$end = new DateTime( $now->format( 'Y' ) . '-12-31', $timezone );
+				}
+				break;
+
+			case 'last_12':
+				// Last 12 periods
+				if ( $period_type === 'weekly' ) {
+					$start = clone $now;
+					$start->modify( '-12 weeks monday' );
+					$end = clone $now;
+					$end->modify( 'sunday this week' );
+				} elseif ( $period_type === 'monthly' ) {
+					$start = clone $now;
+					$start->modify( '-11 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} elseif ( $period_type === 'quarterly' ) {
+					$start = clone $now;
+					$start->modify( '-36 months first day of this month' );
+					$end = clone $now;
+					$end->modify( 'last day of this month' );
+				} else { // yearly
+					$start = new DateTime( ( (int) $now->format( 'Y' ) - 11 ) . '-01-01', $timezone );
+					$end = new DateTime( $now->format( 'Y' ) . '-12-31', $timezone );
+				}
+				break;
+
+			case 'ytd':
+				// Year to date
+				$start = new DateTime( $now->format( 'Y' ) . '-01-01', $timezone );
+				$end = clone $now;
+				break;
+
+			default:
+				// Default to current period
+				return $this->get_period_dates( $period_type );
+		}
+
+		return array(
+			'start' => $start->format( 'Y-m-d' ),
+			'end'   => $end->format( 'Y-m-d' ),
+			'period_id' => $start->format( 'Y-m' ),
+		);
+	}
+
+	/**
 	 * Get period dates based on period type
 	 *
 	 * @param string $period_type Period type (weekly, monthly, quarterly, yearly)
@@ -274,9 +409,10 @@ class WC_Team_Payroll_Performance_Tracker {
 	 * Calculate and update current goal progress for a user
 	 *
 	 * @param int $user_id User ID
+	 * @param string $view_mode View mode (current, last, last_3, last_6, last_12, ytd)
 	 * @return array Goal progress data
 	 */
-	public function update_goal_progress( $user_id ) {
+	public function update_goal_progress( $user_id, $view_mode = 'current' ) {
 		// Get user role
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
@@ -310,8 +446,8 @@ class WC_Team_Payroll_Performance_Tracker {
 			return array();
 		}
 
-		// Get current period dates
-		$period_dates = $this->get_period_dates( $period_type );
+		// Get period dates based on view mode
+		$period_dates = $this->get_view_mode_dates( $view_mode, $period_type );
 
 		// Calculate current values
 		$attributed_total = $this->get_attributed_order_total( $user_id, $period_dates['start'], $period_dates['end'] );
@@ -324,13 +460,16 @@ class WC_Team_Payroll_Performance_Tracker {
 			'period_type' => $period_type,
 			'period_start' => $period_dates['start'],
 			'period_end' => $period_dates['end'],
+			'view_mode' => $view_mode,
 			'order_value' => $this->calculate_goal_status( $attributed_total, $role_goals['earnings'] ?? array() ),
 			'orders' => $this->calculate_goal_status( $order_count, $role_goals['orders'] ?? array() ),
 			'aov' => $this->calculate_goal_status( $aov, $role_goals['aov'] ?? array() ),
 		);
 
-		// Save to user meta
-		update_user_meta( $user_id, '_wc_tp_current_goal_progress', $progress_data );
+		// Save to user meta only if current view
+		if ( $view_mode === 'current' ) {
+			update_user_meta( $user_id, '_wc_tp_current_goal_progress', $progress_data );
+		}
 
 		return $progress_data;
 	}

@@ -58,8 +58,8 @@ class WC_Team_Payroll_Performance_Tracker_AJAX {
 				break;
 
 			case 'overview':
-				// Get overview data
-				$goals = $tracker->update_goal_progress( $user_id );
+				// Get overview data with view mode
+				$goals = $tracker->update_goal_progress( $user_id, $view_mode );
 				$achievements_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
 				$baselines = get_user_meta( $user_id, '_wc_tp_current_baselines', true );
 
@@ -76,8 +76,8 @@ class WC_Team_Payroll_Performance_Tracker_AJAX {
 				break;
 
 			case 'goals':
-				// Get goals data
-				$data['goals'] = $tracker->update_goal_progress( $user_id );
+				// Get goals data with view mode
+				$data['goals'] = $tracker->update_goal_progress( $user_id, $view_mode );
 				$data['history'] = get_user_meta( $user_id, '_wc_tp_goal_history', true );
 				break;
 

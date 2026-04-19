@@ -388,6 +388,9 @@
 	font-weight: 600;
 	margin-bottom: 12px;
 }
+.achievement-card .achievement-badge{
+	font-size:48px;
+}
 
 .achievement-badge i {
 	font-size: 14px;
