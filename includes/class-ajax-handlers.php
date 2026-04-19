@@ -62,32 +62,45 @@ class WC_Team_Payroll_AJAX_Handlers {
 				continue;
 			}
 
-			// Get commission data for additional fields
+			// Get commission data and IDs
 			$commission_data = $order->get_meta( '_commission_data' );
 			$agent_id = $order->get_meta( '_primary_agent_id' );
 			$processor_id = $order->get_meta( '_processor_user_id' );
 
-			// Determine flag
+			// Determine flag and attributed total
 			$flag = '';
 			$flag_label = '';
-			if ( intval( $agent_id ) === intval( $user_id ) && intval( $processor_id ) === intval( $user_id ) ) {
+			$attributed_value = 0;
+
+			// Check if user is both agent and processor (owner)
+			$is_agent = intval( $agent_id ) === intval( $user_id );
+			$is_processor = intval( $processor_id ) === intval( $user_id );
+
+			if ( $is_agent && $is_processor ) {
+				// Owner - show full order total
 				$flag = 'owner';
 				$flag_label = 'Owner';
-			} elseif ( intval( $agent_id ) === intval( $user_id ) ) {
+				$attributed_value = floatval( $order->get_total() );
+			} elseif ( $is_agent ) {
+				// Agent only - show agent's attributed portion
 				$flag = 'affiliate_from';
 				$flag_label = 'Affiliate From';
-			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['agent_order_value'] );
+				}
+			} elseif ( $is_processor ) {
+				// Processor only - show processor's attributed portion
 				$flag = 'affiliate_to';
 				$flag_label = 'Affiliate To';
+				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['processor_order_value'] );
+				}
 			}
 
 			// Get customer info
 			$customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 			$customer_email = $order->get_billing_email();
 			$customer_phone = $order->get_billing_phone();
-
-			// Add attributed_total from the existing attributed_value
-			$attributed_value = isset( $order_data['attributed_value'] ) ? floatval( $order_data['attributed_value'] ) : 0;
 
 			// Enhance order data
 			$order_data['customer_name'] = $customer_name;

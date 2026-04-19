@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.6.0] - 2026-04-19
+### ✨ Enhanced - Attributed Total Logic for Owner Orders
+
+#### IMPROVED - Attributed Total Calculation Based on User Role
+**ENHANCEMENT:**
+- **Owner (Agent + Processor)**: Shows full order total when user is both agent and processor
+- **Agent Only**: Shows agent's attributed portion from `agent_order_value`
+- **Processor Only**: Shows processor's attributed portion from `processor_order_value`
+
+**LOGIC:**
+```
+IF user is BOTH agent AND processor:
+    attributed_total = full order total
+ELSE IF user is agent only:
+    attributed_total = commission_data['agent_order_value']
+ELSE IF user is processor only:
+    attributed_total = commission_data['processor_order_value']
+```
+
+**WHY:**
+- When a user owns the entire order (both roles), they should see the full order value
+- When split between different users, each sees only their attributed portion
+- Matches business logic where owner gets credit for full order value
+
+**FILES MODIFIED:**
+- `includes/class-ajax-handlers.php` - Enhanced attributed total calculation logic
+
+---
+
 ## [1.5.9] - 2026-04-19
 ### 🐛 Fixed - Attributed Total Display in Admin Employee Details
 
