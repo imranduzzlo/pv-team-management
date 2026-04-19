@@ -2849,35 +2849,11 @@ class WC_Team_Payroll_MyAccount {
 						
 						<?php if ( ! empty( $highest_tier ) ) : ?>
 							<div class="profile-achievement-badge profile-achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
-								<svg class="badge-seal" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-									<!-- Gradient definitions -->
-									<defs>
-										<linearGradient id="profileGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-											<stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-											<stop offset="50%" style="stop-color:#FFED4E;stop-opacity:1" />
-											<stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
-										</linearGradient>
-										<radialGradient id="profileGoldInner" cx="50%" cy="50%" r="50%">
-											<stop offset="0%" style="stop-color:#FFFACD;stop-opacity:1" />
-											<stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
-										</radialGradient>
-									</defs>
-									<!-- Seal shape with notches -->
-									<path d="M50,5 L55,15 L65,10 L65,20 L75,20 L70,30 L80,35 L75,45 L85,50 L75,55 L80,65 L70,70 L75,80 L65,80 L65,90 L55,85 L50,95 L45,85 L35,90 L35,80 L25,80 L30,70 L20,65 L25,55 L15,50 L25,45 L20,35 L30,30 L25,20 L35,20 L35,10 L45,15 Z" class="seal-shape"/>
-									<!-- Inner circle -->
-									<circle cx="50" cy="50" r="28" class="seal-inner"/>
-									<!-- Achievement icon -->
-									<text x="50" y="60" class="seal-icon" text-anchor="middle">
-										<?php
-										if ( $highest_tier === 'gold' ) {
-											echo '🥇';
-										} elseif ( $highest_tier === 'silver' ) {
-											echo '🥈';
-										} else {
-											echo '🥉';
-										}
-										?>
-									</text>
+								<svg class="badge-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<circle cx="12" cy="12" r="11" class="badge-bg"/>
+									<circle cx="12" cy="12" r="9" class="badge-inner"/>
+									<!-- Crown Icon -->
+									<path d="M12 4L14 9L19 9.5L15.5 13L16.5 18L12 15.5L7.5 18L8.5 13L5 9.5L10 9L12 4Z" class="badge-crown" fill="currentColor"/>
 								</svg>
 							</div>
 						<?php endif; ?>

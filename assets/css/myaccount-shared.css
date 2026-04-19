@@ -215,56 +215,67 @@ input[type="reset"]:focus {
 /* Profile Achievement Badge - Top Right (No Animation) */
 .profile-achievement-badge {
 	position: absolute;
-	top: -5px;
-	right: -5px;
-	width: 50px;
-	height: 50px;
+	top: -8px;
+	right: -8px;
+	width: 36px;
+	height: 36px;
 	z-index: 10;
-	filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+	filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
 	transition: filter 0.3s ease;
 }
 
 .profile-achievement-badge:hover {
-	filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+	filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+
+.badge-icon {
+	width: 100%;
+	height: 100%;
 }
 
 /* Bronze Profile Badge */
-.profile-achievement-badge-bronze .seal-shape {
-	fill: #CD7F32;
-	stroke: #8B5A2B;
-	stroke-width: 1.5;
+.profile-achievement-badge-bronze .badge-bg {
+	fill: #8B4513;
+	stroke: #654321;
+	stroke-width: 1;
 }
 
-.profile-achievement-badge-bronze .seal-inner {
-	fill: #E6A85C;
-	stroke: #CD7F32;
-	stroke-width: 2;
+.profile-achievement-badge-bronze .badge-inner {
+	fill: #CD7F32;
+}
+
+.profile-achievement-badge-bronze .badge-crown {
+	color: #FFF8DC;
 }
 
 /* Silver Profile Badge */
-.profile-achievement-badge-silver .seal-shape {
-	fill: #C0C0C0;
-	stroke: #A8A8A8;
-	stroke-width: 1.5;
+.profile-achievement-badge-silver .badge-bg {
+	fill: #A8A8A8;
+	stroke: #808080;
+	stroke-width: 1;
 }
 
-.profile-achievement-badge-silver .seal-inner {
-	fill: #E8E8E8;
-	stroke: #C0C0C0;
-	stroke-width: 2;
+.profile-achievement-badge-silver .badge-inner {
+	fill: #C0C0C0;
+}
+
+.profile-achievement-badge-silver .badge-crown {
+	color: #FFFFFF;
 }
 
 /* Gold Profile Badge */
-.profile-achievement-badge-gold .seal-shape {
-	fill: url(#profileGoldGradient);
-	stroke: #DAA520;
-	stroke-width: 1.5;
+.profile-achievement-badge-gold .badge-bg {
+	fill: #DAA520;
+	stroke: #B8860B;
+	stroke-width: 1;
 }
 
-.profile-achievement-badge-gold .seal-inner {
-	fill: url(#profileGoldInner);
-	stroke: #FFD700;
-	stroke-width: 2;
+.profile-achievement-badge-gold .badge-inner {
+	fill: #FFD700;
+}
+
+.profile-achievement-badge-gold .badge-crown {
+	color: #FFFFFF;
 }
 
 /* Profile Goal Counter - Bottom Center */
@@ -308,8 +319,10 @@ input[type="reset"]:focus {
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.profile-achievement-badge {
-		width: 42px;
-		height: 42px;
+		width: 32px;
+		height: 32px;
+		top: -6px;
+		right: -6px;
 	}
 	
 	.profile-goal-counter {
