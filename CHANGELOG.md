@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.4.9] - 2026-04-19
+### ⚙️ Dashboard Order Count - Dynamic Status Support
+
+#### ENHANCED - Order Count Uses Commission Calculation Statuses
+**ISSUE:**
+- Dashboard "Total Orders" used hardcoded statuses: `completed`, `processing`, `refunded`
+- Didn't respect the dynamic "Commission Calculation Statuses" from plugin settings
+- Inconsistent with rest of the system which uses dynamic statuses
+
+**SOLUTION:**
+- Dashboard order count now uses `WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses()`
+- Dynamically reads statuses from Settings → Commission Calculation Statuses
+- Matches the behavior of reports, performance tracker, and all other modules
+
+**BEFORE:**
+```php
+'status' => array( 'completed', 'processing', 'refunded' ), // Hardcoded
+```
+
+**AFTER:**
+```php
+$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+'status' => $commission_statuses, // Dynamic from settings
+```
+
+**BENEFITS:**
+- Consistent order counting across entire system
+- Respects admin configuration for commission calculation
+- Flexible - changes in settings automatically apply to dashboard
+- No need to modify code when changing commission statuses
+
+**FILES MODIFIED:**
+- `woocommerce-team-payroll.php` - Updated dashboard order count to use dynamic statuses
+
 ## [1.4.8] - 2026-04-19
 ### 💰 Dashboard Earnings Alignment with Reports KPI
 
