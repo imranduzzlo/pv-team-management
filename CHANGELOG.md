@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.5] - 2026-04-19
+### 🔄 Changed - Admin Employee Details Orders Tab Replication (In Progress)
+
+#### REPLICATED - My Account Orders Table Structure
+**CHANGES:**
+- Copied complete My Account Orders table HTML structure to admin employee details
+- Added proper filter controls (role, status, date range with presets, search, per page)
+- Added sortable table headers with proper column structure
+- Added pagination container
+- Includes: Order ID, Date, Customer, Employee Role, Order Total, Attributed Total, Commission, Earning, Status, Actions
+- **Note**: HTML structure complete, JavaScript implementation in progress
+
+**NEXT STEP:**
+- Replace Orders tab JavaScript with My Account version adapted for admin context
+
 ## [1.6.4] - 2026-04-19
 ### 🐛 Fixed - Attributed Total Display Using Client-Side Formatting
 
