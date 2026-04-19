@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.6.1] - 2026-04-19
+### 🐛 Fixed - Root Cause of Blank Attributed Total Values
+
+#### IDENTIFIED AND FIXED - The Culprit: get_user_earnings() Date Limitation
+**ROOT CAUSE:**
+The `get_user_earnings()` method was being used to fetch orders, but it has built-in date limitations (defaults to current month only). This caused:
+- Orders outside the current month were not being fetched
+- The AJAX handler was trying to enhance non-existent order data
+- Attributed total values were never calculated for most orders
+
+**THE CULPRIT:**
+```php
+// OLD CODE - Limited to current month by default
+$core_engine = new WC_Team_Payroll_Core_Engine();
+$earnings = $core_engine->get_user_earnings( $user_id ); // Only gets current month!
+```
+
+**THE FIX:**
+Completely rewrote the AJAX handler to:
+1. Fetch ALL orders directly using `wc_get_orders()` with `status => 'any'`
+2. Loop through all orders and check user involvement
+3. Calculate attributed total for each order based on role
+4. Build complete order data array from scratch
+5. Apply filters AFTER fetching all data
+
+**NEW LOGIC:**
+- Owner (agent + processor): Full order total
+- Agent only: `commission_data['agent_order_value']`
+- Processor only: `commission_data['processor_order_value']`
+- No dependency on date-limited methods
+
+**FILES MODIFIED:**
+- `includes/class-ajax-handlers.php` - Complete rewrite of get_employee_orders()
+
+---
+
 ## [1.6.0] - 2026-04-19
 ### ✨ Enhanced - Attributed Total Logic for Owner Orders
 

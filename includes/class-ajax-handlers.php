@@ -50,31 +50,32 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$flag = isset( $_POST['flag'] ) ? sanitize_text_field( $_POST['flag'] ) : '';
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
 
-		// Create instance to call non-static method
-		$core_engine = new WC_Team_Payroll_Core_Engine();
-		$earnings = $core_engine->get_user_earnings( $user_id );
-		$orders = $earnings['orders'] ?? array();
+		// Get all orders for this user (not using get_user_earnings which has date limits)
+		$args = array(
+			'limit'  => -1,
+			'status' => 'any',
+		);
 
-		// Enhance orders with additional data needed for display
-		foreach ( $orders as &$order_data ) {
-			$order = wc_get_order( $order_data['order_id'] );
-			if ( ! $order ) {
-				continue;
-			}
+		$all_orders = wc_get_orders( $args );
+		$orders = array();
 
-			// Get commission data and IDs
-			$commission_data = $order->get_meta( '_commission_data' );
+		foreach ( $all_orders as $order ) {
 			$agent_id = $order->get_meta( '_primary_agent_id' );
 			$processor_id = $order->get_meta( '_processor_user_id' );
+			$commission_data = $order->get_meta( '_commission_data' );
+
+			// Check if user is involved in this order
+			$is_agent = intval( $agent_id ) === intval( $user_id );
+			$is_processor = intval( $processor_id ) === intval( $user_id );
+
+			if ( ! $is_agent && ! $is_processor ) {
+				continue;
+			}
 
 			// Determine flag and attributed total
 			$flag = '';
 			$flag_label = '';
 			$attributed_value = 0;
-
-			// Check if user is both agent and processor (owner)
-			$is_agent = intval( $agent_id ) === intval( $user_id );
-			$is_processor = intval( $processor_id ) === intval( $user_id );
 
 			if ( $is_agent && $is_processor ) {
 				// Owner - show full order total
@@ -102,16 +103,34 @@ class WC_Team_Payroll_AJAX_Handlers {
 			$customer_email = $order->get_billing_email();
 			$customer_phone = $order->get_billing_phone();
 
-			// Enhance order data
-			$order_data['customer_name'] = $customer_name;
-			$order_data['customer_email'] = $customer_email;
-			$order_data['customer_phone'] = $customer_phone;
-			$order_data['status'] = $order->get_status();
-			$order_data['flag'] = $flag;
-			$order_data['flag_label'] = $flag_label;
-			$order_data['user_earnings'] = $order_data['earnings'];
-			$order_data['attributed_total'] = $attributed_value;
-			$order_data['attributed_total_formatted'] = $attributed_value > 0 ? wc_price( $attributed_value ) : '—';
+			// Get user earnings
+			$user_earnings = 0;
+			if ( is_array( $commission_data ) ) {
+				if ( $is_agent && $is_processor ) {
+					$user_earnings = floatval( $commission_data['agent_earnings'] ) + floatval( $commission_data['processor_earnings'] );
+				} elseif ( $is_agent ) {
+					$user_earnings = floatval( $commission_data['agent_earnings'] );
+				} elseif ( $is_processor ) {
+					$user_earnings = floatval( $commission_data['processor_earnings'] );
+				}
+			}
+
+			$orders[] = array(
+				'order_id' => $order->get_id(),
+				'date' => $order->get_date_created()->format( 'Y-m-d' ),
+				'total' => $order->get_total(),
+				'commission' => is_array( $commission_data ) ? floatval( $commission_data['total_commission'] ) : 0,
+				'earnings' => $user_earnings,
+				'user_earnings' => $user_earnings,
+				'customer_name' => $customer_name,
+				'customer_email' => $customer_email,
+				'customer_phone' => $customer_phone,
+				'status' => $order->get_status(),
+				'flag' => $flag,
+				'flag_label' => $flag_label,
+				'attributed_total' => $attributed_value,
+				'attributed_total_formatted' => $attributed_value > 0 ? wc_price( $attributed_value ) : '—',
+			);
 		}
 
 		// Filter by date range
