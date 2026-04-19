@@ -553,23 +553,6 @@
 	padding: 0;
 }
 
-.achievement-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 11px;
-	font-weight: 600;
-	color: #28a745;
-	background: rgba(40, 167, 69, 0.1);
-	padding: 4px 8px;
-	border-radius: 4px;
-	width: fit-content;
-}
-
-.achievement-badge i {
-	font-size: 12px;
-}
-
 /* Goal Progress */
 .goal-progress {
 	display: flex;

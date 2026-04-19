@@ -3280,6 +3280,9 @@ class WC_Team_Payroll_Performance_Settings {
 		// Save to database
 		update_option( 'wc_tp_achievement_bonuses', $sanitized_config );
 
+		// Clear WordPress object cache to ensure fresh data on next load
+		wp_cache_delete( 'wc_tp_achievement_bonuses', 'options' );
+
 		wp_send_json_success( array( 
 			'message' => __( 'Bonus configuration saved successfully!', 'wc-team-payroll' ),
 			'config' => $sanitized_config

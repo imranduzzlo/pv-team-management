@@ -207,6 +207,7 @@
 				action: 'wc_tp_get_performance_tracker_data',
 				nonce: wc_tp_reports.nonce,
 				section: section,
+				cache_bust: Date.now(), // Add timestamp to prevent caching
 				...extraData
 			};
 			
@@ -219,6 +220,7 @@
 				url: wc_tp_reports.ajax_url,
 				type: 'POST',
 				data: ajaxData,
+				cache: false, // Disable jQuery AJAX caching
 				success: (response) => {
 					if (response.success) {
 						callback(response.data);

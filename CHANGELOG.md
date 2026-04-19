@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.7] - 2026-04-19
+### 🐛 Bug Fix - Bonus Milestones Cache Issue
+
+#### FIXED - Bonus Milestones Not Showing After Delete/Create
+**ISSUE:**
+- Bonus milestones displayed correctly on first load
+- After deleting old bonus rules and creating new ones, frontend didn't show new bonuses
+- WordPress object cache was not being cleared after saving bonus configuration
+
+**FIXES:**
+- Added `wp_cache_delete()` after `update_option()` in `ajax_save_bonus_config()`
+- Added cache busting to AJAX calls with timestamp parameter (`cache_bust: Date.now()`)
+- Added `cache: false` to jQuery AJAX settings to disable client-side caching
+- Ensures fresh bonus data is always loaded from database
+
+**Files Modified:**
+- `includes/class-performance-settings.php` - Added cache clearing after bonus save
+- `assets/js/performance-tracker.js` - Added cache busting and disabled AJAX cache
+
 ## [1.4.6] - 2026-04-19
 ### 🪙 3D Embossed Gold Coin Badge Design
 
