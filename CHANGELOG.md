@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.4.4] - 2026-04-19
+### ✨ Feature: Premium Profile Picture Badges & UX Improvements
+
+#### NEW - Premium Profile Picture Badges
+**FEATURE - Achievement Badge Overlay (Top-Right):**
+- Premium crown/seal badge showing highest achievement tier
+- Positioned at top-right corner of profile picture (Truecaller-style)
+- Tier-specific colors: Gold (gradient), Silver (metallic), Bronze (copper)
+- NO animations for professional, premium appearance
+- Larger size (50px) for better visibility
+- Smooth hover effect with enhanced shadow
+- Separate CSS class `.profile-achievement-badge` to avoid breaking other designs
+
+**FEATURE - Goal Counter Badge (Bottom-Center):**
+- Star icon badge showing current period goal achievement
+- Displays "X/Y" format (e.g., "2/3", "3/3")
+- Positioned at bottom-center of profile picture
+- White pill-shaped design with golden star icon
+- Blue border matching brand colors
+- Reads from current goal progress (based on admin period settings)
+- Counts achieved goals from 3 metrics: Order Value, Orders Count, AOV
+- Hover effect with scale and shadow enhancement
+
+**Visual Design:**
+- Premium, professional look inspired by Truecaller
+- No distracting animations on profile badges
+- Clean, modern appearance
+- Fully responsive for mobile and desktop
+- Proper z-index layering for badge overlays
+
+**Technical Implementation:**
+- Fetches goal progress from `_wc_tp_current_goal_progress` user meta
+- Calculates achieved goals (status: 'achieved' or 'stretch_achieved')
+- Uses separate gradient IDs to avoid SVG conflicts
+- Responsive sizing: 50px desktop, 42px mobile
+- 240+ lines of new CSS for profile badges
+
+#### IMPROVED - Bonus Configuration UX
+**REFACTOR - Unified Save System:**
+- Removed separate "Save Bonus Configuration" button
+- Integrated bonus saving into unified "Save All Configurations" button
+- Consistent user experience across all Performance Settings tabs
+- Better integration with unsaved changes tracking
+- Cleaner code with less duplication (31 fewer lines)
+
+**Benefits:**
+- Single save button for all configuration changes
+- Validation still works (throws error if fields invalid)
+- Rule number updates on successful save
+- Consistent with Goals, Achievements, Baselines, System tabs
+
+**Files Modified:**
+- `includes/class-myaccount.php`: Added goal calculation and badge HTML
+- `assets/css/myaccount-shared.css`: Added profile badge styles
+- `includes/class-performance-settings.php`: Removed separate save button
+- `assets/js/performance-settings.js`: Integrated into unified save system
+
 ## [1.4.3] - 2026-04-19
 ### 🐛 Bug Fix: JavaScript Syntax Error
 
