@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.4.7
+ * Version: 1.4.8
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.4.7' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.4.8' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -919,7 +919,40 @@ add_action( 'plugins_loaded', function() {
 		$total_due = 0;
 
 		foreach ( $payroll as $data ) {
-			$total_earnings += $data['total'];
+			$user_id = $data['user_id'];
+			
+			// Get commission earnings (already in $data['total'])
+			$commission_earnings = $data['total'];
+			
+			// Get salary earnings for the date range (same logic as reports page KPI)
+			$salary_for_period = 0;
+			$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+			
+			if ( $is_fixed_salary || $is_combined_salary ) {
+				// Get salary transactions within date range
+				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+				if ( is_array( $transactions ) ) {
+					foreach ( $transactions as $transaction ) {
+						if ( ! isset( $transaction['date'] ) ) {
+							continue;
+						}
+						
+						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+								$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+							}
+						}
+					}
+				}
+			}
+			
+			// Total earnings = commission + salary (same as reports page KPI)
+			$employee_total_earnings = $commission_earnings + $salary_for_period;
+			
+			$total_earnings += $employee_total_earnings;
 			$total_paid += $data['paid'];
 			$total_due += $data['due'];
 		}

@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.4.8] - 2026-04-19
+### 💰 Dashboard Earnings Alignment with Reports KPI
+
+#### ENHANCED - Dashboard Total Earnings Calculation
+**ISSUE:**
+- Admin dashboard "Total Earnings" only showed commission earnings
+- Reports page KPI correctly showed commission + salary earnings
+- Inconsistency between dashboard and reports page calculations
+
+**SOLUTION:**
+- Updated dashboard to follow reports page KPI total earnings system
+- Dashboard now calculates: `Total Earnings = Commission + Salary`
+- Includes salary transactions (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer) within date range
+- Applies to all employees (fixed salary, combined salary, commission-only)
+
+**CALCULATION LOGIC:**
+```php
+// For each employee:
+$commission_earnings = sum of agent_earnings + processor_earnings
+$salary_for_period = sum of salary transfers within date range
+$total_earnings = $commission_earnings + $salary_for_period
+```
+
+**BENEFITS:**
+- Consistent earnings reporting across dashboard and reports
+- Accurate total earnings for all employee types
+- Better financial overview for administrators
+
+**Files Modified:**
+- `woocommerce-team-payroll.php` - Updated dashboard AJAX handler earnings calculation
+
 ## [1.4.7] - 2026-04-19
 ### 🐛 Bug Fix - Bonus Milestones Cache Issue
 
