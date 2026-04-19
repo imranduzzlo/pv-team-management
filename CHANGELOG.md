@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.10] - 2026-04-19
+### Fixed
+- **Settings Page**: Fixed unsaved changes warning appearing immediately on Reports & Performance tab load
+- Added 500ms delay before enabling change tracking to allow page initialization to complete
+- **Settings Page**: Hidden main save button on Reports & Performance tab (uses its own save system)
+- Prevents confusion with duplicate save buttons
+
+### Debug
+- Added console logging to Reports page table sorting to diagnose sorting toggle issues
+- Logs table ID, sort column, current sort state, and toggle actions
+
 ## [1.3.9] - 2026-04-19
 ### Fixed
 - **Performance Tracker View Mode**: Fixed date range not updating when dropdown selection changed
