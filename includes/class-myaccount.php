@@ -2789,20 +2789,27 @@ class WC_Team_Payroll_MyAccount {
 		$current_url = home_url( add_query_arg( array() ) );
 		$is_salary_details_page = strpos( $current_url, 'salary-details' ) !== false;
 
-		// Get achievement stats for badge
-		$achievement_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+		// Get monthly achievement for badge (Phase 1: Monthly System)
+		$monthly_achievements = get_user_meta( $user_id, '_wc_tp_monthly_achievements', true );
 		$highest_tier = '';
-		if ( ! empty( $achievement_stats ) ) {
-			$gold_count = isset( $achievement_stats['gold_count'] ) ? intval( $achievement_stats['gold_count'] ) : 0;
-			$silver_count = isset( $achievement_stats['silver_count'] ) ? intval( $achievement_stats['silver_count'] ) : 0;
-			$bronze_count = isset( $achievement_stats['bronze_count'] ) ? intval( $achievement_stats['bronze_count'] ) : 0;
-			
-			if ( $gold_count > 0 ) {
-				$highest_tier = 'gold';
-			} elseif ( $silver_count > 0 ) {
-				$highest_tier = 'silver';
-			} elseif ( $bronze_count > 0 ) {
-				$highest_tier = 'bronze';
+		
+		if ( ! empty( $monthly_achievements ) && isset( $monthly_achievements['highest_tier'] ) ) {
+			$highest_tier = $monthly_achievements['highest_tier'];
+		} else {
+			// Fallback to old system if monthly not available yet
+			$achievement_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+			if ( ! empty( $achievement_stats ) ) {
+				$gold_count = isset( $achievement_stats['gold_count'] ) ? intval( $achievement_stats['gold_count'] ) : 0;
+				$silver_count = isset( $achievement_stats['silver_count'] ) ? intval( $achievement_stats['silver_count'] ) : 0;
+				$bronze_count = isset( $achievement_stats['bronze_count'] ) ? intval( $achievement_stats['bronze_count'] ) : 0;
+				
+				if ( $gold_count > 0 ) {
+					$highest_tier = 'gold';
+				} elseif ( $silver_count > 0 ) {
+					$highest_tier = 'silver';
+				} elseif ( $bronze_count > 0 ) {
+					$highest_tier = 'bronze';
+				}
 			}
 		}
 
