@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.5.7] - 2026-04-19
+### ✨ Enhanced - Admin Employee Details Profile Picture with Badges
+
+#### ADDED - Achievement Badges and Goal Counter to Profile Picture
+**ENHANCEMENT:**
+- Profile picture now circular with #ff9900 border (matching My Account style)
+- Achievement badge displayed at top-right (gold/silver/bronze/locked)
+- Goal counter badge at bottom showing goals achieved (e.g., "2/3")
+- Smooth gold/silver/bronze gradients with outline icons
+- Hover effects on badges for better interactivity
+- Consistent styling between admin and frontend
+
+**FEATURES:**
+- Circular profile picture with 3px #ff9900 border
+- Top-right achievement badge with smooth gradients
+- Bottom goal counter with star icon
+- Responsive design for mobile devices
+- Same badge system as My Account pages
+
+**FILES MODIFIED:**
+- `includes/class-employee-detail.php` - Added badge HTML and CSS
+
+---
+
 ## [1.5.6] - 2026-04-19
 ### 🔧 Improved - Salary Date Filtering with Timestamp Comparison
 

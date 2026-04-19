@@ -68,6 +68,140 @@ class WC_Team_Payroll_Employee_Detail {
 									<span class="dashicons dashicons-admin-users"></span>
 								</div>
 							<?php endif; ?>
+							
+							<?php
+							// Get monthly achievement for badge
+							$monthly_achievements = get_user_meta( $user_id, '_wc_tp_monthly_achievements', true );
+							$highest_tier = '';
+							
+							if ( ! empty( $monthly_achievements ) && isset( $monthly_achievements['highest_tier'] ) ) {
+								$highest_tier = $monthly_achievements['highest_tier'];
+							} else {
+								// Fallback to old system if monthly not available yet
+								$achievement_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+								if ( ! empty( $achievement_stats ) ) {
+									$gold_count = isset( $achievement_stats['gold_count'] ) ? intval( $achievement_stats['gold_count'] ) : 0;
+									$silver_count = isset( $achievement_stats['silver_count'] ) ? intval( $achievement_stats['silver_count'] ) : 0;
+									$bronze_count = isset( $achievement_stats['bronze_count'] ) ? intval( $achievement_stats['bronze_count'] ) : 0;
+									
+									if ( $gold_count > 0 ) {
+										$highest_tier = 'gold';
+									} elseif ( $silver_count > 0 ) {
+										$highest_tier = 'silver';
+									} elseif ( $bronze_count > 0 ) {
+										$highest_tier = 'bronze';
+									}
+								}
+							}
+							
+							// Get goal achievement count
+							$goal_progress = get_user_meta( $user_id, '_wc_tp_current_goal_progress', true );
+							$goals_achieved = 0;
+							$total_goals = 0;
+							
+							if ( ! empty( $goal_progress ) ) {
+								$metrics = array( 'order_value', 'orders', 'aov' );
+								foreach ( $metrics as $metric ) {
+									if ( isset( $goal_progress[ $metric ] ) ) {
+										$total_goals++;
+										$status = isset( $goal_progress[ $metric ]['status'] ) ? $goal_progress[ $metric ]['status'] : '';
+										if ( in_array( $status, array( 'achieved', 'stretch_achieved' ) ) ) {
+											$goals_achieved++;
+										}
+									}
+								}
+							}
+							?>
+							
+							<?php if ( ! empty( $highest_tier ) ) : ?>
+								<div class="profile-achievement-badge profile-achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
+									<svg class="badge-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+										<defs>
+											<!-- Gold Gradients -->
+											<radialGradient id="goldGradient" cx="50%" cy="50%">
+												<stop offset="0%" style="stop-color:#FFF9E6"/>
+												<stop offset="40%" style="stop-color:#FFD700"/>
+												<stop offset="100%" style="stop-color:#DAA520"/>
+											</radialGradient>
+											
+											<!-- Silver Gradients -->
+											<radialGradient id="silverGradient" cx="50%" cy="50%">
+												<stop offset="0%" style="stop-color:#FFFFFF"/>
+												<stop offset="40%" style="stop-color:#E0E0E0"/>
+												<stop offset="100%" style="stop-color:#B0B0B0"/>
+											</radialGradient>
+											
+											<!-- Bronze Gradients -->
+											<radialGradient id="bronzeGradient" cx="50%" cy="50%">
+												<stop offset="0%" style="stop-color:#FFE4C4"/>
+												<stop offset="40%" style="stop-color:#CD7F32"/>
+												<stop offset="100%" style="stop-color:#8B4513"/>
+											</radialGradient>
+										</defs>
+										
+										<!-- Main Circle with Gradient -->
+										<circle cx="50" cy="50" r="45" class="badge-circle"/>
+										
+										<!-- Inner Ring for Depth -->
+										<circle cx="50" cy="50" r="35" class="badge-inner-ring"/>
+										
+										<!-- Crown Icon (Outline Only) -->
+										<g class="badge-icon-outline">
+											<?php if ( $highest_tier === 'gold' ) : ?>
+												<!-- King Crown (Outline) -->
+												<path d="M 30 55 L 33 42 L 40 48 L 50 38 L 60 48 L 67 42 L 70 55 Z" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+												<rect x="30" y="55" width="40" height="8" rx="2" fill="none" stroke-width="3"/>
+												<circle cx="40" cy="42" r="3" fill="none" stroke-width="2"/>
+												<circle cx="50" cy="38" r="3" fill="none" stroke-width="2"/>
+												<circle cx="60" cy="42" r="3" fill="none" stroke-width="2"/>
+											<?php elseif ( $highest_tier === 'silver' ) : ?>
+												<!-- Medal Star (Outline) -->
+												<path d="M 50 35 L 53 45 L 63 46 L 56 53 L 58 63 L 50 58 L 42 63 L 44 53 L 37 46 L 47 45 Z" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+												<circle cx="50" cy="50" r="4" fill="none" stroke-width="2"/>
+											<?php else : ?>
+												<!-- Trophy (Outline) -->
+												<path d="M 40 42 L 40 52 L 44 58 L 56 58 L 60 52 L 60 42 Z" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+												<path d="M 35 42 L 35 47 C 35 50 37 52 40 52" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+												<path d="M 65 42 L 65 47 C 65 50 63 52 60 52" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+												<rect x="45" y="58" width="10" height="5" fill="none" stroke-width="2.5"/>
+												<rect x="40" y="63" width="20" height="4" rx="2" fill="none" stroke-width="2.5"/>
+											<?php endif; ?>
+										</g>
+									</svg>
+								</div>
+							<?php else : ?>
+								<!-- Locked Badge -->
+								<div class="profile-achievement-badge profile-achievement-badge-locked">
+									<svg class="badge-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+										<defs>
+											<radialGradient id="lockedGradient" cx="50%" cy="50%">
+												<stop offset="0%" style="stop-color:#F0F0F0"/>
+												<stop offset="40%" style="stop-color:#D0D0D0"/>
+												<stop offset="100%" style="stop-color:#A0A0A0"/>
+											</radialGradient>
+										</defs>
+										
+										<circle cx="50" cy="50" r="45" class="badge-circle"/>
+										<circle cx="50" cy="50" r="35" class="badge-inner-ring"/>
+										
+										<!-- Lock Icon (Outline) -->
+										<g class="badge-icon-outline">
+											<rect x="42" y="50" width="16" height="14" rx="2" fill="none" stroke-width="3"/>
+											<path d="M 44 50 L 44 44 C 44 40 46.7 37 50 37 C 53.3 37 56 40 56 44 L 56 50" fill="none" stroke-width="3" stroke-linecap="round"/>
+											<circle cx="50" cy="57" r="2.5" fill="none" stroke-width="2"/>
+										</g>
+									</svg>
+								</div>
+							<?php endif; ?>
+							
+							<?php if ( $total_goals > 0 ) : ?>
+								<div class="profile-goal-counter">
+									<svg class="goal-star-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+									</svg>
+									<span class="goal-count"><?php echo esc_html( $goals_achieved . '/' . $total_goals ); ?></span>
+								</div>
+							<?php endif; ?>
 						</div>
 						<div class="wc-tp-profile-info">
 							<h2><?php echo esc_html( $user->display_name ); ?></h2>
@@ -553,32 +687,179 @@ class WC_Team_Payroll_Employee_Detail {
 			.wc-tp-profile-picture {
 				width: 120px;
 				height: 120px;
-				border-radius: 8px;
-				overflow: hidden;
-				border: 2px solid var(--color-border-light);
+				border-radius: 50%;
+				overflow: visible;
+				border: 3px solid #ff9900;
 				flex-shrink: 0;
+				position: relative;
+				background: #fff;
+				display: flex;
+				align-items: center;
+				justify-content: center;
 			}
 
 			.wc-tp-profile-picture img {
 				width: 100%;
 				height: 100%;
 				object-fit: cover;
+				border-radius: 50%;
 			}
 
 			.wc-tp-profile-placeholder {
 				width: 100%;
 				height: 100%;
-				background: var(--color-accent-muted);
+				background: linear-gradient(135deg, #ff9900 0%, #e68a00 100%);
 				display: flex;
 				align-items: center;
 				justify-content: center;
+				border-radius: 50%;
 			}
 
 			.wc-tp-profile-placeholder .dashicons {
 				font-size: 60px;
 				width: 60px;
 				height: 60px;
-				color: var(--text-muted);
+				color: #fff;
+			}
+
+			/* Profile Achievement Badge - Top Right */
+			.profile-achievement-badge {
+				position: absolute;
+				top: -8px;
+				right: -8px;
+				width: 44px;
+				height: 44px;
+				z-index: 10;
+				filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+				transition: all 0.3s ease;
+			}
+
+			.profile-achievement-badge:hover {
+				filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+				transform: scale(1.08);
+			}
+
+			.badge-icon {
+				width: 100%;
+				height: 100%;
+			}
+
+			/* Gold Badge */
+			.profile-achievement-badge-gold .badge-circle {
+				fill: url(#goldGradient);
+				stroke: #B8860B;
+				stroke-width: 2;
+			}
+
+			.profile-achievement-badge-gold .badge-inner-ring {
+				fill: none;
+				stroke: #DAA520;
+				stroke-width: 1.5;
+				opacity: 0.5;
+			}
+
+			.profile-achievement-badge-gold .badge-icon-outline {
+				stroke: #8B6914;
+				fill: none;
+			}
+
+			/* Silver Badge */
+			.profile-achievement-badge-silver .badge-circle {
+				fill: url(#silverGradient);
+				stroke: #909090;
+				stroke-width: 2;
+			}
+
+			.profile-achievement-badge-silver .badge-inner-ring {
+				fill: none;
+				stroke: #B0B0B0;
+				stroke-width: 1.5;
+				opacity: 0.5;
+			}
+
+			.profile-achievement-badge-silver .badge-icon-outline {
+				stroke: #606060;
+				fill: none;
+			}
+
+			/* Bronze Badge */
+			.profile-achievement-badge-bronze .badge-circle {
+				fill: url(#bronzeGradient);
+				stroke: #8B4513;
+				stroke-width: 2;
+			}
+
+			.profile-achievement-badge-bronze .badge-inner-ring {
+				fill: none;
+				stroke: #CD7F32;
+				stroke-width: 1.5;
+				opacity: 0.5;
+			}
+
+			.profile-achievement-badge-bronze .badge-icon-outline {
+				stroke: #6B3410;
+				fill: none;
+			}
+
+			/* Locked Badge */
+			.profile-achievement-badge-locked {
+				opacity: 0.65;
+			}
+
+			.profile-achievement-badge-locked .badge-circle {
+				fill: url(#lockedGradient);
+				stroke: #909090;
+				stroke-width: 2;
+			}
+
+			.profile-achievement-badge-locked .badge-inner-ring {
+				fill: none;
+				stroke: #B0B0B0;
+				stroke-width: 1.5;
+				opacity: 0.5;
+			}
+
+			.profile-achievement-badge-locked .badge-icon-outline {
+				stroke: #707070;
+				fill: none;
+			}
+
+			/* Profile Goal Counter - Bottom Center */
+			.profile-goal-counter {
+				position: absolute;
+				bottom: -8px;
+				left: 50%;
+				transform: translateX(-50%);
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				background: #fff;
+				padding: 4px 10px;
+				border-radius: 20px;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+				z-index: 10;
+				border: 2px solid #ff9900;
+				transition: all 0.3s ease;
+			}
+
+			.profile-goal-counter:hover {
+				box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+				transform: translateX(-50%) scale(1.05);
+			}
+
+			.goal-star-icon {
+				width: 16px;
+				height: 16px;
+				color: #FFC107;
+				flex-shrink: 0;
+			}
+
+			.goal-count {
+				font-size: 12px;
+				font-weight: 700;
+				color: #ff9900;
+				line-height: 1;
+				white-space: nowrap;
 			}
 
 			.wc-tp-profile-info {
