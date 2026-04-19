@@ -1,7 +1,12 @@
 <?php
 /**
  * GitHub Plugin Updater
- * Enables automatic updates from GitHub repository
+ * 
+ * Professional GitHub updater that checks for plugin updates from GitHub releases
+ * Works like WordPress.org plugins - shows updates whether plugin is active or not
+ * 
+ * @package WC_Team_Payroll
+ * @version 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,106 +15,155 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WC_Team_Payroll_GitHub_Updater {
 
-	private $plugin_slug;
-	private $plugin_file;
-	private $github_repo;
-	private $github_user;
-	private $github_branch;
+	/**
+	 * GitHub repository owner
+	 * @var string
+	 */
+	private $github_user = 'imranduzzlo';
+
+	/**
+	 * GitHub repository name
+	 * @var string
+	 */
+	private $github_repo = 'pv-team-payroll';
+
+	/**
+	 * Plugin slug (folder name)
+	 * @var string
+	 */
+	private $plugin_slug = 'woocommerce-team-payroll';
+
+	/**
+	 * Plugin basename (folder/file.php)
+	 * @var string
+	 */
+	private $plugin_basename = 'woocommerce-team-payroll/woocommerce-team-payroll.php';
+
+	/**
+	 * GitHub API URL
+	 * @var string
+	 */
 	private $github_api_url;
 
+	/**
+	 * Plugin data
+	 * @var array
+	 */
+	private $plugin_data = array();
+
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
-		$this->plugin_slug = 'woocommerce-team-payroll';
-		$this->plugin_file = 'woocommerce-team-payroll/woocommerce-team-payroll.php';
-		$this->github_user = 'imranduzzlo';
-		$this->github_repo = 'pv-team-management';
-		$this->github_branch = 'main';
-		$this->github_api_url = "https://api.github.com/repos/{$this->github_user}/{$this->github_repo}";
+		// Build GitHub API URL
+		$this->github_api_url = sprintf(
+			'https://api.github.com/repos/%s/%s',
+			$this->github_user,
+			$this->github_repo
+		);
 
-		// Hook into WordPress update checks
+		// Get plugin data
+		$this->plugin_data = $this->get_plugin_data();
+
+		// Hook into WordPress update system
+		$this->init_hooks();
+	}
+
+	/**
+	 * Initialize WordPress hooks
+	 */
+	private function init_hooks() {
+		// Check for updates (runs on every update check)
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
-		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
 		
-		// Clear cache on plugin activation
-		add_action( 'activated_plugin', array( $this, 'clear_cache' ) );
+		// Provide plugin information for update details
+		add_filter( 'plugins_api', array( $this, 'get_plugin_info' ), 20, 3 );
 		
-		// Force check on admin page load
-		add_action( 'admin_init', array( $this, 'force_check' ) );
+		// Add "View details" link
+		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
+		
+		// Clear cache when needed
+		add_action( 'upgrader_process_complete', array( $this, 'clear_update_cache' ), 10, 2 );
+		
+		// Force check on admin init (optional - can be removed for production)
+		if ( isset( $_GET['force-check'] ) && current_user_can( 'update_plugins' ) ) {
+			add_action( 'admin_init', array( $this, 'force_update_check' ) );
+		}
 	}
 
 	/**
-	 * Clear update cache
+	 * Get plugin data from main file
+	 * 
+	 * @return array Plugin data
 	 */
-	public function clear_cache() {
-		delete_transient( 'wc_tp_github_release' );
-		delete_transient( 'wc_tp_last_update_check' );
-		delete_transient( 'update_plugins' );
-	}
+	private function get_plugin_data() {
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
 
-	/**
-	 * Force update check on admin init
-	 */
-	public function force_check() {
-		// Clear cache to force fresh check
-		delete_transient( 'wc_tp_github_release' );
-		delete_transient( 'wc_tp_last_update_check' );
+		$plugin_file = WP_PLUGIN_DIR . '/' . $this->plugin_basename;
 		
-		// Trigger WordPress update check
-		wp_update_plugins();
+		if ( ! file_exists( $plugin_file ) ) {
+			return array();
+		}
+
+		return get_plugin_data( $plugin_file, false, false );
 	}
 
 	/**
-	 * Check for plugin updates from GitHub
+	 * Check for plugin updates
+	 * 
+	 * @param object $transient Update transient
+	 * @return object Modified transient
 	 */
 	public function check_for_update( $transient ) {
+		// If no checked plugins, return early
 		if ( empty( $transient->checked ) ) {
 			return $transient;
 		}
 
-		// Initialize response if not set
-		if ( ! isset( $transient->response ) ) {
-			$transient->response = array();
-		}
-
-		$current_version = $this->get_current_version();
+		// Get current version
+		$current_version = isset( $this->plugin_data['Version'] ) ? $this->plugin_data['Version'] : '0.0.0';
 
 		// Get latest release from GitHub
 		$latest_release = $this->get_latest_release();
 
+		// If no release found, return transient unchanged
 		if ( ! $latest_release ) {
-			// Remove from response if no release found
-			unset( $transient->response[ $this->plugin_file ] );
 			return $transient;
 		}
 
-		// Normalize versions for comparison
-		$latest_version = $this->normalize_version( $latest_release['version'] );
-		$current_version_normalized = $this->normalize_version( $current_version );
+		// Compare versions
+		$latest_version = $this->normalize_version( $latest_release->version );
+		$current_version = $this->normalize_version( $current_version );
 
-		// Debug logging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( "WC Team Payroll Update Check: Current={$current_version_normalized}, Latest={$latest_version}, Compare=" . version_compare( $latest_version, $current_version_normalized, '>' ) );
-		}
+		// Debug log (only if WP_DEBUG is enabled)
+		$this->log( sprintf(
+			'Update Check: Current=%s, Latest=%s, Update Available=%s',
+			$current_version,
+			$latest_version,
+			version_compare( $latest_version, $current_version, '>' ) ? 'YES' : 'NO'
+		) );
 
-		// Only add to response if there's a newer version
-		if ( version_compare( $latest_version, $current_version_normalized, '>' ) ) {
-			$transient->response[ $this->plugin_file ] = (object) array(
-				'id'            => $this->github_repo,
+		// If newer version available, add to update transient
+		if ( version_compare( $latest_version, $current_version, '>' ) ) {
+			$transient->response[ $this->plugin_basename ] = (object) array(
 				'slug'          => $this->plugin_slug,
-				'plugin'        => $this->plugin_file,
+				'plugin'        => $this->plugin_basename,
 				'new_version'   => $latest_version,
-				'url'           => $latest_release['url'],
-				'package'       => $latest_release['download_url'],
-				'tested'        => '6.4',
-				'requires'      => '5.0',
-				'requires_php'  => '7.2',
+				'url'           => $latest_release->html_url,
+				'package'       => $latest_release->download_url,
 				'icons'         => array(),
 				'banners'       => array(),
-				'upgrade_notice' => 'New version available from GitHub',
+				'banners_rtl'   => array(),
+				'tested'        => '6.7',
+				'requires_php'  => '7.2',
+				'compatibility' => new stdClass(),
 			);
 		} else {
-			// Explicitly remove from response if versions are equal or current is newer
-			if ( isset( $transient->response[ $this->plugin_file ] ) ) {
-				unset( $transient->response[ $this->plugin_file ] );
+			// Remove from response if no update available
+			if ( isset( $transient->response[ $this->plugin_basename ] ) ) {
+				unset( $transient->response[ $this->plugin_basename ] );
 			}
 		}
 
@@ -117,195 +171,240 @@ class WC_Team_Payroll_GitHub_Updater {
 	}
 
 	/**
-	 * Get current plugin version
+	 * Get plugin information for the update modal
+	 * 
+	 * @param false|object|array $result The result object or array
+	 * @param string $action The type of information being requested
+	 * @param object $args Plugin API arguments
+	 * @return false|object Modified result
 	 */
-	private function get_current_version() {
-		if ( ! function_exists( 'get_plugin_data' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		// Get the plugin file path
-		$plugin_file_path = WP_PLUGIN_DIR . '/' . $this->plugin_file;
-		
-		// Make sure the file exists
-		if ( ! file_exists( $plugin_file_path ) ) {
-			return '0';
-		}
-
-		$plugin_data = get_plugin_data( $plugin_file_path );
-		$version = isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0';
-		
-		// Debug log
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( "WC Team Payroll: Reading version from {$plugin_file_path}: {$version}" );
-		}
-		
-		return $version;
-	}
-
-	/**
-	 * Normalize version string
-	 */
-	private function normalize_version( $version ) {
-		// Remove 'v' prefix if present
-		$version = ltrim( $version, 'v' );
-		// Remove any whitespace
-		$version = trim( $version );
-		// Ensure it's a valid version format (add .0 if needed)
-		if ( ! preg_match( '/^\d+\.\d+\.\d+/', $version ) ) {
-			// If it's just X.Y, add .0
-			if ( preg_match( '/^\d+\.\d+$/', $version ) ) {
-				$version = $version . '.0';
-			} else {
-				$version = '0.0.0';
-			}
-		}
-		return $version;
-	}
-
-	/**
-	 * Get plugin info for the update modal
-	 */
-	public function plugin_info( $result, $action, $args ) {
+	public function get_plugin_info( $result, $action, $args ) {
+		// Only handle plugin_information requests
 		if ( $action !== 'plugin_information' ) {
 			return $result;
 		}
 
-		if ( $args->slug !== $this->plugin_slug ) {
+		// Only handle our plugin
+		if ( ! isset( $args->slug ) || $args->slug !== $this->plugin_slug ) {
 			return $result;
 		}
 
+		// Get latest release
 		$latest_release = $this->get_latest_release();
 
 		if ( ! $latest_release ) {
 			return $result;
 		}
 
-		$result = (object) array(
-			'name'            => 'WooCommerce Team Payroll & Commission System',
-			'slug'            => $this->plugin_slug,
-			'version'         => $latest_release['version'],
-			'author'          => 'Imran',
-			'author_profile'  => 'https://imranhossain.me/',
-			'download_link'   => $latest_release['download_url'],
-			'trunk'           => $latest_release['download_url'],
-			'requires'        => '5.0',
-			'requires_php'    => '7.2',
-			'tested'          => '6.4',
-			'last_updated'    => $latest_release['updated'],
-			'sections'        => array(
-				'description' => 'Manage team-based commission and payroll system with agents and processors',
-				'changelog'   => $this->get_changelog(),
-			),
-			'banners'         => array(),
-			'icons'           => array(),
+		// Build plugin info object
+		$plugin_info = new stdClass();
+		$plugin_info->name = $this->plugin_data['Name'];
+		$plugin_info->slug = $this->plugin_slug;
+		$plugin_info->version = $latest_release->version;
+		$plugin_info->author = $this->plugin_data['Author'];
+		$plugin_info->author_profile = $this->plugin_data['AuthorURI'];
+		$plugin_info->requires = '5.0';
+		$plugin_info->tested = '6.7';
+		$plugin_info->requires_php = '7.2';
+		$plugin_info->download_link = $latest_release->download_url;
+		$plugin_info->trunk = $latest_release->download_url;
+		$plugin_info->last_updated = $latest_release->published_at;
+		$plugin_info->homepage = $this->plugin_data['PluginURI'];
+		
+		// Sections
+		$plugin_info->sections = array(
+			'description' => $this->plugin_data['Description'],
+			'changelog'   => $this->get_changelog_html( $latest_release ),
 		);
 
-		return $result;
+		// Additional info
+		$plugin_info->banners = array();
+		$plugin_info->icons = array();
+
+		return $plugin_info;
 	}
 
 	/**
 	 * Get latest release from GitHub
+	 * 
+	 * @return object|false Release object or false on failure
 	 */
 	private function get_latest_release() {
-		$transient_key = 'wc_tp_github_release';
-		$cached = get_transient( $transient_key );
+		// Check cache first
+		$cache_key = 'wc_tp_github_release_' . md5( $this->github_repo );
+		$cached = get_transient( $cache_key );
 
-		if ( $cached !== false ) {
+		if ( false !== $cached ) {
 			return $cached;
 		}
 
-		$response = wp_remote_get(
-			"{$this->github_api_url}/releases/latest",
-			array(
-				'timeout'   => 10,
-				'sslverify' => true,
-				'headers'   => array(
-					'Accept' => 'application/vnd.github.v3+json',
-					'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
-				),
-			)
-		);
+		// Fetch from GitHub API
+		$api_url = $this->github_api_url . '/releases/latest';
+		
+		$response = wp_remote_get( $api_url, array(
+			'timeout' => 10,
+			'headers' => array(
+				'Accept'     => 'application/vnd.github.v3+json',
+				'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ),
+			),
+		) );
 
+		// Handle errors
 		if ( is_wp_error( $response ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'WC Team Payroll GitHub API Error: ' . $response->get_error_message() );
-			}
+			$this->log( 'GitHub API Error: ' . $response->get_error_message() );
 			return false;
 		}
 
-		$http_code = wp_remote_retrieve_response_code( $response );
-		if ( $http_code !== 200 ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( "WC Team Payroll GitHub API HTTP {$http_code}: " . wp_remote_retrieve_body( $response ) );
-			}
+		$response_code = wp_remote_retrieve_response_code( $response );
+		
+		if ( $response_code !== 200 ) {
+			$this->log( sprintf( 'GitHub API returned HTTP %d', $response_code ) );
 			return false;
 		}
 
+		// Parse response
 		$body = wp_remote_retrieve_body( $response );
-		$release = json_decode( $body, true );
+		$release_data = json_decode( $body );
 
-		if ( ! isset( $release['tag_name'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'WC Team Payroll GitHub API: No tag_name in response' );
-			}
+		if ( ! $release_data || ! isset( $release_data->tag_name ) ) {
+			$this->log( 'Invalid GitHub API response - no tag_name found' );
 			return false;
 		}
 
-		$version = ltrim( $release['tag_name'], 'v' );
-		$download_url = "{$this->github_api_url}/zipball/{$release['tag_name']}";
+		// Build release object
+		$release = new stdClass();
+		$release->version = $this->normalize_version( $release_data->tag_name );
+		$release->html_url = $release_data->html_url;
+		$release->download_url = $release_data->zipball_url;
+		$release->published_at = $release_data->published_at;
+		$release->body = isset( $release_data->body ) ? $release_data->body : '';
+		$release->name = isset( $release_data->name ) ? $release_data->name : $release_data->tag_name;
 
-		$result = array(
-			'version'      => $version,
-			'url'          => $release['html_url'],
-			'download_url' => $download_url,
-			'updated'      => $release['published_at'],
-		);
+		// Cache for 6 hours
+		set_transient( $cache_key, $release, 6 * HOUR_IN_SECONDS );
 
-		// Cache for 12 hours (longer cache to avoid rate limiting)
-		set_transient( $transient_key, $result, 12 * HOUR_IN_SECONDS );
-
-		return $result;
+		return $release;
 	}
 
 	/**
-	 * Get changelog from GitHub releases
+	 * Get changelog HTML from release notes
+	 * 
+	 * @param object $release Release object
+	 * @return string Changelog HTML
 	 */
-	private function get_changelog() {
-		$response = wp_remote_get(
-			"{$this->github_api_url}/releases",
-			array(
-				'timeout'   => 10,
-				'sslverify' => true,
-				'headers'   => array(
-					'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ),
-				),
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return 'Unable to fetch changelog from GitHub.';
+	private function get_changelog_html( $release ) {
+		if ( empty( $release->body ) ) {
+			return '<p>No changelog available.</p>';
 		}
 
-		$body = wp_remote_retrieve_body( $response );
-		$releases = json_decode( $body, true );
-
-		if ( ! is_array( $releases ) || empty( $releases ) ) {
-			return 'No releases found.';
-		}
-
-		$changelog = '<ul>';
-		foreach ( array_slice( $releases, 0, 5 ) as $release ) {
-			$changelog .= '<li><strong>' . esc_html( $release['tag_name'] ) . '</strong> - ' . esc_html( $release['published_at'] ) . '<br/>';
-			$changelog .= wp_kses_post( wpautop( $release['body'] ) ) . '</li>';
-		}
-		$changelog .= '</ul>';
+		// Convert markdown to HTML (basic conversion)
+		$changelog = $release->body;
+		
+		// Convert headers
+		$changelog = preg_replace( '/^### (.+)$/m', '<h3>$1</h3>', $changelog );
+		$changelog = preg_replace( '/^## (.+)$/m', '<h2>$1</h2>', $changelog );
+		$changelog = preg_replace( '/^# (.+)$/m', '<h1>$1</h1>', $changelog );
+		
+		// Convert lists
+		$changelog = preg_replace( '/^\* (.+)$/m', '<li>$1</li>', $changelog );
+		$changelog = preg_replace( '/^- (.+)$/m', '<li>$1</li>', $changelog );
+		
+		// Wrap lists in ul tags
+		$changelog = preg_replace( '/(<li>.*<\/li>)/s', '<ul>$1</ul>', $changelog );
+		
+		// Convert line breaks to paragraphs
+		$changelog = wpautop( $changelog );
 
 		return $changelog;
 	}
+
+	/**
+	 * Normalize version string
+	 * Removes 'v' prefix and ensures proper format
+	 * 
+	 * @param string $version Version string
+	 * @return string Normalized version
+	 */
+	private function normalize_version( $version ) {
+		// Remove 'v' prefix
+		$version = ltrim( trim( $version ), 'v' );
+		
+		// Ensure valid version format
+		if ( ! preg_match( '/^\d+\.\d+\.\d+/', $version ) ) {
+			// If only X.Y, add .0
+			if ( preg_match( '/^\d+\.\d+$/', $version ) ) {
+				$version .= '.0';
+			}
+		}
+
+		return $version;
+	}
+
+	/**
+	 * Add plugin row meta links
+	 * 
+	 * @param array $links Plugin row meta
+	 * @param string $file Plugin basename
+	 * @return array Modified links
+	 */
+	public function plugin_row_meta( $links, $file ) {
+		if ( $file === $this->plugin_basename ) {
+			$links[] = sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				'https://github.com/' . $this->github_user . '/' . $this->github_repo,
+				__( 'View on GitHub', 'wc-team-payroll' )
+			);
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Clear update cache after plugin update
+	 * 
+	 * @param WP_Upgrader $upgrader Upgrader instance
+	 * @param array $options Update options
+	 */
+	public function clear_update_cache( $upgrader, $options ) {
+		if ( $options['action'] === 'update' && $options['type'] === 'plugin' ) {
+			$cache_key = 'wc_tp_github_release_' . md5( $this->github_repo );
+			delete_transient( $cache_key );
+		}
+	}
+
+	/**
+	 * Force update check (for debugging)
+	 */
+	public function force_update_check() {
+		// Clear cache
+		$cache_key = 'wc_tp_github_release_' . md5( $this->github_repo );
+		delete_transient( $cache_key );
+		delete_site_transient( 'update_plugins' );
+		
+		// Trigger update check
+		wp_update_plugins();
+		
+		// Redirect to plugins page
+		wp_redirect( admin_url( 'plugins.php' ) );
+		exit;
+	}
+
+	/**
+	 * Log debug messages (only if WP_DEBUG is enabled)
+	 * 
+	 * @param string $message Log message
+	 */
+	private function log( $message ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[WC Team Payroll Updater] ' . $message );
+		}
+	}
 }
 
-// Initialize updater on plugins_loaded to ensure plugin version is defined
-add_action( 'plugins_loaded', function() {
+// Initialize the updater
+function wc_team_payroll_init_github_updater() {
 	new WC_Team_Payroll_GitHub_Updater();
-}, 25 );
+}
+
+// Hook into plugins_loaded with priority 5 (early)
+add_action( 'plugins_loaded', 'wc_team_payroll_init_github_updater', 5 );
