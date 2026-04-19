@@ -1,5 +1,102 @@
 # Changelog
 
+## [1.4.6] - 2026-04-19
+### 🪙 3D Embossed Gold Coin Badge Design
+
+#### REDESIGNED - Exact Match to Premium Coin Style
+**DESIGN - 3D Embossed Coin Badges:**
+- Realistic 3D embossed coin/medal appearance
+- Multiple layered circles for depth effect
+- Radial gradients for top-lit 3D look
+- Tier-specific icons (Crown, Medal, Trophy, Lock)
+- Professional metallic finish
+
+**Badge Structure (4 Layers):**
+
+**Layer 1 - Outer Ring (48px):**
+- Border circle with radial gradient
+- Darker edges, lighter center
+- Stroke outline for definition
+
+**Layer 2 - Middle Ring (44px):**
+- Depth layer with 60% opacity
+- Creates shadow/depth effect
+- Darker color for recession
+
+**Layer 3 - Inner Surface (38px):**
+- Main gradient surface
+- Radial gradient (light center → dark edges)
+- Primary badge color
+
+**Layer 4 - Icon Area (28px):**
+- Embossed icon container
+- Semi-transparent overlay
+- Creates raised effect
+
+**Layer 5 - Icon:**
+- Tier-specific symbol
+- Embossed with stroke outline
+- Accent colors for details
+
+**Badge Tier Designs:**
+
+👑 **GOLD BADGE - King Crown:**
+- Radial gradient: #FFF4A3 (light) → #FFD700 (mid) → #B8860B (dark)
+- King crown icon with 3 jewels
+- Dark gold embossed icon (#8B6914)
+- Golden jewel accents (#FFD700)
+- Most prestigious appearance
+
+🥈 **SILVER BADGE - Medal Star:**
+- Radial gradient: #F5F5F5 (light) → #C0C0C0 (mid) → #808080 (dark)
+- Medal star icon with center dot
+- Gray embossed icon (#696969)
+- Light silver accents (#E8E8E8)
+- Metallic professional look
+
+🏆 **BRONZE BADGE - Trophy Cup:**
+- Radial gradient: #F4C896 (light) → #CD7F32 (mid) → #8B4513 (dark)
+- Trophy cup with handles and base
+- Brown embossed icon (#6B3410)
+- Bronze accents (#E6A85C)
+- Warm encouraging appearance
+
+🔒 **LOCKED BADGE - Padlock:**
+- Radial gradient: #E0E0E0 (light) → #BDBDBD (mid) → #9E9E9E (dark)
+- Padlock icon with keyhole
+- Gray embossed icon (#757575)
+- Dimmed appearance (70% opacity)
+- Shows potential achievement
+
+**Visual Features:**
+- Radial gradients create realistic 3D depth
+- Multiple circle layers simulate embossing
+- Top-lit appearance (light center, dark edges)
+- Strong drop shadows for elevation
+- Embossed icons with stroke outlines
+- Accent colors for icon details
+- 44px desktop, 38px mobile
+- Smooth hover scale effect (1.08x)
+
+**Design Inspiration:**
+- Premium gold coins and medals
+- Olympic medals design
+- Luxury brand badges
+- 3D embossed metallic effects
+- Professional achievement systems
+
+**Technical Implementation:**
+- SVG with embedded radial gradients
+- 4-layer circle structure for depth
+- Opacity layers for shadow effects
+- Tier-specific icon paths
+- CSS filters for drop shadows
+- Responsive sizing
+
+**Files Modified:**
+- `includes/class-myaccount.php`: 4-layer SVG structure with icons
+- `assets/css/myaccount-shared.css`: 3D embossed coin styles
+
 ## [1.4.5] - 2026-04-19
 ### 🎨 Premium Badge Design with Gradients & Locked State
 
