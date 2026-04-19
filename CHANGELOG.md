@@ -1,5 +1,48 @@
 # Changelog
 
+## [1.5.3] - 2026-04-19
+### 🐛 Dashboard Total Orders - Fix Undercount Issue
+
+#### FIXED - Count All Orders with Commission Statuses
+**ISSUE:**
+- Dashboard "Total Orders" was undercounting orders
+- Only counted orders that had `_commission_data` meta saved
+- Orders without commission data (no agent/processor assigned) were excluded
+- Example: 3 orders in date range, but only 2 counted
+
+**ROOT CAUSE:**
+```php
+// OLD - Only counted orders with commission data
+foreach ( $orders as $order ) {
+    $commission_data = $order->get_meta( '_commission_data' );
+    if ( $commission_data ) { // ❌ Excludes orders without commission data
+        $unique_orders[ $order->get_id() ] = true;
+    }
+}
+```
+
+**SOLUTION:**
+- Count ALL orders with commission calculation statuses
+- No longer requires `_commission_data` meta to exist
+- If order has commission status (completed, processing, etc.), it's counted
+- Matches expected behavior: count all orders with configured statuses
+
+**NEW LOGIC:**
+```php
+// Get all orders with commission calculation statuses
+$orders = wc_get_orders( $args );
+$total_orders = count( $orders ); // ✅ Count all orders with commission statuses
+```
+
+**BENEFITS:**
+- Accurate order count (no undercounting)
+- Counts all orders with commission calculation statuses
+- Whether order has commission data is irrelevant for counting
+- Consistent with user expectations
+
+**FILES MODIFIED:**
+- `woocommerce-team-payroll.php` - Removed commission_data check from order counting
+
 ## [1.5.2] - 2026-04-19
 ### 💰 Employee Payroll Details - Complete Earnings & Due Calculation
 

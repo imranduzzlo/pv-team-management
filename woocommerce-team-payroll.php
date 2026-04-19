@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.5.2
+ * Version: 1.5.3
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.5.2' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.5.3' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -997,7 +997,6 @@ add_action( 'plugins_loaded', function() {
 		// Use dynamic commission calculation statuses from settings
 		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
 		
-		$unique_orders = array();
 		$args = array(
 			'limit'  => -1,
 			'status' => $commission_statuses, // Use dynamic statuses from settings
@@ -1010,15 +1009,8 @@ add_action( 'plugins_loaded', function() {
 			),
 		);
 		$orders = wc_get_orders( $args );
-		foreach ( $orders as $order ) {
-			$commission_data = $order->get_meta( '_commission_data' );
-			
-			// Only count orders that have commission data
-			if ( $commission_data ) {
-				$unique_orders[ $order->get_id() ] = true;
-			}
-		}
-		$total_orders = count( $unique_orders );
+		// Count all orders with commission calculation statuses (no need to check commission_data)
+		$total_orders = count( $orders );
 
 		// Get latest employees (filtered by user creation date)
 		$latest_employees_data = array();
