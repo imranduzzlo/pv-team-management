@@ -767,13 +767,20 @@ class WC_Team_Payroll_Settings {
 		<script>
 			jQuery(document).ready(function($) {
 				let hasChanges = false;
+				let trackChanges = false; // Flag to prevent tracking during initialization
 				const form = $('#wc-tp-settings-form');
 				const warningDiv = $('#wc-tp-unsaved-warning');
 				const originalFormData = form.serialize();
 
+				// Enable change tracking after page initialization (500ms delay)
+				setTimeout(function() {
+					trackChanges = true;
+					console.log('Change tracking enabled');
+				}, 500);
+
 				// Track all form changes
 				form.on('change', 'input, select, textarea', function() {
-					if (!hasChanges) {
+					if (trackChanges && !hasChanges) {
 						hasChanges = true;
 						warningDiv.fadeIn(300);
 					}
@@ -781,7 +788,7 @@ class WC_Team_Payroll_Settings {
 
 				// Track checkbox changes
 				form.on('change', 'input[type="checkbox"]', function() {
-					if (!hasChanges) {
+					if (trackChanges && !hasChanges) {
 						hasChanges = true;
 						warningDiv.fadeIn(300);
 					}
@@ -789,7 +796,7 @@ class WC_Team_Payroll_Settings {
 
 				// Track color picker changes
 				form.on('change', 'input[type="color"]', function() {
-					if (!hasChanges) {
+					if (trackChanges && !hasChanges) {
 						hasChanges = true;
 						warningDiv.fadeIn(300);
 					}
@@ -813,7 +820,8 @@ class WC_Team_Payroll_Settings {
 				window.wcTpCheckUnsavedChanges = function() {
 					return {
 						hasChanges: hasChanges,
-						warningVisible: warningDiv.is(':visible')
+						warningVisible: warningDiv.is(':visible'),
+						trackChanges: trackChanges
 					};
 				};
 
