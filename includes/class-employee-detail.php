@@ -143,6 +143,9 @@ class WC_Team_Payroll_Employee_Detail {
 				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=salary" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'salary' ) ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Salary Management', 'wc-team-payroll' ); ?>
 				</a>
+				<a href="?page=wc-team-payroll-employee-detail&user_id=<?php echo esc_attr( $user_id ); ?>&tab=performance" class="nav-tab <?php echo ( isset( $_GET['tab'] ) && $_GET['tab'] === 'performance' ) ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Performance', 'wc-team-payroll' ); ?>
+				</a>
 			</nav>
 
 			<!-- Tab Content -->
@@ -156,6 +159,8 @@ class WC_Team_Payroll_Employee_Detail {
 					$this->render_payments_tab( $user_id );
 				} elseif ( $current_tab === 'salary' ) {
 					$this->render_salary_tab( $user_id );
+				} elseif ( $current_tab === 'performance' ) {
+					$this->render_performance_tab( $user_id );
 				}
 				?>
 			</div>
@@ -2972,5 +2977,98 @@ class WC_Team_Payroll_Employee_Detail {
 			});
 		</script>
 		<?php
+	}
+
+	/**
+	 * Render Performance Tab
+	 */
+	private function render_performance_tab( $user_id ) {
+		// Enqueue Phosphor Icons
+		wp_enqueue_script(
+			'phosphor-icons',
+			'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2',
+			array(),
+			'2.1.2',
+			true
+		);
+
+		// Enqueue shared CSS (for common components)
+		wp_enqueue_style(
+			'wc-team-payroll-shared',
+			WC_TEAM_PAYROLL_URL . 'assets/css/myaccount-shared.css',
+			array(),
+			WC_TEAM_PAYROLL_VERSION
+		);
+
+		// Enqueue Performance Tracker CSS
+		wp_enqueue_style(
+			'wc-team-payroll-performance-tracker',
+			WC_TEAM_PAYROLL_URL . 'assets/css/performance-tracker.css',
+			array( 'wc-team-payroll-shared' ),
+			WC_TEAM_PAYROLL_VERSION
+		);
+
+		// Enqueue Performance Tracker JavaScript
+		wp_enqueue_script(
+			'wc-team-payroll-performance-tracker',
+			WC_TEAM_PAYROLL_URL . 'assets/js/performance-tracker.js',
+			array( 'jquery' ),
+			WC_TEAM_PAYROLL_VERSION,
+			true
+		);
+
+		// Localize script with necessary data for AJAX calls
+		wp_localize_script(
+			'wc-team-payroll-performance-tracker',
+			'wc_tp_reports',
+			array(
+				'ajax_url'        => admin_url( 'admin-ajax.php' ),
+				'nonce'           => wp_create_nonce( 'wc_team_payroll_nonce' ),
+				'currency_symbol' => get_woocommerce_currency_symbol(),
+				'currency_pos'    => get_option( 'woocommerce_currency_pos', 'left' ),
+			)
+		);
+
+		?>
+		<div class="wc-tp-performance-tab">
+			<!-- Performance Tracker Section -->
+			<div class="performance-tracker-wrapper pv-section-wrapper" id="performance-tracker-container">
+				<!-- Performance Header -->
+				<div class="performance-header">
+					<h3><?php esc_html_e( 'Performance Tracker', 'wc-team-payroll' ); ?></h3>
+					<select id="performance-view-selector">
+						<option value="current"><?php esc_html_e( 'Current Period', 'wc-team-payroll' ); ?></option>
+					</select>
+				</div>
+
+				<!-- Performance Tabs -->
+				<div class="performance-tabs">
+					<button class="performance-tab active" data-tab="overview">
+						<i class="ph ph-chart-line"></i> <?php esc_html_e( 'Overview', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="goals">
+						<i class="ph ph-target"></i> <?php esc_html_e( 'Goals', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="achievements">
+						<i class="ph ph-trophy"></i> <?php esc_html_e( 'Achievements', 'wc-team-payroll' ); ?>
+					</button>
+					<button class="performance-tab" data-tab="baselines">
+						<i class="ph ph-chart-line-up"></i> <?php esc_html_e( 'Baselines', 'wc-team-payroll' ); ?>
+					</button>
+				</div>
+
+				<!-- Performance Content -->
+				<div id="performance-content">
+					<div class="performance-loading">
+						<i class="ph ph-spinner ph-spin"></i>
+						<p><?php esc_html_e( 'Loading performance data...', 'wc-team-payroll' ); ?></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<input type="hidden" id="wc-tp-current-user-id" value="<?php echo esc_attr( $user_id ); ?>" />
+		<?php
+		wp_nonce_field( 'wc_team_payroll_nonce', 'wc_team_payroll_nonce' );
 	}
 }

@@ -27,7 +27,17 @@ class WC_Team_Payroll_Performance_Tracker_AJAX {
 	public static function ajax_get_performance_tracker_data() {
 		check_ajax_referer( 'wc_team_payroll_nonce', 'nonce' );
 
-		$user_id = get_current_user_id();
+		// Check if user_id is provided (for admin viewing employee performance)
+		$requested_user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+		
+		// If user_id is provided and current user is admin, use that user_id
+		if ( $requested_user_id && current_user_can( 'manage_options' ) ) {
+			$user_id = $requested_user_id;
+		} else {
+			// Otherwise use current logged-in user
+			$user_id = get_current_user_id();
+		}
+
 		if ( ! $user_id ) {
 			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
 		}

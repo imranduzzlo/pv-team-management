@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.8] - 2026-04-19
+### Added
+- **Admin Performance Tab**: Added Performance Tracker to admin employee details page
+- New "Performance" tab after "Salary Management" tab in admin employee details
+- Shows same Performance Tracker data as frontend (Overview, Goals, Achievements, Baselines)
+- Admin can view any employee's performance metrics from employee details page
+- Includes all visual enhancements: green backgrounds for achieved goals, congratulations banner
+
+### Enhanced
+- **Performance Tracker AJAX**: Modified to support admin context viewing employee performance
+- AJAX handler now accepts `user_id` parameter for admin viewing
+- JavaScript automatically passes user_id when viewing from admin context
+- Maintains security by checking admin capabilities before allowing cross-user viewing
+- Properly enqueues Phosphor Icons, shared CSS, and Performance Tracker assets in admin
+
 ## [1.3.7] - 2026-04-19
 ### Added
 - **Performance Tracker Visual Enhancements**: Overview cards now show green background and border when goals/achievements are achieved

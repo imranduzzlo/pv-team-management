@@ -201,15 +201,24 @@
 		 * Fetch data from server
 		 */
 		fetchData(section, callback, extraData = {}) {
+			// Get user_id if available (for admin viewing employee performance)
+			const userId = $('#wc-tp-current-user-id').val();
+			const ajaxData = {
+				action: 'wc_tp_get_performance_tracker_data',
+				nonce: wc_tp_reports.nonce,
+				section: section,
+				...extraData
+			};
+			
+			// Add user_id if available (admin context)
+			if (userId) {
+				ajaxData.user_id = userId;
+			}
+			
 			$.ajax({
 				url: wc_tp_reports.ajax_url,
 				type: 'POST',
-				data: {
-					action: 'wc_tp_get_performance_tracker_data',
-					nonce: wc_tp_reports.nonce,
-					section: section,
-					...extraData
-				},
+				data: ajaxData,
 				success: (response) => {
 					if (response.success) {
 						callback(response.data);
