@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.7] - 2026-04-19
+### 🐛 Fixed - Orders Tab Filter Values
+
+**BUG FIX:**
+- Fixed 'all' filter values not being handled properly
+- JavaScript now sends empty string instead of 'all' for no filter
+- Backend now checks for both empty string and 'all' value
+- Orders now load correctly on page load
+
 ## [1.6.6] - 2026-04-19
 ### ✅ RELEASE - Admin Employee Details Orders Tab Fully Replicated from My Account
 
