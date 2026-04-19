@@ -47,10 +47,10 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( $_POST['start_date'] ) : '';
 		$end_date = isset( $_POST['end_date'] ) ? sanitize_text_field( $_POST['end_date'] ) : '';
 		$status = isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : '';
-		$flag = isset( $_POST['flag'] ) ? sanitize_text_field( $_POST['flag'] ) : '';
+		$role = isset( $_POST['role'] ) ? sanitize_text_field( $_POST['role'] ) : '';
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
 
-		// Get all orders for this user (not using get_user_earnings which has date limits)
+		// Get all orders
 		$args = array(
 			'limit'  => -1,
 			'status' => 'any',
@@ -68,34 +68,54 @@ class WC_Team_Payroll_AJAX_Handlers {
 			$is_agent = intval( $agent_id ) === intval( $user_id );
 			$is_processor = intval( $processor_id ) === intval( $user_id );
 
-			if ( ! $is_agent && ! $is_processor ) {
+			// Determine user role (if both, show as agent)
+			$user_role = null;
+			$user_role_label = '';
+			if ( $is_agent ) {
+				$user_role = 'agent';
+				$user_role_label = 'Agent';
+			} elseif ( $is_processor ) {
+				$user_role = 'processor';
+				$user_role_label = 'Processor';
+			}
+
+			// Skip if user is not involved in this order
+			if ( ! $user_role ) {
 				continue;
 			}
 
-			// Determine flag and attributed total
-			$flag = '';
-			$flag_label = '';
-			$attributed_value = 0;
+			// Get order status and check if commission applies
+			$order_status = $order->get_status();
+			$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+			$has_commission = $commission_data && in_array( $order_status, $commission_statuses );
 
-			if ( $is_agent && $is_processor ) {
-				// Owner - show full order total
-				$flag = 'owner';
-				$flag_label = 'Owner';
-				$attributed_value = floatval( $order->get_total() );
-			} elseif ( $is_agent ) {
-				// Agent only - show agent's attributed portion
-				$flag = 'affiliate_from';
-				$flag_label = 'Affiliate From';
-				if ( is_array( $commission_data ) && isset( $commission_data['agent_order_value'] ) ) {
+			// Calculate attributed total
+			$attributed_value = 0;
+			if ( $has_commission && is_array( $commission_data ) ) {
+				// If user is both agent and processor (owner), show full order total
+				if ( $is_agent && $is_processor ) {
+					$attributed_value = floatval( $order->get_total() );
+				} elseif ( $user_role === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
 					$attributed_value = floatval( $commission_data['agent_order_value'] );
-				}
-			} elseif ( $is_processor ) {
-				// Processor only - show processor's attributed portion
-				$flag = 'affiliate_to';
-				$flag_label = 'Affiliate To';
-				if ( is_array( $commission_data ) && isset( $commission_data['processor_order_value'] ) ) {
+				} elseif ( $user_role === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
 					$attributed_value = floatval( $commission_data['processor_order_value'] );
 				}
+			}
+
+			// Calculate user earnings
+			$user_earnings = 0;
+			$order_commission = 0;
+			if ( $has_commission && is_array( $commission_data ) ) {
+				// Calculate earnings based on role(s)
+				if ( $is_agent && $is_processor ) {
+					// Owner gets both agent and processor earnings
+					$user_earnings = floatval( $commission_data['agent_earnings'] ) + floatval( $commission_data['processor_earnings'] );
+				} elseif ( $user_role === 'agent' ) {
+					$user_earnings = floatval( $commission_data['agent_earnings'] );
+				} else {
+					$user_earnings = floatval( $commission_data['processor_earnings'] );
+				}
+				$order_commission = floatval( $commission_data['total_commission'] );
 			}
 
 			// Get customer info
@@ -103,31 +123,19 @@ class WC_Team_Payroll_AJAX_Handlers {
 			$customer_email = $order->get_billing_email();
 			$customer_phone = $order->get_billing_phone();
 
-			// Get user earnings
-			$user_earnings = 0;
-			if ( is_array( $commission_data ) ) {
-				if ( $is_agent && $is_processor ) {
-					$user_earnings = floatval( $commission_data['agent_earnings'] ) + floatval( $commission_data['processor_earnings'] );
-				} elseif ( $is_agent ) {
-					$user_earnings = floatval( $commission_data['agent_earnings'] );
-				} elseif ( $is_processor ) {
-					$user_earnings = floatval( $commission_data['processor_earnings'] );
-				}
-			}
-
 			$orders[] = array(
 				'order_id' => $order->get_id(),
 				'date' => $order->get_date_created()->format( 'Y-m-d' ),
 				'total' => $order->get_total(),
-				'commission' => is_array( $commission_data ) ? floatval( $commission_data['total_commission'] ) : 0,
+				'commission' => $order_commission,
 				'earnings' => $user_earnings,
 				'user_earnings' => $user_earnings,
 				'customer_name' => $customer_name,
 				'customer_email' => $customer_email,
 				'customer_phone' => $customer_phone,
-				'status' => $order->get_status(),
-				'flag' => $flag,
-				'flag_label' => $flag_label,
+				'status' => $order_status,
+				'role' => $user_role,
+				'role_label' => $user_role_label,
 				'attributed_total' => $attributed_value,
 				'attributed_total_formatted' => $attributed_value > 0 ? wc_price( $attributed_value ) : '—',
 			);
@@ -150,10 +158,10 @@ class WC_Team_Payroll_AJAX_Handlers {
 			} );
 		}
 
-		// Filter by flag
-		if ( $flag ) {
-			$orders = array_filter( $orders, function( $order ) use ( $flag ) {
-				return ( $order['flag'] ?? '' ) === $flag;
+		// Filter by role (instead of flag)
+		if ( $role ) {
+			$orders = array_filter( $orders, function( $order ) use ( $role ) {
+				return ( $order['role'] ?? '' ) === $role;
 			} );
 		}
 

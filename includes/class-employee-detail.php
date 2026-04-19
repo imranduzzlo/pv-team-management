@@ -348,14 +348,13 @@ class WC_Team_Payroll_Employee_Detail {
 						</select>
 					</div>
 
-					<!-- Flag Filter -->
+					<!-- Employee Role Filter -->
 					<div class="wc-tp-filter-group">
-						<label><?php esc_html_e( 'Flag:', 'wc-team-payroll' ); ?></label>
-						<select id="wc-tp-orders-flag-filter">
-							<option value=""><?php esc_html_e( 'All Flags', 'wc-team-payroll' ); ?></option>
-							<option value="owner"><?php esc_html_e( 'Owner', 'wc-team-payroll' ); ?></option>
-							<option value="affiliate_to"><?php esc_html_e( 'Affiliate To', 'wc-team-payroll' ); ?></option>
-							<option value="affiliate_from"><?php esc_html_e( 'Affiliate From', 'wc-team-payroll' ); ?></option>
+						<label><?php esc_html_e( 'Employee Role:', 'wc-team-payroll' ); ?></label>
+						<select id="wc-tp-orders-role-filter">
+							<option value=""><?php esc_html_e( 'All Roles', 'wc-team-payroll' ); ?></option>
+							<option value="agent"><?php esc_html_e( 'Agent', 'wc-team-payroll' ); ?></option>
+							<option value="processor"><?php esc_html_e( 'Processor', 'wc-team-payroll' ); ?></option>
 						</select>
 					</div>
 
@@ -1876,7 +1875,7 @@ class WC_Team_Payroll_Employee_Detail {
 						}
 
 						const status = $('#wc-tp-orders-status-filter').val();
-						const flag = $('#wc-tp-orders-flag-filter').val();
+						const role = $('#wc-tp-orders-role-filter').val();
 						const search = $('#wc-tp-orders-search').val();
 
 						if (!currentStartDate || !currentEndDate) {
@@ -1895,7 +1894,7 @@ class WC_Team_Payroll_Employee_Detail {
 								start_date: currentStartDate,
 								end_date: currentEndDate,
 								status: status,
-								flag: flag,
+								role: role,
 								search: search,
 								nonce: nonce
 							},
@@ -1955,8 +1954,8 @@ class WC_Team_Payroll_Employee_Detail {
 						html += '<th class="wc-tp-sortable-header" data-column="user_earnings">';
 						html += '<span class="th-content">Your&nbsp;Earnings</span>' + getSortIcon('user_earnings');
 						html += '</th>';
-						html += '<th class="wc-tp-sortable-header" data-column="flag">';
-						html += '<span class="th-content">Flag</span>' + getSortIcon('flag');
+						html += '<th class="wc-tp-sortable-header" data-column="role">';
+						html += '<span class="th-content">Employee&nbsp;Role</span>' + getSortIcon('role');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="date">';
 						html += '<span class="th-content">Date</span>' + getSortIcon('date');
@@ -1966,7 +1965,7 @@ class WC_Team_Payroll_Employee_Detail {
 
 						$.each(paginatedOrders, function(i, order) {
 							const statusClass = 'wc-tp-status-' + order.status.toLowerCase();
-							const flagClass = 'wc-tp-badge-' + order.flag.replace('_', '-');
+							const roleClass = 'wc-tp-badge-' + order.role;
 							const viewUrl = '<?php echo admin_url("post.php"); ?>?post=' + order.order_id + '&action=edit';
 							const editUrl = viewUrl;
 
@@ -1978,7 +1977,7 @@ class WC_Team_Payroll_Employee_Detail {
 							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + order.status + '</span></td>';
 							html += '<td>' + formatCurrency(order.commission) + '</td>';
 							html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
-							html += '<td><span class="wc-tp-badge ' + flagClass + '">' + order.flag_label + '</span></td>';
+							html += '<td><span class="wc-tp-badge ' + roleClass + '">' + order.role_label + '</span></td>';
 							html += '<td>' + order.date + '</td>';
 							html += '<td><div class="wc-tp-action-icons">';
 							html += '<a href="' + viewUrl + '" class="wc-tp-action-icon" title="View Order"><span class="dashicons dashicons-visibility"></span></a>';

@@ -3543,10 +3543,14 @@ class WC_Team_Payroll_MyAccount {
 			$commission_data = $order->get_meta( '_commission_data' );
 
 			// Check if user is involved in this order (even without commission data)
+			$is_agent = intval( $agent_id ) === intval( $user_id );
+			$is_processor = intval( $processor_id ) === intval( $user_id );
+			
+			// Determine user role (if both, show as agent)
 			$user_role = null;
-			if ( intval( $agent_id ) === intval( $user_id ) ) {
+			if ( $is_agent ) {
 				$user_role = 'agent';
-			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+			} elseif ( $is_processor ) {
 				$user_role = 'processor';
 			}
 
@@ -3593,7 +3597,10 @@ class WC_Team_Payroll_MyAccount {
 			// Get attributed order value
 			$attributed_value = 0;
 			if ( $has_commission && is_array( $commission_data ) ) {
-				if ( $user_role === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
+				// If user is both agent and processor (owner), show full order total
+				if ( $is_agent && $is_processor ) {
+					$attributed_value = floatval( $order->get_total() );
+				} elseif ( $user_role === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
 					$attributed_value = floatval( $commission_data['agent_order_value'] );
 				} elseif ( $user_role === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
 					$attributed_value = floatval( $commission_data['processor_order_value'] );
@@ -3601,7 +3608,15 @@ class WC_Team_Payroll_MyAccount {
 			}
 			
 			if ( $has_commission ) {
-				$my_earning = $user_role === 'agent' ? $commission_data['agent_earnings'] : $commission_data['processor_earnings'];
+				// Calculate earnings based on role(s)
+				if ( $is_agent && $is_processor ) {
+					// Owner gets both agent and processor earnings
+					$my_earning = floatval( $commission_data['agent_earnings'] ) + floatval( $commission_data['processor_earnings'] );
+				} elseif ( $user_role === 'agent' ) {
+					$my_earning = $commission_data['agent_earnings'];
+				} else {
+					$my_earning = $commission_data['processor_earnings'];
+				}
 				$order_commission = $commission_data['total_commission'];
 				$total_commission += $order_commission;
 				$my_total_earnings += $my_earning;

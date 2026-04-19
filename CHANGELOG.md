@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.6.2] - 2026-04-19
+### ✨ Enhanced - Unified Attributed Total Logic & Employee Role Display
+
+#### FIXED - My Account Orders Attributed Total for Owner
+**BUG FIX:**
+- Fixed My Account Orders to show full order total when user is both agent and processor
+- Previously only showed agent_order_value even when user owned entire order
+- Now correctly shows full order total for owners
+
+#### ENHANCED - Admin Employee Details Matches My Account Logic
+**IMPROVEMENTS:**
+1. **Attributed Total Logic** (Same as My Account):
+   - Owner (both agent & processor): Full order total
+   - Agent only: `commission_data['agent_order_value']`
+   - Processor only: `commission_data['processor_order_value']`
+
+2. **Employee Role Display** (Replaced Flag):
+   - Changed "Flag" column to "Employee Role"
+   - Shows "Agent" or "Processor"
+   - If user is both, displays as "Agent" (primary role)
+   - Filter changed from "Flag Filter" to "Employee Role Filter"
+
+3. **Earnings Calculation**:
+   - Owner gets both agent + processor earnings
+   - Agent/Processor gets their respective earnings
+
+**LOGIC:**
+```php
+// Determine role (if both, show as agent)
+if ( $is_agent ) {
+    $user_role = 'agent';
+} elseif ( $is_processor ) {
+    $user_role = 'processor';
+}
+
+// Calculate attributed total
+if ( $is_agent && $is_processor ) {
+    $attributed_value = $order->get_total(); // Full total
+} elseif ( $user_role === 'agent' ) {
+    $attributed_value = $commission_data['agent_order_value'];
+} else {
+    $attributed_value = $commission_data['processor_order_value'];
+}
+```
+
+**FILES MODIFIED:**
+- `includes/class-myaccount.php` - Fixed attributed total for owner case
+- `includes/class-ajax-handlers.php` - Matched My Account logic, replaced flag with role
+- `includes/class-employee-detail.php` - Updated UI to show Employee Role instead of Flag
+
+---
+
 ## [1.6.1] - 2026-04-19
 ### 🐛 Fixed - Root Cause of Blank Attributed Total Values
 
