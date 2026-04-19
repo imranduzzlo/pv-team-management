@@ -1,28 +1,48 @@
 # Changelog
 
-## [1.5.4] - 2026-04-19
-### 🔍 Debug - Dashboard Total Orders Investigation
+## [1.5.5] - 2026-04-19
+### 🐛 Critical Fix - Dashboard Total Earnings Double-Counting
 
-#### ADDED - Debug Logging for Order Count
-**PURPOSE:**
-- Investigate why dashboard shows 2 orders instead of 3
-- Added detailed error logging to understand what's happening
-- Logs: date range, commission statuses, orders found, and order details
+#### FIXED - Salary Being Counted Twice
+**ISSUE:**
+- Dashboard "Total Earnings" showed double the correct amount
+- Example: Should be 21,471.47 ৳ but showed 42,900.04 ৳ (exactly 2x)
+- Salary was being counted twice due to v1.5.2 changes
 
-**DEBUG INFO LOGGED:**
-- Date range being queried
-- Commission calculation statuses from settings
-- Number of orders found
-- Each order's ID, status, and creation date
+**ROOT CAUSE:**
+After v1.5.2, the payroll engine already includes salary in `$payroll[$user_id]['total']`:
+```php
+// In payroll engine (v1.5.2):
+$payroll[$user_id]['total'] = commission + salary ✓
 
-**NEXT STEPS:**
-- Check WordPress debug.log file
-- Verify which orders are being returned
-- Identify why one order might be missing
-- Check if order status matches commission calculation statuses
+// In dashboard (v1.4.8 - v1.5.4):
+$employee_total_earnings = $payroll[$user_id]['total'] + $salary_for_period
+// This became: (commission + salary) + salary = DOUBLE SALARY ❌
+```
+
+**SOLUTION:**
+Dashboard now uses payroll data directly without re-adding salary:
+```php
+// For employees in payroll array:
+$employee_total_earnings = $payroll[$user_id]['total']; // Already has commission + salary ✓
+
+// For employees NOT in payroll (no commission):
+$employee_total_earnings = $salary_for_period; // Calculate salary only ✓
+```
+
+**CALCULATION FLOW:**
+1. **Payroll Engine** (v1.5.2): Calculates `total = commission + salary` for each employee
+2. **Dashboard**: Uses payroll `total` directly (no re-calculation needed)
+3. **Employees without orders**: Calculate salary separately (not in payroll array)
+
+**BENEFITS:**
+- Correct total earnings (no double-counting)
+- Consistent with employee payroll table
+- Matches reports page KPI system
+- Simple and efficient logic
 
 **FILES MODIFIED:**
-- `woocommerce-team-payroll.php` - Added debug logging to order count query
+- `woocommerce-team-payroll.php` - Fixed dashboard to use payroll data directly
 
 ## [1.5.3] - 2026-04-19
 ### 🐛 Dashboard Total Orders - Fix Undercount Issue

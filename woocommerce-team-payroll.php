@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.5.4
+ * Version: 1.5.5
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.5.4' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.5.5' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -913,12 +913,12 @@ add_action( 'plugins_loaded', function() {
 		}
 		$payroll = $processed_payroll;
 
-		// Calculate stats - Include ALL employees (not just those with commission)
+		// Calculate stats - Use payroll data which already includes salary (from v1.5.2)
 		$total_earnings = 0;
 		$total_paid = 0;
 		$total_due = 0;
 
-		// Get all employees to ensure we count salary earnings for everyone
+		// Get all employees to ensure we include everyone (even those without orders)
 		$all_employees = get_users( array(
 			'role__in' => get_option( 'wc_tp_employee_roles', array( 'shop_employee', 'shop_manager', 'administrator' ) ),
 			'number'   => -1,
@@ -927,43 +927,40 @@ add_action( 'plugins_loaded', function() {
 		foreach ( $all_employees as $employee ) {
 			$user_id = $employee->ID;
 			
-			// Get commission earnings (from payroll array if exists)
-			$commission_earnings = isset( $payroll[ $user_id ] ) ? $payroll[ $user_id ]['total'] : 0;
+			// Get total earnings from payroll array (already includes commission + salary from v1.5.2)
+			$employee_total_earnings = 0;
+			$employee_paid = 0;
 			
-			// Get salary earnings for the date range (same logic as reports page KPI)
-			$salary_for_period = 0;
-			$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
-			$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
-			
-			if ( $is_fixed_salary || $is_combined_salary ) {
-				// Get salary transactions within date range
-				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
-				if ( is_array( $transactions ) ) {
-					foreach ( $transactions as $transaction ) {
-						if ( ! isset( $transaction['date'] ) ) {
-							continue;
-						}
-						
-						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
-						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
-							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
-							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
-								$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+			if ( isset( $payroll[ $user_id ] ) ) {
+				// Payroll array already has commission + salary in 'total' (from v1.5.2)
+				$employee_total_earnings = $payroll[ $user_id ]['total'];
+				$employee_paid = $payroll[ $user_id ]['paid'];
+			} else {
+				// For employees not in payroll (no commission), calculate salary only
+				$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+				$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+				
+				if ( $is_fixed_salary || $is_combined_salary ) {
+					// Get salary transactions within date range
+					$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+					if ( is_array( $transactions ) ) {
+						foreach ( $transactions as $transaction ) {
+							if ( ! isset( $transaction['date'] ) ) {
+								continue;
+							}
+							
+							$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+							if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+								// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+								if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+									$employee_total_earnings += floatval( $transaction['amount'] ?? 0 );
+								}
 							}
 						}
 					}
 				}
-			}
-			
-			// Total earnings = commission + salary (same as reports page KPI)
-			$employee_total_earnings = $commission_earnings + $salary_for_period;
-			
-			// Get paid amount from payments within date range
-			$employee_paid = 0;
-			if ( isset( $payroll[ $user_id ] ) ) {
-				$employee_paid = $payroll[ $user_id ]['paid'];
-			} else {
-				// For employees not in payroll (no commission), check payments directly
+				
+				// Check payments for employees not in payroll
 				$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
 				if ( is_array( $payments ) ) {
 					foreach ( $payments as $payment ) {
@@ -982,7 +979,7 @@ add_action( 'plugins_loaded', function() {
 				}
 			}
 			
-			// Calculate due based on new total earnings (commission + salary) - paid
+			// Calculate due (Total Earnings - Paid)
 			$employee_due = $employee_total_earnings - $employee_paid;
 			
 			// Only add to totals if employee has any earnings or payments
@@ -1009,16 +1006,6 @@ add_action( 'plugins_loaded', function() {
 			),
 		);
 		$orders = wc_get_orders( $args );
-		
-		// Debug: Log order details
-		error_log( 'Dashboard Total Orders Debug:' );
-		error_log( 'Date Range: ' . $start_date . ' to ' . $end_date );
-		error_log( 'Commission Statuses: ' . implode( ', ', $commission_statuses ) );
-		error_log( 'Orders Found: ' . count( $orders ) );
-		foreach ( $orders as $order ) {
-			error_log( 'Order #' . $order->get_id() . ' - Status: ' . $order->get_status() . ' - Date: ' . $order->get_date_created()->date( 'Y-m-d H:i:s' ) );
-		}
-		
 		// Count all orders with commission calculation statuses (no need to check commission_data)
 		$total_orders = count( $orders );
 
