@@ -2789,6 +2789,23 @@ class WC_Team_Payroll_MyAccount {
 		$current_url = home_url( add_query_arg( array() ) );
 		$is_salary_details_page = strpos( $current_url, 'salary-details' ) !== false;
 
+		// Get achievement stats for badge
+		$achievement_stats = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+		$highest_tier = '';
+		if ( ! empty( $achievement_stats ) ) {
+			$gold_count = isset( $achievement_stats['gold_count'] ) ? intval( $achievement_stats['gold_count'] ) : 0;
+			$silver_count = isset( $achievement_stats['silver_count'] ) ? intval( $achievement_stats['silver_count'] ) : 0;
+			$bronze_count = isset( $achievement_stats['bronze_count'] ) ? intval( $achievement_stats['bronze_count'] ) : 0;
+			
+			if ( $gold_count > 0 ) {
+				$highest_tier = 'gold';
+			} elseif ( $silver_count > 0 ) {
+				$highest_tier = 'silver';
+			} elseif ( $bronze_count > 0 ) {
+				$highest_tier = 'bronze';
+			}
+		}
+
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
@@ -2802,6 +2819,41 @@ class WC_Team_Payroll_MyAccount {
 						<?php else : ?>
 							<div class="profile-picture-placeholder">
 								<span class="initials"><?php echo esc_html( $initials ); ?></span>
+							</div>
+						<?php endif; ?>
+						
+						<?php if ( ! empty( $highest_tier ) ) : ?>
+							<div class="achievement-badge achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
+								<svg class="badge-seal" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+									<!-- Gradient definitions -->
+									<defs>
+										<linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+											<stop offset="50%" style="stop-color:#FFED4E;stop-opacity:1" />
+											<stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+										</linearGradient>
+										<radialGradient id="goldInner" cx="50%" cy="50%" r="50%">
+											<stop offset="0%" style="stop-color:#FFFACD;stop-opacity:1" />
+											<stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+										</radialGradient>
+									</defs>
+									<!-- Seal shape with notches -->
+									<path d="M50,5 L55,15 L65,10 L65,20 L75,20 L70,30 L80,35 L75,45 L85,50 L75,55 L80,65 L70,70 L75,80 L65,80 L65,90 L55,85 L50,95 L45,85 L35,90 L35,80 L25,80 L30,70 L20,65 L25,55 L15,50 L25,45 L20,35 L30,30 L25,20 L35,20 L35,10 L45,15 Z" class="seal-shape"/>
+									<!-- Inner circle -->
+									<circle cx="50" cy="50" r="28" class="seal-inner"/>
+									<!-- Achievement icon -->
+									<text x="50" y="60" class="seal-icon" text-anchor="middle">
+										<?php
+										if ( $highest_tier === 'gold' ) {
+											echo '🥇';
+										} elseif ( $highest_tier === 'silver' ) {
+											echo '🥈';
+										} else {
+											echo '🥉';
+										}
+										?>
+									</text>
+								</svg>
 							</div>
 						<?php endif; ?>
 					</div>
