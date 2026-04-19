@@ -305,6 +305,17 @@ jQuery(document).ready(function($) {
 						console.error('Error collecting system config:', e);
 					}
 					break;
+				case 'bonuses':
+					try {
+						const bonusConfig = collectBonusConfigurationData();
+						console.log('Bonus config collected:', bonusConfig);
+						if (bonusConfig && Object.keys(bonusConfig).length > 0) {
+							savePromises.push(saveBonusConfig(bonusConfig));
+						}
+					} catch (e) {
+						console.error('Error collecting bonus config:', e);
+					}
+					break;
 			}
 			
 			console.log('Total save promises:', savePromises.length);
@@ -461,6 +472,26 @@ jQuery(document).ready(function($) {
 			return { success: response.success, message: response.data ? response.data.message : 'System config saved' };
 		}).catch(function(xhr) {
 			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving system config' };
+		});
+	}
+
+	function saveBonusConfig(config) {
+		return $.ajax({
+			url: wcTpPerformance.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wc_tp_save_bonus_config',
+				nonce: wcTpPerformance.nonce,
+				bonus_config: config
+			}
+		}).then(function(response) {
+			// Update rule numbers on success
+			if (response.success) {
+				updateBonusRuleNumbers();
+			}
+			return { success: response.success, message: response.data ? response.data.message : 'Bonus config saved' };
+		}).catch(function(xhr) {
+			return { success: false, message: xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Error saving bonus config' };
 		});
 	}
 
@@ -1508,6 +1539,82 @@ jQuery(document).ready(function($) {
 		return config;
 	}
 
+	// Collect bonus configuration data
+	function collectBonusConfigurationData() {
+		// Validate rules
+		let isValid = true;
+		const rules = [];
+		
+		$('#wc-tp-bonus-rules-list .wc-tp-bonus-rule-row').each(function() {
+			const $row = $(this);
+			const tier = $row.find('[name*="[tier]"]').val();
+			const streakCount = $row.find('[name*="[streak_count]"]').val();
+			const bonusType = $row.find('[name*="[bonus_type]"]').val();
+			const bonusAmount = $row.find('[name*="[bonus_amount]"]').val();
+			const bonusDescription = $row.find('[name*="[bonus_description]"]').val();
+			const repeatable = $row.find('[name*="[repeatable]"]').is(':checked');
+			
+			// Get eligible roles
+			const eligibleRoles = [];
+			$row.find('[name*="[eligible_roles][]"]:checked').each(function() {
+				eligibleRoles.push($(this).val());
+			});
+			
+			// Skip empty rules (all fields empty)
+			if (!tier && !streakCount && !bonusDescription) {
+				return true; // continue
+			}
+			
+			// Validate required fields
+			if (!tier || !streakCount || !bonusDescription) {
+				isValid = false;
+				$row.css('border-color', '#d63638');
+				return true; // continue
+			} else {
+				$row.css('border-color', '#dcdcde');
+			}
+			
+			// Validate money type has amount
+			if (bonusType === 'money' && (!bonusAmount || bonusAmount <= 0)) {
+				isValid = false;
+				$row.find('.wc-tp-bonus-amount-field').css('border-color', '#d63638');
+				return true; // continue
+			}
+			
+			// Validate at least one role is selected
+			if (eligibleRoles.length === 0) {
+				isValid = false;
+				$row.find('.wc-tp-bonus-roles').css('border-color', '#d63638');
+				return true; // continue
+			} else {
+				$row.find('.wc-tp-bonus-roles').css('border-color', '#dcdcde');
+			}
+			
+			rules.push({
+				tier: tier,
+				streak_count: parseInt(streakCount),
+				bonus_type: bonusType,
+				bonus_amount: parseFloat(bonusAmount) || 0,
+				bonus_description: bonusDescription,
+				repeatable: repeatable ? 1 : 0,
+				eligible_roles: eligibleRoles
+			});
+		});
+		
+		if (!isValid) {
+			throw new Error('Please fill in all required fields for each bonus rule.');
+		}
+		
+		const config = {
+			enabled: $('#bonus_enabled').is(':checked') ? 1 : 0,
+			notification: $('#bonus_notification').is(':checked') ? 1 : 0,
+			show_progress: $('#bonus_show_progress').is(':checked') ? 1 : 0,
+			rules: rules
+		};
+		
+		return config;
+	}
+
 	// Show/hide baseline options based on method
 	$('#baseline_method').on('change', function() {
 		const method = $(this).val();
@@ -1838,135 +1945,5 @@ jQuery(document).ready(function($) {
 
 	// Initialize on page load
 	initializeBonusTypeHandlers();
-
-	// Save bonus configuration
-	$('#wc-tp-save-bonuses').on('click', function() {
-		const $button = $(this);
-		const originalText = $button.html();
-		
-		// Validate rules
-		let isValid = true;
-		const rules = [];
-		
-		$('#wc-tp-bonus-rules-list .wc-tp-bonus-rule-row').each(function() {
-			const $row = $(this);
-			const tier = $row.find('[name*="[tier]"]').val();
-			const streakCount = $row.find('[name*="[streak_count]"]').val();
-			const bonusType = $row.find('[name*="[bonus_type]"]').val();
-			const bonusAmount = $row.find('[name*="[bonus_amount]"]').val();
-			const bonusDescription = $row.find('[name*="[bonus_description]"]').val();
-			const repeatable = $row.find('[name*="[repeatable]"]').is(':checked');
-			
-			// Get eligible roles
-			const eligibleRoles = [];
-			$row.find('[name*="[eligible_roles][]"]:checked').each(function() {
-				eligibleRoles.push($(this).val());
-			});
-			
-			// Skip empty rules (all fields empty)
-			if (!tier && !streakCount && !bonusDescription) {
-				return true; // continue
-			}
-			
-			// Validate required fields
-			if (!tier || !streakCount || !bonusDescription) {
-				isValid = false;
-				$row.css('border-color', '#d63638');
-				return true; // continue
-			} else {
-				$row.css('border-color', '#dcdcde');
-			}
-			
-			// Validate money type has amount
-			if (bonusType === 'money' && (!bonusAmount || bonusAmount <= 0)) {
-				isValid = false;
-				$row.find('.wc-tp-bonus-amount-field').css('border-color', '#d63638');
-				return true; // continue
-			}
-			
-			// Validate at least one role is selected
-			if (eligibleRoles.length === 0) {
-				isValid = false;
-				$row.find('.wc-tp-bonus-roles').css('border-color', '#d63638');
-				return true; // continue
-			} else {
-				$row.find('.wc-tp-bonus-roles').css('border-color', '#dcdcde');
-			}
-			
-			rules.push({
-				tier: tier,
-				streak_count: parseInt(streakCount),
-				bonus_type: bonusType,
-				bonus_amount: parseFloat(bonusAmount) || 0,
-				bonus_description: bonusDescription,
-				repeatable: repeatable ? 1 : 0,
-				eligible_roles: eligibleRoles
-			});
-		});
-		
-		if (!isValid) {
-			showMessage('error', 'Please fill in all required fields for each bonus rule.');
-			return;
-		}
-		
-		// Collect bonus configuration
-		const bonusConfig = {
-			enabled: $('#bonus_enabled').is(':checked') ? 1 : 0,
-			notification: $('#bonus_notification').is(':checked') ? 1 : 0,
-			show_progress: $('#bonus_show_progress').is(':checked') ? 1 : 0,
-			rules: rules
-		};
-		
-		// Show loading state
-		$button.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 5px 0 0;"></span>Saving...');
-		
-		// Save via AJAX
-		$.ajax({
-			url: wcTpPerformance.ajax_url,
-			type: 'POST',
-			data: {
-				action: 'wc_tp_save_bonus_config',
-				nonce: wcTpPerformance.nonce,
-				bonus_config: bonusConfig
-			},
-			success: function(response) {
-				if (response.success) {
-					showMessage('success', response.data.message || 'Bonus configuration saved successfully!');
-					
-					// Update rule numbers
-					updateBonusRuleNumbers();
-				} else {
-					showMessage('error', response.data.message || 'Error saving bonus configuration.');
-				}
-			},
-			error: function(xhr) {
-				showMessage('error', 'AJAX error: ' + (xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data.message : 'Unknown error'));
-			},
-			complete: function() {
-				$button.prop('disabled', false).html(originalText);
-			}
-		});
-	});
-
-	// Show message helper for bonus section
-	function showMessage(type, message) {
-		const $message = $('<div class="wc-tp-bonus-message ' + type + '">' +
-			'<span class="dashicons dashicons-' + (type === 'success' ? 'yes-alt' : type === 'error' ? 'dismiss' : 'info') + '"></span>' +
-			'<span>' + message + '</span>' +
-			'</div>');
-		
-		$('.wc-tp-perf-bonuses-wrapper').prepend($message);
-		
-		setTimeout(function() {
-			$message.fadeOut(300, function() {
-				$(this).remove();
-			});
-		}, 5000);
-		
-		// Scroll to message
-		$('html, body').animate({
-			scrollTop: $message.offset().top - 100
-		}, 300);
-	}
 
 });

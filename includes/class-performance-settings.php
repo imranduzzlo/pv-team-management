@@ -575,14 +575,6 @@ class WC_Team_Payroll_Performance_Settings {
 			<script type="text/template" id="wc-tp-bonus-rule-template">
 				<?php $this->render_bonus_rule_row( '{{INDEX}}', array(), $all_roles, true ); ?>
 			</script>
-
-			<!-- Save Button for Bonuses -->
-			<div class="wc-tp-section-save">
-				<button type="button" class="button button-primary button-large" id="wc-tp-save-bonuses">
-					<span class="dashicons dashicons-saved"></span>
-					<?php esc_html_e( 'Save Bonus Configuration', 'wc-team-payroll' ); ?>
-				</button>
-			</div>
 		</div>
 		<?php
 	}
