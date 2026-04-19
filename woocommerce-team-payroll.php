@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.4.9
+ * Version: 1.5.0
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.4.9' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.5.0' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -958,15 +958,38 @@ add_action( 'plugins_loaded', function() {
 			// Total earnings = commission + salary (same as reports page KPI)
 			$employee_total_earnings = $commission_earnings + $salary_for_period;
 			
-			// Only add to totals if employee has any earnings
-			if ( $employee_total_earnings > 0 ) {
-				$total_earnings += $employee_total_earnings;
+			// Get paid amount from payments within date range
+			$employee_paid = 0;
+			if ( isset( $payroll[ $user_id ] ) ) {
+				$employee_paid = $payroll[ $user_id ]['paid'];
+			} else {
+				// For employees not in payroll (no commission), check payments directly
+				$payments = get_user_meta( $user_id, '_wc_tp_payments', true );
+				if ( is_array( $payments ) ) {
+					foreach ( $payments as $payment ) {
+						$payment_date_str = $payment['date'];
+						if ( strpos( $payment_date_str, 'T' ) !== false ) {
+							$payment_date_str = str_replace( 'T', ' ', $payment_date_str );
+						}
+						$payment_timestamp = strtotime( $payment_date_str );
+						$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+						$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+						
+						if ( $payment_timestamp !== false && $payment_timestamp >= $start_timestamp && $payment_timestamp <= $end_timestamp ) {
+							$employee_paid += floatval( $payment['amount'] );
+						}
+					}
+				}
 			}
 			
-			// Add paid/due from payroll array if exists
-			if ( isset( $payroll[ $user_id ] ) ) {
-				$total_paid += $payroll[ $user_id ]['paid'];
-				$total_due += $payroll[ $user_id ]['due'];
+			// Calculate due based on new total earnings (commission + salary) - paid
+			$employee_due = $employee_total_earnings - $employee_paid;
+			
+			// Only add to totals if employee has any earnings or payments
+			if ( $employee_total_earnings > 0 || $employee_paid > 0 ) {
+				$total_earnings += $employee_total_earnings;
+				$total_paid += $employee_paid;
+				$total_due += $employee_due;
 			}
 		}
 

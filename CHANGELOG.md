@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.5.0] - 2026-04-19
+### 💯 Dashboard Due Amount - Perfect Calculation
+
+#### FIXED - Total Due Based on Complete Earnings (Commission + Salary)
+**ISSUE:**
+- Total Due was calculated based on old commission-only earnings
+- Didn't account for salary earnings in the due calculation
+- After updating Total Earnings to include salary (v1.4.8), Due amount was incorrect
+- Formula was: `Due = Commission - Paid` (missing salary)
+
+**SOLUTION:**
+- Total Due now calculated based on complete earnings: `Due = (Commission + Salary) - Paid`
+- Loops through ALL employees to calculate individual due amounts
+- Handles employees with:
+  - Only commission (no salary)
+  - Only salary (no commission)
+  - Both commission and salary (combined)
+- Includes payments from `_wc_tp_payments` meta within date range
+
+**CALCULATION LOGIC:**
+```php
+foreach ( $all_employees as $employee ) {
+    $commission_earnings = sum of agent_earnings + processor_earnings
+    $salary_for_period = sum of salary transfers within date range
+    $employee_total_earnings = $commission_earnings + $salary_for_period
+    
+    $employee_paid = sum of payments within date range
+    $employee_due = $employee_total_earnings - $employee_paid
+    
+    $total_due += $employee_due
+}
+```
+
+**BENEFITS:**
+- Accurate due calculation matching total earnings
+- Consistent with reports page KPI system
+- Proper accounting for all employee types
+- Total Due = Total Earnings - Total Paid (mathematically correct)
+
+**FILES MODIFIED:**
+- `woocommerce-team-payroll.php` - Updated dashboard due calculation to include salary earnings
+
 ## [1.4.9] - 2026-04-19
 ### ⚙️ Dashboard Order Count - Dynamic Status Support
 
