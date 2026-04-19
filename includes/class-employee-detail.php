@@ -1820,6 +1820,14 @@ class WC_Team_Payroll_Employee_Detail {
 					loadOrdersData();
 
 					function loadOrdersData() {
+						console.log('Loading orders data...', {
+							userId: userId,
+							roleFilter: roleFilter,
+							statusFilter: statusFilter,
+							dateFrom: $('#date-from').val(),
+							dateTo: $('#date-to').val()
+						});
+						
 						$.ajax({
 							url: ajaxurl,
 							type: 'POST',
@@ -1833,12 +1841,16 @@ class WC_Team_Payroll_Employee_Detail {
 								end_date: $('#date-to').val()
 							},
 							success: function(response) {
+								console.log('AJAX Response:', response);
+								
 								if (response.success) {
 									const data = response.data;
+									console.log('Orders data:', data);
 									
 									// Populate table rows
 									allRows = [];
 									if (data.orders && data.orders.length > 0) {
+										console.log('Found ' + data.orders.length + ' orders');
 										data.orders.forEach(function(order) {
 											allRows.push({
 												element: createTableRow(order),
@@ -1860,13 +1872,17 @@ class WC_Team_Payroll_Employee_Detail {
 										$('#orders-pagination').show();
 										updateTable();
 									} else {
+										console.log('No orders found in response');
 										$('#no-orders-message').show();
 										$('#orders-table').hide();
 										$('#orders-pagination').hide();
 									}
+								} else {
+									console.error('AJAX returned success=false:', response);
 								}
 							},
-							error: function() {
+							error: function(xhr, status, error) {
+								console.error('AJAX Error:', {xhr: xhr, status: status, error: error});
 								$('#orders-tbody').html('<tr><td colspan="10" style="text-align: center; padding: 20px;"><p style="color: #dc3545;">Error loading orders</p></td></tr>');
 							}
 						});
