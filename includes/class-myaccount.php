@@ -1922,7 +1922,7 @@ class WC_Team_Payroll_MyAccount {
 			<div class="performance-tracker-wrapper pv-section-wrapper" id="performance-tracker-container">
 				<!-- Performance Header -->
 				<div class="performance-header">
-					<h3><i class="ph ph-target"></i> <?php esc_html_e( 'Performance Tracker', 'wc-team-payroll' ); ?></h3>
+					<h3><?php esc_html_e( 'Performance Tracker', 'wc-team-payroll' ); ?></h3>
 					<select id="performance-view-selector">
 						<option value="current"><?php esc_html_e( 'Current Period', 'wc-team-payroll' ); ?></option>
 					</select>
@@ -2206,7 +2206,7 @@ class WC_Team_Payroll_MyAccount {
 					border-color: {$border_color} !important;
 				}
 				
-				.section-header h3 {
+				.section-header h3, .performance-tab {
 					border-bottom-color: {$border_color} !important;
 				}
 				
@@ -2356,7 +2356,7 @@ class WC_Team_Payroll_MyAccount {
 					background: {$button_hover_background} !important;
 				}
 				
-				.pv-table-controls .btn-clear-filters {
+				.pv-table-controls .btn-clear-filters, .performance-tab{
 					background: rgba(233, 236, 239, 0.1) !important;
 					border: 1px solid rgba(233, 236, 239, 0.3) !important;
 					color: {$text_color} !important;
@@ -2365,23 +2365,23 @@ class WC_Team_Payroll_MyAccount {
 					transition: all 0.2s ease !important;
 				}
 				
-				.pv-table-controls .btn-clear-filters .ph {
-					color: {$primary_color};
+				.pv-table-controls .btn-clear-filters .ph, .performance-tab .ph {
+					color: {$primary_color} !important;
 				}
 				
-				.pv-table-controls .btn-clear-filters:hover {
+				.pv-table-controls .btn-clear-filters:hover, .performance-tab:hover {
 					background-color: rgba(" . implode(',', sscanf($border_color, "#%02x%02x%02x")) . ", 0.1) !important;
 				}
 				
 				/* Clear button active state (when filters are changed) */
-				.pv-table-controls .btn-clear-filters.filters-active {
+				.pv-table-controls .btn-clear-filters.filters-active, .performance-tab.active {
 					background: {$button_background} !important;
 					color: {$button_text_color} !important;
 					border-color: {$button_background} !important;
 				}
 				
 				.pv-table-controls .btn-clear-filters.filters-active .ph {
-					color: {$button_text_color};
+					color: {$button_text_color} !important;
 				}
 				
 				.pv-table-controls .btn-clear-filters.filters-active:hover {
@@ -4764,7 +4764,6 @@ class WC_Team_Payroll_MyAccount {
 		<!-- COMMISSION HISTORY TABLE -->
 		<div class="reports-table-wrapper table-wrapper">
 			<h3 class="reports-table-title">
-				<i class="ph ph-wallet"></i>
 				<?php esc_html_e( 'My Commission History', 'wc-team-payroll' ); ?>
 			</h3>
 			
@@ -4889,7 +4888,6 @@ class WC_Team_Payroll_MyAccount {
 		<!-- ORDER PROCESSING TABLE -->
 		<div class="reports-table-wrapper table-wrapper">
 			<h3 class="reports-table-title">
-				<i class="ph ph-shopping-bag"></i>
 				<?php esc_html_e( 'My Order Processing', 'wc-team-payroll' ); ?>
 			</h3>
 			

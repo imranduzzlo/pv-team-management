@@ -3,6 +3,31 @@
    SHARED COMPONENTS FOR ALL MY ACCOUNT PAGES
    ============================================================================ */
 
+/* ============================================================================
+   GLOBAL BUTTON FOCUS OVERRIDE - Remove Bootstrap Outline
+   ============================================================================ */
+
+/* Override Bootstrap's button:focus outline completely */
+button:focus,
+button:focus-visible,
+button:active,
+.btn:focus,
+.btn:focus-visible,
+.btn:active,
+a.btn:focus,
+a.btn:focus-visible,
+a.btn:active,
+input[type="button"]:focus,
+input[type="submit"]:focus,
+input[type="reset"]:focus {
+	outline: none !important;
+	outline-width: 0 !important;
+	outline-style: none !important;
+	outline-color: transparent !important;
+	box-shadow: none !important;
+	-webkit-tap-highlight-color: transparent !important;
+}
+
 /* Clean styling without debug borders */
 .pv-page-wrapper {
 	padding: 20px 0 !important;
@@ -616,10 +641,21 @@
 	box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
 
-/* Filter Buttons */
-button:focus{
-	outline:none !important;
+/* Remove Bootstrap button focus outline */
+button:focus,
+button:focus-visible,
+.btn:focus,
+.btn:focus-visible,
+a.btn:focus,
+a.btn:focus-visible {
+	outline: none !important;
+	outline-width: 0 !important;
+	outline-color: transparent !important;
+	box-shadow: none !important;
+	-webkit-appearance: none !important;
 }
+
+/* Filter Buttons */
 .pv-table-controls .filter-button,
 .pv-table-controls .btn-clear-filters {
 	display: inline-flex;
