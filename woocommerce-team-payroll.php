@@ -913,16 +913,22 @@ add_action( 'plugins_loaded', function() {
 		}
 		$payroll = $processed_payroll;
 
-		// Calculate stats
+		// Calculate stats - Include ALL employees (not just those with commission)
 		$total_earnings = 0;
 		$total_paid = 0;
 		$total_due = 0;
 
-		foreach ( $payroll as $data ) {
-			$user_id = $data['user_id'];
+		// Get all employees to ensure we count salary earnings for everyone
+		$all_employees = get_users( array(
+			'role__in' => get_option( 'wc_tp_employee_roles', array( 'shop_employee', 'shop_manager', 'administrator' ) ),
+			'number'   => -1,
+		) );
+
+		foreach ( $all_employees as $employee ) {
+			$user_id = $employee->ID;
 			
-			// Get commission earnings (already in $data['total'])
-			$commission_earnings = $data['total'];
+			// Get commission earnings (from payroll array if exists)
+			$commission_earnings = isset( $payroll[ $user_id ] ) ? $payroll[ $user_id ]['total'] : 0;
 			
 			// Get salary earnings for the date range (same logic as reports page KPI)
 			$salary_for_period = 0;
@@ -952,9 +958,16 @@ add_action( 'plugins_loaded', function() {
 			// Total earnings = commission + salary (same as reports page KPI)
 			$employee_total_earnings = $commission_earnings + $salary_for_period;
 			
-			$total_earnings += $employee_total_earnings;
-			$total_paid += $data['paid'];
-			$total_due += $data['due'];
+			// Only add to totals if employee has any earnings
+			if ( $employee_total_earnings > 0 ) {
+				$total_earnings += $employee_total_earnings;
+			}
+			
+			// Add paid/due from payroll array if exists
+			if ( isset( $payroll[ $user_id ] ) ) {
+				$total_paid += $payroll[ $user_id ]['paid'];
+				$total_due += $payroll[ $user_id ]['due'];
+			}
 		}
 
 		// Count unique orders (filtered by order creation/modification date)
