@@ -1150,6 +1150,9 @@ class WC_Team_Payroll_Performance_Tracker {
 		);
 		update_user_meta( $user_id, '_wc_tp_achievement_stats', $stats );
 
+		// Phase 2: Update badge streaks
+		$this->update_badge_streaks( $user_id, $highest_tier, $employee_role );
+
 		return $monthly_data;
 	}
 
@@ -1229,6 +1232,391 @@ class WC_Team_Payroll_Performance_Tracker {
 
 		// Return requested number of months
 		return array_slice( $history, 0, $months );
+	}
+
+	// ============================================================================
+	// BADGE STREAK SYSTEM (Phase 2)
+	// ============================================================================
+
+	/**
+	 * Update badge streaks for a user
+	 * Tracks consecutive months at same badge level
+	 *
+	 * @param int $user_id User ID
+	 * @param string $current_tier Current month's highest tier
+	 * @param string $employee_role Employee role
+	 */
+	private function update_badge_streaks( $user_id, $current_tier, $employee_role ) {
+		// Get current streaks
+		$streaks = get_user_meta( $user_id, '_wc_tp_badge_streaks', true );
+		if ( ! is_array( $streaks ) ) {
+			$streaks = array(
+				'bronze' => array( 'count' => 0, 'last_month' => '' ),
+				'silver' => array( 'count' => 0, 'last_month' => '' ),
+				'gold' => array( 'count' => 0, 'last_month' => '' ),
+			);
+		}
+
+		$current_period = date( 'Y-m' );
+
+		// Update streak for current tier
+		if ( ! empty( $current_tier ) ) {
+			// Check if this is a continuation of the streak
+			$last_month = isset( $streaks[ $current_tier ]['last_month'] ) ? $streaks[ $current_tier ]['last_month'] : '';
+			
+			if ( $last_month === $this->get_previous_month( $current_period ) ) {
+				// Continuing streak
+				$streaks[ $current_tier ]['count']++;
+			} else {
+				// New streak
+				$streaks[ $current_tier ]['count'] = 1;
+			}
+			
+			$streaks[ $current_tier ]['last_month'] = $current_period;
+
+			// Reset other tiers
+			foreach ( array( 'bronze', 'silver', 'gold' ) as $tier ) {
+				if ( $tier !== $current_tier ) {
+					$streaks[ $tier ]['count'] = 0;
+					$streaks[ $tier ]['last_month'] = '';
+				}
+			}
+
+			// Check for bonus eligibility
+			$this->check_streak_bonus_eligibility( $user_id, $current_tier, $streaks[ $current_tier ]['count'], $employee_role );
+		} else {
+			// No achievement this month, reset all streaks
+			foreach ( array( 'bronze', 'silver', 'gold' ) as $tier ) {
+				$streaks[ $tier ]['count'] = 0;
+				$streaks[ $tier ]['last_month'] = '';
+			}
+		}
+
+		// Save updated streaks
+		update_user_meta( $user_id, '_wc_tp_badge_streaks', $streaks );
+	}
+
+	/**
+	 * Get previous month in Y-m format
+	 *
+	 * @param string $period Current period (Y-m)
+	 * @return string Previous month (Y-m)
+	 */
+	private function get_previous_month( $period ) {
+		$date = DateTime::createFromFormat( 'Y-m', $period );
+		if ( ! $date ) {
+			return '';
+		}
+		$date->modify( '-1 month' );
+		return $date->format( 'Y-m' );
+	}
+
+	/**
+	 * Check if user is eligible for streak bonus
+	 *
+	 * @param int $user_id User ID
+	 * @param string $tier Badge tier
+	 * @param int $streak_count Current streak count
+	 * @param string $employee_role Employee role
+	 */
+	private function check_streak_bonus_eligibility( $user_id, $tier, $streak_count, $employee_role ) {
+		// Get bonus configuration
+		$bonus_config = get_option( 'wc_tp_achievement_bonuses', array() );
+		
+		if ( empty( $bonus_config ) || ! isset( $bonus_config[ $employee_role ] ) ) {
+			return;
+		}
+
+		$role_bonuses = $bonus_config[ $employee_role ];
+
+		// Check each bonus rule
+		foreach ( $role_bonuses as $index => $bonus_rule ) {
+			if ( empty( $bonus_rule ) ) {
+				continue;
+			}
+
+			$rule_tier = isset( $bonus_rule['tier'] ) ? $bonus_rule['tier'] : '';
+			$required_months = isset( $bonus_rule['months'] ) ? intval( $bonus_rule['months'] ) : 0;
+			$repeatable = isset( $bonus_rule['repeatable'] ) && $bonus_rule['repeatable'];
+
+			// Check if this rule matches
+			if ( $rule_tier === $tier && $streak_count === $required_months ) {
+				// Check if already awarded (for non-repeatable bonuses)
+				if ( ! $repeatable ) {
+					$awarded_bonuses = get_user_meta( $user_id, '_wc_tp_awarded_bonuses', true );
+					if ( ! is_array( $awarded_bonuses ) ) {
+						$awarded_bonuses = array();
+					}
+
+					$bonus_key = $employee_role . '_' . $tier . '_' . $required_months;
+					if ( in_array( $bonus_key, $awarded_bonuses ) ) {
+						continue; // Already awarded, skip
+					}
+				}
+
+				// Award the bonus!
+				$this->award_streak_bonus( $user_id, $bonus_rule, $tier, $streak_count, $employee_role );
+			}
+		}
+	}
+
+	/**
+	 * Award streak bonus to user
+	 *
+	 * @param int $user_id User ID
+	 * @param array $bonus_rule Bonus rule configuration
+	 * @param string $tier Badge tier
+	 * @param int $streak_count Streak count
+	 * @param string $employee_role Employee role
+	 */
+	private function award_streak_bonus( $user_id, $bonus_rule, $tier, $streak_count, $employee_role ) {
+		$bonus_type = isset( $bonus_rule['bonus_type'] ) ? $bonus_rule['bonus_type'] : 'money';
+		$bonus_amount = isset( $bonus_rule['bonus_amount'] ) ? floatval( $bonus_rule['bonus_amount'] ) : 0;
+		$bonus_description = isset( $bonus_rule['bonus_description'] ) ? $bonus_rule['bonus_description'] : '';
+		$repeatable = isset( $bonus_rule['repeatable'] ) && $bonus_rule['repeatable'];
+
+		// Create bonus record
+		$bonus_record = array(
+			'user_id' => $user_id,
+			'tier' => $tier,
+			'streak_count' => $streak_count,
+			'bonus_type' => $bonus_type,
+			'bonus_amount' => $bonus_amount,
+			'bonus_description' => $bonus_description,
+			'awarded_date' => current_time( 'Y-m-d H:i:s' ),
+			'period' => date( 'Y-m' ),
+			'repeatable' => $repeatable,
+		);
+
+		// Save to bonus history
+		$bonus_history = get_user_meta( $user_id, '_wc_tp_bonus_history', true );
+		if ( ! is_array( $bonus_history ) ) {
+			$bonus_history = array();
+		}
+		array_unshift( $bonus_history, $bonus_record );
+		$bonus_history = array_slice( $bonus_history, 0, 50 ); // Keep last 50
+		update_user_meta( $user_id, '_wc_tp_bonus_history', $bonus_history );
+
+		// If money bonus, add to user's earnings
+		if ( $bonus_type === 'money' && $bonus_amount > 0 ) {
+			$this->add_bonus_to_earnings( $user_id, $bonus_amount, $tier, $streak_count );
+		}
+
+		// Mark as awarded (for non-repeatable)
+		if ( ! $repeatable ) {
+			$awarded_bonuses = get_user_meta( $user_id, '_wc_tp_awarded_bonuses', true );
+			if ( ! is_array( $awarded_bonuses ) ) {
+				$awarded_bonuses = array();
+			}
+			$bonus_key = $employee_role . '_' . $tier . '_' . $streak_count;
+			$awarded_bonuses[] = $bonus_key;
+			update_user_meta( $user_id, '_wc_tp_awarded_bonuses', $awarded_bonuses );
+		}
+
+		// Send notification email
+		$this->send_bonus_notification_email( $user_id, $bonus_record );
+	}
+
+	/**
+	 * Add money bonus to user's earnings
+	 *
+	 * @param int $user_id User ID
+	 * @param float $amount Bonus amount
+	 * @param string $tier Badge tier
+	 * @param int $streak_count Streak count
+	 */
+	private function add_bonus_to_earnings( $user_id, $amount, $tier, $streak_count ) {
+		// Get current bonus earnings
+		$bonus_earnings = get_user_meta( $user_id, '_wc_tp_bonus_earnings', true );
+		if ( ! $bonus_earnings ) {
+			$bonus_earnings = 0;
+		}
+		$bonus_earnings += $amount;
+		update_user_meta( $user_id, '_wc_tp_bonus_earnings', $bonus_earnings );
+
+		// Add to payment history as bonus
+		$payment_history = get_user_meta( $user_id, '_wc_tp_payment_history', true );
+		if ( ! is_array( $payment_history ) ) {
+			$payment_history = array();
+		}
+
+		$payment_record = array(
+			'amount' => $amount,
+			'date' => current_time( 'Y-m-d H:i:s' ),
+			'method' => 'Achievement Bonus',
+			'note' => sprintf( 
+				__( '%s Badge Streak Bonus (%d months)', 'wc-team-payroll' ),
+				ucfirst( $tier ),
+				$streak_count
+			),
+			'type' => 'bonus',
+			'added_by' => 0, // System
+		);
+
+		array_unshift( $payment_history, $payment_record );
+		update_user_meta( $user_id, '_wc_tp_payment_history', $payment_history );
+	}
+
+	/**
+	 * Send bonus notification email
+	 *
+	 * @param int $user_id User ID
+	 * @param array $bonus_record Bonus record
+	 */
+	private function send_bonus_notification_email( $user_id, $bonus_record ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return;
+		}
+
+		$tier = ucfirst( $bonus_record['tier'] );
+		$streak_count = $bonus_record['streak_count'];
+		$bonus_type = $bonus_record['bonus_type'];
+		$bonus_amount = $bonus_record['bonus_amount'];
+		$bonus_description = $bonus_record['bonus_description'];
+
+		$tier_emojis = array(
+			'gold' => '🥇',
+			'silver' => '🥈',
+			'bronze' => '🥉',
+		);
+		$emoji = isset( $tier_emojis[ $bonus_record['tier'] ] ) ? $tier_emojis[ $bonus_record['tier'] ] : '🏆';
+
+		$subject = sprintf(
+			__( '%s Congratulations! Streak Bonus Unlocked!', 'wc-team-payroll' ),
+			$emoji
+		);
+
+		$currency_symbol = get_woocommerce_currency_symbol();
+
+		$message = $this->get_bonus_email_template(
+			$user->display_name,
+			$tier,
+			$streak_count,
+			$bonus_type,
+			$bonus_amount,
+			$bonus_description,
+			$currency_symbol,
+			$emoji
+		);
+
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		wp_mail( $user->user_email, $subject, $message, $headers );
+	}
+
+	/**
+	 * Get bonus notification email template
+	 *
+	 * @param string $name User name
+	 * @param string $tier Badge tier
+	 * @param int $streak_count Streak count
+	 * @param string $bonus_type Bonus type
+	 * @param float $bonus_amount Bonus amount
+	 * @param string $bonus_description Bonus description
+	 * @param string $currency_symbol Currency symbol
+	 * @param string $emoji Tier emoji
+	 * @return string HTML email content
+	 */
+	private function get_bonus_email_template( $name, $tier, $streak_count, $bonus_type, $bonus_amount, $bonus_description, $currency_symbol, $emoji ) {
+		$tier_colors = array(
+			'Gold' => '#FFD700',
+			'Silver' => '#C0C0C0',
+			'Bronze' => '#CD7F32',
+		);
+		$color = isset( $tier_colors[ $tier ] ) ? $tier_colors[ $tier ] : '#FFD700';
+
+		ob_start();
+		?>
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		</head>
+		<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+			<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+				<tr>
+					<td align="center">
+						<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+							<!-- Header -->
+							<tr>
+								<td style="background: linear-gradient(135deg, <?php echo esc_attr( $color ); ?> 0%, <?php echo esc_attr( $color ); ?>CC 100%); padding: 40px 20px; text-align: center;">
+									<h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: bold;">
+										<?php echo esc_html( $emoji ); ?> BONUS UNLOCKED!
+									</h1>
+									<p style="margin: 10px 0 0 0; color: #ffffff; font-size: 20px; font-weight: bold;">
+										<?php echo esc_html( $tier ); ?> Badge Streak Bonus
+									</p>
+								</td>
+							</tr>
+							
+							<!-- Content -->
+							<tr>
+								<td style="padding: 40px 30px;">
+									<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+										Dear <strong><?php echo esc_html( $name ); ?></strong>,
+									</p>
+									<p style="margin: 0 0 30px 0; font-size: 18px; color: #333333; line-height: 1.6;">
+										🎉 <strong>Congratulations!</strong> You've maintained your <strong><?php echo esc_html( $tier ); ?></strong> badge for <strong><?php echo esc_html( $streak_count ); ?> consecutive months</strong>!
+									</p>
+									
+									<!-- Bonus Details -->
+									<table width="100%" cellpadding="20" cellspacing="0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; margin: 30px 0; border: 2px solid <?php echo esc_attr( $color ); ?>;">
+										<tr>
+											<td align="center">
+												<h2 style="margin: 0 0 15px 0; color: <?php echo esc_attr( $color ); ?>; font-size: 24px;">
+													Your Bonus Reward
+												</h2>
+												<?php if ( $bonus_type === 'money' ) : ?>
+													<p style="margin: 0; font-size: 48px; font-weight: bold; color: #28a745;">
+														<?php echo esc_html( $currency_symbol . number_format( $bonus_amount, 2 ) ); ?>
+													</p>
+													<p style="margin: 10px 0 0 0; font-size: 14px; color: #6c757d;">
+														This bonus has been added to your earnings automatically.
+													</p>
+												<?php elseif ( $bonus_type === 'reward' ) : ?>
+													<p style="margin: 0; font-size: 28px; font-weight: bold; color: #007bff;">
+														<?php echo esc_html( $bonus_description ); ?>
+													</p>
+													<p style="margin: 10px 0 0 0; font-size: 14px; color: #6c757d;">
+														Please contact management to claim your reward.
+													</p>
+												<?php else : ?>
+													<p style="margin: 0; font-size: 20px; font-weight: bold; color: #6f42c1;">
+														<?php echo esc_html( $bonus_description ); ?>
+													</p>
+												<?php endif; ?>
+											</td>
+										</tr>
+									</table>
+									
+									<p style="margin: 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+										Your consistent performance is truly outstanding! Keep up the excellent work to earn more bonuses.
+									</p>
+									
+									<p style="margin: 20px 0 0 0; font-size: 14px; color: #6c757d; line-height: 1.6;">
+										Best regards,<br>
+										<strong>Povaly Group Team</strong>
+									</p>
+								</td>
+							</tr>
+							
+							<!-- Footer -->
+							<tr>
+								<td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6;">
+									<p style="margin: 0; font-size: 12px; color: #6c757d;">
+										This is an automated bonus notification from your performance tracking system.
+									</p>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</body>
+		</html>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
