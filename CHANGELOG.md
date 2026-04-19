@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.6.4] - 2026-04-19
+### 🐛 Fixed - Attributed Total Display Using Client-Side Formatting
+
+#### FIXED - Attributed Total Now Shows Like Earnings
+**BUG FIX:**
+- Changed attributed total to use client-side `formatCurrency()` like earnings column
+- Previously used server-side `wc_price()` which returned HTML that wasn't displaying properly
+- Now uses the numeric `attributed_total` value and formats it on the client
+
+**CHANGE:**
+```javascript
+// Before (server-formatted HTML)
+html += '<td>' + (order.attributed_total_formatted || '—') + '</td>';
+
+// After (client-side formatting like earnings)
+html += '<td>' + (order.attributed_total > 0 ? formatCurrency(order.attributed_total) : '—') + '</td>';
+```
+
+**WHY:**
+- Earnings column uses `formatCurrency(order.user_earnings)` and displays correctly
+- Attributed total was using pre-formatted HTML from server which wasn't rendering
+- Now both columns use the same formatting approach for consistency
+
+**FILES MODIFIED:**
+- `includes/class-employee-detail.php` - Changed to client-side formatting
+
+---
+
 ## [1.6.3] - 2026-04-19
 ### 🐛 Fixed - Undefined Employee Role Display
 
