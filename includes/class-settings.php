@@ -760,7 +760,12 @@ class WC_Team_Payroll_Settings {
 					?>
 				<?php endif; ?>
 
-				<?php submit_button(); ?>
+				<?php 
+				// Hide main submit button for performance tab (it has its own save system)
+				if ( $current_tab !== 'performance' ) {
+					submit_button();
+				}
+				?>
 			</form>
 		</div>
 
