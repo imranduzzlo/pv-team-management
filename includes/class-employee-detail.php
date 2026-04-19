@@ -1827,8 +1827,8 @@ class WC_Team_Payroll_Employee_Detail {
 								action: 'wc_tp_get_employee_orders',
 								user_id: userId,
 								nonce: nonce,
-								role: roleFilter,
-								status: statusFilter,
+								role: roleFilter === 'all' ? '' : roleFilter,
+								status: statusFilter === 'all' ? '' : statusFilter,
 								start_date: $('#date-from').val(),
 								end_date: $('#date-to').val()
 							},

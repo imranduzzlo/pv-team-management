@@ -152,14 +152,14 @@ class WC_Team_Payroll_AJAX_Handlers {
 		}
 
 		// Filter by status
-		if ( $status ) {
+		if ( $status && $status !== 'all' ) {
 			$orders = array_filter( $orders, function( $order ) use ( $status ) {
 				return ( $order['status'] ?? '' ) === $status;
 			} );
 		}
 
 		// Filter by role (instead of flag)
-		if ( $role ) {
+		if ( $role && $role !== 'all' ) {
 			$orders = array_filter( $orders, function( $order ) use ( $role ) {
 				return ( $order['role'] ?? '' ) === $role;
 			} );
