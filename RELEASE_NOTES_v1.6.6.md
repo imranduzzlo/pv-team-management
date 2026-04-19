@@ -1,8 +1,8 @@
-# WooCommerce Team Payroll v1.6.5
+# WooCommerce Team Payroll v1.6.6
 
 ## ✅ Admin Employee Details Orders Tab - Complete Replication from My Account
 
-This release completes the replication of the My Account Orders table for the Admin Employee Details page.
+This release completes the full replication of the My Account Orders table for the Admin Employee Details page with all functionality working perfectly.
 
 ### 🎯 What's New
 
@@ -14,6 +14,7 @@ This release completes the replication of the My Account Orders table for the Ad
 - ✅ Proper attributed total display
 - ✅ Employee Role column (Agent/Processor)
 - ✅ All filters working perfectly
+- ✅ Cache busting for CSS files
 
 ### 📋 Features
 
@@ -57,7 +58,7 @@ This release completes the replication of the My Account Orders table for the Ad
 - Uses My Account shared CSS (pv-table, pv-table-controls)
 - Phosphor icons throughout
 - Responsive design
-- Cache busting for CSS
+- Cache busting for CSS to prevent stale cache issues
 
 ### 📦 Installation
 
@@ -84,4 +85,4 @@ This release completes the replication of the My Account Orders table for the Ad
 
 ---
 
-**Full Changelog**: https://github.com/imranduzzlo/pv-team-payroll/compare/v1.6.4...v1.6.5
+**Full Changelog**: https://github.com/imranduzzlo/pv-team-payroll/compare/v1.6.4...v1.6.6
