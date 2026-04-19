@@ -19,10 +19,13 @@ class WC_Team_Payroll_Payroll_Engine {
 		$start_date = sprintf( '%d-%02d-01', $year, $month );
 		$end_date = date( 'Y-m-t', strtotime( $start_date ) );
 
+		// Get dynamic commission calculation statuses from settings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+
 		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses, // Use dynamic statuses from settings
 			'date_query' => array(
 				array(
 					'after'     => $start_date,
@@ -121,10 +124,13 @@ class WC_Team_Payroll_Payroll_Engine {
 			$end_date = date( 'Y-m-t' );
 		}
 
+		// Get dynamic commission calculation statuses from settings
+		$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+
 		// Use proper WooCommerce date query format
 		$args = array(
 			'limit'  => -1,
-			'status' => array( 'completed', 'processing', 'refunded' ),
+			'status' => $commission_statuses, // Use dynamic statuses from settings
 			'date_query' => array(
 				array(
 					'after'     => $start_date,

@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.5.1] - 2026-04-19
+### ⚙️ Employee Payroll Details - Dynamic Status Support
+
+#### ENHANCED - Order Count Per Employee Uses Commission Calculation Statuses
+**ISSUE:**
+- "Employee Payroll Details" table showed order count per employee
+- Used hardcoded statuses: `completed`, `processing`, `refunded`
+- Didn't respect the dynamic "Commission Calculation Statuses" from plugin settings
+- Inconsistent with dashboard total orders (fixed in v1.4.9)
+
+**SOLUTION:**
+- Payroll engine now uses `WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses()`
+- Updated both `get_monthly_payroll()` and `get_payroll_by_date_range()` functions
+- Order count per employee dynamically reads from Settings → Commission Calculation Statuses
+- Consistent with all other modules (dashboard totals, reports, performance tracker)
+
+**FUNCTIONS UPDATED:**
+1. **`get_monthly_payroll()`** - Used by monthly payroll views
+2. **`get_payroll_by_date_range()`** - Used by dashboard Employee Payroll Details table
+
+**BEFORE:**
+```php
+'status' => array( 'completed', 'processing', 'refunded' ), // Hardcoded
+```
+
+**AFTER:**
+```php
+$commission_statuses = WC_Team_Payroll_Core_Engine::get_commission_calculation_statuses();
+'status' => $commission_statuses, // Dynamic from settings
+```
+
+**BENEFITS:**
+- Consistent order counting for individual employees
+- Respects admin configuration across all views
+- Employee order counts match dashboard total orders
+- Flexible - changes in settings automatically apply everywhere
+
+**FILES MODIFIED:**
+- `includes/class-payroll-engine.php` - Updated both payroll functions to use dynamic statuses
+
 ## [1.5.0] - 2026-04-19
 ### 💯 Dashboard Due Amount - Perfect Calculation
 
