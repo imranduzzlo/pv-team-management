@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.5.9] - 2026-04-19
+### 🐛 Fixed - Attributed Total Display in Admin Employee Details
+
+#### FIXED - Attributed Total Column Showing Blank Values
+**BUG FIX:**
+- Fixed attributed total column showing "—" instead of actual values
+- Corrected static method call to instance method call for `get_user_earnings()`
+- Properly extracted `attributed_value` from existing order data
+- Enhanced order data with all required fields (customer info, status, flag)
+
+**ISSUE:**
+- AJAX handler was calling `get_user_earnings()` statically (incorrect)
+- Was trying to re-fetch commission data instead of using existing `attributed_value`
+- Missing customer name, email, phone, status, and flag data
+
+**SOLUTION:**
+- Create `WC_Team_Payroll_Core_Engine` instance to call non-static method
+- Use existing `attributed_value` from order data returned by `get_user_earnings()`
+- Properly populate all order fields including customer info and flags
+- Format attributed total with currency or show "—" for zero values
+
+**FILES MODIFIED:**
+- `includes/class-ajax-handlers.php` - Fixed method call and data extraction
+
+---
+
 ## [1.5.8] - 2026-04-19
 ### ✨ Enhanced - Admin Employee Details Order History with Attributed Total
 

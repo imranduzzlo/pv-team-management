@@ -50,27 +50,53 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$flag = isset( $_POST['flag'] ) ? sanitize_text_field( $_POST['flag'] ) : '';
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
 
-		$earnings = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id );
+		// Create instance to call non-static method
+		$core_engine = new WC_Team_Payroll_Core_Engine();
+		$earnings = $core_engine->get_user_earnings( $user_id );
 		$orders = $earnings['orders'] ?? array();
 
-		// Enhance orders with attributed_total
+		// Enhance orders with additional data needed for display
 		foreach ( $orders as &$order_data ) {
 			$order = wc_get_order( $order_data['order_id'] );
 			if ( ! $order ) {
 				continue;
 			}
 
+			// Get commission data for additional fields
 			$commission_data = $order->get_meta( '_commission_data' );
-			$attributed_value = 0;
+			$agent_id = $order->get_meta( '_primary_agent_id' );
+			$processor_id = $order->get_meta( '_processor_user_id' );
 
-			if ( is_array( $commission_data ) ) {
-				if ( $order_data['role'] === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
-					$attributed_value = floatval( $commission_data['agent_order_value'] );
-				} elseif ( $order_data['role'] === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
-					$attributed_value = floatval( $commission_data['processor_order_value'] );
-				}
+			// Determine flag
+			$flag = '';
+			$flag_label = '';
+			if ( intval( $agent_id ) === intval( $user_id ) && intval( $processor_id ) === intval( $user_id ) ) {
+				$flag = 'owner';
+				$flag_label = 'Owner';
+			} elseif ( intval( $agent_id ) === intval( $user_id ) ) {
+				$flag = 'affiliate_from';
+				$flag_label = 'Affiliate From';
+			} elseif ( intval( $processor_id ) === intval( $user_id ) ) {
+				$flag = 'affiliate_to';
+				$flag_label = 'Affiliate To';
 			}
 
+			// Get customer info
+			$customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+			$customer_email = $order->get_billing_email();
+			$customer_phone = $order->get_billing_phone();
+
+			// Add attributed_total from the existing attributed_value
+			$attributed_value = isset( $order_data['attributed_value'] ) ? floatval( $order_data['attributed_value'] ) : 0;
+
+			// Enhance order data
+			$order_data['customer_name'] = $customer_name;
+			$order_data['customer_email'] = $customer_email;
+			$order_data['customer_phone'] = $customer_phone;
+			$order_data['status'] = $order->get_status();
+			$order_data['flag'] = $flag;
+			$order_data['flag_label'] = $flag_label;
+			$order_data['user_earnings'] = $order_data['earnings'];
 			$order_data['attributed_total'] = $attributed_value;
 			$order_data['attributed_total_formatted'] = $attributed_value > 0 ? wc_price( $attributed_value ) : '—';
 		}
