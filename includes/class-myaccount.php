@@ -2813,6 +2813,24 @@ class WC_Team_Payroll_MyAccount {
 			}
 		}
 
+		// Get goal achievement count for current period
+		$goal_progress = get_user_meta( $user_id, '_wc_tp_current_goal_progress', true );
+		$goals_achieved = 0;
+		$total_goals = 0;
+		
+		if ( ! empty( $goal_progress ) ) {
+			$metrics = array( 'order_value', 'orders', 'aov' );
+			foreach ( $metrics as $metric ) {
+				if ( isset( $goal_progress[ $metric ] ) ) {
+					$total_goals++;
+					$status = isset( $goal_progress[ $metric ]['status'] ) ? $goal_progress[ $metric ]['status'] : '';
+					if ( in_array( $status, array( 'achieved', 'stretch_achieved' ) ) ) {
+						$goals_achieved++;
+					}
+				}
+			}
+		}
+
 		ob_start();
 		?>
 		<div class="wc-tp-employee-header-new">
@@ -2830,16 +2848,16 @@ class WC_Team_Payroll_MyAccount {
 						<?php endif; ?>
 						
 						<?php if ( ! empty( $highest_tier ) ) : ?>
-							<div class="achievement-badge achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
+							<div class="profile-achievement-badge profile-achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
 								<svg class="badge-seal" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
 									<!-- Gradient definitions -->
 									<defs>
-										<linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+										<linearGradient id="profileGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
 											<stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
 											<stop offset="50%" style="stop-color:#FFED4E;stop-opacity:1" />
 											<stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
 										</linearGradient>
-										<radialGradient id="goldInner" cx="50%" cy="50%" r="50%">
+										<radialGradient id="profileGoldInner" cx="50%" cy="50%" r="50%">
 											<stop offset="0%" style="stop-color:#FFFACD;stop-opacity:1" />
 											<stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
 										</radialGradient>
@@ -2861,6 +2879,15 @@ class WC_Team_Payroll_MyAccount {
 										?>
 									</text>
 								</svg>
+							</div>
+						<?php endif; ?>
+						
+						<?php if ( $total_goals > 0 ) : ?>
+							<div class="profile-goal-counter">
+								<svg class="goal-star-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+								</svg>
+								<span class="goal-count"><?php echo esc_html( $goals_achieved . '/' . $total_goals ); ?></span>
 							</div>
 						<?php endif; ?>
 					</div>

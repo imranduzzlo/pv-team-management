@@ -208,6 +208,125 @@ input[type="reset"]:focus {
 	}
 }
 
+/* ============================================================================
+   PROFILE PICTURE BADGES - NO ANIMATION (Premium Look)
+   ============================================================================ */
+
+/* Profile Achievement Badge - Top Right (No Animation) */
+.profile-achievement-badge {
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	width: 50px;
+	height: 50px;
+	z-index: 10;
+	filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+	transition: filter 0.3s ease;
+}
+
+.profile-achievement-badge:hover {
+	filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+
+/* Bronze Profile Badge */
+.profile-achievement-badge-bronze .seal-shape {
+	fill: #CD7F32;
+	stroke: #8B5A2B;
+	stroke-width: 1.5;
+}
+
+.profile-achievement-badge-bronze .seal-inner {
+	fill: #E6A85C;
+	stroke: #CD7F32;
+	stroke-width: 2;
+}
+
+/* Silver Profile Badge */
+.profile-achievement-badge-silver .seal-shape {
+	fill: #C0C0C0;
+	stroke: #A8A8A8;
+	stroke-width: 1.5;
+}
+
+.profile-achievement-badge-silver .seal-inner {
+	fill: #E8E8E8;
+	stroke: #C0C0C0;
+	stroke-width: 2;
+}
+
+/* Gold Profile Badge */
+.profile-achievement-badge-gold .seal-shape {
+	fill: url(#profileGoldGradient);
+	stroke: #DAA520;
+	stroke-width: 1.5;
+}
+
+.profile-achievement-badge-gold .seal-inner {
+	fill: url(#profileGoldInner);
+	stroke: #FFD700;
+	stroke-width: 2;
+}
+
+/* Profile Goal Counter - Bottom Center */
+.profile-goal-counter {
+	position: absolute;
+	bottom: -8px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: #fff;
+	padding: 4px 10px;
+	border-radius: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	z-index: 10;
+	border: 2px solid #0073aa;
+	transition: all 0.3s ease;
+}
+
+.profile-goal-counter:hover {
+	box-shadow: 0 4px 12px rgba(0, 115, 170, 0.3);
+	transform: translateX(-50%) scale(1.05);
+}
+
+.goal-star-icon {
+	width: 16px;
+	height: 16px;
+	color: #FFC107;
+	flex-shrink: 0;
+}
+
+.goal-count {
+	font-size: 12px;
+	font-weight: 700;
+	color: #0073aa;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.profile-achievement-badge {
+		width: 42px;
+		height: 42px;
+	}
+	
+	.profile-goal-counter {
+		bottom: -6px;
+		padding: 3px 8px;
+	}
+	
+	.goal-star-icon {
+		width: 14px;
+		height: 14px;
+	}
+	
+	.goal-count {
+		font-size: 11px;
+	}
+}
+
 .header-right-column {
 	display: flex;
 	flex-direction: column;
