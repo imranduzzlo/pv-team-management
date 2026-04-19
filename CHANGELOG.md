@@ -1,5 +1,66 @@
 # Changelog
 
+## [1.4.0] - 2026-04-19
+### 🎉 MAJOR UPDATE: Monthly Achievement & Streak Bonus System
+
+#### Phase 1: Monthly Achievement System
+**NEW - Performance-Based Monthly Badges:**
+- Achievements now calculated monthly (not lifetime)
+- Badge reflects CURRENT MONTH performance only
+- Automatic promotion/demotion based on monthly results
+- Fresh motivation every month
+
+**Features:**
+- Monthly achievement tracking with history (24 months)
+- Automatic month-end finalization
+- Beautiful HTML email notifications
+- Performance summary in emails
+- Profile badge shows current month status
+- Achievement history for performance reviews
+
+**Employee Motivation:**
+- Must perform every month to maintain badge
+- Poor month = lower badge (accountability)
+- Good month = higher badge (recognition)
+- Monthly celebration emails
+- Continuous challenge and engagement
+
+#### Phase 2: Badge Streak & Bonus System
+**NEW - Consecutive Month Bonuses:**
+- Track consecutive months at same badge level
+- Automatic bonus distribution when streak achieved
+- Repeatable and one-time bonus options
+- Multiple bonus types supported
+
+**Bonus Types:**
+- **Money**: Auto-added to earnings, shows in payments
+- **Reward**: Physical rewards (motorcycle, etc.)
+- **Other**: Custom rewards and recognition
+
+**Features:**
+- Streak tracking per tier (Bronze/Silver/Gold)
+- Automatic eligibility checking
+- Bonus history tracking
+- Beautiful bonus notification emails
+- Integration with payment system
+- Admin configurable bonus rules (UI coming in next update)
+
+**Example:**
+- Silver badge for 3 months → ৳5,000 bonus (repeatable)
+- Gold badge for 6 months → R15 Motorcycle (one-time)
+
+### Technical
+- New user meta: _wc_tp_monthly_achievements, _wc_tp_achievement_history
+- New user meta: _wc_tp_badge_streaks, _wc_tp_bonus_history
+- Integrated with existing cron jobs
+- Backward compatible with old system
+- Email templates for monthly and bonus notifications
+
+### Coming Next
+- Settings UI for bonus configuration (repeater fields)
+- Visual streak indicators in Performance Tracker
+- Bonus milestone progress display
+
 ## [1.3.10] - 2026-04-19
 ### Fixed
 - **Settings Page**: Fixed unsaved changes warning appearing immediately on Reports & Performance tab load
