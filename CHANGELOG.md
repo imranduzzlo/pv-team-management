@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.6.3] - 2026-04-19
+### 🐛 Fixed - Undefined Employee Role Display
+
+#### FIXED - Added Fallback for Role Display
+**BUG FIX:**
+- Added fallback values for `order.role` and `order.role_label` in JavaScript
+- Prevents "undefined" from showing in Employee Role column
+- Defaults to 'agent' and 'Agent' if values are missing
+
+**CHANGE:**
+```javascript
+// Before
+const roleClass = 'wc-tp-badge-' + order.role;
+html += order.role_label;
+
+// After
+const roleClass = 'wc-tp-badge-' + (order.role || 'agent');
+html += (order.role_label || 'Agent');
+```
+
+**FILES MODIFIED:**
+- `includes/class-employee-detail.php` - Added fallback values in JavaScript
+
+---
+
 ## [1.6.2] - 2026-04-19
 ### ✨ Enhanced - Unified Attributed Total Logic & Employee Role Display
 
