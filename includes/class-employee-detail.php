@@ -3487,7 +3487,7 @@ class WC_Team_Payroll_Employee_Detail {
 			'wc-team-payroll-shared',
 			WC_TEAM_PAYROLL_URL . 'assets/css/myaccount-shared.css',
 			array(),
-			WC_TEAM_PAYROLL_VERSION
+			WC_TEAM_PAYROLL_VERSION . '-' . time()
 		);
 
 		// Enqueue Performance Tracker CSS
