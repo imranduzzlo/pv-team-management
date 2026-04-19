@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.3] - 2026-04-19
+### 🐛 Bug Fix: JavaScript Syntax Error
+
+#### FIXED - Performance Settings Page
+**BUG FIX - jQuery Document Ready Closure:**
+- Fixed syntax error in `assets/js/performance-settings.js`
+- Removed premature closing of jQuery document.ready block
+- Bonus configuration section now properly scoped within document.ready
+- Resolves JavaScript error preventing Performance Settings page from loading
+
+**Technical Details:**
+- The jQuery(document).ready block was being closed prematurely on line 1778
+- Bonus configuration code was incorrectly placed outside the ready scope
+- Removed extra `});` that was causing "Unexpected token '}'" error
+- All functionality now properly contained within single document.ready block
+
 ## [1.4.2] - 2026-04-19
 ### 🎉 Phase 2 Part 3: Streak & Bonus Visualization - COMPLETE
 
