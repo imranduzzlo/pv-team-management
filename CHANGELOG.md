@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.8] - 2026-04-19
+### 🔍 Debug - Orders Tab with Console Logging
+
+**CHANGES:**
+- Added comprehensive console logging to Orders tab JavaScript
+- Logs AJAX request parameters
+- Logs AJAX response data
+- Logs order processing steps
+- Helps identify why orders aren't loading
+
+**DEBUG INFO:**
+- Check browser console (F12) for detailed logs
+- Look for "Loading orders data...", "AJAX Response:", "Orders data:" messages
+- This will help identify the exact issue
+
 ## [1.6.7] - 2026-04-19
 ### 🐛 Fixed - Orders Tab Filter Values
 
