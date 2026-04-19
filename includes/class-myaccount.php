@@ -2850,10 +2850,40 @@ class WC_Team_Payroll_MyAccount {
 						<?php if ( ! empty( $highest_tier ) ) : ?>
 							<div class="profile-achievement-badge profile-achievement-badge-<?php echo esc_attr( $highest_tier ); ?>">
 								<svg class="badge-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-									<circle cx="12" cy="12" r="11" class="badge-bg"/>
+									<defs>
+										<!-- Gold Gradient -->
+										<linearGradient id="goldBadgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" style="stop-color:#FFD700"/>
+											<stop offset="100%" style="stop-color:#FFA500"/>
+										</linearGradient>
+										<!-- Silver Gradient -->
+										<linearGradient id="silverBadgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" style="stop-color:#E8E8E8"/>
+											<stop offset="100%" style="stop-color:#B0B0B0"/>
+										</linearGradient>
+										<!-- Bronze Gradient -->
+										<linearGradient id="bronzeBadgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" style="stop-color:#E6A85C"/>
+											<stop offset="100%" style="stop-color:#CD7F32"/>
+										</linearGradient>
+									</defs>
+									<circle cx="12" cy="12" r="11" class="badge-outer"/>
 									<circle cx="12" cy="12" r="9" class="badge-inner"/>
-									<!-- Crown Icon -->
-									<path d="M12 4L14 9L19 9.5L15.5 13L16.5 18L12 15.5L7.5 18L8.5 13L5 9.5L10 9L12 4Z" class="badge-crown" fill="currentColor"/>
+									<!-- Crown/Star Icon for Achievement -->
+									<path d="M12 5L13.5 9.5L18 10L15 13L16 17.5L12 15L8 17.5L9 13L6 10L10.5 9.5L12 5Z" class="badge-icon-shape"/>
+								</svg>
+							</div>
+						<?php else : ?>
+							<!-- Locked Badge - No Achievement Yet -->
+							<div class="profile-achievement-badge profile-achievement-badge-locked">
+								<svg class="badge-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<circle cx="12" cy="12" r="11" class="badge-outer"/>
+									<circle cx="12" cy="12" r="9" class="badge-inner"/>
+									<!-- Lock Icon -->
+									<g class="badge-icon-shape">
+										<rect x="9" y="11" width="6" height="6" rx="1"/>
+										<path d="M10 11V9C10 7.9 10.9 7 12 7C13.1 7 14 7.9 14 9V11" fill="none" stroke="currentColor" stroke-width="1.5"/>
+									</g>
 								</svg>
 							</div>
 						<?php endif; ?>
