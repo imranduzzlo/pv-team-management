@@ -106,8 +106,36 @@ class WC_Team_Payroll_Payroll_Engine {
 				}
 			}
 			
+			// Get salary earnings for the date range (same logic as dashboard and reports KPI)
+			$salary_for_period = 0;
+			$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+			
+			if ( $is_fixed_salary || $is_combined_salary ) {
+				// Get salary transactions within date range
+				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+				if ( is_array( $transactions ) ) {
+					foreach ( $transactions as $transaction ) {
+						if ( ! isset( $transaction['date'] ) ) {
+							continue;
+						}
+						
+						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+								$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+							}
+						}
+					}
+				}
+			}
+			
+			// Update total to include salary (Total Earnings = Commission + Salary)
+			$payroll[ $user_id ]['total'] = $data['total'] + $salary_for_period;
 			$payroll[ $user_id ]['paid'] = $paid;
-			$payroll[ $user_id ]['due'] = $data['total'] - $paid;
+			// Calculate due based on complete earnings (Due = Total Earnings - Paid)
+			$payroll[ $user_id ]['due'] = $payroll[ $user_id ]['total'] - $paid;
 		}
 
 		return $payroll;
@@ -258,8 +286,36 @@ class WC_Team_Payroll_Payroll_Engine {
 				}
 			}
 			
+			// Get salary earnings for the date range (same logic as dashboard and reports KPI)
+			$salary_for_period = 0;
+			$is_fixed_salary = get_user_meta( $user_id, '_wc_tp_fixed_salary', true );
+			$is_combined_salary = get_user_meta( $user_id, '_wc_tp_combined_salary', true );
+			
+			if ( $is_fixed_salary || $is_combined_salary ) {
+				// Get salary transactions within date range
+				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
+				if ( is_array( $transactions ) ) {
+					foreach ( $transactions as $transaction ) {
+						if ( ! isset( $transaction['date'] ) ) {
+							continue;
+						}
+						
+						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
+							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
+								$salary_for_period += floatval( $transaction['amount'] ?? 0 );
+							}
+						}
+					}
+				}
+			}
+			
+			// Update total to include salary (Total Earnings = Commission + Salary)
+			$payroll[ $user_id ]['total'] = $data['total'] + $salary_for_period;
 			$payroll[ $user_id ]['paid'] = $paid;
-			$payroll[ $user_id ]['due'] = $data['total'] - $paid;
+			// Calculate due based on complete earnings (Due = Total Earnings - Paid)
+			$payroll[ $user_id ]['due'] = $payroll[ $user_id ]['total'] - $paid;
 		}
 
 		return $payroll;

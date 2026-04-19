@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.5.2] - 2026-04-19
+### 💰 Employee Payroll Details - Complete Earnings & Due Calculation
+
+#### FIXED - Total Earnings & Due Per Employee (Commission + Salary)
+**ISSUE:**
+- "Employee Payroll Details" table showed only commission earnings per employee
+- Due calculation was: `Due = Commission - Paid` (missing salary)
+- Inconsistent with dashboard totals (fixed in v1.4.8 and v1.5.0)
+- Employees with fixed/combined salary showed incorrect totals
+
+**SOLUTION:**
+- Updated payroll engine to include salary earnings for each employee
+- Total Earnings per employee: `Commission + Salary`
+- Due per employee: `(Commission + Salary) - Paid`
+- Matches dashboard totals and reports page KPI calculation
+- Applied to both `get_monthly_payroll()` and `get_payroll_by_date_range()`
+
+**CALCULATION LOGIC:**
+```php
+foreach ( $payroll as $user_id => $data ) {
+    // Get commission earnings (already in $data['total'])
+    $commission_earnings = $data['total'];
+    
+    // Get salary earnings from transactions within date range
+    $salary_for_period = sum of salary transfers;
+    
+    // Update total earnings (Commission + Salary)
+    $payroll[$user_id]['total'] = $commission_earnings + $salary_for_period;
+    
+    // Calculate due (Total Earnings - Paid)
+    $payroll[$user_id]['due'] = $payroll[$user_id]['total'] - $paid;
+}
+```
+
+**BENEFITS:**
+- Accurate earnings per employee (commission + salary)
+- Correct due calculation per employee
+- Consistent with dashboard totals and reports KPI
+- Proper accounting for all employee types:
+  - Commission-only employees
+  - Fixed salary employees
+  - Combined salary employees
+
+**EMPLOYEE PAYROLL DETAILS TABLE NOW SHOWS:**
+- ✅ Total Earnings = Commission + Salary (per employee)
+- ✅ Due = (Commission + Salary) - Paid (per employee)
+- ✅ Order Count = Dynamic commission statuses (per employee)
+
+**FILES MODIFIED:**
+- `includes/class-payroll-engine.php` - Updated both payroll functions to include salary in total and recalculate due
+
 ## [1.5.1] - 2026-04-19
 ### ⚙️ Employee Payroll Details - Dynamic Status Support
 
