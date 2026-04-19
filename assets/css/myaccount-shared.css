@@ -75,10 +75,10 @@ input[type="reset"]:focus {
 }
 
 .profile-picture {
-	width: 100%;
-	height: 100%;
+	width: 100% !important;
+	height: 100% !important;
 	object-fit: cover;
-	border-radius: 50%;
+	border-radius: 50% !important;
 }
 
 .profile-picture-placeholder {
@@ -91,7 +91,7 @@ input[type="reset"]:focus {
 	font-size: 50px;
 	color: #fff;
 	font-weight: 700;
-	border-radius: 50%;
+	border-radius: 50% !important;
 }
 
 .profile-picture-placeholder .initials {
@@ -171,7 +171,7 @@ input[type="reset"]:focus {
 }
 
 /* ============================================================================
-   PROFILE PICTURE BADGES - 3D EMBOSSED COIN STYLE
+   PROFILE PICTURE BADGES - SMOOTH GOLD WITH OUTLINE ICONS
    ============================================================================ */
 
 /* Profile Achievement Badge - Top Right */
@@ -182,12 +182,12 @@ input[type="reset"]:focus {
 	width: 44px;
 	height: 44px;
 	z-index: 10;
-	filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+	filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
 	transition: all 0.3s ease;
 }
 
 .profile-achievement-badge:hover {
-	filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+	filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
 	transform: scale(1.08);
 }
 
@@ -196,133 +196,84 @@ input[type="reset"]:focus {
 	height: 100%;
 }
 
-/* ===== GOLD BADGE - 3D Embossed Gold Coin ===== */
-.profile-achievement-badge-gold .badge-outer-ring {
-	fill: url(#goldOuter);
+/* ===== GOLD BADGE - Smooth Gold with Outline Crown ===== */
+.profile-achievement-badge-gold .badge-circle {
+	fill: url(#goldGradient);
+	stroke: #B8860B;
+	stroke-width: 2;
+}
+
+.profile-achievement-badge-gold .badge-inner-ring {
+	fill: none;
+	stroke: #DAA520;
+	stroke-width: 1.5;
+	opacity: 0.5;
+}
+
+.profile-achievement-badge-gold .badge-icon-outline {
 	stroke: #8B6914;
+	fill: none;
+}
+
+/* ===== SILVER BADGE - Smooth Silver with Outline Medal ===== */
+.profile-achievement-badge-silver .badge-circle {
+	fill: url(#silverGradient);
+	stroke: #909090;
+	stroke-width: 2;
+}
+
+.profile-achievement-badge-silver .badge-inner-ring {
+	fill: none;
+	stroke: #B0B0B0;
 	stroke-width: 1.5;
+	opacity: 0.5;
 }
 
-.profile-achievement-badge-gold .badge-middle-ring {
-	fill: #B8860B;
-	opacity: 0.6;
+.profile-achievement-badge-silver .badge-icon-outline {
+	stroke: #606060;
+	fill: none;
 }
 
-.profile-achievement-badge-gold .badge-inner-surface {
-	fill: url(#goldInner);
+/* ===== BRONZE BADGE - Smooth Bronze with Outline Trophy ===== */
+.profile-achievement-badge-bronze .badge-circle {
+	fill: url(#bronzeGradient);
+	stroke: #8B4513;
+	stroke-width: 2;
 }
 
-.profile-achievement-badge-gold .badge-icon-area {
-	fill: #DAA520;
-	opacity: 0.3;
-}
-
-.profile-achievement-badge-gold .icon-fill {
-	fill: #8B6914;
-	stroke: #6B5310;
-	stroke-width: 0.5;
-}
-
-.profile-achievement-badge-gold .icon-accent {
-	fill: #FFD700;
-}
-
-/* ===== SILVER BADGE - 3D Embossed Silver Coin ===== */
-.profile-achievement-badge-silver .badge-outer-ring {
-	fill: url(#silverOuter);
-	stroke: #696969;
+.profile-achievement-badge-bronze .badge-inner-ring {
+	fill: none;
+	stroke: #CD7F32;
 	stroke-width: 1.5;
+	opacity: 0.5;
 }
 
-.profile-achievement-badge-silver .badge-middle-ring {
-	fill: #808080;
-	opacity: 0.6;
-}
-
-.profile-achievement-badge-silver .badge-inner-surface {
-	fill: url(#silverInner);
-}
-
-.profile-achievement-badge-silver .badge-icon-area {
-	fill: #A8A8A8;
-	opacity: 0.3;
-}
-
-.profile-achievement-badge-silver .icon-fill {
-	fill: #696969;
-	stroke: #505050;
-	stroke-width: 0.5;
-}
-
-.profile-achievement-badge-silver .icon-accent {
-	fill: #E8E8E8;
-}
-
-/* ===== BRONZE BADGE - 3D Embossed Bronze Coin ===== */
-.profile-achievement-badge-bronze .badge-outer-ring {
-	fill: url(#bronzeOuter);
+.profile-achievement-badge-bronze .badge-icon-outline {
 	stroke: #6B3410;
-	stroke-width: 1.5;
+	fill: none;
 }
 
-.profile-achievement-badge-bronze .badge-middle-ring {
-	fill: #8B4513;
-	opacity: 0.6;
-}
-
-.profile-achievement-badge-bronze .badge-inner-surface {
-	fill: url(#bronzeInner);
-}
-
-.profile-achievement-badge-bronze .badge-icon-area {
-	fill: #B8733C;
-	opacity: 0.3;
-}
-
-.profile-achievement-badge-bronze .icon-fill {
-	fill: #6B3410;
-	stroke: #4B2408;
-	stroke-width: 0.5;
-}
-
-.profile-achievement-badge-bronze .icon-accent {
-	fill: #E6A85C;
-}
-
-/* ===== LOCKED BADGE - 3D Embossed Gray Coin ===== */
+/* ===== LOCKED BADGE - Smooth Gray with Outline Lock ===== */
 .profile-achievement-badge-locked {
-	opacity: 0.7;
+	opacity: 0.65;
 }
 
-.profile-achievement-badge-locked .badge-outer-ring {
-	fill: url(#lockedOuter);
-	stroke: #757575;
+.profile-achievement-badge-locked .badge-circle {
+	fill: url(#lockedGradient);
+	stroke: #909090;
+	stroke-width: 2;
+}
+
+.profile-achievement-badge-locked .badge-inner-ring {
+	fill: none;
+	stroke: #B0B0B0;
 	stroke-width: 1.5;
+	opacity: 0.5;
 }
 
-.profile-achievement-badge-locked .badge-middle-ring {
-	fill: #9E9E9E;
-	opacity: 0.6;
-}
-
-.profile-achievement-badge-locked .badge-inner-surface {
-	fill: url(#lockedInner);
-}
-
-.profile-achievement-badge-locked .badge-icon-area {
-	fill: #A8A8A8;
-	opacity: 0.3;
-}
-
-.profile-achievement-badge-locked .icon-fill {
-	fill: #757575;
-	stroke: #616161;
-	stroke-width: 0.5;
-	color: #757575;
-}
-
-.profile-achievement-badge-locked .icon-accent {
-	fill: #BDBDBD;
+.profile-achievement-badge-locked .badge-icon-outline {
+	stroke: #707070;
+	fill: none;
 }
 
 /* Profile Goal Counter - Bottom Center */
@@ -386,6 +337,7 @@ input[type="reset"]:focus {
 		font-size: 11px;
 	}
 }
+
 
 .header-right-column {
 	display: flex;
@@ -618,9 +570,6 @@ input[type="reset"]:focus {
 		width: 100px;
 		height: 100px;
 		border-width: 3px;
-	}
-	.profile-picture-container img{
-		border-radius:50% !important;
 	}
 	.profile-picture-placeholder .initials {
 		font-size: 40px;
