@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.9] - 2026-04-19
+### Fixed
+- **Performance Tracker View Mode**: Fixed date range not updating when dropdown selection changed
+- Date range now correctly updates for all view modes (Last Month, Last 3 Months, Last 6 Months, Last 12 Months, Year to Date)
+- Added `get_view_mode_dates()` function to calculate proper date ranges for each view mode
+- Modified `update_goal_progress()` to accept and use view_mode parameter
+- Smart caching: Only saves to user meta when viewing current period to avoid overwriting actual progress
+
 ## [1.3.8] - 2026-04-19
 ### Added
 - **Admin Performance Tab**: Added Performance Tracker to admin employee details page
