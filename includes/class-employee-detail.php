@@ -1135,10 +1135,18 @@ class WC_Team_Payroll_Employee_Detail {
 				font-weight: var(--fw-bold);
 			}
 
+			/* Table Wrapper for Horizontal Scroll */
+			.wc-tp-table-wrapper {
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+				margin-bottom: 20px;
+			}
+
 			.wc-tp-data-table {
 				width: 100%;
 				border-collapse: collapse;
 				display: table !important;
+				min-width: 1000px; /* Ensure table doesn't shrink too much */
 			}
 
 			.wc-tp-data-table thead {
@@ -1166,13 +1174,18 @@ class WC_Team_Payroll_Employee_Detail {
 				color: var(--text-main);
 				font-size: var(--fs-meta);
 				border-bottom: 1px solid var(--color-border-light);
+				white-space: nowrap; /* Prevent header text from wrapping */
+			}
+
+			.wc-tp-data-table th .th-content {
+				display: inline-block;
+				white-space: nowrap;
 			}
 
 			.wc-tp-sortable-header {
 				cursor: pointer;
 				user-select: none;
 				transition: all 0.2s ease;
-				white-space: nowrap;
 			}
 
 			.wc-tp-sortable-header:hover {
@@ -1185,6 +1198,7 @@ class WC_Team_Payroll_Employee_Detail {
 				border-bottom: 1px solid var(--color-border-light);
 				font-size: var(--fs-body);
 				color: var(--text-body);
+				white-space: nowrap; /* Prevent cell content from wrapping */
 			}
 
 			.wc-tp-data-table tbody tr:hover {
@@ -1919,32 +1933,35 @@ class WC_Team_Payroll_Employee_Detail {
 						const endIndex = startIndex + itemsPerPage;
 						const paginatedOrders = orders.slice(startIndex, endIndex);
 
-						let html = '<table class="wc-tp-data-table"><thead><tr>';
+						let html = '<div class="wc-tp-table-wrapper"><table class="wc-tp-data-table"><thead><tr>';
 						html += '<th class="wc-tp-sortable-header" data-column="order_id">';
-						html += 'Order ID' + getSortIcon('order_id');
+						html += '<span class="th-content">Order&nbsp;ID</span>' + getSortIcon('order_id');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="customer_name">';
-						html += 'Customer' + getSortIcon('customer_name');
+						html += '<span class="th-content">Customer</span>' + getSortIcon('customer_name');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="total">';
-						html += 'Total' + getSortIcon('total');
+						html += '<span class="th-content">Total</span>' + getSortIcon('total');
+						html += '</th>';
+						html += '<th class="wc-tp-sortable-header" data-column="attributed_total">';
+						html += '<span class="th-content">Attributed&nbsp;Total</span>' + getSortIcon('attributed_total');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="status">';
-						html += 'Status' + getSortIcon('status');
+						html += '<span class="th-content">Status</span>' + getSortIcon('status');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="commission">';
-						html += 'Commission' + getSortIcon('commission');
+						html += '<span class="th-content">Commission</span>' + getSortIcon('commission');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="user_earnings">';
-						html += 'Your Earnings' + getSortIcon('user_earnings');
+						html += '<span class="th-content">Your&nbsp;Earnings</span>' + getSortIcon('user_earnings');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="flag">';
-						html += 'Flag' + getSortIcon('flag');
+						html += '<span class="th-content">Flag</span>' + getSortIcon('flag');
 						html += '</th>';
 						html += '<th class="wc-tp-sortable-header" data-column="date">';
-						html += 'Date' + getSortIcon('date');
+						html += '<span class="th-content">Date</span>' + getSortIcon('date');
 						html += '</th>';
-						html += '<th>Actions</th>';
+						html += '<th><span class="th-content">Actions</span></th>';
 						html += '</tr></thead><tbody>';
 
 						$.each(paginatedOrders, function(i, order) {
@@ -1957,6 +1974,7 @@ class WC_Team_Payroll_Employee_Detail {
 							html += '<td><strong>#' + order.order_id + '</strong></td>';
 							html += '<td>' + order.customer_name + '</td>';
 							html += '<td>' + formatCurrency(order.total) + '</td>';
+							html += '<td>' + (order.attributed_total_formatted || '—') + '</td>';
 							html += '<td><span class="wc-tp-badge ' + statusClass + '">' + order.status + '</span></td>';
 							html += '<td>' + formatCurrency(order.commission) + '</td>';
 							html += '<td><strong>' + formatCurrency(order.user_earnings) + '</strong></td>';
@@ -1969,7 +1987,7 @@ class WC_Team_Payroll_Employee_Detail {
 							html += '</tr>';
 						});
 
-						html += '</tbody></table>';
+						html += '</tbody></table></div>';
 
 						// Add pagination controls
 						html += '<div class="wc-tp-pagination">';

@@ -53,6 +53,28 @@ class WC_Team_Payroll_AJAX_Handlers {
 		$earnings = WC_Team_Payroll_Core_Engine::get_user_earnings( $user_id );
 		$orders = $earnings['orders'] ?? array();
 
+		// Enhance orders with attributed_total
+		foreach ( $orders as &$order_data ) {
+			$order = wc_get_order( $order_data['order_id'] );
+			if ( ! $order ) {
+				continue;
+			}
+
+			$commission_data = $order->get_meta( '_commission_data' );
+			$attributed_value = 0;
+
+			if ( is_array( $commission_data ) ) {
+				if ( $order_data['role'] === 'agent' && isset( $commission_data['agent_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['agent_order_value'] );
+				} elseif ( $order_data['role'] === 'processor' && isset( $commission_data['processor_order_value'] ) ) {
+					$attributed_value = floatval( $commission_data['processor_order_value'] );
+				}
+			}
+
+			$order_data['attributed_total'] = $attributed_value;
+			$order_data['attributed_total_formatted'] = $attributed_value > 0 ? wc_price( $attributed_value ) : '—';
+		}
+
 		// Filter by date range
 		if ( $start_date && $end_date ) {
 			$start_timestamp = strtotime( $start_date );

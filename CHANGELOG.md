@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.5.8] - 2026-04-19
+### ✨ Enhanced - Admin Employee Details Order History with Attributed Total
+
+#### ADDED - Attributed Total Column to Order History Table
+**ENHANCEMENT:**
+- Added "Attributed Total" column after "Total" column in Order History table
+- Shows employee's attributed portion of order value based on their role
+- Displays agent_order_value for agents, processor_order_value for processors
+- Shows "—" when no attributed value exists
+- Sortable column with proper numeric sorting
+- Respects all existing filters (date, status, flag, search)
+
+**TABLE IMPROVEMENTS:**
+- Horizontal scroll enabled for table overflow on smaller screens
+- Headers use non-breaking text to prevent word wrapping
+- Table wrapper with smooth touch scrolling on mobile
+- Minimum table width ensures proper column spacing
+- All cells use nowrap to maintain clean layout
+
+**FEATURES:**
+- Attributed Total column matches My Account Orders styling
+- Proper data flow from AJAX handler to frontend
+- Enhanced order data with attributed_total and attributed_total_formatted
+- Consistent with commission calculation system
+
+**FILES MODIFIED:**
+- `includes/class-ajax-handlers.php` - Enhanced get_employee_orders with attributed data
+- `includes/class-employee-detail.php` - Added column to table, wrapper for overflow, non-breaking headers
+
+---
+
 ## [1.5.7] - 2026-04-19
 ### ✨ Enhanced - Admin Employee Details Profile Picture with Badges
 
