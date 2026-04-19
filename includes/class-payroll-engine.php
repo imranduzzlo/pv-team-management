@@ -115,13 +115,24 @@ class WC_Team_Payroll_Payroll_Engine {
 				// Get salary transactions within date range
 				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
 				if ( is_array( $transactions ) ) {
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
 					foreach ( $transactions as $transaction ) {
 						if ( ! isset( $transaction['date'] ) ) {
 							continue;
 						}
 						
-						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
-						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+						// Parse transaction date and convert to timestamp for accurate comparison
+						$trans_date_str = $transaction['date'];
+						// Handle datetime-local format if present
+						if ( strpos( $trans_date_str, 'T' ) !== false ) {
+							$trans_date_str = str_replace( 'T', ' ', $trans_date_str );
+						}
+						$trans_timestamp = strtotime( $trans_date_str );
+						
+						// Only count transfers within the date range
+						if ( $trans_timestamp !== false && $trans_timestamp >= $start_timestamp && $trans_timestamp <= $end_timestamp ) {
 							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
 							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
 								$salary_for_period += floatval( $transaction['amount'] ?? 0 );
@@ -295,13 +306,24 @@ class WC_Team_Payroll_Payroll_Engine {
 				// Get salary transactions within date range
 				$transactions = get_user_meta( $user_id, '_wc_tp_salary_transactions', true );
 				if ( is_array( $transactions ) ) {
+					$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					
 					foreach ( $transactions as $transaction ) {
 						if ( ! isset( $transaction['date'] ) ) {
 							continue;
 						}
 						
-						$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
-						if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+						// Parse transaction date and convert to timestamp for accurate comparison
+						$trans_date_str = $transaction['date'];
+						// Handle datetime-local format if present
+						if ( strpos( $trans_date_str, 'T' ) !== false ) {
+							$trans_date_str = str_replace( 'T', ' ', $trans_date_str );
+						}
+						$trans_timestamp = strtotime( $trans_date_str );
+						
+						// Only count transfers within the date range
+						if ( $trans_timestamp !== false && $trans_timestamp >= $start_timestamp && $trans_timestamp <= $end_timestamp ) {
 							// Check for transfer types (daily_transfer, weekly_transfer, monthly_transfer, partial_transfer)
 							if ( isset( $transaction['type'] ) && strpos( $transaction['type'], 'transfer' ) !== false ) {
 								$salary_for_period += floatval( $transaction['amount'] ?? 0 );

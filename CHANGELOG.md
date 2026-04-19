@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.5.6] - 2026-04-19
+### 🔧 Improved - Salary Date Filtering with Timestamp Comparison
+
+#### ENHANCED - More Accurate Date Range Filtering for Salary Transactions
+**IMPROVEMENT:**
+- Changed salary transaction date filtering from string comparison to timestamp comparison
+- More accurate and reliable date range filtering
+- Handles datetime-local format properly
+- Consistent with payment date filtering logic
+
+**BEFORE (String Comparison):**
+```php
+$trans_date = date( 'Y-m-d', strtotime( $transaction['date'] ) );
+if ( $trans_date >= $start_date && $trans_date <= $end_date ) {
+    // String comparison - less reliable
+}
+```
+
+**AFTER (Timestamp Comparison):**
+```php
+$trans_timestamp = strtotime( $trans_date_str );
+$start_timestamp = strtotime( $start_date . ' 00:00:00' );
+$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+
+if ( $trans_timestamp >= $start_timestamp && $trans_timestamp <= $end_timestamp ) {
+    // Timestamp comparison - more accurate
+}
+```
+
+**BENEFITS:**
+- More accurate date range filtering
+- Handles edge cases better (timezone, time of day)
+- Consistent with payment filtering logic
+- Properly handles datetime-local format (YYYY-MM-DDTHH:MM)
+- Ensures salary transfers are counted only within selected date range
+
+**FILES MODIFIED:**
+- `includes/class-payroll-engine.php` - Updated both payroll functions to use timestamp comparison
+
 ## [1.5.5] - 2026-04-19
 ### 🐛 Critical Fix - Dashboard Total Earnings Double-Counting
 
