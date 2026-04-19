@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.5.4] - 2026-04-19
+### 🔍 Debug - Dashboard Total Orders Investigation
+
+#### ADDED - Debug Logging for Order Count
+**PURPOSE:**
+- Investigate why dashboard shows 2 orders instead of 3
+- Added detailed error logging to understand what's happening
+- Logs: date range, commission statuses, orders found, and order details
+
+**DEBUG INFO LOGGED:**
+- Date range being queried
+- Commission calculation statuses from settings
+- Number of orders found
+- Each order's ID, status, and creation date
+
+**NEXT STEPS:**
+- Check WordPress debug.log file
+- Verify which orders are being returned
+- Identify why one order might be missing
+- Check if order status matches commission calculation statuses
+
+**FILES MODIFIED:**
+- `woocommerce-team-payroll.php` - Added debug logging to order count query
+
 ## [1.5.3] - 2026-04-19
 ### 🐛 Dashboard Total Orders - Fix Undercount Issue
 

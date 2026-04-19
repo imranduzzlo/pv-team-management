@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Team Payroll & Commission System
  * Plugin URI: https://github.com/imranduzzlo/pv-team-payroll
  * Description: Manage team-based commission and payroll system with agents and processors
- * Version: 1.5.3
+ * Version: 1.5.4
  * Author: Imran
  * Author URI: https://imranhossain.me/
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WC_TEAM_PAYROLL_VERSION', '1.5.3' );
+define( 'WC_TEAM_PAYROLL_VERSION', '1.5.4' );
 define( 'WC_TEAM_PAYROLL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_TEAM_PAYROLL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -1009,6 +1009,16 @@ add_action( 'plugins_loaded', function() {
 			),
 		);
 		$orders = wc_get_orders( $args );
+		
+		// Debug: Log order details
+		error_log( 'Dashboard Total Orders Debug:' );
+		error_log( 'Date Range: ' . $start_date . ' to ' . $end_date );
+		error_log( 'Commission Statuses: ' . implode( ', ', $commission_statuses ) );
+		error_log( 'Orders Found: ' . count( $orders ) );
+		foreach ( $orders as $order ) {
+			error_log( 'Order #' . $order->get_id() . ' - Status: ' . $order->get_status() . ' - Date: ' . $order->get_date_created()->date( 'Y-m-d H:i:s' ) );
+		}
+		
 		// Count all orders with commission calculation statuses (no need to check commission_data)
 		$total_orders = count( $orders );
 
