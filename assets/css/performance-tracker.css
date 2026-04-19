@@ -943,3 +943,425 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* ============================================================================
+   STREAK INDICATORS (Phase 2 Part 3)
+   ============================================================================ */
+
+.streak-indicator-container {
+	margin-bottom: 32px;
+}
+
+.streak-indicator {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	background: #ffffff;
+	border: 3px solid #E5EAF0;
+	border-radius: 16px;
+	padding: 24px;
+	transition: all 0.3s ease;
+}
+
+.streak-indicator.active-streak {
+	background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
+	box-shadow: 0 4px 16px rgba(255, 153, 0, 0.2);
+	animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+	0%, 100% {
+		box-shadow: 0 4px 16px rgba(255, 153, 0, 0.2);
+	}
+	50% {
+		box-shadow: 0 6px 24px rgba(255, 153, 0, 0.3);
+	}
+}
+
+.streak-indicator.no-streak {
+	background: #F9FAFB;
+	border-color: #E5EAF0;
+	opacity: 0.7;
+}
+
+.streak-flame {
+	font-size: 64px;
+	flex-shrink: 0;
+	animation: flameFlicker 1.5s ease-in-out infinite;
+}
+
+@keyframes flameFlicker {
+	0%, 100% {
+		transform: scale(1) rotate(-5deg);
+	}
+	50% {
+		transform: scale(1.1) rotate(5deg);
+	}
+}
+
+.streak-indicator.no-streak .streak-flame {
+	font-size: 48px;
+	color: #919EAB;
+	animation: none;
+}
+
+.streak-content {
+	flex: 1;
+}
+
+.streak-content h4 {
+	margin: 0 0 12px 0;
+	font-size: 20px;
+	font-weight: 700;
+	color: #212B36;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.streak-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border-radius: 8px;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.streak-count {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.count-number {
+	font-size: 48px;
+	font-weight: 800;
+	color: #FF9900;
+	line-height: 1;
+}
+
+.count-label {
+	font-size: 16px;
+	font-weight: 600;
+	color: #637381;
+}
+
+.streak-message {
+	margin: 0;
+	font-size: 14px;
+	color: #637381;
+	line-height: 1.5;
+}
+
+/* ============================================================================
+   BONUS MILESTONES (Phase 2 Part 3)
+   ============================================================================ */
+
+.bonus-milestones-container {
+	margin-bottom: 32px;
+}
+
+.bonus-milestones-container h4 {
+	margin: 0 0 16px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #212B36;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.bonus-milestones-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.bonus-milestone-card {
+	background: #ffffff;
+	border: 3px solid #E5EAF0;
+	border-radius: 12px;
+	overflow: hidden;
+	transition: all 0.3s ease;
+}
+
+.bonus-milestone-card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.bonus-milestone-card.achieved {
+	border-color: #28a745;
+	box-shadow: 0 4px 16px rgba(40, 167, 69, 0.2);
+}
+
+.bonus-milestone-card.active {
+	border-color: #FF9900;
+	box-shadow: 0 4px 16px rgba(255, 153, 0, 0.15);
+}
+
+.bonus-milestone-card.awarded {
+	opacity: 0.7;
+	border-color: #6c757d;
+}
+
+.bonus-milestone-card.inactive {
+	opacity: 0.6;
+}
+
+.milestone-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px 20px;
+	border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.milestone-badge {
+	font-size: 16px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.milestone-months {
+	font-size: 14px;
+	font-weight: 600;
+	color: #637381;
+	background: #F4F6F8;
+	padding: 4px 10px;
+	border-radius: 6px;
+}
+
+.milestone-body {
+	padding: 20px;
+}
+
+.milestone-reward {
+	text-align: center;
+	margin-bottom: 20px;
+	padding: 16px;
+	background: #F9FAFB;
+	border-radius: 8px;
+}
+
+.reward-amount {
+	font-size: 32px;
+	font-weight: 800;
+	color: #28a745;
+	margin-bottom: 4px;
+}
+
+.reward-description {
+	font-size: 18px;
+	font-weight: 700;
+	color: #212B36;
+	margin-bottom: 4px;
+}
+
+.reward-type {
+	font-size: 13px;
+	font-weight: 600;
+	color: #637381;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.milestone-progress {
+	margin-bottom: 12px;
+}
+
+.milestone-progress .progress-bar-container {
+	height: 8px;
+	margin-bottom: 12px;
+}
+
+.progress-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 14px;
+}
+
+.progress-current {
+	font-weight: 700;
+	color: #212B36;
+}
+
+.progress-status {
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 6px;
+	font-size: 12px;
+}
+
+.progress-status.achieved {
+	background: #E8F5E9;
+	color: #388E3C;
+}
+
+.progress-status.active {
+	background: #FFF9C4;
+	color: #F57C00;
+}
+
+.progress-status.awarded {
+	background: #E3F2FD;
+	color: #1976D2;
+}
+
+.progress-status.inactive {
+	background: #F4F6F8;
+	color: #919EAB;
+}
+
+.milestone-repeatable {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #637381;
+	padding: 8px;
+	background: #F4F6F8;
+	border-radius: 6px;
+	margin-top: 12px;
+}
+
+.milestone-repeatable i {
+	font-size: 16px;
+}
+
+/* ============================================================================
+   BONUS HISTORY (Phase 2 Part 3)
+   ============================================================================ */
+
+.bonus-history-container {
+	margin-top: 32px;
+	background: #F9FAFB;
+	border: 1px solid #E5EAF0;
+	border-radius: 12px;
+	padding: 24px;
+}
+
+.bonus-history-container h4 {
+	margin: 0 0 20px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #212B36;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.bonus-history-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.bonus-history-item {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	background: #ffffff;
+	border: 1px solid #E5EAF0;
+	border-radius: 8px;
+	padding: 16px;
+	transition: all 0.2s ease;
+}
+
+.bonus-history-item:hover {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	transform: translateX(4px);
+}
+
+.bonus-icon {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	flex-shrink: 0;
+}
+
+.bonus-details {
+	flex: 1;
+}
+
+.bonus-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #212B36;
+	margin-bottom: 4px;
+}
+
+.bonus-description {
+	font-size: 14px;
+	color: #637381;
+}
+
+.bonus-date {
+	font-size: 13px;
+	color: #919EAB;
+	font-weight: 500;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN FOR NEW COMPONENTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.streak-indicator {
+		flex-direction: column;
+		text-align: center;
+		padding: 20px;
+	}
+
+	.streak-flame {
+		font-size: 48px;
+	}
+
+	.count-number {
+		font-size: 36px;
+	}
+
+	.bonus-milestones-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bonus-history-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	.bonus-icon {
+		width: 40px;
+		height: 40px;
+		font-size: 20px;
+	}
+}
+
+@media (max-width: 480px) {
+	.streak-content h4 {
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.reward-amount {
+		font-size: 24px;
+	}
+
+	.reward-description {
+		font-size: 16px;
+	}
+}

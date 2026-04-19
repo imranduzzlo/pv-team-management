@@ -50,6 +50,10 @@ class WC_Team_Payroll_Performance_Settings {
 		// AJAX handlers - System Configuration
 		add_action( 'wp_ajax_wc_tp_save_system_config', array( $this, 'ajax_save_system_config' ) );
 		add_action( 'wp_ajax_wc_tp_reset_all_data', array( $this, 'ajax_reset_all_data' ) );
+		
+		// AJAX handlers - Bonus Configuration (Phase 2 Part 2)
+		add_action( 'wp_ajax_wc_tp_save_bonus_config', array( $this, 'ajax_save_bonus_config' ) );
+		add_action( 'wp_ajax_wc_tp_get_bonus_config', array( $this, 'ajax_get_bonus_config' ) );
 	}
 
 	/**
@@ -134,6 +138,10 @@ class WC_Team_Payroll_Performance_Settings {
 					<i class="dashicons dashicons-awards"></i>
 					<?php esc_html_e( 'Achievements', 'wc-team-payroll' ); ?>
 				</button>
+				<button type="button" class="wc-tp-perf-nav-tab" data-section="bonuses">
+					<i class="dashicons dashicons-money-alt"></i>
+					<?php esc_html_e( 'Bonus Configuration', 'wc-team-payroll' ); ?>
+				</button>
 				<button type="button" class="wc-tp-perf-nav-tab" data-section="baselines">
 					<i class="dashicons dashicons-chart-line"></i>
 					<?php esc_html_e( 'Baselines', 'wc-team-payroll' ); ?>
@@ -161,6 +169,11 @@ class WC_Team_Payroll_Performance_Settings {
 			<!-- Section: Achievements -->
 			<div class="wc-tp-perf-section" id="wc-tp-perf-achievements">
 				<?php $this->render_achievements_section(); ?>
+			</div>
+
+			<!-- Section: Bonus Configuration -->
+			<div class="wc-tp-perf-section" id="wc-tp-perf-bonuses">
+				<?php $this->render_bonuses_section(); ?>
 			</div>
 
 			<!-- Section: Baselines -->
@@ -483,6 +496,181 @@ class WC_Team_Payroll_Performance_Settings {
 					<?php if ( empty( $all_roles ) ) : ?>
 						<p><a href="?page=wc-team-payroll-settings&tab=woocommerce" class="button button-secondary"><?php esc_html_e( 'Configure Employee Roles', 'wc-team-payroll' ); ?></a></p>
 					<?php endif; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render Bonus Configuration Section (Phase 2 Part 2)
+	 */
+	private function render_bonuses_section() {
+		// Get employee roles from settings
+		$all_roles = $this->get_all_roles();
+		$bonus_config = get_option( 'wc_tp_achievement_bonuses', array() );
+		?>
+		<div class="wc-tp-perf-bonuses-wrapper">
+			<h3><?php esc_html_e( 'Badge Streak Bonus Configuration', 'wc-team-payroll' ); ?></h3>
+			<p class="description"><?php esc_html_e( 'Configure automatic bonuses for employees who maintain badge levels for consecutive months. Bonuses can be monetary rewards, physical rewards, or other recognition.', 'wc-team-payroll' ); ?></p>
+			
+			<!-- Global Bonus Settings -->
+			<div class="wc-tp-perf-card">
+				<h4><?php esc_html_e( 'Global Bonus Settings', 'wc-team-payroll' ); ?></h4>
+				<p class="description"><?php esc_html_e( 'Configure how bonuses are awarded and displayed across the system.', 'wc-team-payroll' ); ?></p>
+				<table class="form-table">
+					<tr>
+						<th><label for="bonus_enabled"><?php esc_html_e( 'Enable Bonus System', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<input type="checkbox" id="bonus_enabled" name="bonus_enabled" value="1" class="wc-tp-bonus-setting" <?php checked( isset( $bonus_config['enabled'] ) ? $bonus_config['enabled'] : 1, 1 ); ?> />
+							<label for="bonus_enabled"><?php esc_html_e( 'Automatically award bonuses when streak milestones are achieved', 'wc-team-payroll' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="bonus_notification"><?php esc_html_e( 'Email Notifications', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<input type="checkbox" id="bonus_notification" name="bonus_notification" value="1" class="wc-tp-bonus-setting" <?php checked( isset( $bonus_config['notification'] ) ? $bonus_config['notification'] : 1, 1 ); ?> />
+							<label for="bonus_notification"><?php esc_html_e( 'Send email notification when employee earns a bonus', 'wc-team-payroll' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="bonus_show_progress"><?php esc_html_e( 'Show Progress to Employees', 'wc-team-payroll' ); ?></label></th>
+						<td>
+							<input type="checkbox" id="bonus_show_progress" name="bonus_show_progress" value="1" class="wc-tp-bonus-setting" <?php checked( isset( $bonus_config['show_progress'] ) ? $bonus_config['show_progress'] : 1, 1 ); ?> />
+							<label for="bonus_show_progress"><?php esc_html_e( 'Display bonus milestone progress in Performance Tracker', 'wc-team-payroll' ); ?></label>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<!-- Bonus Rules Repeater -->
+			<div class="wc-tp-perf-card">
+				<h4><?php esc_html_e( 'Bonus Rules', 'wc-team-payroll' ); ?></h4>
+				<p class="description"><?php esc_html_e( 'Define bonus rules for different badge tiers and streak counts. Employees will automatically receive bonuses when they achieve the specified consecutive months at a badge level.', 'wc-team-payroll' ); ?></p>
+				
+				<div class="wc-tp-bonus-rules-container">
+					<div id="wc-tp-bonus-rules-list">
+						<?php
+						if ( ! empty( $bonus_config['rules'] ) && is_array( $bonus_config['rules'] ) ) {
+							foreach ( $bonus_config['rules'] as $index => $rule ) {
+								$this->render_bonus_rule_row( $index, $rule, $all_roles );
+							}
+						} else {
+							// Show one empty row by default
+							$this->render_bonus_rule_row( 0, array(), $all_roles );
+						}
+						?>
+					</div>
+					
+					<div class="wc-tp-bonus-rules-actions">
+						<button type="button" class="button button-secondary" id="wc-tp-add-bonus-rule">
+							<span class="dashicons dashicons-plus-alt"></span>
+							<?php esc_html_e( 'Add Bonus Rule', 'wc-team-payroll' ); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Bonus Rule Template (Hidden) -->
+			<script type="text/template" id="wc-tp-bonus-rule-template">
+				<?php $this->render_bonus_rule_row( '{{INDEX}}', array(), $all_roles, true ); ?>
+			</script>
+
+			<!-- Save Button for Bonuses -->
+			<div class="wc-tp-section-save">
+				<button type="button" class="button button-primary button-large" id="wc-tp-save-bonuses">
+					<span class="dashicons dashicons-saved"></span>
+					<?php esc_html_e( 'Save Bonus Configuration', 'wc-team-payroll' ); ?>
+				</button>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render a single bonus rule row
+	 */
+	private function render_bonus_rule_row( $index, $rule = array(), $all_roles = array(), $is_template = false ) {
+		$tier = isset( $rule['tier'] ) ? $rule['tier'] : '';
+		$streak_count = isset( $rule['streak_count'] ) ? $rule['streak_count'] : '';
+		$bonus_type = isset( $rule['bonus_type'] ) ? $rule['bonus_type'] : 'money';
+		$bonus_amount = isset( $rule['bonus_amount'] ) ? $rule['bonus_amount'] : '';
+		$bonus_description = isset( $rule['bonus_description'] ) ? $rule['bonus_description'] : '';
+		$repeatable = isset( $rule['repeatable'] ) ? $rule['repeatable'] : 0;
+		$eligible_roles = isset( $rule['eligible_roles'] ) ? $rule['eligible_roles'] : array();
+		
+		$index_attr = $is_template ? '{{INDEX}}' : $index;
+		?>
+		<div class="wc-tp-bonus-rule-row" data-index="<?php echo esc_attr( $index_attr ); ?>">
+			<div class="wc-tp-bonus-rule-header">
+				<span class="wc-tp-bonus-rule-number"><?php echo esc_html( sprintf( __( 'Rule #%s', 'wc-team-payroll' ), $is_template ? '{{INDEX}}' : ( $index + 1 ) ) ); ?></span>
+				<button type="button" class="button button-link-delete wc-tp-remove-bonus-rule">
+					<span class="dashicons dashicons-trash"></span>
+					<?php esc_html_e( 'Remove', 'wc-team-payroll' ); ?>
+				</button>
+			</div>
+			
+			<div class="wc-tp-bonus-rule-fields">
+				<div class="wc-tp-bonus-field">
+					<label><?php esc_html_e( 'Badge Tier', 'wc-team-payroll' ); ?></label>
+					<select name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][tier]" class="wc-tp-bonus-tier" required>
+						<option value=""><?php esc_html_e( '-- Select Tier --', 'wc-team-payroll' ); ?></option>
+						<option value="bronze" <?php selected( $tier, 'bronze' ); ?>><?php esc_html_e( '🥉 Bronze', 'wc-team-payroll' ); ?></option>
+						<option value="silver" <?php selected( $tier, 'silver' ); ?>><?php esc_html_e( '🥈 Silver', 'wc-team-payroll' ); ?></option>
+						<option value="gold" <?php selected( $tier, 'gold' ); ?>><?php esc_html_e( '🥇 Gold', 'wc-team-payroll' ); ?></option>
+					</select>
+				</div>
+				
+				<div class="wc-tp-bonus-field">
+					<label><?php esc_html_e( 'Consecutive Months', 'wc-team-payroll' ); ?></label>
+					<input type="number" name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][streak_count]" value="<?php echo esc_attr( $streak_count ); ?>" min="1" max="24" step="1" class="small-text" required />
+					<span class="description"><?php esc_html_e( 'months', 'wc-team-payroll' ); ?></span>
+				</div>
+				
+				<div class="wc-tp-bonus-field">
+					<label><?php esc_html_e( 'Bonus Type', 'wc-team-payroll' ); ?></label>
+					<select name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][bonus_type]" class="wc-tp-bonus-type" required>
+						<option value="money" <?php selected( $bonus_type, 'money' ); ?>><?php esc_html_e( 'Money (Auto-added to earnings)', 'wc-team-payroll' ); ?></option>
+						<option value="reward" <?php selected( $bonus_type, 'reward' ); ?>><?php esc_html_e( 'Physical Reward (e.g., Motorcycle)', 'wc-team-payroll' ); ?></option>
+						<option value="other" <?php selected( $bonus_type, 'other' ); ?>><?php esc_html_e( 'Other Recognition', 'wc-team-payroll' ); ?></option>
+					</select>
+				</div>
+				
+				<div class="wc-tp-bonus-field wc-tp-bonus-amount-field" style="<?php echo $bonus_type !== 'money' ? 'display:none;' : ''; ?>">
+					<label><?php esc_html_e( 'Bonus Amount', 'wc-team-payroll' ); ?></label>
+					<input type="number" name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][bonus_amount]" value="<?php echo esc_attr( $bonus_amount ); ?>" min="0" step="0.01" class="regular-text" />
+					<span class="description"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span>
+				</div>
+				
+				<div class="wc-tp-bonus-field wc-tp-bonus-full-width">
+					<label><?php esc_html_e( 'Bonus Description', 'wc-team-payroll' ); ?></label>
+					<input type="text" name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][bonus_description]" value="<?php echo esc_attr( $bonus_description ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., R15 Motorcycle, Certificate of Excellence', 'wc-team-payroll' ); ?>" required />
+					<p class="description"><?php esc_html_e( 'Description shown to employees and in notifications', 'wc-team-payroll' ); ?></p>
+				</div>
+				
+				<div class="wc-tp-bonus-field wc-tp-bonus-full-width">
+					<label><?php esc_html_e( 'Eligible Roles', 'wc-team-payroll' ); ?></label>
+					<div class="wc-tp-bonus-roles">
+						<?php if ( ! empty( $all_roles ) ) : ?>
+							<?php foreach ( $all_roles as $role_key => $role_name ) : ?>
+								<label class="wc-tp-checkbox-label">
+									<input type="checkbox" name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][eligible_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( in_array( $role_key, (array) $eligible_roles ) ); ?> />
+									<?php echo esc_html( $role_name ); ?>
+								</label>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<p class="description" style="color: #d63638;"><?php esc_html_e( 'No employee roles configured. Please configure employee roles first.', 'wc-team-payroll' ); ?></p>
+						<?php endif; ?>
+					</div>
+					<p class="description"><?php esc_html_e( 'Select which employee roles are eligible for this bonus', 'wc-team-payroll' ); ?></p>
+				</div>
+				
+				<div class="wc-tp-bonus-field wc-tp-bonus-checkbox">
+					<label>
+						<input type="checkbox" name="bonus_rules[<?php echo esc_attr( $index_attr ); ?>][repeatable]" value="1" <?php checked( $repeatable, 1 ); ?> />
+						<?php esc_html_e( 'Repeatable (can be earned multiple times)', 'wc-team-payroll' ); ?>
+					</label>
+					<p class="description"><?php esc_html_e( 'If unchecked, bonus can only be earned once per employee', 'wc-team-payroll' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -2108,6 +2296,7 @@ class WC_Team_Payroll_Performance_Settings {
 		delete_option( 'wc_tp_baselines_config' );
 		delete_option( 'wc_tp_calculation_config' );
 		delete_option( 'wc_tp_system_config' );
+		delete_option( 'wc_tp_achievement_bonuses' ); // Phase 2 Part 2
 
 		wp_send_json_success( array( 'message' => __( 'All performance data has been reset!', 'wc-team-payroll' ) ) );
 	}
@@ -3045,6 +3234,81 @@ class WC_Team_Payroll_Performance_Settings {
 		}
 		
 		return $sanitized;
+	}
+
+	/**
+	 * AJAX: Save bonus configuration (Phase 2 Part 2)
+	 */
+	public function ajax_save_bonus_config() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$bonus_config = isset( $_POST['bonus_config'] ) ? $_POST['bonus_config'] : array();
+
+		// Sanitize bonus configuration
+		$sanitized_config = array(
+			'enabled' => isset( $bonus_config['enabled'] ) ? 1 : 0,
+			'notification' => isset( $bonus_config['notification'] ) ? 1 : 0,
+			'show_progress' => isset( $bonus_config['show_progress'] ) ? 1 : 0,
+			'rules' => array(),
+		);
+
+		// Sanitize bonus rules
+		if ( isset( $bonus_config['rules'] ) && is_array( $bonus_config['rules'] ) ) {
+			foreach ( $bonus_config['rules'] as $rule ) {
+				// Skip empty rules
+				if ( empty( $rule['tier'] ) || empty( $rule['streak_count'] ) || empty( $rule['bonus_description'] ) ) {
+					continue;
+				}
+
+				$sanitized_rule = array(
+					'tier' => sanitize_text_field( $rule['tier'] ),
+					'streak_count' => intval( $rule['streak_count'] ),
+					'bonus_type' => sanitize_text_field( $rule['bonus_type'] ),
+					'bonus_amount' => floatval( $rule['bonus_amount'] ),
+					'bonus_description' => sanitize_text_field( $rule['bonus_description'] ),
+					'repeatable' => isset( $rule['repeatable'] ) ? 1 : 0,
+					'eligible_roles' => array(),
+				);
+
+				// Sanitize eligible roles
+				if ( isset( $rule['eligible_roles'] ) && is_array( $rule['eligible_roles'] ) ) {
+					foreach ( $rule['eligible_roles'] as $role ) {
+						$sanitized_rule['eligible_roles'][] = sanitize_text_field( $role );
+					}
+				}
+
+				$sanitized_config['rules'][] = $sanitized_rule;
+			}
+		}
+
+		// Save to database
+		update_option( 'wc_tp_achievement_bonuses', $sanitized_config );
+
+		wp_send_json_success( array( 
+			'message' => __( 'Bonus configuration saved successfully!', 'wc-team-payroll' ),
+			'config' => $sanitized_config
+		) );
+	}
+
+	/**
+	 * AJAX: Get bonus configuration (Phase 2 Part 2)
+	 */
+	public function ajax_get_bonus_config() {
+		check_ajax_referer( 'wc_tp_performance_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'wc-team-payroll' ) ) );
+		}
+
+		$bonus_config = get_option( 'wc_tp_achievement_bonuses', array() );
+
+		wp_send_json_success( array( 
+			'config' => $bonus_config
+		) );
 	}
 
 }

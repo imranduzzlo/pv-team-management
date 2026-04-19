@@ -85,6 +85,11 @@ class WC_Team_Payroll_Performance_Tracker_AJAX {
 				// Get achievements data
 				$data['achievements'] = $tracker->update_achievements( $user_id );
 				$data['stats'] = get_user_meta( $user_id, '_wc_tp_achievement_stats', true );
+				
+				// Phase 2 Part 3: Add streak and bonus data
+				$data['streaks'] = get_user_meta( $user_id, '_wc_tp_badge_streaks', true );
+				$data['bonus_history'] = get_user_meta( $user_id, '_wc_tp_bonus_history', true );
+				$data['bonus_milestones'] = self::get_bonus_milestones( $user_id );
 				break;
 
 			case 'baselines':
@@ -224,6 +229,112 @@ class WC_Team_Payroll_Performance_Tracker_AJAX {
 		}
 
 		return $stats;
+	}
+
+	/**
+	 * Get bonus milestones for user (Phase 2 Part 3)
+	 * 
+	 * @param int $user_id User ID
+	 * @return array Bonus milestones data
+	 */
+	private static function get_bonus_milestones( $user_id ) {
+		// Get user's role
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return array();
+		}
+
+		$user_roles = $user->roles;
+		$employee_roles = get_option( 'wc_tp_employee_roles', array() );
+		
+		// Find first matching employee role
+		$employee_role = '';
+		foreach ( $user_roles as $role ) {
+			if ( in_array( $role, $employee_roles ) ) {
+				$employee_role = $role;
+				break;
+			}
+		}
+
+		if ( empty( $employee_role ) ) {
+			return array();
+		}
+
+		// Get bonus configuration
+		$bonus_config = get_option( 'wc_tp_achievement_bonuses', array() );
+		
+		if ( empty( $bonus_config ) || empty( $bonus_config['rules'] ) ) {
+			return array();
+		}
+
+		// Get current streaks
+		$streaks = get_user_meta( $user_id, '_wc_tp_badge_streaks', true );
+		if ( ! is_array( $streaks ) ) {
+			$streaks = array(
+				'bronze' => array( 'count' => 0, 'last_month' => '' ),
+				'silver' => array( 'count' => 0, 'last_month' => '' ),
+				'gold' => array( 'count' => 0, 'last_month' => '' ),
+			);
+		}
+
+		// Get awarded bonuses (for non-repeatable tracking)
+		$awarded_bonuses = get_user_meta( $user_id, '_wc_tp_awarded_bonuses', true );
+		if ( ! is_array( $awarded_bonuses ) ) {
+			$awarded_bonuses = array();
+		}
+
+		$milestones = array();
+
+		// Process each bonus rule
+		foreach ( $bonus_config['rules'] as $index => $rule ) {
+			// Check if user's role is eligible
+			if ( empty( $rule['eligible_roles'] ) || ! in_array( $employee_role, $rule['eligible_roles'] ) ) {
+				continue;
+			}
+
+			$tier = $rule['tier'];
+			$required_months = intval( $rule['streak_count'] );
+			$current_streak = isset( $streaks[ $tier ]['count'] ) ? intval( $streaks[ $tier ]['count'] ) : 0;
+			$repeatable = isset( $rule['repeatable'] ) && $rule['repeatable'];
+
+			// Check if already awarded (for non-repeatable)
+			$bonus_key = $employee_role . '_' . $tier . '_' . $required_months;
+			$already_awarded = ! $repeatable && in_array( $bonus_key, $awarded_bonuses );
+
+			// Calculate progress
+			$progress_percentage = $required_months > 0 ? min( ( $current_streak / $required_months ) * 100, 100 ) : 0;
+			$months_remaining = max( 0, $required_months - $current_streak );
+
+			$milestones[] = array(
+				'tier' => $tier,
+				'required_months' => $required_months,
+				'current_streak' => $current_streak,
+				'months_remaining' => $months_remaining,
+				'progress_percentage' => $progress_percentage,
+				'bonus_type' => $rule['bonus_type'],
+				'bonus_amount' => isset( $rule['bonus_amount'] ) ? floatval( $rule['bonus_amount'] ) : 0,
+				'bonus_description' => isset( $rule['bonus_description'] ) ? $rule['bonus_description'] : '',
+				'repeatable' => $repeatable,
+				'already_awarded' => $already_awarded,
+				'is_active' => $current_streak > 0 && $current_streak < $required_months,
+				'is_achieved' => $current_streak >= $required_months,
+			);
+		}
+
+		// Sort by tier (gold first) and then by required months
+		usort( $milestones, function( $a, $b ) {
+			$tier_order = array( 'gold' => 1, 'silver' => 2, 'bronze' => 3 );
+			$tier_a = isset( $tier_order[ $a['tier'] ] ) ? $tier_order[ $a['tier'] ] : 4;
+			$tier_b = isset( $tier_order[ $b['tier'] ] ) ? $tier_order[ $b['tier'] ] : 4;
+			
+			if ( $tier_a !== $tier_b ) {
+				return $tier_a - $tier_b;
+			}
+			
+			return $a['required_months'] - $b['required_months'];
+		});
+
+		return $milestones;
 	}
 }
 

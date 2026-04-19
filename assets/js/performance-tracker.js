@@ -448,11 +448,14 @@
 
 			const achievements = data.achievements;
 			const stats = data.stats || {};
+			const streaks = data.streaks || {};
+			const bonusHistory = data.bonus_history || [];
+			const bonusMilestones = data.bonus_milestones || [];
 
 			const html = `
 				<div class="performance-achievements">
 					<div class="achievements-header">
-						<h3><i class="ph ph-trophy"></i> Achievements</h3>
+						<h3><i class="ph ph-trophy"></i> Achievements & Streaks</h3>
 						<div class="achievements-stats">
 							<span class="stat-badge">Total: ${stats.total_unlocked || 0}</span>
 							<span class="stat-badge bronze">🥉 ${stats.bronze_count || 0}</span>
@@ -461,11 +464,17 @@
 						</div>
 					</div>
 
+					${this.renderStreakIndicators(streaks)}
+					${this.renderBonusMilestones(bonusMilestones)}
+
+					<h4 style="margin-top: 32px; margin-bottom: 16px;"><i class="ph ph-medal"></i> Achievement Badges</h4>
 					<div class="achievements-grid">
 						${Object.entries(achievements).map(([key, achievement]) => 
 							this.renderAchievementCard(key, achievement)
 						).join('')}
 					</div>
+
+					${bonusHistory.length > 0 ? this.renderBonusHistory(bonusHistory) : ''}
 				</div>
 			`;
 
@@ -512,6 +521,201 @@
 					</div>
 				`;
 			}
+		},
+
+		/**
+		 * Render streak indicators (Phase 2 Part 3)
+		 */
+		renderStreakIndicators(streaks) {
+			if (!streaks || Object.keys(streaks).length === 0) {
+				return '';
+			}
+
+			const tierData = {
+				gold: { emoji: '🥇', color: '#FFD700', label: 'Gold' },
+				silver: { emoji: '🥈', color: '#C0C0C0', label: 'Silver' },
+				bronze: { emoji: '🥉', color: '#CD7F32', label: 'Bronze' }
+			};
+
+			// Find active streak
+			let activeStreak = null;
+			let maxStreak = 0;
+			
+			for (const [tier, data] of Object.entries(streaks)) {
+				if (data.count > 0 && data.count > maxStreak) {
+					maxStreak = data.count;
+					activeStreak = { tier, ...data, ...tierData[tier] };
+				}
+			}
+
+			if (!activeStreak) {
+				return `
+					<div class="streak-indicator-container">
+						<div class="streak-indicator no-streak">
+							<i class="ph ph-fire"></i>
+							<div class="streak-content">
+								<h4>No Active Streak</h4>
+								<p>Earn a badge this month to start your streak!</p>
+							</div>
+						</div>
+					</div>
+				`;
+			}
+
+			return `
+				<div class="streak-indicator-container">
+					<div class="streak-indicator active-streak" style="border-color: ${activeStreak.color};">
+						<div class="streak-flame" style="color: ${activeStreak.color};">
+							<i class="ph ph-fire-fill"></i>
+						</div>
+						<div class="streak-content">
+							<h4>
+								<span class="streak-badge" style="background: ${activeStreak.color}20; color: ${activeStreak.color};">
+									${activeStreak.emoji} ${activeStreak.label}
+								</span>
+								Streak Active!
+							</h4>
+							<div class="streak-count">
+								<span class="count-number">${activeStreak.count}</span>
+								<span class="count-label">Consecutive Month${activeStreak.count !== 1 ? 's' : ''}</span>
+							</div>
+							<p class="streak-message">Keep earning ${activeStreak.label} badges to maintain your streak!</p>
+						</div>
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Render bonus milestones (Phase 2 Part 3)
+		 */
+		renderBonusMilestones(milestones) {
+			if (!milestones || milestones.length === 0) {
+				return '';
+			}
+
+			const tierData = {
+				gold: { emoji: '🥇', color: '#FFD700', label: 'Gold' },
+				silver: { emoji: '🥈', color: '#C0C0C0', label: 'Silver' },
+				bronze: { emoji: '🥉', color: '#CD7F32', label: 'Bronze' }
+			};
+
+			return `
+				<div class="bonus-milestones-container">
+					<h4><i class="ph ph-gift"></i> Bonus Milestones</h4>
+					<div class="bonus-milestones-grid">
+						${milestones.map(milestone => {
+							const tier = tierData[milestone.tier];
+							const isAchieved = milestone.is_achieved;
+							const isActive = milestone.is_active;
+							const alreadyAwarded = milestone.already_awarded;
+							
+							let statusClass = '';
+							let statusText = '';
+							
+							if (alreadyAwarded) {
+								statusClass = 'awarded';
+								statusText = '✓ Awarded';
+							} else if (isAchieved) {
+								statusClass = 'achieved';
+								statusText = '🎉 Eligible!';
+							} else if (isActive) {
+								statusClass = 'active';
+								statusText = `${milestone.months_remaining} month${milestone.months_remaining !== 1 ? 's' : ''} to go`;
+							} else {
+								statusClass = 'inactive';
+								statusText = 'Not started';
+							}
+
+							return `
+								<div class="bonus-milestone-card ${statusClass}" style="border-color: ${tier.color};">
+									<div class="milestone-header" style="background: ${tier.color}20;">
+										<span class="milestone-badge" style="color: ${tier.color};">
+											${tier.emoji} ${tier.label}
+										</span>
+										<span class="milestone-months">${milestone.required_months} Month${milestone.required_months !== 1 ? 's' : ''}</span>
+									</div>
+									
+									<div class="milestone-body">
+										<div class="milestone-reward">
+											${milestone.bonus_type === 'money' ? `
+												<div class="reward-amount">${this.formatValue(milestone.bonus_amount, 'value')}</div>
+												<div class="reward-type">Cash Bonus</div>
+											` : `
+												<div class="reward-description">${milestone.bonus_description}</div>
+												<div class="reward-type">${milestone.bonus_type === 'reward' ? 'Physical Reward' : 'Recognition'}</div>
+											`}
+										</div>
+
+										<div class="milestone-progress">
+											<div class="progress-bar-container">
+												<div class="progress-bar" style="width: ${milestone.progress_percentage}%; background: ${tier.color};"></div>
+											</div>
+											<div class="progress-info">
+												<span class="progress-current">${milestone.current_streak}/${milestone.required_months}</span>
+												<span class="progress-status ${statusClass}">${statusText}</span>
+											</div>
+										</div>
+
+										${milestone.repeatable ? `
+											<div class="milestone-repeatable">
+												<i class="ph ph-repeat"></i> Repeatable
+											</div>
+										` : ''}
+									</div>
+								</div>
+							`;
+						}).join('')}
+					</div>
+				</div>
+			`;
+		},
+
+		/**
+		 * Render bonus history (Phase 2 Part 3)
+		 */
+		renderBonusHistory(history) {
+			if (!history || history.length === 0) {
+				return '';
+			}
+
+			const tierData = {
+				gold: { emoji: '🥇', color: '#FFD700', label: 'Gold' },
+				silver: { emoji: '🥈', color: '#C0C0C0', label: 'Silver' },
+				bronze: { emoji: '🥉', color: '#CD7F32', label: 'Bronze' }
+			};
+
+			return `
+				<div class="bonus-history-container">
+					<h4><i class="ph ph-clock-clockwise"></i> Bonus History</h4>
+					<div class="bonus-history-list">
+						${history.slice(0, 10).map(bonus => {
+							const tier = tierData[bonus.tier];
+							return `
+								<div class="bonus-history-item">
+									<div class="bonus-icon" style="background: ${tier.color}20; color: ${tier.color};">
+										${tier.emoji}
+									</div>
+									<div class="bonus-details">
+										<div class="bonus-title">
+											${tier.label} Badge Streak (${bonus.streak_count} month${bonus.streak_count !== 1 ? 's' : ''})
+										</div>
+										<div class="bonus-description">
+											${bonus.bonus_type === 'money' ? 
+												this.formatValue(bonus.bonus_amount, 'value') : 
+												bonus.bonus_description
+											}
+										</div>
+									</div>
+									<div class="bonus-date">
+										${bonus.awarded_date}
+									</div>
+								</div>
+							`;
+						}).join('')}
+					</div>
+				</div>
+			`;
 		},
 
 		/**
