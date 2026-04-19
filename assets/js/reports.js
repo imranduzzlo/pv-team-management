@@ -1077,12 +1077,21 @@ jQuery(document).ready(function($) {
 			const tableId = $(this).closest('.reports-table').attr('id');
 			const sortColumn = $(this).data('sort');
 			
+			console.log('Sort clicked:', {
+				tableId: tableId,
+				sortColumn: sortColumn,
+				currentSortColumn: tableState[tableId].sortColumn,
+				currentSortOrder: tableState[tableId].sortOrder
+			});
+			
 			// Toggle sort order if clicking same column
 			if (tableState[tableId].sortColumn === sortColumn) {
 				tableState[tableId].sortOrder = tableState[tableId].sortOrder === 'asc' ? 'desc' : 'asc';
+				console.log('Toggling sort order to:', tableState[tableId].sortOrder);
 			} else {
 				tableState[tableId].sortColumn = sortColumn;
 				tableState[tableId].sortOrder = 'asc';
+				console.log('New column, setting to asc');
 			}
 			
 			tableState[tableId].currentPage = 1;
