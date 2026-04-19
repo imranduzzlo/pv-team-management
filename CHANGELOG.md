@@ -43,10 +43,18 @@ foreach ( $payroll as $user_id => $data ) {
   - Fixed salary employees
   - Combined salary employees
 
-**EMPLOYEE PAYROLL DETAILS TABLE NOW SHOWS:**
-- ✅ Total Earnings = Commission + Salary (per employee)
-- ✅ Due = (Commission + Salary) - Paid (per employee)
-- ✅ Order Count = Dynamic commission statuses (per employee)
+**TABLES AUTOMATICALLY FIXED:**
+Since the payroll engine is the data source for multiple dashboard tables, the following tables are now all correct:
+
+1. **Employee Payroll Details Table:**
+   - ✅ Total Earnings = Commission + Salary (per employee)
+   - ✅ Due = (Commission + Salary) - Paid (per employee)
+   - ✅ Order Count = Dynamic commission statuses (per employee)
+
+2. **Top Earners Table:**
+   - ✅ Total Earnings = Commission + Salary (per employee)
+   - ✅ Order Count = Dynamic commission statuses (per employee)
+   - ✅ Sorted by complete earnings (commission + salary)
 
 **FILES MODIFIED:**
 - `includes/class-payroll-engine.php` - Updated both payroll functions to include salary in total and recalculate due
